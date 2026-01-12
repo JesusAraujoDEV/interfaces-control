@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear o editar Permiso - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        
+        <aside class="barra-lateral">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="logo-box">C</div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-800">Charlotte</h4>
+                    <p class="text-[10px] text-gray-400">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="menu-navegacion">
+                <a href="#"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="#"><i class="fa-solid fa-users"></i> Usuarios</a>
+                <a href="#"><i class="fa-solid fa-user-shield"></i> Roles</a>
+                <a href="#" class="activo"><i class="fa-solid fa-key"></i> Permisos</a>
+            </nav>
+
+            <div class="menu-inferior">
+                <a href="#"><i class="fa-solid fa-gear"></i> Ajustes</a>
+                <a href="#"><i class="fa-solid fa-right-from-bracket"></i> Salir</a>
+            </div>
+        </aside>
+
+        <main class="contenido-principal">
+            
+            <nav class="breadcrumb">
+                <span>Charlotte</span> / <span>Permisos</span> / <span class="actual">crear o editar</span>
+            </nav>
+
+            <header class="titulo-pagina">
+                <h1>Crear o editar Permiso</h1>
+                <p>Usa este formulario para definir un nuevo permiso y asociarlo a un rol.</p>
+            </header>
+
+            <section class="tarjeta-formulario">
+                <form>
+                    <div class="fila-input">
+                        <div class="grupo">
+                            <label>Nombre del Permiso</label>
+                            <input type="text" placeholder="ej., Ver Pedidos">
+                        </div>
+                        <div class="grupo">
+                            <label>Tipo</label>
+                            <select>
+                                <option>Selecciona un tipo</option>
+                                <option>Recurso</option>
+                                <option>Vista</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="fila-input">
+                        <div class="grupo">
+                            <label>Recurso</label>
+                            <select>
+                                <option>Selecciona un recurso</option>
+                                <option>Orden</option>
+                                <option>Mesa</option>
+                            </select>
+                        </div>
+                        <div class="grupo">
+                            <label>Método</label>
+                            <select>
+                                <option>Selecciona un método</option>
+                                <option>Crear</option>
+                                <option>Leer</option>
+                                <option>Actualizar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grupo">
+                        <label>Rol Asociado</label>
+                        <div class="multi-input">
+                            <span class="tag-rol">Mesero <i class="fa-solid fa-xmark"></i></span>
+                            <input type="text">
+                        </div>
+                    </div>
+
+                    <div class="acciones-finales">
+                        <button type="button" class="btn-cancelar">Cancelar</button>
+                        <button type="submit" class="btn-guardar">Crear Permiso</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

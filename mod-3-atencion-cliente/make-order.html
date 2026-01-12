@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlotte - Your Order</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body style="background-color: #f7faf9; display: block;"> <header class="header-minimal">
+        <span class="material-icons-outlined header-minimal__close">close</span>
+        <h1 class="header-minimal__title">Your Order</h1>
+    </header>
+
+    <section class="order-list">
+        <article class="order-item">
+            <img src="images/steak.jpg" alt="Steak" class="order-item__img">
+            <div class="order-item__info">
+                <h3 class="order-item__name">Steak</h3>
+                <p class="order-item__details">Medium-Rare, No Onions</p>
+                <p class="order-item__status">Pending Preparation</p>
+            </div>
+            <div class="quantity-control">
+                <button class="quantity-control__btn">-</button>
+                <span class="quantity-control__num">1</span>
+                <button class="quantity-control__btn">+</button>
+            </div>
+        </article>
+
+        <article class="order-item">
+            <img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&q=80&w=200" alt="Burger" class="order-item__img">
+            <div class="order-item__info">
+                <h3 class="order-item__name">Burger</h3>
+                <p class="order-item__details">Extra Cheese, Add Bacon</p>
+                <p class="order-item__status">Pending Preparation</p>
+            </div>
+            <div class="quantity-control">
+                <button class="quantity-control__btn">-</button>
+                <span class="quantity-control__num">1</span>
+                <button class="quantity-control__btn">+</button>
+            </div>
+        </article>
+
+        <article class="order-item">
+            <img src="images/fries.jpg" alt="Fries" class="order-item__img">
+            <div class="order-item__info">
+                <h3 class="order-item__name">Fries</h3>
+                <p class="order-item__details">No Salt</p>
+                <p class="order-item__status">Pending Preparation</p>
+            </div>
+            <div class="quantity-control">
+                <button class="quantity-control__btn">-</button>
+                <span class="quantity-control__num">1</span>
+                <button class="quantity-control__btn">+</button>
+            </div>
+        </article>
+    </section>
+
+    <section class="bill-summary">
+        <h2 class="bill-summary__title">Bill Summary</h2>
+        
+        <div class="bill-row bill-row--label">
+            <span>Subtotal</span>
+            <span>$42.97</span>
+        </div>
+        <div class="bill-row bill-row--label">
+            <span>VAT (10%)</span>
+            <span>$2.87</span>
+        </div>
+        <div class="bill-row bill-row--label">
+            <span>Local Taxes (2%)</span>
+            <span>$0.61</span>
+        </div>
+        <div class="bill-row bill-row--total">
+            <span>Total</span>
+            <span>$46.45</span>
+        </div>
+    </section>
+
+    <section class="order-actions">
+        <button class="btn--login">Send to Kitchen</button>
+        <button class="btn--login btn--secondary">Add More Items</button>
+    </section>
+
+    <nav class="bottom-nav">
+        <a href="#" class="bottom-nav__item">
+            <span class="material-icons-outlined">menu</span>
+            <span>Menu</span>
+        </a>
+        <a href="#" class="bottom-nav__item bottom-nav__item--active">
+            <span class="material-icons-outlined">shopping_cart</span>
+            <span>Cart</span>
+        </a>
+        <a href="#" class="bottom-nav__item">
+            <span class="material-icons-outlined">help_outline</span>
+            <span>Support</span>
+        </a>
+    </nav>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eficiencia Operacional - Charlotte</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar__logo">
+                <span class="icon">☕</span> CHARLOTTE
+                <p style="font-size: 0.6rem; font-weight: normal; margin-top: -5px;">Sweet & Coffee</p>
+            </div>
+
+            <nav class="sidebar__nav">
+                <a href="dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
+                <a href="index.html" class="sidebar__menu-item"><i>📊</i> Análisis de Ventas</a>
+                <a href="eficiencia.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
+                <a href="#" class="sidebar__menu-item"><i>📦</i> Inventario</a>
+                <a href="#" class="sidebar__menu-item"><i>📣</i> Marketing</a>
+            </nav>
+
+            <div class="sidebar__profile-footer">
+                <div class="sidebar__avatar" style="background-color: #ccc;"></div>
+                <div class="sidebar__logout" style="border:none; padding:0;">
+                    <a href="#" class="sidebar__menu-item" style="margin:0; padding:0; font-size: 0.8rem;">⚙️ Configuración</a>
+                    <a href="#" class="sidebar__menu-item" style="margin:0; padding:0; font-size: 0.8rem;">❓ Ayuda</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="header-top">
+                <div>
+                    <h1 class="header-top__title" style="color: var(--primary-color);">Eficiencia Operacional</h1>
+                    <p class="header-top__subtitle">Tiempo y Personal</p>
+                </div>
+            </header>
+
+            <section class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="kpi-card status-card">
+                    <div class="status-card__header">
+                        <span class="dot dot--success"></span> Órdenes Rápidas (<5m)
+                    </div>
+                    <p class="kpi-card__value">85%</p>
+                </div>
+                <div class="kpi-card status-card">
+                    <div class="status-card__header">
+                        <span class="dot dot--warning"></span> Espera Media (5-10m)
+                    </div>
+                    <p class="kpi-card__value">10%</p>
+                </div>
+                <div class="kpi-card status-card">
+                    <div class="status-card__header">
+                        <span class="dot dot--danger"></span> Retrasos Críticos (>10m)
+                    </div>
+                    <p class="kpi-card__value">5%</p>
+                </div>
+            </section>
+
+            <div class="dashboard-main-grid">
+                <section class="ranking-section">
+                    <h2 class="card__title" style="color: var(--primary-color);">Ranking de Personal</h2>
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <table class="data-table">
+                            <thead class="data-table__thead">
+                                <tr>
+                                    <th class="data-table__th">NOMBRE</th>
+                                    <th class="data-table__th">TURNO</th>
+                                    <th class="data-table__th">ÓRDENES TOTALES</th>
+                                    <th class="data-table__th">TIEMPO PROMEDIO</th>
+                                    <th class="data-table__th">ESTADO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="data-table__td">
+                                        <img src="https://i.pravatar.cc/150?u=ana" class="data-table__avatar"> Ana García
+                                    </td>
+                                    <td class="data-table__td">Mañana</td>
+                                    <td class="data-table__td">112</td>
+                                    <td class="data-table__td"><strong>4m 32s</strong></td>
+                                    <td class="data-table__td"><span class="badge badge--active">Activo</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-table__td">
+                                        <img src="https://i.pravatar.cc/150?u=luis" class="data-table__avatar"> Luis Pérez
+                                    </td>
+                                    <td class="data-table__td">Tarde</td>
+                                    <td class="data-table__td">98</td>
+                                    <td class="data-table__td"><strong>5m 15s</strong></td>
+                                    <td class="data-table__td"><span class="badge badge--active">Activo</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-table__td">
+                                        <img src="https://i.pravatar.cc/150?u=sofia" class="data-table__avatar"> Sofía Torres
+                                    </td>
+                                    <td class="data-table__td">Mañana</td>
+                                    <td class="data-table__td">95</td>
+                                    <td class="data-table__td"><strong>5m 45s</strong></td>
+                                    <td class="data-table__td"><span class="badge badge--break">Descanso</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="meta-section">
+                    <h2 class="card__title" style="color: var(--primary-color);">Meta de Rotación</h2>
+                    <div class="card gauge-container">
+                        <div class="gauge-placeholder">
+                            <div class="gauge-placeholder__fill"></div>
+                        </div>
+                        <p class="gauge-container__value">1.2</p>
+                        <p class="gauge-container__label">Rotación Actual</p>
+                        <p style="font-size: 0.7rem; margin-top: 15px; color: var(--text-muted);">
+                            <span class="dot dot--danger" style="width: 6px; height: 6px;"></span> Meta: 1.7
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

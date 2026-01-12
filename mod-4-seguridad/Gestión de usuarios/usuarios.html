@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        
+        <aside class="barra-lateral">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="logo-box">C</div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-800">Charlotte</h4>
+                    <p class="text-[10px] text-gray-400">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="menu-navegacion">
+                <a href="#"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="#"><i class="fa-solid fa-receipt"></i> Pedidos</a>
+                <a href="#" class="activo"><i class="fa-solid fa-user-group"></i> Usuarios</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Ajustes</a>
+            </nav>
+
+            <div class="menu-inferior">
+                <a href="#"><i class="fa-regular fa-circle-question"></i> Ayuda</a>
+            </div>
+        </aside>
+
+        <main class="contenido-principal">
+            
+            <header class="cabecera-seccion">
+                <div>
+                    <h1>Gestión de Usuarios</h1>
+                    <p>Gestiona usuarios, roles y permisos del sistema.</p>
+                </div>
+                <button class="btn-añadir">
+                    <i class="fa-solid fa-plus"></i> Añadir Nuevo Usuario
+                </button>
+            </header>
+
+            <div class="contenedor-busqueda">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Buscar por nombre de usuario o correo...">
+            </div>
+
+            <div class="tarjeta-tabla">
+                <table class="tabla-datos">
+                    <thead>
+                        <tr>
+                            <th>USUARIO + CORREO</th>
+                            <th>ROL</th>
+                            <th class="text-right">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="info-usuario">
+                                    <span class="nombre">Alex Johnson</span>
+                                    <span class="correo">alex.j@ejemplo.com</span>
+                                </div>
+                            </td>
+                            <td><span class="texto-rol">Manager <span class="sub-rol">Admin</span></span></td>
+                            <td class="acciones">
+                                <button class="btn-icono"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-icono"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-usuario">
+                                    <span class="nombre">Maria Garcia</span>
+                                    <span class="correo">maria.g@ejemplo.com</span>
+                                </div>
+                            </td>
+                            <td><span class="texto-rol">Chef</span></td>
+                            <td class="acciones">
+                                <button class="btn-icono"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-icono"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="info-usuario">
+                                    <span class="nombre">James Smith</span>
+                                    <span class="correo">james.s@ejemplo.com</span>
+                                </div>
+                            </td>
+                            <td><span class="texto-rol">Mesero <span class="sub-rol">Host</span></span></td>
+                            <td class="acciones">
+                                <button class="btn-icono"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-icono"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <footer class="paginacion">
+                    <button class="btn-flecha"><i class="fa-solid fa-chevron-left"></i></button>
+                    <span class="num-pagina activa">1</span>
+                    <span class="num-pagina">2</span>
+                    <span class="num-pagina">3</span>
+                    <span>...</span>
+                    <span class="num-pagina">10</span>
+                    <button class="btn-flecha"><i class="fa-solid fa-chevron-right"></i></button>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

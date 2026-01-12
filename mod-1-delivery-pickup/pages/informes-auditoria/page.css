@@ -1,0 +1,6 @@
+/* Custom small styles to match the mockup */
+.calendar-cell { height: 36px; display:flex; align-items:center; justify-content:center; }
+.calendar-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.range-bg { background-color: rgba(28, 78, 54, 0.06); }
+/* subtle card shadow + rounded like the screenshot */
+.device-bg { background: #efefef; }

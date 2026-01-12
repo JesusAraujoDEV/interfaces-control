@@ -1,0 +1,13 @@
+/* Small extra styles to fine-tune the stepper and fonts */
+:root { --muted: #8b9a92; --accent: #2aa46f; --muted-bg: #f2f7f4; }
+body { font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background-color:var(--muted-bg); }
+.step-icon { width: 36px; height: 36px; }
+.step-complete { border: 2px solid var(--accent); color: #111827; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+.step-pending { border: 2px solid #e6efe9; color: #111827; background: #fff; }
+.accent-border { border-color: var(--accent) !important; }
+.accent-text { color: var(--accent) !important; }
+.muted { color: var(--muted); }
+.muted-bg { background-color: var(--muted-bg); }
+.nav-item { flex: 1; text-align: center; }
+.nav-active { color: #000; }
+.nav-icon { height: 20px; width: 20px; }

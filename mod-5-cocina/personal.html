@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programador de Personal - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-container">
+
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Charlotte KOS</p>
+                <p class="sidebar__role">Kitchen OS</p>
+            </div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
+            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="users"></i> Personal</a>
+            <a href="#" class="sidebar__link"><i data-lucide="calendar"></i> Horarios</a>
+            <a href="#" class="sidebar__link"><i data-lucide="history"></i> Auditoría</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div>
+                <h1 class="header__title">Programador de Personal y Turnos</h1>
+                <p class="header__subtitle">Cocina Principal - Sucursal Centro</p>
+            </div>
+            <div class="header__actions">
+                <button class="btn btn--warning">Publicar Horario</button>
+            </div>
+        </header>
+
+        <section class="scheduler-controls">
+            <div class="scheduler-controls__group">
+                <div class="date-navigator">
+                    <button class="icon-btn-sm"><i data-lucide="chevron-left"></i></button>
+                    <span class="date-navigator__label">28 Octubre - 3 Noviembre, 2024</span>
+                    <button class="icon-btn-sm"><i data-lucide="chevron-right"></i></button>
+                </div>
+                <button class="icon-btn-sm"><i data-lucide="calendar-days"></i></button>
+                <button class="icon-btn-sm"><i data-lucide="copy"></i></button>
+            </div>
+            <div class="scheduler-controls__group">
+                <div class="view-toggle">
+                    <button class="view-toggle__btn">Día</button>
+                    <button class="view-toggle__btn view-toggle__btn--active">Semana</button>
+                    <button class="view-toggle__btn">Mes</button>
+                </div>
+                <button class="btn btn--primary"><i data-lucide="plus"></i> Añadir Turno</button>
+            </div>
+        </section>
+
+        <section class="scheduler">
+            <div class="scheduler__header">
+                <div class="scheduler__day-label">Lun <span>28</span></div>
+                <div class="scheduler__day-label">Mar <span>29</span></div>
+                <div class="scheduler__day-label">Mié <span>30</span></div>
+                <div class="scheduler__day-label scheduler__day-label--today">Jue <span>31</span></div>
+                <div class="scheduler__day-label">Vie <span>1</span></div>
+                <div class="scheduler__day-label">Sáb <span>2</span></div>
+                <div class="scheduler__day-label">Dom <span>3</span></div>
+            </div>
+
+            <div class="scheduler__body">
+                <div class="scheduler__column">
+                    <div class="shift-card">
+                        <p class="shift-card__name">John Smith</p>
+                        <p class="shift-card__time">9:00 AM - 5:00 PM</p>
+                        <p class="shift-card__role">Cocinero de Línea</p>
+                    </div>
+                    <div class="shift-card shift-card--unassigned">
+                        <p class="shift-card__name">Sin asignar</p>
+                        <p class="shift-card__time">10:00 AM - 6:00 PM</p>
+                        <p class="shift-card__role">Chef de Preparación</p>
+                    </div>
+                </div>
+
+                <div class="scheduler__column">
+                    <div class="shift-card">
+                        <p class="shift-card__name">Maria Garcia</p>
+                        <p class="shift-card__time">8:00 AM - 4:00 PM</p>
+                        <p class="shift-card__role">Sous Chef</p>
+                    </div>
+                    <div class="shift-card">
+                        <p class="shift-card__name">Chen Wei</p>
+                        <p class="shift-card__time">10:00 AM - 6:00 PM</p>
+                        <p class="shift-card__role">Chef de Preparación</p>
+                    </div>
+                </div>
+
+                <div class="scheduler__column">
+                    <div class="shift-card shift-card--unassigned">
+                        <p class="shift-card__name">Sin asignar</p>
+                        <p class="shift-card__time">8:00 AM - 4:00 PM</p>
+                        <p class="shift-card__role">Cocinero de Línea</p>
+                    </div>
+                    <div class="shift-card shift-card--conflict">
+                        <div class="shift-card__badge">Conflicto <i data-lucide="alert-triangle"></i></div>
+                        <p class="shift-card__name">David & John</p>
+                        <p class="shift-card__time">4:00 PM - 8:00 PM</p>
+                    </div>
+                </div>
+
+                <div class="scheduler__column"></div>
+                <div class="scheduler__column">
+                    <div class="shift-card shift-card--published">
+                        <p class="shift-card__name">Maria Garcia</p>
+                        <p class="shift-card__time">8:00 AM - 4:00 PM</p>
+                        <p class="shift-card__badge">Publicado</p>
+                    </div>
+                </div>
+                <div class="scheduler__column"></div>
+                <div class="scheduler__column"></div>
+            </div>
+        </section>
+    </main>
+
+    <aside class="staff-panel">
+            <div class="staff-panel__header">
+                <div class="staff-panel__title-row">
+                    <h2 class="staff-panel__title">Todo el Personal</h2>
+                    <button class="icon-btn-sm"><i data-lucide="users"></i></button>
+                </div>
+                <p class="staff-panel__subtitle">Arrastra para asignar turnos</p>
+                
+                <div class="search-bar search-bar--sm">
+                    <i data-lucide="search" class="search-bar__icon"></i>
+                    <input type="text" class="search-bar__input" placeholder="Filtrar por nombre, rol...">
+                </div>
+            </div>
+
+            <div class="staff-list">
+                <div class="staff-card staff-card--selected">
+                    <div class="staff-card__avatar-wrapper">
+                        <img src="https://i.pravatar.cc/150?u=john" alt="John" class="staff-card__img">
+                        <span class="status-dot status-dot--online"></span>
+                    </div>
+                    <div class="staff-card__info">
+                        <p class="staff-card__name">John Smith</p>
+                        <p class="staff-card__role">Cocinero de Línea / LC-04</p>
+                    </div>
+                </div>
+
+                <div class="staff-card">
+                    <div class="staff-card__avatar-wrapper">
+                        <img src="https://i.pravatar.cc/150?u=maria" alt="Maria" class="staff-card__img">
+                        <span class="status-dot status-dot--online"></span>
+                    </div>
+                    <div class="staff-card__info">
+                        <p class="staff-card__name">Maria Garcia</p>
+                        <p class="staff-card__role">Sous Chef / SC-01</p>
+                    </div>
+                </div>
+
+                <div class="staff-card">
+                    <div class="staff-card__avatar-wrapper">
+                        <img src="https://i.pravatar.cc/150?u=fatima" alt="Fatima" class="staff-card__img">
+                        <span class="status-dot status-dot--offline"></span>
+                    </div>
+                    <div class="staff-card__info">
+                        <p class="staff-card__name">Fatima Al-Sayed</p>
+                        <p class="staff-card__role">Lavaplatos / DW-07</p>
+                    </div>
+                </div>
+                
+                </div>
+        </aside>
+        
+    <script>lucide.createIcons();</script>
+</body>
+</html>

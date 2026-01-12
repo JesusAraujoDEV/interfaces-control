@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Inventory Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="layout__sidebar sidebar">
+            <div class="sidebar__profile">
+                <div class="sidebar__avatar"></div>
+                <div class="sidebar__info">
+                    <p class="sidebar__user-name">Charlotte</p>
+                    <p class="sidebar__user-role">Admin Panel</p>
+                </div>
+            </div>
+
+            <nav class="sidebar__nav">
+                <a href="#" class="sidebar__item">
+                    <span class="material-icons-outlined sidebar__icon">dashboard</span>
+                    <span class="sidebar__text">Dashboard</span>
+                </a>
+                <a href="#" class="sidebar__item sidebar__item--active">
+                    <span class="material-icons-outlined sidebar__icon">table_restaurant</span>
+                    <span class="sidebar__text">Table Inventory</span>
+                </a>
+                <a href="#" class="sidebar__item">
+                    <span class="material-icons-outlined sidebar__icon">restaurant_menu</span>
+                    <span class="sidebar__text">Menu</span>
+                </a>
+                <a href="#" class="sidebar__item">
+                    <span class="material-icons-outlined sidebar__icon">receipt_long</span>
+                    <span class="sidebar__text">Orders</span>
+                </a>
+                <a href="#" class="sidebar__item">
+                    <span class="material-icons-outlined sidebar__icon">settings</span>
+                    <span class="sidebar__text">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="layout__main">
+            <header class="content-header">
+                <h1 class="content-header__title">Table Inventory Management</h1>
+                <button class="btn btn--primary">
+                    <span class="material-icons-outlined">add</span>
+                    Create New Table
+                </button>
+            </header>
+
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search by Table Number or ID">
+            </div>
+
+            <div class="data-card">
+                <table class="table">
+                    <thead class="table__thead">
+                        <tr>
+                            <th class="table__th">ID</th>
+                            <th class="table__th">Table Number</th>
+                            <th class="table__th">QR UUID</th>
+                            <th class="table__th">Current Status</th>
+                            <th class="table__th">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table__tbody">
+                        <tr>
+                            <td class="table__td">101</td>
+                            <td class="table__td">1</td>
+                            <td class="table__td">a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</td>
+                            <td class="table__td"><span class="badge badge--available">Available</span></td>
+                            <td class="table__td">
+                                <span class="material-icons-outlined action-icon action-icon--edit">edit</span>
+                                <span class="material-icons-outlined action-icon action-icon--delete">delete</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="table__td">102</td>
+                            <td class="table__td">2</td>
+                            <td class="table__td">b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7</td>
+                            <td class="table__td"><span class="badge badge--occupied">Occupied</span></td>
+                            <td class="table__td">
+                                <span class="material-icons-outlined action-icon action-icon--edit">edit</span>
+                                <span class="material-icons-outlined action-icon action-icon--delete">delete</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="table__td">103</td>
+                            <td class="table__td">3</td>
+                            <td class="table__td">c3d4e5f6-g7h8-i9j0-k1l2-m3n4o5p6q7r8</td>
+                            <td class="table__td"><span class="badge badge--available">Available</span></td>
+                            <td class="table__td">
+                                <span class="material-icons-outlined action-icon action-icon--edit">edit</span>
+                                <span class="material-icons-outlined action-icon action-icon--delete">delete</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="table__td">104</td>
+                            <td class="table__td">4</td>
+                            <td class="table__td">d4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9</td>
+                            <td class="table__td"><span class="badge badge--out">Out of Service</span></td>
+                            <td class="table__td">
+                                <span class="material-icons-outlined action-icon action-icon--edit">edit</span>
+                                <span class="material-icons-outlined action-icon action-icon--delete">delete</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav class="pagination">
+                <a href="#" class="pagination__item"><span class="material-icons-outlined">chevron_left</span></a>
+                <a href="#" class="pagination__item pagination__item--active">1</a>
+                <a href="#" class="pagination__item">2</a>
+                <a href="#" class="pagination__item">3</a>
+                <span class="pagination__item">...</span>
+                <a href="#" class="pagination__item">8</a>
+                <a href="#" class="pagination__item">9</a>
+                <a href="#" class="pagination__item">10</a>
+                <a href="#" class="pagination__item"><span class="material-icons-outlined">chevron_right</span></a>
+            </nav>
+        </main>
+    </div>
+
+</body>
+</html>

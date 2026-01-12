@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Administrador de Gerentes</title>
+		<link rel="stylesheet" href="./page.css">
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body class="antialiased font-sans text-gray-900">
+		<!-- Top bar -->
+		<header class="bg-white shadow-sm">
+			<div class="max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto flex items-center gap-4 py-3 px-4 sm:px-6">
+				<button aria-label="volver" class="p-1 rounded-full text-gray-600">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+					</svg>
+				</button>
+				<div class="flex-1 text-center text-sm font-medium text-gray-800">Administrador de Gerentes</div>
+				<div style="width:32px"></div>
+			</div>
+		</header>
+
+		<!-- Content -->
+		<main class="max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-6 pt-6">
+			<h1 class="text-2xl sm:text-3xl md:text-3xl font-semibold mb-4">Gerentes</h1>
+
+			<section class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+				<!-- Item -->
+				<ul class="space-y-4">
+					<li class="flex items-center justify-between py-2 sm:py-3">
+						<div>
+							<div class="font-medium">Ethan Carter</div>
+							  <div class="text-sm text-gray-500">ID del gerente: 12345</div>
+						</div>
+						<label class="flex items-center cursor-pointer p-1 sm:p-2">
+							<input type="checkbox" class="toggle-input" />
+							<span class="toggle">
+								<span class="toggle-dot"></span>
+							</span>
+						</label>
+					</li>
+
+					<li class="flex items-center justify-between py-2 sm:py-3">
+						<div>
+							<div class="font-medium">Olivia Bennett</div>
+							  <div class="text-sm text-gray-500">ID del gerente: 67890</div>
+						</div>
+						<label class="flex items-center cursor-pointer p-1 sm:p-2">
+							<input type="checkbox" class="toggle-input" />
+							<span class="toggle">
+								<span class="toggle-dot"></span>
+							</span>
+						</label>
+					</li>
+
+					<li class="flex items-center justify-between py-2 sm:py-3">
+						<div>
+							<div class="font-medium">Noah Thompson</div>
+							  <div class="text-sm text-gray-500">ID del gerente: 11223</div>
+						</div>
+						<label class="flex items-center cursor-pointer p-1 sm:p-2">
+							<input type="checkbox" class="toggle-input" />
+							<span class="toggle">
+								<span class="toggle-dot"></span>
+							</span>
+						</label>
+					</li>
+
+					<li class="flex items-center justify-between py-2 sm:py-3">
+						<div>
+							<div class="font-medium">Ava Rodriguez</div>
+							  <div class="text-sm text-gray-500">ID del gerente: 44556</div>
+						</div>
+						<label class="flex items-center cursor-pointer p-1 sm:p-2">
+							<input type="checkbox" class="toggle-input" />
+							<span class="toggle">
+								<span class="toggle-dot"></span>
+							</span>
+						</label>
+					</li>
+
+					<li class="flex items-center justify-between py-2 sm:py-3">
+						<div>
+							<div class="font-medium">Liam Walker</div>
+							  <div class="text-sm text-gray-500">ID del gerente: 77889</div>
+						</div>
+						<label class="flex items-center cursor-pointer p-1 sm:p-2">
+							<input type="checkbox" class="toggle-input" />
+							<span class="toggle">
+								<span class="toggle-dot"></span>
+							</span>
+						</label>
+					</li>
+				</ul>
+			</section>
+		</main>
+
+		<!-- Botón de acción flotante -->
+		<button aria-label="agregar" class="fixed right-6 bottom-6 md:right-10 md:bottom-10 bg-green-700 text-white w-12 h-12 md:w-14 md:h-14 rounded-lg shadow-lg flex items-center justify-center">
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-7 md:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+			</svg>
+		</button>
+	</body>
+</html>
+

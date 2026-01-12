@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes Históricos - Charlotte</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar__profile">
+                <div class="sidebar__avatar"></div>
+                <div>
+                    <p class="sidebar__user-name">Charlotte</p>
+                    <p class="sidebar__user-role">Sweet & Coffee</p>
+                </div>
+            </div>
+
+            <nav class="sidebar__nav">
+                <a href="#" class="sidebar__menu-item sidebar__menu-item--active">
+                    <span>📊</span> Business Intelligence
+                </a>
+                <a href="#" class="sidebar__menu-item">
+                    <span>📋</span> Inventario
+                </a>
+                <a href="#" class="sidebar__menu-item">
+                    <span>👥</span> Empleados
+                </a>
+                <a href="#" class="sidebar__menu-item">
+                    <span>⚙️</span> Configuración
+                </a>
+            </nav>
+
+            <div class="sidebar__logout">
+                <a href="#" class="sidebar__menu-item">
+                    <span>🚪</span> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="header-top">
+                <div>
+                    <h1 class="header-top__title">Informes Históricos</h1>
+                    <p class="header-top__subtitle">Descarga de datos históricos y contabilidad.</p>
+                </div>
+                <button class="btn-primary">
+                    <span>📥</span> Exportar a Excel (.CSV)
+                </button>
+            </header>
+
+            <div class="dashboard-grid">
+                <aside class="filters-section">
+                    <div class="card">
+                        <h2 class="card__title">Filtros</h2>
+                        
+                        <div class="filter-group">
+                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Rango de Fechas</label>
+                            <div class="calendar-widget">
+                                <div class="calendar-widget__header">
+                                    <span>&lt;</span> Agosto 2024 <span>&gt;</span>
+                                </div>
+                                <div class="calendar-widget__grid">
+                                    <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
+                                    <span class="calendar-widget__day">1</span><span class="calendar-widget__day">2</span><span class="calendar-widget__day">3</span><span class="calendar-widget__day">4</span>
+                                    <span class="calendar-widget__day calendar-widget__day--selected">5</span><span class="calendar-widget__day">6</span><span class="calendar-widget__day">7</span><span class="calendar-widget__day">8</span><span class="calendar-widget__day">9</span><span class="calendar-widget__day calendar-widget__day--selected">10</span>
+                                    </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group" style="margin-top: 2rem;">
+                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Tipo de Informe</label>
+                            <select style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <option>Ventas</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center;">
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </aside>
+
+                <section class="table-section">
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <table class="data-table">
+                            <thead class="data-table__thead">
+                                <tr>
+                                    <th class="data-table__th">ID TRANSACCIÓN</th>
+                                    <th class="data-table__th">FECHA</th>
+                                    <th class="data-table__th">HORA</th>
+                                    <th class="data-table__th">CAMARERO</th>
+                                    <th class="data-table__th">CANTIDAD</th>
+                                    <th class="data-table__th">DURACIÓN TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="data-table__td">TXN-001254</td>
+                                    <td class="data-table__td">08/08/2024</td>
+                                    <td class="data-table__td">14:32</td>
+                                    <td class="data-table__td">Ana Pérez</td>
+                                    <td class="data-table__td"><strong>$45.50</strong></td>
+                                    <td class="data-table__td">25 min</td>
+                                </tr>
+                                </tbody>
+                        </table>
+                        <div style="padding: 15px; color: var(--text-muted); font-size: 0.8rem; display: flex; justify-content: space-between;">
+                            <span>Mostrando 1-6 de 82 resultados</span>
+                            <div>
+                                <button style="border:none; background:none; cursor:pointer;">&lt;</button>
+                                <button style="border:none; background:none; cursor:pointer;">&gt;</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Activos Fijos - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-container">
+
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Charlotte</p>
+                <p class="sidebar__role">Kitchen OS</p>
+            </div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
+            <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
+            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="wrench"></i> Activos Fijos</a>
+            <a href="#" class="sidebar__link"><i data-lucide="book-open"></i> Recetas</a>
+            <a href="#" class="sidebar__link"><i data-lucide="truck"></i> Proveedores</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <h1 class="header__title">Gestión de Activos Fijos</h1>
+            <div class="header__actions">
+                <button class="btn btn--secondary">Añadir Nuevo Activo</button>
+                <button class="btn btn--primary"><i data-lucide="clipboard-check"></i> Auditar Activos</button>
+            </div>
+        </header>
+
+        <section class="inventory-controls">
+            <div class="search-bar">
+                <i data-lucide="search" class="search-bar__icon"></i>
+                <input type="text" class="search-bar__input" placeholder="Buscar por nombre o ID...">
+            </div>
+            <div class="inventory-controls__view-options">
+                <button class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
+                <div class="view-toggle">
+                    <button class="view-toggle__btn view-toggle__btn--active"><i data-lucide="layout-grid"></i></button>
+                    <button class="view-toggle__btn"><i data-lucide="list"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="assets-grid">
+            
+            <article class="asset-card">
+                <div class="asset-card__image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1594140710204-5825bc5f5d84?auto=format&fit=crop&w=400" alt="Sartén" class="asset-card__img">
+                </div>
+                <div class="asset-card__content">
+                    <h3 class="asset-card__title">Sartén de teflón</h3>
+                    <p class="asset-card__total">Total: 25</p>
+                    <span class="badge badge--success">Operativo</span>
+                </div>
+            </article>
+
+            <article class="asset-card">
+                <div class="asset-card__image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=400" alt="Cuchillo" class="asset-card__img">
+                </div>
+                <div class="asset-card__content">
+                    <h3 class="asset-card__title">Cuchillo de chef</h3>
+                    <p class="asset-card__total">Total: 15</p>
+                    <span class="badge badge--success">Operativo</span>
+                </div>
+            </article>
+
+            <article class="asset-card">
+                <div class="asset-card__image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1574633062347-99a0ad7934b5?auto=format&fit=crop&w=400" alt="Tazones" class="asset-card__img">
+                </div>
+                <div class="asset-card__content">
+                    <h3 class="asset-card__title">Juego de tazones</h3>
+                    <p class="asset-card__total">Total: 10</p>
+                    <span class="badge badge--warning">Dañado</span>
+                </div>
+            </article>
+
+            <article class="asset-card">
+                <div class="asset-card__image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1582231243152-32a8264582f3?auto=format&fit=crop&w=400" alt="Tabla" class="asset-card__img">
+                </div>
+                <div class="asset-card__content">
+                    <h3 class="asset-card__title">Tabla de cortar</h3>
+                    <p class="asset-card__total">Total: 30</p>
+                    <span class="badge badge--danger">Perdido</span>
+                </div>
+            </article>
+
+        </section>
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

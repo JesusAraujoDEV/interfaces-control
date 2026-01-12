@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Despacho de Camareros - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-container app-container--centered">
+
+    <div class="dispatch-layout">
+        <header class="dispatch-header">
+            <div class="dispatch-header__top">
+                <div class="brand">
+                    <i data-lucide="utensils" class="brand__icon"></i>
+                    <span class="brand__name">Charlotte KOS</span>
+                </div>
+                <div class="user-profile-sm">
+                    <img src="avatar.jpg" alt="User" class="user-profile-sm__img">
+                </div>
+            </div>
+            <div class="dispatch-header__main">
+                <h1 class="header__title">Vista de Despacho de Camareros</h1>
+                <p class="header__subtitle">Feed en vivo de todos los pedidos listos para despachar.</p>
+            </div>
+        </header>
+
+        <nav class="dispatch-tabs">
+            <button class="dispatch-tabs__btn dispatch-tabs__btn--active">Todos</button>
+            <button class="dispatch-tabs__btn">Mesas</button>
+            <button class="dispatch-tabs__btn">Delivery</button>
+        </nav>
+
+        <section class="dispatch-feed">
+            <article class="dispatch-item">
+                <div class="dispatch-item__header">
+                    <h2 class="dispatch-item__title">MESA 5</h2>
+                    <span class="dispatch-item__timer">hace 2 min</span>
+                </div>
+                <div class="dispatch-item__content">
+                    <span class="dispatch-item__status">Listo</span>
+                    <p class="dispatch-item__description">2x Hamburguesa Clásica, 1x Patatas Fritas</p>
+                </div>
+            </article>
+
+            <article class="dispatch-item">
+                <div class="dispatch-item__header">
+                    <h2 class="dispatch-item__title">DELIVERY #104</h2>
+                    <span class="dispatch-item__timer">hace 5 min</span>
+                </div>
+                <div class="dispatch-item__content">
+                    <span class="dispatch-item__status">Listo</span>
+                    <p class="dispatch-item__description">1x Bol Vegano, 1x Ensalada</p>
+                </div>
+            </article>
+
+            <article class="dispatch-item">
+                <div class="dispatch-item__header">
+                    <h2 class="dispatch-item__title">MESA 12</h2>
+                    <span class="dispatch-item__timer">hace 8 min</span>
+                </div>
+                <div class="dispatch-item__content">
+                    <span class="dispatch-item__status">Listo</span>
+                    <p class="dispatch-item__description">1x Filete con Patatas, 1x Sopa del Día</p>
+                </div>
+            </article>
+        </section>
+
+        <footer class="dispatch-actions">
+            <button class="btn btn--primary btn--xl">
+                <i data-lucide="check-check"></i> MARCAR ENTREGADO
+            </button>
+        </footer>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

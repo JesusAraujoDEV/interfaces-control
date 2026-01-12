@@ -1,0 +1,2 @@
+/* small helper to mimic the thin separators in the mock */
+.thin-line { height: 1px; background-color: rgba(0,0,0,0.08); }

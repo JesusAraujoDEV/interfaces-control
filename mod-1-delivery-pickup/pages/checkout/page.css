@@ -1,0 +1,16 @@
+/* Fallback visual para el selector Entrega / Recogida.
+	La lógica en `page.js` ya alterna `aria-pressed`, así que esto asegura
+	que siempre se vea el estado activo aunque Tailwind/brand no aplique. */
+
+#deliveryBtn[aria-pressed="true"],
+#pickupBtn[aria-pressed="true"] {
+	background-color: #0f4a22;
+	color: #ffffff;
+}
+
+#deliveryBtn[aria-pressed="false"],
+#pickupBtn[aria-pressed="false"] {
+	background-color: #f3f4f6;
+	color: #374151;
+}
+

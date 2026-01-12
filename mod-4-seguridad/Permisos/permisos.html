@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Permisos - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body class="bg-gray-100">
+
+    <div class="contenedor-dashboard">
+        
+        <aside class="barra-lateral">
+            <div class="perfil-usuario">
+                <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Admin">
+                <h3>Charlotte</h3>
+                <p>Admin de Restaurante</p>
+            </div>
+
+            <nav class="menu-navegacion">
+                <a href="#"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="#"><i class="fa-solid fa-users"></i> Usuarios</a>
+                <a href="#"><i class="fa-solid fa-user-shield"></i> Roles</a>
+                <a href="#" class="activo"><i class="fa-solid fa-key"></i> Permisos</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Ajustes</a>
+            </nav>
+
+            <a href="#" class="boton-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+            </a>
+        </aside>
+
+        <main class="contenido-principal">
+            
+            <header class="cabecera">
+                <div>
+                    <h1>Permisos</h1>
+                    <p>Gestiona todos los permisos del sistema para usuarios y roles.</p>
+                </div>
+                <button class="boton-añadir">
+                    <i class="fa-solid fa-plus"></i> Añadir Permiso
+                </button>
+            </header>
+
+            <div class="contenedor-busqueda">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Buscar por nombre de permiso o recurso...">
+            </div>
+
+            <div class="tarjeta-tabla">
+                <table class="tabla-permisos">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Permiso</th>
+                            <th>Tipo</th>
+                            <th>Recurso</th>
+                            <th>Método</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Crear Nuevo Pedido</td>
+                            <td><span class="badge azul">RECURSO</span></td>
+                            <td><span class="badge gris">ORDER</span></td>
+                            <td><span class="badge amarillo">CREATE</span></td>
+                            <td><i class="fa-solid fa-pen-to-square"></i> <i class="fa-solid fa-trash"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Ver Detalles de Receta</td>
+                            <td><span class="badge morado">VIEW</span></td>
+                            <td><span class="badge gris">RECIPE</span></td>
+                            <td><span class="badge amarillo">VIEW</span></td>
+                            <td><i class="fa-solid fa-pen-to-square"></i> <i class="fa-solid fa-trash"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Actualizar Estado de Mesa</td>
+                            <td><span class="badge azul">RECURSO</span></td>
+                            <td><span class="badge gris">TABLE</span></td>
+                            <td><span class="badge amarillo">UPDATE</span></td>
+                            <td><i class="fa-solid fa-ellipsis"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="paginacion">
+                    <span><i class="fa-solid fa-chevron-left"></i></span>
+                    <span class="pagina-activa">1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>...</span>
+                    <span>10</span>
+                    <span><i class="fa-solid fa-chevron-right"></i></span>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+</body>
+</html>

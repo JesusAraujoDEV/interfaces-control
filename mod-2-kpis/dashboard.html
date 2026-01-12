@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Charlotte</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar__logo">
+                <span class="icon">☕</span> CHARLOTTE
+            </div>
+
+            <nav class="sidebar__nav">
+                <a href="dashboard.html" class="sidebar__menu-item sidebar__menu-item--active">
+                    <i>🏠</i> Dashboard
+                </a>
+                <a href="index.html" class="sidebar__menu-item">
+                    <i>📊</i> Reportes
+                </a>
+                <a href="#" class="sidebar__menu-item">
+                    <i>📦</i> Inventario
+                </a>
+                <a href="#" class="sidebar__menu-item">
+                    <i>⚙️</i> Configuración
+                </a>
+            </nav>
+
+            <div class="sidebar__profile-footer">
+                <div class="sidebar__avatar" style="background-image: url('user.jpg'); background-size: cover;"></div>
+                <div>
+                    <p class="sidebar__user-name">Juan Pérez</p>
+                    <p class="sidebar__user-role">Administrador</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="header-top">
+                <div>
+                    <h1 class="header-top__title">HOLA, JUAN</h1>
+                    <p class="header-top__subtitle">Este es el resumen de tu negocio.</p>
+                </div>
+                <div class="date-badge" style="background: white; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
+                    📅 Hoy, Dic 01
+                </div>
+            </header>
+
+            <section class="stats-grid">
+                <div class="kpi-card">
+                    <p class="kpi-card__label">Ingresos</p>
+                    <p class="kpi-card__value">$12,450</p>
+                    <span class="kpi-card__trend kpi-card__trend--up">+12%</span>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-card__label">Meta Trimestral</p>
+                    <p class="kpi-card__value">65%</p>
+                    <p style="font-size: 0.7rem; color: var(--text-muted);">$450k</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-card__label">Tiempo Atención</p>
+                    <p class="kpi-card__value">04:15 min</p>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Óptimo ⏱️</span>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-card__label">Rotación</p>
+                    <p class="kpi-card__value">1.2 /hr</p>
+                    <span class="kpi-card__trend kpi-card__trend--down">Bajo Meta 1.7</span>
+                </div>
+            </section>
+
+            <div class="dashboard-main-grid">
+                <div class="chart-container">
+                    <h2 class="card__title">Ventas por Hora</h2>
+                    <p class="kpi-card__value" style="font-size: 1.5rem;">$1,850 <span style="font-size: 0.8rem; color: #28a745;">Hoy +8.2%</span></p>
+                    <div style="width: 100%; height: 250px; background: linear-gradient(transparent, #e8f3ee); border-bottom: 2px solid var(--primary-color); margin-top: 20px; border-radius: 0 0 10px 10px;"></div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; color: var(--text-muted); font-size: 0.7rem;">
+                        <span>8 AM</span><span>12 PM</span><span>4 PM</span><span>8 PM</span>
+                    </div>
+                </div>
+
+                <div class="stock-alerts">
+                    <h2 class="card__title">Alertas de Stock</h2>
+                    
+                    <div class="stock-item">
+                        <span class="stock-item__name">Tomates</span>
+                        <div style="display: flex; align-items: center;">
+                            <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--low" style="width: 15%;"></div></div>
+                            <span class="stock-item__percent">15%</span>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <span class="stock-item__name">Queso</span>
+                        <div style="display: flex; align-items: center;">
+                            <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--low" style="width: 25%;"></div></div>
+                            <span class="stock-item__percent">25%</span>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <span class="stock-item__name">Café en Grano</span>
+                        <div style="display: flex; align-items: center;">
+                            <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--high" style="width: 80%;"></div></div>
+                            <span class="stock-item__percent">80%</span>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

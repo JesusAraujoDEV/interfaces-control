@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Operational Threshold Config</title>
+    <link rel="stylesheet" href="./page.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm h-[820px] bg-[#f5f6f5] rounded-lg shadow-md overflow-hidden">
+      <div class="card h-full flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center gap-4 px-4 py-3 bg-white/0">
+          <button aria-label="back" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h2 class="text-lg font-semibold text-gray-800">Configuración de Umbrales Operativos</h2>
+        </div>
+
+        <div class="px-4 py-3 border-b border-gray-200">
+          <h3 class="text-sm font-semibold text-gray-800">Tiempos Máximos</h3>
+        </div>
+
+        <div class="flex-1 overflow-auto px-4 py-3">
+          <!-- Item -->
+          <div class="mb-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-800">Tiempo de preparación (cocina)</p>
+                <p class="text-xs text-gray-400">Tiempo máximo permitido para que la cocina prepare un pedido</p>
+              </div>
+              <div class="text-sm font-semibold text-gray-700 mt-1">15 min</div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-800">Tiempo de espera (despacho)</p>
+                <p class="text-xs text-gray-400">Tiempo máximo permitido para que el despacho espere un pedido</p>
+              </div>
+              <div class="text-sm font-semibold text-gray-700 mt-1">5 min</div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-800">Tiempo de entrega</p>
+                <p class="text-xs text-gray-400">Tiempo máximo permitido para que la entrega complete un pedido</p>
+              </div>
+              <div class="text-sm font-semibold text-gray-700 mt-1">30 min</div>
+            </div>
+          </div>
+
+          <div class="px-1 py-2">
+            <h4 class="text-sm font-semibold text-gray-800 mb-3">Valores Críticos</h4>
+
+            <div class="mb-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-800">Tasa de aceptación de pedidos</p>
+                  <p class="text-xs text-gray-400">Valor crítico para la tasa de aceptación de pedidos</p>
+                </div>
+                <div class="text-sm font-semibold text-gray-700 mt-1">95%</div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-800">Tasa de cancelación de pedidos</p>
+                  <p class="text-xs text-gray-400">Valor crítico para la tasa de cancelación de pedidos</p>
+                </div>
+                <div class="text-sm font-semibold text-gray-700 mt-1">5%</div>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-800">Tasa de éxito de entrega</p>
+                  <p class="text-xs text-gray-400">Valor crítico para la tasa de éxito de entrega</p>
+                </div>
+                <div class="text-sm font-semibold text-gray-700 mt-1">98%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 pb-6 pt-2 bg-transparent">
+          <button class="w-full bg-[#1f5a3a] hover:bg-[#16472b] text-white py-3 rounded-lg shadow-sm">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría y Movimientos - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-container">
+
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Charlotte KOS</p>
+                <p class="sidebar__role">Kitchen Operating System</p>
+            </div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
+            <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
+            <a href="#" class="sidebar__link"><i data-lucide="clipboard-list"></i> Pedidos</a>
+            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="history"></i> Registros de Auditoría</a>
+            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a href="#" class="sidebar__link"><i data-lucide="help-circle"></i> Ayuda</a>
+            <a href="#" class="sidebar__link"><i data-lucide="log-out"></i> Cerrar Sesión</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <h1 class="header__title">Registros de Auditoría y Movimientos</h1>
+        </header>
+
+        <section class="audit-filters">
+            <div class="date-picker">
+                <i data-lucide="calendar" class="date-picker__icon"></i>
+                <span class="date-picker__range">5 Ene, 2024 - 7 Feb, 2024</span>
+            </div>
+            <button class="btn btn--primary btn--icon">
+                <i data-lucide="download"></i> Exportar
+            </button>
+        </section>
+
+        <section class="table-container">
+            <table class="table">
+                <thead class="table__head">
+                    <tr>
+                        <th>FECHA</th>
+                        <th>ÍTEM</th>
+                        <th>TIPO DE MOVIMIENTO</th>
+                        <th>CANTIDAD</th>
+                        <th>USUARIO</th>
+                        <th>RAZÓN</th>
+                    </tr>
+                </thead>
+                <tbody class="table__body">
+                    <tr class="table__row">
+                        <td>2024-01-31 09:15 AM</td>
+                        <td><strong>Carne de Angus</strong></td>
+                        <td><span class="badge-pill badge-pill--blue">Venta</span></td>
+                        <td>-5 unidades</td>
+                        <td>John Doe</td>
+                        <td>Pedido #1123</td>
+                    </tr>
+                    <tr class="table__row">
+                        <td>2024-01-30 11:00 PM</td>
+                        <td><strong>Pan Brioche</strong></td>
+                        <td><span class="badge-pill badge-pill--red">Merma</span></td>
+                        <td>-12 unidades</td>
+                        <td>Jane Smith</td>
+                        <td>Expirado</td>
+                    </tr>
+                    <tr class="table__row">
+                        <td>2024-01-30 08:30 AM</td>
+                        <td><strong>Queso Cheddar</strong></td>
+                        <td><span class="badge-pill badge-pill--green">Compra</span></td>
+                        <td>+10 kg</td>
+                        <td>Admin</td>
+                        <td>Pedido Proveedor #5678</td>
+                    </tr>
+                    <tr class="table__row">
+                        <td>2024-01-29 02:45 PM</td>
+                        <td><strong>Tomates</strong></td>
+                        <td><span class="badge-pill badge-pill--blue">Venta</span></td>
+                        <td>-2 kg</td>
+                        <td>John Doe</td>
+                        <td>Pedido #1121</td>
+                    </tr>
+                    <tr class="table__row">
+                        <td>2024-01-28 10:00 PM</td>
+                        <td><strong>Lechuga</strong></td>
+                        <td><span class="badge-pill badge-pill--yellow">Ajuste de Inventario</span></td>
+                        <td>-1 kg</td>
+                        <td>Jane Smith</td>
+                        <td>Deterioro</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

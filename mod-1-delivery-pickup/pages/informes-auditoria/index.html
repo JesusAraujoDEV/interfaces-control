@@ -1,0 +1,187 @@
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Informes y exportación de datos de auditoría</title>
+		<link rel="stylesheet" href="./page.css">
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body class="bg-gray-300 min-h-screen flex items-center justify-center p-4 device-bg">
+		<div class="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden">
+			<div class="p-4 border-b">
+				<div class="flex items-center gap-3">
+					<button aria-label="atrás" class="p-1 rounded-full hover:bg-gray-100">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+						</svg>
+					</button>
+					<h1 class="flex-1 text-center font-semibold text-gray-800">Informes y exportación de datos de auditoría</h1>
+					<div class="w-6"></div>
+				</div>
+			</div>
+
+			<div class="p-4">
+				<!-- Octubre 2024 -->
+				<div class="mb-4">
+					<div class="flex items-center justify-between mb-3">
+						<div class="flex items-center gap-3 text-gray-700">
+							<button class="p-1 rounded hover:bg-gray-100">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+								</svg>
+							</button>
+							<h2 class="font-medium">Octubre 2024</h2>
+						</div>
+						<div>
+							<button class="p-1 rounded hover:bg-gray-100">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								</svg>
+							</button>
+						</div>
+					</div>
+
+					<div class="text-xs text-gray-500 grid grid-cols-7 gap-2 mb-2 text-center">
+						<div>D</div><div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div>
+					</div>
+
+					<!-- Calendar grid for October with range background -->
+					<div class="range-bg p-3 rounded">
+						<div class="calendar-week">
+							<div class="calendar-cell text-gray-400"></div>
+							<div class="calendar-cell text-gray-400">1</div>
+							<div class="calendar-cell text-gray-400">2</div>
+							<div class="calendar-cell text-gray-400">3</div>
+							<div class="calendar-cell text-white">
+								<div class="w-8 h-8 bg-emerald-700 rounded-full flex items-center justify-center text-white">4</div>
+							</div>
+							<div class="calendar-cell text-white">
+								<div class="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white">5</div>
+							</div>
+							<div class="calendar-cell text-gray-800">6</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">8</div>
+							<div class="calendar-cell">9</div>
+							<div class="calendar-cell">10</div>
+							<div class="calendar-cell">11</div>
+							<div class="calendar-cell">12</div>
+							<div class="calendar-cell">13</div>
+							<div class="calendar-cell">14</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">15</div>
+							<div class="calendar-cell">16</div>
+							<div class="calendar-cell">17</div>
+							<div class="calendar-cell">18</div>
+							<div class="calendar-cell">19</div>
+							<div class="calendar-cell">20</div>
+							<div class="calendar-cell">21</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">22</div>
+							<div class="calendar-cell">23</div>
+							<div class="calendar-cell">24</div>
+							<div class="calendar-cell">25</div>
+							<div class="calendar-cell">26</div>
+							<div class="calendar-cell">27</div>
+							<div class="calendar-cell">28</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">29</div>
+							<div class="calendar-cell">30</div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- November 2024 -->
+				<div class="mb-6">
+					<div class="flex items-center justify-between mb-3">
+						<div></div>
+						<h2 class="font-medium">Noviembre 2024</h2>
+						<div>
+							<button class="p-1 rounded hover:bg-gray-100">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								</svg>
+							</button>
+						</div>
+					</div>
+
+					<div class="text-xs text-gray-500 grid grid-cols-7 gap-2 mb-2 text-center">
+						<div>D</div><div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div>
+					</div>
+
+					<div class="p-3 rounded range-bg">
+						<div class="calendar-week">
+							<div class="calendar-cell">1</div>
+							<div class="calendar-cell">2</div>
+							<div class="calendar-cell">3</div>
+							<div class="calendar-cell">4</div>
+							<div class="calendar-cell">5</div>
+							<div class="calendar-cell">6</div>
+							<div class="calendar-cell">
+								<div class="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white">7</div>
+							</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">8</div>
+							<div class="calendar-cell">9</div>
+							<div class="calendar-cell">10</div>
+							<div class="calendar-cell">11</div>
+							<div class="calendar-cell">12</div>
+							<div class="calendar-cell">13</div>
+							<div class="calendar-cell">14</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">15</div>
+							<div class="calendar-cell">16</div>
+							<div class="calendar-cell">17</div>
+							<div class="calendar-cell">18</div>
+							<div class="calendar-cell">19</div>
+							<div class="calendar-cell">20</div>
+							<div class="calendar-cell">21</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">22</div>
+							<div class="calendar-cell">23</div>
+							<div class="calendar-cell">24</div>
+							<div class="calendar-cell">25</div>
+							<div class="calendar-cell">26</div>
+							<div class="calendar-cell">27</div>
+							<div class="calendar-cell">28</div>
+						</div>
+
+						<div class="calendar-week mt-2">
+							<div class="calendar-cell">29</div>
+							<div class="calendar-cell">30</div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+							<div class="calendar-cell"></div>
+						</div>
+					</div>
+				</div>
+
+				<div class="pt-2">
+					<button class="w-full bg-emerald-700 text-white py-3 rounded-md font-medium hover:opacity-95">Generar informe</button>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

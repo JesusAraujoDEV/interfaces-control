@@ -1,0 +1,6 @@
+:root{--muted:#f3f7f5;--card:#eef6f1}
+html,body{height:100%}
+body{font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#efefef}
+/* small decorative phone frame to center the design */
+.phone-frame{max-width:420px;margin:28px auto;background:#ffffff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.08);overflow:hidden}
+.pill-shadow{box-shadow:0 6px 14px rgba(30,60,40,0.08)}

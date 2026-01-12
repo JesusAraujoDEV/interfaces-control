@@ -1,0 +1,184 @@
+:root {
+    --verde-oscuro: #1e4d35;
+    --verde-claro: #dcfce7;
+    --gris-borde: #e5e7eb;
+}
+
+.contenedor-dashboard {
+    display: flex;
+    height: 100vh;
+}
+
+/* Barra Lateral */
+.barra-lateral {
+    width: 260px;
+    background: white;
+    border-right: 1px solid var(--gris-borde);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.perfil-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 20px;
+}
+
+.avatar-letra {
+    width: 36px;
+    height: 36px;
+    background: #f1f3f5;
+    color: #4b5563;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.menu-navegacion { flex-grow: 1; }
+
+.menu-navegacion a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    color: #4b5563;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.menu-navegacion a.activo {
+    background: var(--verde-claro);
+    color: var(--verde-oscuro);
+    font-weight: 600;
+}
+
+.btn-nuevo-restaurante {
+    background: var(--verde-oscuro);
+    color: white;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.menu-inferior {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    
+}
+
+/* Contenido Principal */
+.contenido-principal {
+    flex-grow: 1;
+    padding: 40px;
+}
+
+.breadcrumb { font-size: 0.8rem; color: #9ca3af; margin-bottom: 5px; }
+.breadcrumb .actual { color: #374151; }
+
+.titulo-pagina h1 { font-size: 1.5rem; font-weight: bold; }
+.titulo-pagina p { color: #6b7280; margin-bottom: 30px; }
+
+/* Layout de Configuración (2 Columnas) */
+.layout-configuracion {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 30px;
+}
+
+/* Tarjeta Formulario */
+.tarjeta-formulario-geo {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.tarjeta-formulario-geo h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+.formulario-geo .grupo { margin-bottom: 15px; }
+
+.formulario-geo label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+.input-con-icono {
+    position: relative;
+}
+
+.input-con-icono i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.input-con-icono input { padding-left: 35px; }
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--gris-borde);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.fila-input {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.acciones-geo {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-guardar {
+    background: var(--verde-oscuro);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    flex-grow: 1;
+}
+
+.btn-cancelar {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 10px 20px;
+    border-radius: 6px;
+    flex-grow: 1;
+}
+
+.contenedor-mapa {
+    background: #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 500px; /* Altura obligatoria para que el mapa aparezca */
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+#mapa {
+    z-index: 1; /* Para que no se encime sobre menús si los hay */
+}

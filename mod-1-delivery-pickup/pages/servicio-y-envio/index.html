@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Servicio y Envío</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./page.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 flex items-start justify-center py-6">
+    <main class="phone-frame">
+      <header class="bg-white px-5 py-4 border-b border-gray-200">
+        <div class="flex items-center gap-4">
+          <button aria-label="back" class="p-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18l-6-6 6-6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <h1 class="text-center flex-1 font-semibold text-lg">Servicio y Envío</h1>
+        </div>
+      </header>
+
+      <section class="px-6 pt-6 pb-8 bg-[#f6fbf8]">
+        <h2 class="text-2xl font-extrabold mb-4">Elige el servicio</h2>
+
+        <div class="bg-white rounded-xl p-3 mb-6 flex gap-3 w-full pill-shadow">
+          <button class="flex-1 py-2 rounded-lg bg-white text-gray-800 font-medium shadow-inner">Entrega</button>
+          <button class="flex-1 py-2 rounded-lg text-gray-500">Recogida</button>
+        </div>
+
+        <form class="space-y-4">
+          <input placeholder="Nombre completo" class="w-full bg-[#eef4f1] rounded-xl p-4 text-gray-700 placeholder-gray-400 outline-none" />
+          <input placeholder="Teléfono" class="w-full bg-[#eef4f1] rounded-xl p-4 text-gray-700 placeholder-gray-400 outline-none" />
+          <input placeholder="Correo electrónico" class="w-full bg-[#eef4f1] rounded-xl p-4 text-gray-700 placeholder-gray-400 outline-none" />
+          <input placeholder="Dirección de entrega" class="w-full bg-[#eef4f1] rounded-xl p-4 text-gray-700 placeholder-gray-400 outline-none" />
+        </form>
+
+        <div class="mt-8">
+          <h3 class="text-xl font-bold mb-3">Detalles de envío</h3>
+          <p class="text-gray-800 mb-1">Costo de envío: <span class="font-semibold">$5.99</span></p>
+          <p class="text-gray-700 text-sm">Tiempo estimado de llegada: <span class="font-medium">30–45 minutos</span></p>
+        </div>
+
+        <div class="mt-6">
+          <button class="w-full bg-[#1f6e4d] text-white py-3 rounded-lg font-semibold">Ir al menú</button>
+        </div>
+      </section>
+
+      <nav class="bg-white border-t border-gray-200 py-3">
+        <div class="max-w-md mx-auto px-6 flex justify-between items-center">
+          <div class="flex flex-col items-center text-gray-500">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V11.5z" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="text-xs mt-1">Inicio</span>
+          </div>
+          <div class="flex flex-col items-center text-gray-700">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#111827" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="text-xs mt-1">Menú</span>
+          </div>
+          <div class="flex flex-col items-center text-gray-500">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 7-9 11-9 11s-9-4-9-11a9 9 0 0 1 18 0z" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" stroke="#9ca3af" stroke-width="1.5"/></svg>
+            <span class="text-xs mt-1">Pedidos</span>
+          </div>
+          <div class="flex flex-col items-center text-gray-500">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="4" stroke="#9ca3af" stroke-width="1.5"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="text-xs mt-1">Perfil</span>
+          </div>
+        </div>
+      </nav>
+    </main>
+  </body>
+</html>

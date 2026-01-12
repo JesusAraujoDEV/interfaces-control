@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cola de Producción KDS - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-container">
+
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <img src="logo.png" alt="Logo" class="sidebar__logo">
+            <div class="sidebar__info">
+                <p class="sidebar__user">Charlotte</p>
+                <p class="sidebar__role">Kitchen OS</p>
+            </div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
+            <a href="#" class="sidebar__link"><i data-lucide="utensils-crosses"></i> Recetas y Productos</a>
+            <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
+            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="clipboard-list"></i> Pedidos</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="kds-header">
+            <div class="kds-header__info">
+                <h1 class="header__title">Cola de Producción KDS</h1>
+                <p class="header__subtitle">Seguimiento de pedidos en vivo para la cocina.</p>
+            </div>
+            
+            <div class="kds-stats">
+                <div class="stat-card">
+                    <span class="stat-card__label">Pedidos Activos</span>
+                    <span class="stat-card__value">12</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card__label">Pedidos Retrasados</span>
+                    <span class="stat-card__value stat-card__value--danger">2</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card__label">Hora del Sistema</span>
+                    <span class="stat-card__value">14:32</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="kds-grid">
+            
+            <section class="kds-column">
+                <h2 class="kds-column__title">Nuevo</h2>
+                <div class="kds-column__list">
+                    <article class="order-card">
+                        <div class="order-card__header">
+                            <div class="order-card__meta">
+                                <span class="order-card__id">Mesa 14</span>
+                                <span class="order-card__timer">Temporizador: 02:15</span>
+                            </div>
+                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En Restaurante</span>
+                        </div>
+                        <ul class="order-card__items">
+                            <li><strong>2x</strong> Hamburguesa Clásica</li>
+                            <li><strong>1x</strong> Ensalada César</li>
+                            <li><strong>1x</strong> Papas Fritas</li>
+                        </ul>
+                        <button class="btn btn--primary btn--full">EMPEZAR</button>
+                    </article>
+
+                    <article class="order-card order-card--delayed">
+                        <div class="order-card__header">
+                            <div class="order-card__meta">
+                                <span class="order-card__id">Pedido #512</span>
+                                <span class="order-card__timer">Temporizador: 01:30</span>
+                            </div>
+                            <span class="order-type order-type--delivery"><i data-lucide="shopping-bag"></i> Para Llevar</span>
+                        </div>
+                        <ul class="order-card__items">
+                            <li><strong>1x</strong> Sándwich Pollo Picante</li>
+                            <li><strong>1x</strong> Aros de Cebolla</li>
+                        </ul>
+                        <button class="btn btn--primary btn--full">EMPEZAR</button>
+                    </article>
+                </div>
+            </section>
+
+            <section class="kds-column">
+                <h2 class="kds-column__title">Cocinando</h2>
+                <div class="kds-column__list">
+                    <article class="order-card">
+                        <div class="order-card__header">
+                            <div class="order-card__meta">
+                                <span class="order-card__id">Pedido #489</span>
+                                <span class="order-card__timer">Temporizador: 08:45</span>
+                            </div>
+                            <span class="order-type order-type--external"><i data-lucide="truck"></i> A Domicilio</span>
+                        </div>
+                        <ul class="order-card__items">
+                            <li><strong>1x</strong> Pizza Vegetariana</li>
+                            <li><strong>1x</strong> Pan de Ajo</li>
+                            <li><strong>2x</strong> Refresco</li>
+                        </ul>
+                        <button class="btn btn--primary btn--full">LISTO</button>
+                    </article>
+                </div>
+            </section>
+
+            <section class="kds-column">
+                <h2 class="kds-column__title">Listo</h2>
+                <div class="kds-column__list">
+                    <article class="order-card order-card--ready">
+                        <div class="order-card__header">
+                            <div class="order-card__meta">
+                                <span class="order-card__id">Mesa 5</span>
+                                <span class="order-card__timer">Completado: 14:28</span>
+                            </div>
+                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En Restaurante</span>
+                        </div>
+                        <ul class="order-card__items">
+                            <li><strong>1x</strong> Filete de Salmón</li>
+                            <li><strong>1x</strong> Ensalada</li>
+                        </ul>
+                        <button class="btn btn--success btn--full"><i data-lucide="check-circle"></i> RECOGIDO</button>
+                    </article>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

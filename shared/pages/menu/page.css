@@ -1,0 +1,6 @@
+/* Estilos específicos del menú (mínimos). */
+
+/* Evita que el botón flotante tape contenido al final */
+main {
+	padding-bottom: 96px;
+}
