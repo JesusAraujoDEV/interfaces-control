@@ -19,7 +19,8 @@ app.get('/config.js', (req, res) => {
     `window.__APP_CONFIG__ = window.__APP_CONFIG__ || {};\n` +
       `window.__APP_CONFIG__.DP_URL = \`${jsString(process.env.DP_URL)}\`;\n` +
       `window.__APP_CONFIG__.AUTH_URL = \`${jsString(process.env.AUTH_URL)}\`;\n` +
-      `window.__APP_CONFIG__.KITCHEN_URL = \`${jsString(process.env.KITCHEN_URL)}\`;\n`
+      `window.__APP_CONFIG__.KITCHEN_URL = \`${jsString(process.env.KITCHEN_URL)}\`;\n` +
+      `window.__APP_CONFIG__.ATC_URL = \`${jsString(process.env.ATC_URL)}\`;\n`
   );
 });
 
@@ -45,7 +46,7 @@ app.get('/order-tracking/:id', (req, res) => {
 function startServer(port, remainingAttempts) {
   const server = app.listen(port, () => {
     console.log(`[interface] dev server running at http://localhost:${port}`);
-    console.log('[interface] /config.js injects DP_URL, AUTH_URL, KITCHEN_URL from .env');
+    console.log('[interface] /config.js injects DP_URL, AUTH_URL, KITCHEN_URL, ATC_URL from .env');
   });
 
   server.on('error', err => {
