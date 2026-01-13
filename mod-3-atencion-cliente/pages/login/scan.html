@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlotte - Escaneando Mesa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#1B5E20', // Verde oscuro del botón
+                            light: '#4CAF50', // Verde más claro
+                            input: '#F3F4F6', // Gris input
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Animación para la barra de progreso */
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        .animate-progress {
+            animation: loading 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans h-screen w-full overflow-hidden">
+
+    <div class="flex flex-col md:flex-row h-full w-full">
+
+        <div class="relative h-[45vh] md:h-full w-full md:w-1/2 lg:w-3/5 transition-all duration-500">
+            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1600" 
+                 alt="Ambiente del restaurante" 
+                 class="w-full h-full object-cover brightness-75 md:brightness-90">
+            
+            <div class="hidden md:flex absolute inset-0 bg-gradient-to-r from-black/50 to-transparent items-center px-12">
+                <div class="text-white max-w-lg">
+                    <h2 class="text-4xl font-bold mb-4">Bienvenido a Charlotte</h2>
+                    <p class="text-lg opacity-90">Escanea, ordena y disfruta sin esperas.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 md:static md:h-full md:w-1/2 lg:w-2/5 
+                    h-[60vh] bg-white 
+                    rounded-t-[30px] md:rounded-none 
+                    shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none
+                    flex flex-col items-center justify-center 
+                    px-8 pt-12 md:pt-0 pb-6 z-10 
+                    transition-all duration-500 ease-out">
+            
+            <div class="absolute -top-5 md:top-10 left-1/2 transform -translate-x-1/2 
+                        bg-white px-8 py-2 rounded-full shadow-lg border border-gray-100 z-20">
+                <span id="display-table-number" class="font-bold text-gray-900 text-lg tracking-wide whitespace-nowrap">
+                    Detectando...
+                </span>
+            </div>
+
+            <div class="w-full max-w-md flex flex-col h-full md:h-auto justify-between md:justify-center">
+
+                <div id="view-loading" class="w-full flex flex-col items-center justify-between md:justify-center md:gap-12 h-full py-4 transition-opacity duration-300">
+                    <div class="text-center w-full mt-4 md:mt-0">
+                        <h1 id="loading-status" class="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">Verificando mesa...</h1>
+                        
+                        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2 relative">
+                            <div id="progress-bar" class="h-full bg-brand-dark rounded-full w-1/3 transition-all duration-300"></div>
+                        </div>
+                        <p id="loading-subtext" class="text-xs md:text-sm text-gray-400 mt-2">Obteniendo ubicación...</p>
+                    </div>
+
+                    <div class="w-32 h-32 md:w-40 md:h-40 mb-8 md:mb-0 flex items-center justify-center">
+                        <img src="/mod-3-atencion-cliente/images/Charlotte-sweet-and-coffee-en-maracay.png" 
+                             alt="Charlotte Logo" 
+                             class="w-full h-full object-contain">
+                    </div>
+                </div>
+
+                <div id="view-login" class="w-full h-full md:h-auto flex flex-col hidden opacity-0 transition-opacity duration-500 justify-center">
+                    <div class="text-center mb-8 mt-2 md:mt-0">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Bienvenido</h1>
+                        <p class="text-gray-500 text-sm md:text-base mt-1">Ingresa tus datos para comenzar a ordenar</p>
+                    </div>
+
+                    <form id="login-form" class="flex flex-col gap-4 w-full">
+                        <input type="hidden" id="final-table-id" name="table_id">
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1 ml-1">Nombre</label>
+                                <input type="text" id="guest-name" 
+                                       class="w-full bg-brand-input px-4 py-4 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-dark transition-all"
+                                       placeholder="Ej: Juan Pérez" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1 ml-1">Cédula</label>
+                                <input type="text" id="guest-cedula" 
+                                       class="w-full bg-brand-input px-4 py-4 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-dark transition-all"
+                                       placeholder="Ej: 12345678" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" 
+                                class="w-full bg-brand-dark text-white font-bold py-4 rounded-xl mt-6 shadow-lg hover:bg-green-800 active:scale-[0.98] transition-all transform hover:-translate-y-1">
+                            Comenzar a Ordenar
+                        </button>
+                    </form>
+                </div>
+
+                <div id="view-error" class="hidden w-full flex flex-col items-center text-center justify-center h-full md:h-auto">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900">Acceso Denegado</h2>
+                    <p id="error-message" class="text-gray-500 text-sm mt-2 px-4">No pudimos verificar tu ubicación.</p>
+                    <button onclick="window.location.reload()" class="mt-6 px-6 py-2 bg-gray-100 rounded-lg text-brand-dark font-semibold text-sm hover:bg-gray-200 transition-colors">
+                        Intentar de nuevo
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/config.js"></script> 
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/api/auth.js"></script>
+    <script src="/mod-3-atencion-cliente/api/tables.js"></script>
+    <script>
+
+        // Elementos del DOM
+        const viewLoading = document.getElementById('view-loading');
+        const viewLogin = document.getElementById('view-login');
+        const viewError = document.getElementById('view-error');
+        const progressBar = document.getElementById('progress-bar');
+        const statusText = document.getElementById('loading-status');
+        const subStatusText = document.getElementById('loading-subtext');
+        const tableIndicator = document.getElementById('display-table-number');
+
+        // === 1. OBTENER QR UUID DE LA URL ===
+        // Simulamos que la URL es algo como: app.com/scan?qr_uuid=qr-mesa-10
+        function getQRParam() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('qr_uuid');
+        }
+
+        // === 2. OBTENER GEOLOCALIZACIÓN (Actualizado con datos reales de la doc) ===
+        function getUserLocation() {
+            return new Promise((resolve, reject) => {
+                
+                // 👇 USAMOS LAS COORDENADAS EXACTAS DE TU DOCUMENTACIÓN
+                const MOCK_COORDS = { 
+                    latitude: 10.12345, 
+                    longitude: -67.12345 
+                };
+
+                if (!navigator.geolocation) {
+                    reject(new Error("Geolocalización no soportada"));
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
+                    (error) => {
+                        // Si falla el GPS (Code 1) y estamos en localhost, usamos las coordenadas que sabemos que funcionan
+                        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            console.warn("⚠️ [DEV MODE] GPS bloqueado. Usando coordenadas válidas de prueba:", MOCK_COORDS);
+                            resolve(MOCK_COORDS);
+                        } else {
+                            reject(error);
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            });
+        }
+
+        // === 3. FLUJO PRINCIPAL ===
+        async function initScanProcess() {
+            const qrUuid = getQRParam();
+            
+            if (!qrUuid) {
+                showError("No se detectó ningún código QR.");
+                return;
+            }
+
+            try {
+                // --- PASO A: Verificar QR ---
+                updateProgress(30, "Verificando código QR...");
+                
+                // NOTA: TablesApi devuelve ya el objeto JSON, no el response crudo
+                const qrData = await window.TablesApi.verify_qr(qrUuid);
+
+                // Si llegó aquí es porque no hubo error (HttpClient lanza error si falla)
+                if (!qrData || !qrData.table_id) {
+                    throw new Error("Datos de mesa inválidos");
+                }
+
+                // Actualizar UI
+                tableIndicator.innerText = `Mesa ${qrData.table_number}`;
+                document.getElementById('final-table-id').value = qrData.table_id;
+
+                // --- PASO B: Verificar Ubicación ---
+                // --- PASO B: Verificar Ubicación ---
+                updateProgress(60, "Verificando ubicación...");
+                
+                const coords = await getUserLocation();
+                
+                // Enviamos las coordenadas al backend
+                const locData = await window.AuthApi.verify_location(coords.latitude, coords.longitude);
+
+                // Validamos la respuesta basada en tu documentación
+                if (!locData.is_inside) {
+                    throw new Error("Debes estar dentro del restaurante para ordenar.");
+                }
+
+                // 👇 NUEVO: Guardar los tokens de ubicación si vienen en la respuesta
+                if (locData.locationToken) {
+                    localStorage.setItem('location_token', locData.locationToken);
+                    console.log("✅ Location Token guardado");
+                }
+                if (locData.locationRefreshToken) {
+                    localStorage.setItem('location_refresh_token', locData.locationRefreshToken);
+                }
+
+                // --- PASO C: ÉXITO TOTAL ---
+                updateProgress(100, "¡Verificación exitosa!");
+                
+                setTimeout(() => {
+                    transitionToLogin();
+                }, 800);
+
+            } catch (error) {
+                console.error("❌ Error detectado:", error);
+                
+                let msg = "Ocurrió un error inesperado.";
+                
+                // Error Code 1 = PERMISSION_DENIED
+                if (error.code === 1) {
+                    msg = "⚠️ Acceso a ubicación denegado.\n\nPara verificar que estás en el restaurante, necesitamos saber tu ubicación. Por favor, habilita los permisos en tu navegador (ícono del candado en la barra superior) y recarga la página.";
+                } 
+                // Error Code 2 = POSITION_UNAVAILABLE
+                else if (error.code === 2) {
+                    msg = "⚠️ No pudimos detectar tu ubicación. Asegúrate de tener el GPS encendido.";
+                }
+                // Error Code 3 = TIMEOUT
+                else if (error.code === 3) {
+                    msg = "⚠️ Se agotó el tiempo esperando la ubicación. Inténtalo de nuevo.";
+                }
+                // Errores lanzados por nosotros (throw new Error)
+                else if (error.message) {
+                    msg = error.message;
+                }
+                
+                showError(msg);
+            }
+        }
+
+        // === HELPERS DE UI ===
+        
+        function updateProgress(percent, text) {
+            progressBar.style.width = `${percent}%`;
+            if (percent < 100) progressBar.classList.add('animate-pulse');
+            else progressBar.classList.remove('animate-pulse');
+            
+            if(text) subStatusText.innerText = text;
+        }
+
+        function transitionToLogin() {
+            // Ocultar Loading
+            viewLoading.classList.add('hidden');
+            
+            // Mostrar Login con efecto fade-in
+            viewLogin.classList.remove('hidden');
+            // Timeout pequeño para permitir que el navegador renderice antes de cambiar opacidad
+            setTimeout(() => {
+                viewLogin.classList.remove('opacity-0');
+            }, 50);
+        }
+
+        function showError(message) {
+            viewLoading.classList.add('hidden');
+            viewLogin.classList.add('hidden');
+            viewError.classList.remove('hidden');
+            document.getElementById('error-message').innerText = message;
+        }
+
+        // === HANDLE LOGIN SUBMIT ===
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('guest-name').value;
+            const cedula = document.getElementById('guest-cedula').value;
+            const tableId = document.getElementById('final-table-id').value;
+
+            // AQUÍ LÓGICA PARA CREAR LA SESIÓN
+            alert(`Iniciando sesión para ${name} en mesa ID: ${tableId}`);
+            window.location.href = '/mod-3-atencion-cliente/pages/menu/menu.html';
+        });
+
+        // INICIAR AL CARGAR
+        document.addEventListener('DOMContentLoaded', initScanProcess);
+
+    </script>
+</body>
+</html>
