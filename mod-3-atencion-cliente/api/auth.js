@@ -60,5 +60,14 @@ window.AuthApi = {
             console.error("Error verificando permisos:", error);
             return false; // Ante la duda, denegar acceso.
         }
+    },
+
+    verify_location: async (latitude, longitude) => {
+
+        const baseUrl = window.AuthApi.getBaseUrl();
+        return window.HttpClient.request(`${baseUrl}/api/seguridad/auth/verify-location`, { 
+            method: 'POST',
+            body: JSON.stringify({ latitude, longitude })
+        });
     }
 };

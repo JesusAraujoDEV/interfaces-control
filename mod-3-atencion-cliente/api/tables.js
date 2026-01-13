@@ -54,4 +54,13 @@ window.TablesApi = {
             body: JSON.stringify(data)
         });
     },
+
+    verify_qr: async (qr_uuid) => {
+
+        const baseUrl = window.TablesApi.getBaseUrl();
+        return window.HttpClient.request(`${baseUrl}/tables/verify-qr`, { 
+            method: 'POST',
+            body: JSON.stringify({ qr_uuid: qr_uuid }) 
+        });
+    }
 };
