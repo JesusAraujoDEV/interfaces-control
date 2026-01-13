@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Inventory Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B5E20',
+                        secondary: '#4CAF50',
+                        'bg-light': '#F9FAFB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hidden { display: none !important; }
+        input:disabled { background-color: #f3f4f6; cursor: not-allowed; color: #9ca3af; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans h-screen overflow-hidden flex">
+
+    <div id="mobile-overlay" onclick="toggleSidebar()" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity">
+    </div>
+
+    <aside id="sidebar" 
+           class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 flex flex-col justify-between h-full shadow-lg md:shadow-sm transform -translate-x-full md:translate-x-0 md:relative sidebar-transition flex-shrink-0">
+        <div>
+            <div class="p-6 flex items-center justify-between border-b border-gray-100">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-xl">C</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 text-sm">Charlotte</h3>
+                        <p class="text-xs text-gray-500">Admin Panel</p>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-gray-600">
+                    <span class="material-icons-outlined">close</span>
+                </button>
+            </div>
+
+            <nav class="mt-6 flex flex-col gap-1">
+                <a href="#" class="flex items-center gap-3 px-6 py-3 bg-green-50 text-green-800 border-r-4 border-green-800">
+                    <span class="material-icons-outlined text-[20px]">table_restaurant</span>
+                    <span class="text-sm font-medium">Table Inventory</span>
+                </a>
+             </nav>
+        </div>
+        
+        <div class="p-4 border-t border-gray-100">
+            <button onclick="logout()" class="flex items-center gap-3 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg w-full transition-colors">
+                <span class="material-icons-outlined">logout</span>
+                <span class="text-sm font-medium">Cerrar Sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <div id="loading-screen" class="fixed inset-0 bg-gray-50 z-50 flex items-center justify-center">
+        <div class="text-center">
+            <span class="material-icons-outlined text-4xl text-green-600 animate-spin">sync</span>
+            <p class="mt-2 text-gray-500 text-sm">Verificando permisos...</p>
+        </div>
+    </div>
+
+    <main id="main-content" class="hidden flex-1 flex flex-col h-full overflow-hidden relative w-full">
+        
+        <header class="bg-white p-4 md:p-8 pb-4 shadow-sm md:shadow-none z-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 md:mb-6">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none">
+                        <span class="material-icons-outlined text-2xl">menu</span>
+                    </button>
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-900 truncate">Table Inventory</h1>
+                </div>
+
+                <button class="w-full md:w-auto bg-primary hover:bg-green-900 text-white px-4 py-2 rounded-lg shadow-md flex items-center justify-center gap-2 transition-transform transform active:scale-95 text-sm font-medium" onclick="window.openCreateModal()">
+                    <span class="material-icons-outlined text-sm">add</span>
+                    Create New Table
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pt-0">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">ID</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">Table #</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">QR UUID</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">Status</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="table-body"></tbody>
+                </table>
+            </div>
+
+            <div id="pagination-container" class="flex justify-center items-center mt-6 gap-2"></div>
+            
+            <div class="h-8"></div>
+        </div>
+    </main>
+
+    <div id="create-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <span class="material-icons-outlined text-green-600">edit_note</span>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Registrar Nueva Mesa</h3>
+                                <div class="mt-2">
+                                    <form id="create-table-form" class="mt-4 space-y-4">
+                                        <input type="hidden" id="table_id" value="">
+                                        <div>
+                                            <label for="table_number" class="block text-sm font-medium text-gray-700">Número de Mesa</label>
+                                            <input type="number" id="table_number" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm py-2 px-3 border">
+                                        </div>
+                                        <div>
+                                            <label for="capacity" class="block text-sm font-medium text-gray-700">Capacidad (Personas)</label>
+                                            <input type="number" id="capacity" required min="1" value="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm py-2 px-3 border">
+                                        </div>
+                                        <div id="status-container" class="hidden">
+                                            <label for="modal_status" class="block text-sm font-medium text-gray-700">Estado Actual</label>
+                                            <select id="modal_status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm py-2 px-3 border bg-white">
+                                                <option value="AVAILABLE">Available (Disponible)</option>
+                                                <option value="OCCUPIED">Occupied (Ocupada)</option>
+                                                <option value="OUT_OF_SERVICE">Out of Service (Fuera de Servicio)</option>
+                                            </select>
+                                            <p class="text-xs text-orange-600 mt-1">* Solo se permite actualizar el estado.</p>
+                                        </div>
+                                    </form>
+                                    <div id="modal-error" class="hidden mt-2 text-sm text-red-600 bg-red-50 p-2 rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" onclick="handleFormSubmit()" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800 sm:ml-3 sm:w-auto">Guardar</button>
+                        <button type="button" onclick="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="qr-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 text-center">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 mb-4">
+                            <span class="material-icons-outlined text-green-600">qr_code_2</span>
+                        </div>
+                        <h3 class="text-lg font-semibold leading-6 text-gray-900">Código QR</h3>
+                        <p class="text-sm text-gray-500 mt-2">Mesa <span id="qr-table-num" class="font-bold text-gray-900">#</span></p>
+                        <div class="mt-6 flex justify-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <img id="qr-image" src="" alt="Generando QR..." class="w-48 h-48 object-contain">
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2 break-all" id="qr-uuid-text">UUID: ...</p>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" onclick="closeQrModal()" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800 sm:ml-3 sm:w-auto">Cerrar</button>
+                        <button type="button" onclick="window.print()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Imprimir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/api/auth.js"></script>
+    <script src="/mod-3-atencion-cliente/api/tables.js"></script>
+
+    <script>
+        // DOM ELEMENTS
+        const modal = document.getElementById('create-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const form = document.getElementById('create-table-form');
+        const errorDiv = document.getElementById('modal-error');
+        
+        const idInput = document.getElementById('table_id');
+        const numberInput = document.getElementById('table_number');
+        const capacityInput = document.getElementById('capacity');
+        const statusContainer = document.getElementById('status-container');
+        const statusInput = document.getElementById('modal_status');
+
+        const qrModalEl = document.getElementById('qr-modal');
+        const qrImage = document.getElementById('qr-image');
+        const qrTableNum = document.getElementById('qr-table-num');
+        const qrUuidText = document.getElementById('qr-uuid-text');
+
+        const loadingScreen = document.getElementById('loading-screen');
+        const mainContent = document.getElementById('main-content');
+        const tableBody = document.getElementById('table-body');
+        const paginationContainer = document.getElementById('pagination-container');
+        
+        // RESPONSIVE
+        const sidebar = document.getElementById('sidebar');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+
+        // STATE
+        let currentPage = 1;
+        let itemsPerPage = 10;
+
+        window.toggleSidebar = () => {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                mobileOverlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                mobileOverlay.classList.add('hidden');
+            }
+        };
+
+        window.logout = () => {
+            if(confirm("¿Cerrar sesión?")) {
+                localStorage.removeItem('auth_token');
+                window.location.href = '/';
+            }
+        };
+
+        // =========================
+        // PAGINACIÓN
+        // =========================
+        window.changePage = (newPage) => {
+            if (newPage < 1) return;
+            currentPage = newPage;
+            loadTablesData();
+        };
+
+        // =========================
+        // MODALES
+        // =========================
+        window.openCreateModal = () => {
+            form.reset();
+            idInput.value = ""; 
+            numberInput.disabled = false;
+            capacityInput.disabled = false;
+            statusContainer.classList.add('hidden'); 
+            modalTitle.textContent = "Registrar Nueva Mesa";
+            errorDiv.classList.add('hidden');
+            modal.classList.remove('hidden');
+        };
+
+        window.openEditModal = (id, number, capacity, currentStatus) => {
+            form.reset();
+            idInput.value = id;
+            numberInput.value = number;
+            capacityInput.value = capacity;
+            statusInput.value = currentStatus;
+            
+            numberInput.disabled = true;
+            capacityInput.disabled = true;
+            statusContainer.classList.remove('hidden');
+
+            modalTitle.textContent = `Actualizar Estado Mesa #${number}`;
+            errorDiv.classList.add('hidden');
+            modal.classList.remove('hidden');
+        };
+
+        window.closeModal = () => modal.classList.add('hidden');
+
+        window.openQrModal = (number, uuid) => {
+            qrTableNum.textContent = `#${number}`;
+            qrUuidText.textContent = `UUID: ${uuid}`;
+            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${uuid}`;
+            qrModalEl.classList.remove('hidden');
+        };
+
+        window.closeQrModal = () => qrModalEl.classList.add('hidden');
+
+        // =========================
+        // CRUD
+        // =========================
+        window.handleFormSubmit = async () => {
+            const id = idInput.value;
+            const btnGuardar = document.querySelector('#create-modal button[onclick*="handleFormSubmit"]');
+            const originalText = btnGuardar.textContent;
+            
+            // 1. Feedback Visual
+            btnGuardar.textContent = "Procesando...";
+            btnGuardar.disabled = true;
+
+            try {
+                let result;
+
+                if (id) {
+                    // --- CASO EDITAR (UPDATE) ---
+                    const payload = { currentStatus: statusInput.value };
+                    console.log("📤 Enviando Update:", payload);
+
+                    result = await window.TablesApi.updateTable(id, payload);
+                    console.log("📥 Respuesta Update:", result); // <--- MIRA LA CONSOLA AQUÍ
+                    
+                    // 2. Validación Flexible:
+                    // Aceptamos si trae success:true O si trae data (algunas APIs devuelven solo el objeto)
+                    if (result && (result.success === true || result.data || result.id)) {
+                        alert("✅ Mesa actualizada correctamente");
+                        closeModal();
+                        await loadTablesData(); // 3. Recarga forzosa
+                    } else {
+                        // Si llegamos aquí, la API respondió 200 OK pero sin formato esperado
+                        console.warn("Update completado pero formato inesperado. Recargando igual.");
+                        closeModal();
+                        loadTablesData();
+                    }
+
+                } else {
+                    // --- CASO CREAR (CREATE) ---
+                    const payload = {
+                        table_number: parseInt(numberInput.value),
+                        capacity: parseInt(capacityInput.value)
+                    };
+                    
+                    if (!payload.table_number || !payload.capacity) throw new Error("Datos incompletos");
+
+                    result = await window.TablesApi.createTable(payload);
+                    console.log("📥 Respuesta Create:", result);
+
+                    if (result && (result.success || result.data)) {
+                        alert("✅ Mesa creada correctamente");
+                        closeModal();
+                        // Intentamos obtener los datos del QR de result.data o directamente de result
+                        const tableData = result.data || result;
+                        if(tableData.table_number && tableData.qr_uuid) {
+                            window.openQrModal(tableData.table_number, tableData.qr_uuid);
+                        }
+                        await loadTablesData();
+                    }
+                }
+
+            } catch (error) {
+                console.error("❌ Error en operación:", error);
+                errorDiv.textContent = "Error: " + (error.message || "Error desconocido");
+                errorDiv.classList.remove('hidden');
+            } finally {
+                // 4. Restaurar Botón siempre
+                if(btnGuardar) {
+                    btnGuardar.textContent = originalText;
+                    btnGuardar.disabled = false;
+                }
+            }
+        };
+
+        window.deleteTable = async (id) => {
+            if(confirm('¿Seguro de eliminar esta mesa?')) {
+                try {
+                    await window.TablesApi.deleteTable(id);
+                    loadTablesData();
+                } catch (error) {
+                    alert("Error: " + error.message);
+                }
+            }
+        };
+
+        // =========================
+        // CARGA Y RENDERIZADO
+        // =========================
+        async function loadTablesData() {
+            try {
+                if(tableBody) tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Cargando...</td></tr>';
+                
+                const response = await window.TablesApi.getTables(currentPage, itemsPerPage);
+                console.log("📡 API Response:", response); 
+
+                if (response.success && response.data.length > 0) {
+                    tableBody.innerHTML = response.data.map(renderRow).join('');
+                    
+                    // CORRECCIÓN AQUÍ: Tu API devuelve "metadata", no "meta"
+                    const metaInfo = response.metadata || response.meta; 
+                    
+                    if (metaInfo) {
+                        renderPagination(metaInfo);
+                    } else {
+                        console.warn("⚠️ No se encontró información de paginación (metadata) en la respuesta.");
+                    }
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Sin registros.</td></tr>';
+                    paginationContainer.innerHTML = '';
+                }
+            } catch (error) {
+                console.error(error);
+                if(tableBody) tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Error: ${error.message}</td></tr>`;
+            }
+        }
+
+        function renderRow(table) {
+            const statusStyles = {
+                'AVAILABLE': 'bg-green-100 text-green-800',
+                'OCCUPIED': 'bg-orange-100 text-orange-800',
+                'OUT_OF_SERVICE': 'bg-gray-200 text-gray-800'
+            };
+            const badgeClass = statusStyles[table.current_status] || 'bg-gray-100 text-gray-800';
+            const capacity = table.capacity || '?';
+
+            return `
+                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                    <td class="p-4 text-sm text-gray-700">#${table.id}</td>
+                    <td class="p-4 text-sm font-medium text-gray-900">${table.table_number} <span class="text-gray-400 text-xs hidden sm:inline">(Cap: ${capacity})</span></td>
+                    <td class="p-4 text-sm text-gray-500 font-mono text-xs truncate max-w-[100px] sm:max-w-[150px]">${table.qr_uuid}</td>
+                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${table.current_status}</span></td>
+                    <td class="p-4 text-right whitespace-nowrap">
+                        <button onclick="window.openQrModal('${table.table_number}', '${table.qr_uuid}')" class="text-gray-400 hover:text-blue-600 p-1"><span class="material-icons-outlined text-[20px]">qr_code_2</span></button>
+                        <button onclick="window.openEditModal('${table.id}', '${table.table_number}', '${capacity}', '${table.current_status}')" class="text-gray-400 hover:text-green-600 p-1"><span class="material-icons-outlined text-[20px]">edit</span></button>
+                        <button onclick="window.deleteTable(${table.id})" class="text-gray-400 hover:text-red-500 p-1"><span class="material-icons-outlined text-[20px]">delete</span></button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // =========================
+        // LÓGICA PAGINACIÓN (ADAPTADA A TU API)
+        // =========================
+        function renderPagination(meta) {
+            // Leemos las propiedades exactas de TU json: total_pages y current_page
+            const totalPages = meta.total_pages || meta.totalPages || 1;
+            const current = meta.current_page || meta.currentPage || currentPage;
+            
+            // Si solo hay 1 página, ocultamos los botones
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+
+            const prevDisabled = current === 1 
+                ? 'disabled class="opacity-50 cursor-not-allowed px-3 py-1 bg-gray-200 rounded text-gray-400"' 
+                : 'class="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-50 rounded text-gray-600" onclick="changePage(' + (current - 1) + ')"';
+
+            const nextDisabled = current === totalPages 
+                ? 'disabled class="opacity-50 cursor-not-allowed px-3 py-1 bg-gray-200 rounded text-gray-400"' 
+                : 'class="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-50 rounded text-gray-600" onclick="changePage(' + (current + 1) + ')"';
+
+            paginationContainer.innerHTML = `
+                <button ${prevDisabled} title="Anterior">
+                    <span class="material-icons-outlined text-sm align-middle">chevron_left</span>
+                </button>
+                <span class="text-sm text-gray-600 font-medium px-2">Página ${current} de ${totalPages}</span>
+                <button ${nextDisabled} title="Siguiente">
+                    <span class="material-icons-outlined text-sm align-middle">chevron_right</span>
+                </button>
+            `;
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('auth_token');
+            if (!token) { window.location.href = '/'; return; }
+
+            try {
+                const hasAccess = await window.AuthApi.hasPermission('TableManagement_view', 'View');
+                if (!hasAccess) {
+                    document.body.innerHTML = '<div class="h-screen flex items-center justify-center">Acceso Denegado</div>';
+                    return;
+                }
+                loadingScreen.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                loadTablesData();
+            } catch (error) {
+                console.error(error);
+                alert("Error de inicio");
+            }
+        });
+    </script>
+</body>
+</html>
