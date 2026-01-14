@@ -2,6 +2,9 @@ const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
 
+// Import KPIs routes
+const KpisRoutes = require('./mod-2-kpis/src/index');
+
 // Load .env from repo root
 dotenv.config({ path: path.join(__dirname, '.env') });
 
@@ -41,6 +44,9 @@ app.get('/order-tracking/:id', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', 'order-tracking', 'index.html'));
 });
+
+// Mount KPIs routes
+app.use(KpisRoutes);
 
 function startServer(port, remainingAttempts) {
   const server = app.listen(port, () => {
