@@ -42,6 +42,10 @@ app.get('/order-tracking/:id', (req, res) => {
   res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', 'order-tracking', 'index.html'));
 });
 
+// Rutas para Modulo 5 (Cocina)
+const cocinaRoutes = require('./mod-5-cocina/routes');
+app.use('/cocina', cocinaRoutes);
+
 function startServer(port, remainingAttempts) {
   const server = app.listen(port, () => {
     console.log(`[interface] dev server running at http://localhost:${port}`);

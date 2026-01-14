@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/dev-auth.js"></script>
     <title>Inventario - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
@@ -70,7 +74,9 @@
                         <td>
                             <div class="stock-indicator">
                                 <span class="stock-indicator__text stock-indicator__text--danger">50 / 100</span>
-                                <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--danger" style="width: 50%"></div></div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar__fill progress-bar__fill--danger" style="width: 50%"></div>
+                                </div>
                             </div>
                         </td>
                         <td>$0.75</td>
@@ -83,7 +89,10 @@
                         <td>
                             <div class="stock-indicator">
                                 <span class="stock-indicator__text">87 / 100</span>
-                                <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--success" style="width: 87%"></div></div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar__fill progress-bar__fill--success" style="width: 87%">
+                                    </div>
+                                </div>
                             </div>
                         </td>
                         <td>$12.50</td>
@@ -96,7 +105,10 @@
                         <td>
                             <div class="stock-indicator">
                                 <span class="stock-indicator__text">4 / 10</span>
-                                <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--warning" style="width: 40%"></div></div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar__fill progress-bar__fill--warning" style="width: 40%">
+                                    </div>
+                                </div>
                             </div>
                         </td>
                         <td>22.00</td>
@@ -109,4 +121,5 @@
 
     <script>lucide.createIcons();</script>
 </body>
+
 </html>

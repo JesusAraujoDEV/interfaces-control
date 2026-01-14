@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/dev-auth.js"></script>
     <title>Catálogo de Recetas - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
@@ -19,7 +23,8 @@
         </div>
         <nav class="sidebar__nav">
             <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
-            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="utensils-crosses"></i> Recetas y Productos</a>
+            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="utensils-crosses"></i> Recetas y
+                Productos</a>
             <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
             <a href="#" class="sidebar__link"><i data-lucide="shopping-cart"></i> Pedidos</a>
         </nav>
@@ -38,7 +43,8 @@
             <section class="inventory-controls">
                 <div class="search-bar">
                     <i data-lucide="search" class="search-bar__icon"></i>
-                    <input type="text" class="search-bar__input" placeholder="Buscar por nombre de producto o categoría...">
+                    <input type="text" class="search-bar__input"
+                        placeholder="Buscar por nombre de producto o categoría...">
                 </div>
             </section>
 
@@ -78,7 +84,7 @@
                                 </div>
                             </td>
                         </tr>
-                        </tbody>
+                    </tbody>
                 </table>
                 <div class="pagination">
                     <button class="pagination__btn"><i data-lucide="chevron-left"></i></button>
@@ -131,4 +137,5 @@
 
     <script>lucide.createIcons();</script>
 </body>
+
 </html>

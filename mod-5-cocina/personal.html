@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/dev-auth.js"></script>
     <title>Programador de Personal - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
@@ -125,56 +129,57 @@
     </main>
 
     <aside class="staff-panel">
-            <div class="staff-panel__header">
-                <div class="staff-panel__title-row">
-                    <h2 class="staff-panel__title">Todo el Personal</h2>
-                    <button class="icon-btn-sm"><i data-lucide="users"></i></button>
+        <div class="staff-panel__header">
+            <div class="staff-panel__title-row">
+                <h2 class="staff-panel__title">Todo el Personal</h2>
+                <button class="icon-btn-sm"><i data-lucide="users"></i></button>
+            </div>
+            <p class="staff-panel__subtitle">Arrastra para asignar turnos</p>
+
+            <div class="search-bar search-bar--sm">
+                <i data-lucide="search" class="search-bar__icon"></i>
+                <input type="text" class="search-bar__input" placeholder="Filtrar por nombre, rol...">
+            </div>
+        </div>
+
+        <div class="staff-list">
+            <div class="staff-card staff-card--selected">
+                <div class="staff-card__avatar-wrapper">
+                    <img src="https://i.pravatar.cc/150?u=john" alt="John" class="staff-card__img">
+                    <span class="status-dot status-dot--online"></span>
                 </div>
-                <p class="staff-panel__subtitle">Arrastra para asignar turnos</p>
-                
-                <div class="search-bar search-bar--sm">
-                    <i data-lucide="search" class="search-bar__icon"></i>
-                    <input type="text" class="search-bar__input" placeholder="Filtrar por nombre, rol...">
+                <div class="staff-card__info">
+                    <p class="staff-card__name">John Smith</p>
+                    <p class="staff-card__role">Cocinero de Línea / LC-04</p>
                 </div>
             </div>
 
-            <div class="staff-list">
-                <div class="staff-card staff-card--selected">
-                    <div class="staff-card__avatar-wrapper">
-                        <img src="https://i.pravatar.cc/150?u=john" alt="John" class="staff-card__img">
-                        <span class="status-dot status-dot--online"></span>
-                    </div>
-                    <div class="staff-card__info">
-                        <p class="staff-card__name">John Smith</p>
-                        <p class="staff-card__role">Cocinero de Línea / LC-04</p>
-                    </div>
+            <div class="staff-card">
+                <div class="staff-card__avatar-wrapper">
+                    <img src="https://i.pravatar.cc/150?u=maria" alt="Maria" class="staff-card__img">
+                    <span class="status-dot status-dot--online"></span>
                 </div>
+                <div class="staff-card__info">
+                    <p class="staff-card__name">Maria Garcia</p>
+                    <p class="staff-card__role">Sous Chef / SC-01</p>
+                </div>
+            </div>
 
-                <div class="staff-card">
-                    <div class="staff-card__avatar-wrapper">
-                        <img src="https://i.pravatar.cc/150?u=maria" alt="Maria" class="staff-card__img">
-                        <span class="status-dot status-dot--online"></span>
-                    </div>
-                    <div class="staff-card__info">
-                        <p class="staff-card__name">Maria Garcia</p>
-                        <p class="staff-card__role">Sous Chef / SC-01</p>
-                    </div>
+            <div class="staff-card">
+                <div class="staff-card__avatar-wrapper">
+                    <img src="https://i.pravatar.cc/150?u=fatima" alt="Fatima" class="staff-card__img">
+                    <span class="status-dot status-dot--offline"></span>
                 </div>
+                <div class="staff-card__info">
+                    <p class="staff-card__name">Fatima Al-Sayed</p>
+                    <p class="staff-card__role">Lavaplatos / DW-07</p>
+                </div>
+            </div>
 
-                <div class="staff-card">
-                    <div class="staff-card__avatar-wrapper">
-                        <img src="https://i.pravatar.cc/150?u=fatima" alt="Fatima" class="staff-card__img">
-                        <span class="status-dot status-dot--offline"></span>
-                    </div>
-                    <div class="staff-card__info">
-                        <p class="staff-card__name">Fatima Al-Sayed</p>
-                        <p class="staff-card__role">Lavaplatos / DW-07</p>
-                    </div>
-                </div>
-                
-                </div>
-        </aside>
-        
+        </div>
+    </aside>
+
     <script>lucide.createIcons();</script>
 </body>
+
 </html>

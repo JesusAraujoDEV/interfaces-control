@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/dev-auth.js"></script>
     <title>Cola de Producción KDS - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
@@ -34,7 +38,7 @@
                 <h1 class="header__title">Cola de Producción KDS</h1>
                 <p class="header__subtitle">Seguimiento de pedidos en vivo para la cocina.</p>
             </div>
-            
+
             <div class="kds-stats">
                 <div class="stat-card">
                     <span class="stat-card__label">Pedidos Activos</span>
@@ -52,7 +56,7 @@
         </header>
 
         <div class="kds-grid">
-            
+
             <section class="kds-column">
                 <h2 class="kds-column__title">Nuevo</h2>
                 <div class="kds-column__list">
@@ -62,7 +66,8 @@
                                 <span class="order-card__id">Mesa 14</span>
                                 <span class="order-card__timer">Temporizador: 02:15</span>
                             </div>
-                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En Restaurante</span>
+                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En
+                                Restaurante</span>
                         </div>
                         <ul class="order-card__items">
                             <li><strong>2x</strong> Hamburguesa Clásica</li>
@@ -78,7 +83,8 @@
                                 <span class="order-card__id">Pedido #512</span>
                                 <span class="order-card__timer">Temporizador: 01:30</span>
                             </div>
-                            <span class="order-type order-type--delivery"><i data-lucide="shopping-bag"></i> Para Llevar</span>
+                            <span class="order-type order-type--delivery"><i data-lucide="shopping-bag"></i> Para
+                                Llevar</span>
                         </div>
                         <ul class="order-card__items">
                             <li><strong>1x</strong> Sándwich Pollo Picante</li>
@@ -119,7 +125,8 @@
                                 <span class="order-card__id">Mesa 5</span>
                                 <span class="order-card__timer">Completado: 14:28</span>
                             </div>
-                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En Restaurante</span>
+                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En
+                                Restaurante</span>
                         </div>
                         <ul class="order-card__items">
                             <li><strong>1x</strong> Filete de Salmón</li>
@@ -135,4 +142,5 @@
 
     <script>lucide.createIcons();</script>
 </body>
+
 </html>
