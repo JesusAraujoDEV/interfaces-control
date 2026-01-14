@@ -1,11 +1,26 @@
 const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
+const cookieParser = require("cookie-parser");
+const seguridadRouterModule = require("./src/routes/seguridad/seguridad");
+const apiSeguridadRouterModule = require("./src/routes/seguridad/apiSeguridad");
 
 // Load .env from repo root
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+const createSeguridadRouter = seguridadRouterModule.default || seguridadRouterModule;
+const createApiSeguridadRouter = apiSeguridadRouterModule.default || apiSeguridadRouterModule;
+
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "src/views"));
+
+app.use(express.json());
+
 const preferredPort = Number(process.env.PORT) || 5173;
 
 function jsString(value) {
@@ -29,9 +44,9 @@ app.get('/api/config.js', (req, res) => {
 });
 
 // Home: login
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
-});
+// app.get('/', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
+// });
 
 // Serve the workspace as static files (must come BEFORE "pretty" routes)
 app.use(express.static(__dirname));
@@ -58,5 +73,9 @@ function startServer(port, remainingAttempts) {
     throw err;
   });
 }
+
+// Rutas de Seguridad
+app.use("/seguridad", createSeguridadRouter());
+app.use("/api/seguridad", createApiSeguridadRouter());
 
 startServer(preferredPort, 10);

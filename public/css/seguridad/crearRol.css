@@ -1,0 +1,65 @@
+:root {
+    --verde-primario: #1e4d35;
+    --gris-fondo: #f9fafb;
+    --borde: #e5e7eb;
+}
+
+/* Estilos de la base (Originales adaptados) */
+.logo-box { 
+    width: 36px; height: 36px; background: #f1f3f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 800; 
+}
+.nav-link { 
+    display: flex; align-items: center; gap: 12px; padding: 10px; color: #6b7280; font-size: 13px; border-radius: 8px; 
+}
+.nav-link.activo {
+     background: #dcfce7; color: var(--verde-primario); font-weight: 700; 
+    }
+.tarjeta-blanca { 
+    background: white; border: 1px solid #f0f0f0; border-radius: 12px; padding: 32px; 
+}
+
+/* Formulario */
+.campo label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px; }
+.campo input, .campo textarea, .select-personalizado {
+    width: 100%; padding: 10px 14px; background: var(--gris-fondo); border: 1px solid var(--borde); border-radius: 8px; font-size: 14px; outline: none;
+}
+
+/* Botones */
+.btn-añadir-permiso { background: var(--verde-primario); color: white; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+.btn-guardar { background: var(--verde-primario); color: white; padding: 10px 24px; border-radius: 8px; font-weight: 700; }
+.btn-cancelar { background: #f3f4f6; padding: 10px 24px; border-radius: 8px; font-weight: 600; }
+
+/* Badges */
+.badge-permiso { background: #f9fafb; border: 1px solid var(--borde); padding: 4px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+
+/* ==========================================
+   NUEVO: ESTILOS DEL MODAL (image_3eaff2)
+   ========================================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4); /* Fondo oscurecido */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-container {
+    background: white;
+    width: 100%;
+    max-width: 650px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-cancelar-modal {
+    padding: 10px 24px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.hidden {
+    display: none;
+}
