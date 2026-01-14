@@ -2,6 +2,6 @@
   "rewrites": [
     { "source": "/config.js", "destination": "/api/config.js" },
     { "source": "/order-tracking/:id", "destination": "/mod-1-delivery-pickup/pages/order-tracking/index.html" },
-    { "source": "/", "destination": "/mod-4-seguridad/Inicio%20sesión/Inicio-sesion.html" }
+    { "source": "/(.*)", "destination": "/server.js" }
   ]
 }

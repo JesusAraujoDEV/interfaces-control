@@ -73,4 +73,9 @@ function startServer(port, remainingAttempts) {
 app.use("/seguridad", createSeguridadRouter());
 app.use("/api/seguridad", createApiSeguridadRouter());
 
-startServer(preferredPort, 10);
+if (require.main === module) {
+  // Iniciar el servidor solo si este archivo es el principal
+  startServer(preferredPort, 10);
+}
+
+module.exports = app;
