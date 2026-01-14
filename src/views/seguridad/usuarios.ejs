@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Usuarios - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/public/css/seguridad/usuarios.css" />
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+  </head>
+  <body class="bg-gray-50">
+    <div class="contenedor-dashboard">
+      
+        <%- include('../partials/aside.ejs') %>
+
+      <main class="contenido-principal">
+        <header class="cabecera-seccion">
+          <div>
+            <h1>Gestión de Usuarios</h1>
+            <p>Gestiona usuarios, roles y permisos del sistema.</p>
+          </div>
+          <a href="/seguridad/usuarios/crear" class="btn-añadir">
+            <i class="fa-solid fa-plus"></i> Añadir Nuevo Usuario
+          </a>
+        </header>
+
+        <div class="contenedor-busqueda">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            placeholder="Buscar por nombre de usuario o correo..."
+          />
+        </div>
+
+        <div class="tarjeta-tabla">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>USUARIO + CORREO</th>
+                <th>ROL</th>
+                <th class="text-right" style="text-align: center">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="info-usuario">
+                    <a href="/seguridad/usuarios/editar/1" >
+                      <span class="nombre">Alex Johnson</span>
+                      <span class="correo">alex.j@ejemplo.com</span>
+                    </a>
+                  </div>
+                </td>
+                <td>
+                  <span class="texto-rol"
+                    >Manager <span class="sub-rol">Admin</span></span
+                  >
+                </td>
+                <td class="acciones" style="text-align: center">
+                  <button class="btn-icono">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="btn-icono">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="info-usuario">
+                    <span class="nombre">Maria Garcia</span>
+                    <span class="correo">maria.g@ejemplo.com</span>
+                  </div>
+                </td>
+                <td><span class="texto-rol">Chef</span></td>
+                <td class="acciones" style="text-align: center">
+                  <button class="btn-icono">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="btn-icono">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="info-usuario">
+                    <span class="nombre">James Smith</span>
+                    <span class="correo">james.s@ejemplo.com</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="texto-rol"
+                    >Mesero <span class="sub-rol">Host</span></span
+                  >
+                </td>
+                <td class="acciones" style="text-align: center">
+                  <button class="btn-icono">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="btn-icono">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <footer class="paginacion">
+            <button class="btn-flecha">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span class="num-pagina activa">1</span>
+            <span class="num-pagina">2</span>
+            <span class="num-pagina">3</span>
+            <span>...</span>
+            <span class="num-pagina">10</span>
+            <button class="btn-flecha">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </footer>
+        </div>
+      </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Obtener datos y referencias del DOM
+            // Nota: Usamos el <%- %> que corregimos antes para obtener el JSON crudo
+            const usuariosData = <%- JSON.stringify(usuarios) %>;
+            
+            const tableBody = document.querySelector('.tabla-datos tbody');
+            const searchInput = document.querySelector('.contenedor-busqueda input');
+            const paginationContainer = document.querySelector('.paginacion');
+
+            // 2. Estado de la aplicación
+            let estado = {
+                usuarios: usuariosData,       // Todos los usuarios
+                usuariosFiltrados: usuariosData, // Usuarios que coinciden con la búsqueda
+                paginaActual: 1,
+                filasPorPagina: 5             // Puedes cambiar esto a 10 o los que gustes
+            };
+
+            // 3. Función para Renderizar la Tabla
+            function renderizarTabla() {
+                tableBody.innerHTML = ''; // Limpiar tabla actual
+
+                // Calcular índices de paginación
+                const inicio = (estado.paginaActual - 1) * estado.filasPorPagina;
+                const fin = inicio + estado.filasPorPagina;
+                const usuariosPagina = estado.usuariosFiltrados.slice(inicio, fin);
+
+                if (usuariosPagina.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">No se encontraron usuarios.</td></tr>';
+                    return;
+                }
+
+                usuariosPagina.forEach(user => {
+                    // Formatear Roles
+                    let rolHtml = '';
+                    if (user.roles && user.roles.length > 0) {
+                        // Tomamos el primer rol como principal y los demás como tooltip o texto extra
+                        const rolPrincipal = user.roles[0].name;
+                        const esAdmin = user.isAdmin ? '<span class="sub-rol font-bold text-green-600 ml-1">(Admin)</span>' : '';
+                        const masRoles = user.roles.length > 1 ? `<span class="sub-rol text-xs">+${user.roles.length - 1} más</span>` : '';
+                        
+                        rolHtml = `<span class="texto-rol">${rolPrincipal} ${esAdmin} ${masRoles}</span>`;
+                    } else {
+                        rolHtml = `<span class="texto-rol text-gray-400">Sin roles asignados</span>`;
+                        if(user.isAdmin) rolHtml += ' <span class="sub-rol font-bold text-green-600">(Super Admin)</span>';
+                    }
+
+                    // Construir la fila HTML
+                    const fila = `
+                        <tr>
+                            <td>
+                                <div class="info-usuario">
+                                    <a href="/seguridad/usuarios/editar/${user.id}">
+                                      <span class="nombre">${user.name} ${user.lastName}</span>
+                                      <span class="correo">${user.email}</span>  
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                ${rolHtml}
+                            </td>
+                            <td class="acciones" style="text-align: center">
+                                <button class="btn-icono hover:text-blue-600" title="Editar" onclick="editarUsuario(${user.id})">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn-icono hover:text-red-600" title="Eliminar" onclick="eliminarUsuario(${user.id})">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', fila);
+                });
+            }
+
+            // 4. Función para Renderizar la Paginación
+            function renderizarPaginacion() {
+                paginationContainer.innerHTML = '';
+                const totalPaginas = Math.ceil(estado.usuariosFiltrados.length / estado.filasPorPagina);
+
+                // Botón Anterior
+                const btnPrev = document.createElement('button');
+                btnPrev.className = 'btn-flecha';
+                btnPrev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+                btnPrev.disabled = estado.paginaActual === 1;
+                if(estado.paginaActual === 1) btnPrev.style.opacity = '0.5';
+                btnPrev.onclick = () => cambiarPagina(estado.paginaActual - 1);
+                paginationContainer.appendChild(btnPrev);
+
+                // Números de página
+                // (Para simplificar mostramos todas, si son muchas se podría limitar el rango)
+                for (let i = 1; i <= totalPaginas; i++) {
+                    const span = document.createElement('span');
+                    span.className = `num-pagina ${i === estado.paginaActual ? 'activa' : ''}`;
+                    span.textContent = i;
+                    span.onclick = () => cambiarPagina(i);
+                    paginationContainer.appendChild(span);
+                }
+
+                // Botón Siguiente
+                const btnNext = document.createElement('button');
+                btnNext.className = 'btn-flecha';
+                btnNext.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+                btnNext.disabled = estado.paginaActual === totalPaginas || totalPaginas === 0;
+                if(estado.paginaActual === totalPaginas || totalPaginas === 0) btnNext.style.opacity = '0.5';
+                btnNext.onclick = () => cambiarPagina(estado.paginaActual + 1);
+                paginationContainer.appendChild(btnNext);
+            }
+
+            // 5. Lógica de cambio de página
+            function cambiarPagina(nuevaPagina) {
+                const totalPaginas = Math.ceil(estado.usuariosFiltrados.length / estado.filasPorPagina);
+                if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
+
+                estado.paginaActual = nuevaPagina;
+                renderizarTabla();
+                renderizarPaginacion();
+            }
+
+            // 6. Lógica de Búsqueda
+            searchInput.addEventListener('input', (e) => {
+                const texto = e.target.value.toLowerCase();
+                
+                estado.usuariosFiltrados = estado.usuarios.filter(user => {
+                    const nombreCompleto = `${user.name} ${user.lastName}`.toLowerCase();
+                    const email = user.email.toLowerCase();
+                    return nombreCompleto.includes(texto) || email.includes(texto);
+                });
+
+                estado.paginaActual = 1; // Volver a la primera página al buscar
+                renderizarTabla();
+                renderizarPaginacion();
+            });
+
+            // 7. Funciones globales para los botones de acción (placeholder)
+            window.editarUsuario = (id) => {
+                window.location.href = `/seguridad/usuarios/editar/${id}`;
+            };
+
+            window.eliminarUsuario = async (id) => {
+                if(confirm("¿Estás seguro de eliminar este usuario?")) {
+                   const httpClient = window.httpSeguridadClient;
+                   const resp = await httpClient(`/api/seguridad/users/${id}`, { method: 'DELETE' });
+                        const notyf = window.seguridad_notyf;
+
+                    if(resp.ok) {
+                        // Refrescar la lista de usuarios después de eliminar
+                        estado.usuarios = estado.usuarios.filter(user => user.id !== id);
+                        estado.usuariosFiltrados = estado.usuariosFiltrados.filter(user => user.id !== id);
+                        renderizarTabla();
+                        renderizarPaginacion();
+                        notyf.success("Usuario eliminado correctamente.");
+                    } else {
+                      const data = await resp.json();
+                      notyf.error(`Error al eliminar usuario: ${data.message || resp.statusText}`);
+                    }
+                }
+            };
+
+            // Inicialización
+            console.log("Inicializando tabla con", estado.usuarios.length, "usuarios.");
+            renderizarTabla();
+            renderizarPaginacion();
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<% if (locals.helpersScripts) { %> <% helpersScripts.forEach(function(scriptUrl)
+{ %>
+<script src="<%= scriptUrl %>"></script>
+<% }); %> <% } %>
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+<script>
+    window.__SEGURIDAD_API_CONFIG__ = <%- JSON.stringify(configSeguridad || {}) %>;
+</script>
+<% if (locals.messagesError && messagesError.length > 0) { %>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const notyf = window.seguridad_notyf || new Notyf(); 
+            
+            <% messagesError.forEach(function(message) { %>
+                notyf.error("<%= message %>");
+            <% }); %>
+        });
+    </script>
+<% } %>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Rol - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/seguridad/editarRol.css">
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-[#f8fafc]">
+    <div id="modalPermiso" class="modal-overlay hidden">
+        <div class="modal-container">
+            <header class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Crear/Editar Permiso</h2>
+                <p class="text-sm text-gray-500 mt-1">Usa este formulario para crear/editar un permiso asociado a este rol</p>
+            </header>
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="campo">
+                        <label>Nombre del Permiso</label>
+                        <input type="text" placeholder="ej., Ver Pedidos">
+                    </div>
+                    <div class="campo">
+                        <label>Tipo</label>
+                        <select class="select-personalizado">
+                            <option selected disabled>Selecciona un tipo</option>
+                            <option>Lectura</option>
+                            <option>Escritura</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="campo">
+                        <label>Recurso</label>
+                        <select class="select-personalizado">
+                            <option selected disabled>Selecciona un recurso</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>Método</label>
+                        <select class="select-personalizado">
+                            <option selected disabled>Selecciona un método</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="cerrarModal()" class="btn-cancelar-modal">Cancelar</button>
+                    <button type="submit" class="btn-guardar">Crear/Editar Permiso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex min-h-screen">
+        
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="flex-grow p-12">
+            <header class="mb-8">
+                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Dashboard / Roles / Editar Rol </p>
+                <h1 class="text-3xl font-bold text-gray-900">Editar Rol: Manager</h1>
+                <p class="text-sm text-gray-500">Actualiza los detalles del rol, permisos y usuarios asignados.</p>
+            </header>
+
+            <div class="max-w-5xl space-y-6" style="margin: auto;">
+                <div class="tarjeta-blanca">
+                    <div class="grid grid-cols-2 gap-6 mb-8">
+                        <div class="campo">
+                            <label>Nombre del Rol</label>
+                            <input type="text" value="Manager">
+                        </div>
+                        <div class="campo">
+                            <label>Descripción</label>
+                            <textarea rows="2">Supervisa las operaciones diarias del restaurante y al personal.</textarea>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="text-xs font-bold text-gray-500 uppercase mb-3 block">Permisos Asignados</label>
+                        <button type="button" onclick="abrirModal()" class="btn-añadir-permiso mb-4">
+                            Añadir Permiso
+                        </button>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="badge-permiso">Gestionar Menús <i class="fa-solid fa-xmark"></i></span>
+                            <span class="badge-permiso">Procesar Pagos <i class="fa-solid fa-xmark"></i></span>
+                            <span class="badge-permiso">Ver Analíticas <i class="fa-solid fa-xmark"></i></span>
+                            <span class="badge-permiso">Gestionar Personal <i class="fa-solid fa-xmark"></i></span>
+                            <span class="badge-permiso">Crear Pedido <i class="fa-solid fa-xmark"></i></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-bold text-gray-800 mb-4 block">Usuarios con este Rol</label>
+                        <div class="border border-gray-100 rounded-lg overflow-hidden">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-[#1e4d35] text-white text-[11px] uppercase font-bold">
+                                    <tr>
+                                        <th class="px-4 py-3">Nombre</th>
+                                        <th class="px-4 py-3">Email</th>
+                                        <th class="px-4 py-3 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    <tr>
+                                        <td class="px-4 py-3 font-medium">Kenzo Tan</td>
+                                        <td class="px-4 py-3 text-gray-500">kenzo.tan@example.com</td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button class="text-red-600 hover:underline text-xs"><i class="fa-solid fa-user-minus mr-1"></i> Desasignar</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-medium">Alice Johnson</td>
+                                        <td class="px-4 py-3 text-gray-500">alice.j@example.com</td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button class="text-red-600 hover:underline text-xs"><i class="fa-solid fa-user-minus mr-1"></i> Desasignar</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-medium">Michael Davis</td>
+                                        <td class="px-4 py-3 text-gray-500">michael.davis@example.com</td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button class="text-red-600 hover:underline text-xs"><i class="fa-solid fa-user-minus mr-1"></i> Desasignar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-4">
+                    <button class="text-red-700 font-bold text-sm hover:underline">Eliminar Rol</button>
+                    <div class="flex gap-3">
+                        <button class="btn-cancelar">Cancelar</button>
+                        <button class="btn-guardar">Guardar Rol</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    <script>
+        function abrirModal() {
+            document.getElementById('modalPermiso').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalPermiso').classList.add('hidden');
+        }
+        console.log("Editar Rol loaded: ", window.httpSeguridadClient);
+    </script>
+</body>
+</html>

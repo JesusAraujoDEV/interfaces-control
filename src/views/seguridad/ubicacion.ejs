@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlotte - Guest Login</title>
+    <link rel="stylesheet" href="/public/css/seguridad/ubicacion.css"> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <% include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body>
+
+    <main class="splash">
+        <div class="splash__hero">
+            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800" 
+                 alt="Restaurant ambiance" 
+                 class="splash__img">
+        </div>
+
+        <div class="table-indicator">
+            Geocalizacion
+        </div>
+
+        <div class="splash__content">
+            <h1 class="splash__status">Necesitamos comprobar tu ubicación</h1>
+            
+            <button type="button" class="btn--login" id="btnGeo">
+                Comprobar Ubicación
+            </button>
+        </div>
+    </main>
+
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    <script>
+        // 1. Seleccionamos el botón
+        const botonGeo = document.getElementById('btnGeo');
+
+        // 2. Agregamos el evento click
+        botonGeo.addEventListener('click', () => {
+            
+            // Verificamos si el navegador soporta geolocalización
+            if ("geolocation" in navigator) {
+                
+                console.log("Solicitando permiso...");
+
+                /* getCurrentPosition toma 2 funciones:
+                   1. Éxito (success)
+                   2. Error (error) - Opcional pero recomendada
+                */
+                navigator.geolocation.getCurrentPosition(
+                    // Función de ÉXITO
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        console.log("✅ Ubicación obtenida con éxito:");
+                        console.log("Latitud:", lat);
+                        console.log("Longitud:", lng);
+                        console.log("Objeto completo:", position);
+                        
+                        // Opcional: Mostrar alerta visual
+                        // alert(`Tu ubicación es: ${lat}, ${lng}`);
+                    },
+                    // Función de ERROR
+                    (error) => {
+                        console.warn("❌ Error obteniendo ubicación:", error.message);
+                        if(error.code === 1) {
+                            console.error("El usuario denegó el permiso de ubicación.");
+                        }
+                    }
+                );
+
+            } else {
+                console.error("Tu navegador no soporta geolocalización");
+            }
+        });
+    </script>
+
+</body>
+</html>

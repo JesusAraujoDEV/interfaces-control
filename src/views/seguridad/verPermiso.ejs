@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Permiso - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/seguridad/verPermiso.css">
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="contenido-principal">
+            
+            <nav class="breadcrumb">
+                <span>Charlotte</span> / <span>Permisos</span> / <span class="actual">Ver permiso</span>
+            </nav>
+
+            <header class="titulo-pagina">
+                <h1>Ver Permiso</h1>
+            </header>
+
+            <section class="tarjeta-formulario">
+                <form>
+                    <div class="fila-input">
+                        <div class="grupo">
+                            <label>Nombre del Permiso</label>
+                            <input type="text" placeholder="ej., Ver Pedidos" readonly>
+                        </div>
+                        <div class="grupo">
+                            <label>Tipo</label>
+                            <select disabled>
+                                <option>Selecciona un tipo</option>
+                                <option>Recurso</option>
+                                <option>Vista</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="fila-input">
+                        <div class="grupo">
+                            <label>Recurso</label>
+                            <select disabled>
+                                <option>Selecciona un recurso</option>
+                                <option>Orden</option>
+                                <option>Mesa</option>
+                            </select>
+                        </div>
+                        <div class="grupo">
+                            <label>Método</label>
+                            <select disabled>
+                                <option>Selecciona un método</option>
+                                <option>Crear</option>
+                                <option>Leer</option>
+                                <option>Actualizar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grupo">
+                        <label>Rol Asociado</label>
+                        <div class="multi-input">
+                            <span class="tag-rol">Mesero </span>
+                        </div>
+                    </div>
+
+                    <div class="acciones-finales">
+                         <button type="button" class="btn-eliminar" style="color: red;">Eliminar Permiso</button>
+                        
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+</body>
+</html>
