@@ -39,7 +39,7 @@
                 <section class="tarjeta-formulario-geo">
                     <h3>Establecer Ubicación del Restaurante y Área de Entrega</h3>
                     
-                    <form class="formulario-geo" onsubmit="event.preventDefault(); alert('Configuración guardada');">
+                    <form class="formulario-geo" id="formCoordenadas">
                         <div class="grupo">
                             <label>Dirección o Nombre de la Ubicación</label>
                             <div class="input-con-icono">
@@ -67,12 +67,13 @@
                         </div>
 
                         <div class="acciones-geo">
-                            <button type="submit" class="btn-guardar">Guardar Cambios</button>
-                            <button type="button" class="btn-cancelar">Cancelar</button>
+                            <button type="submit" class="btn-guardar" id="btnGuardar">Guardar Cambios</button>
+                            <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
                             <button type="button" class="btn-cancelar" onclick="centrarEnMiUbicacion()" title="Usar mi ubicación actual" style="min-width: 40px; padding: 0 10px;">
                                 <i class="fa-solid fa-crosshairs"></i>
                             </button>
                         </div>
+                        <div id="mensajesError" class="mt-4"></div>
                     </form>
                 </section>
 
@@ -87,168 +88,326 @@
     <!-- Todos los demas scripts despues de estos que se inyectan -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- 1. Referencias al DOM (Usando los IDs que agregamos) ---
-        const inputLat = document.getElementById('latitud');
-        const inputLng = document.getElementById('longitud');
-        const inputRadio = document.getElementById('radio');
-        const inputDireccion = document.getElementById('input-direccion');
-        const iconSearch = document.getElementById('icono-buscar');
-        const iconLoading = document.getElementById('icono-loading');
+        (function() {
+            const notyf = window.seguridad_notyf || new Notyf();
+            let coordenadasExistentes = null; // null si no existen, objeto si existen
 
-        // Valores iniciales
-        let latInicial = parseFloat(inputLat.value) || 40.7128;
-        let lngInicial = parseFloat(inputLng.value) || -74.0060;
-        let radioInicial = parseFloat(inputRadio.value) || 2;
+            // --- 1. Referencias al DOM (Usando los IDs que agregamos) ---
+            const inputLat = document.getElementById('latitud');
+            const inputLng = document.getElementById('longitud');
+            const inputRadio = document.getElementById('radio');
+            const inputDireccion = document.getElementById('input-direccion');
+            const iconSearch = document.getElementById('icono-buscar');
+            const iconLoading = document.getElementById('icono-loading');
+            const formCoordenadas = document.getElementById('formCoordenadas');
+            const btnGuardar = document.getElementById('btnGuardar');
+            const btnCancelar = document.getElementById('btnCancelar');
+            const mensajesError = document.getElementById('mensajesError');
 
-        // --- 2. Inicializar Mapa ---
-        var map = L.map('mapa').setView([latInicial, lngInicial], 13);
+            // Valores iniciales por defecto
+            let latInicial = 40.7128;
+            let lngInicial = -74.0060;
+            let radioInicial = 2;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+            // --- 2. Cargar coordenadas existentes ---
+            async function cargarCoordenadas() {
+                try {
+                    const response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                        method: 'GET'
+                    });
 
-        // Marcador draggable
-        var marcador = L.marker([latInicial, lngInicial], { draggable: true }).addTo(map)
-            .bindPopup('Ubicación del Restaurante')
-            .openPopup();
-
-        // Círculo de radio
-        var circulo = L.circle([latInicial, lngInicial], {
-            color: '#1e4d35',      
-            fillColor: '#dcfce7',  
-            fillOpacity: 0.4,
-            radius: radioInicial * 1000 
-        }).addTo(map);
-
-        // --- 3. Lógica de Geolocalización y Sincronización ---
-
-        // Helper: Mostrar spinner de carga
-        function toggleLoading(cargando) {
-            if (cargando) {
-                iconSearch.style.display = 'none';
-                iconLoading.style.display = 'inline-block';
-            } else {
-                iconSearch.style.display = 'inline-block';
-                iconLoading.style.display = 'none';
-            }
-        }
-
-        // A. Actualizar Inputs y Mapa dado una Lat/Lng
-        function actualizarTodo(lat, lng, buscarDireccion = false) {
-            // 1. Mover visuales
-            const nuevaPos = new L.LatLng(lat, lng);
-            marcador.setLatLng(nuevaPos);
-            circulo.setLatLng(nuevaPos);
-            map.panTo(nuevaPos);
-
-            // 2. Actualizar inputs numéricos
-            inputLat.value = lat.toFixed(6);
-            inputLng.value = lng.toFixed(6);
-
-            // 3. Buscar dirección (Reverse Geocoding) si se solicita
-            if (buscarDireccion) {
-                obtenerNombreDireccion(lat, lng);
-            }
-        }
-
-        // B. Reverse Geocoding (Coordenadas -> Texto)
-        async function obtenerNombreDireccion(lat, lng) {
-            toggleLoading(true);
-            try {
-                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data && data.display_name) {
-                    inputDireccion.value = data.display_name;
-                }
-            } catch (e) {
-                console.error("Error geocoding:", e);
-            }
-            toggleLoading(false);
-        }
-
-        // C. Forward Geocoding (Texto -> Coordenadas)
-        async function buscarPorDireccionTexto() {
-            const query = inputDireccion.value;
-            if (query.length < 3) return;
-
-            toggleLoading(true);
-            try {
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                if (data && data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lng = parseFloat(data[0].lon);
-                    actualizarTodo(lat, lng, false); // false para no re-buscar el texto que ya escribimos
-                } else {
-                    alert("Dirección no encontrada");
-                }
-            } catch (e) {
-                console.error("Error buscando:", e);
-            }
-            toggleLoading(false);
-        }
-
-        // D. Obtener ubicación real del usuario
-        function centrarEnMiUbicacion() {
-            if (navigator.geolocation) {
-                toggleLoading(true);
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        actualizarTodo(pos.coords.latitude, pos.coords.longitude, true);
-                        map.setZoom(15);
-                        toggleLoading(false);
-                    },
-                    (err) => {
-                        alert("No se pudo obtener tu ubicación");
-                        toggleLoading(false);
+                    if (response.status === 404) {
+                        // No hay coordenadas configuradas aún
+                        coordenadasExistentes = null;
+                        inicializarMapa();
+                        return;
                     }
-                );
-            } else {
-                alert("Geolocalización no soportada");
+
+                    if (!response.ok) {
+                        throw new Error('Error al cargar coordenadas');
+                    }
+
+                    const data = await response.json();
+                    coordenadasExistentes = data;
+                    
+                    // Cargar valores existentes
+                    latInicial = parseFloat(data.latitude) || latInicial;
+                    lngInicial = parseFloat(data.longitude) || lngInicial;
+                    radioInicial = parseFloat(data.radius) || radioInicial;
+
+                    inputLat.value = latInicial.toFixed(6);
+                    inputLng.value = lngInicial.toFixed(6);
+                    inputRadio.value = radioInicial;
+
+                    inicializarMapa();
+                } catch (error) {
+                    console.error('Error cargando coordenadas:', error);
+                    // Inicializar con valores por defecto
+                    inicializarMapa();
+                }
             }
-        }
 
-        // --- 4. Event Listeners ---
+            // --- 3. Inicializar Mapa ---
+            function inicializarMapa() {
+                var map = L.map('mapa').setView([latInicial, lngInicial], 13);
 
-        // Mapa: Click
-        map.on('click', (e) => {
-            actualizarTodo(e.latlng.lat, e.latlng.lng, true);
-        });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
 
-        // Marcador: Arrastrar
-        marcador.on('drag', (e) => {
-            circulo.setLatLng(marcador.getLatLng()); // Círculo sigue al pin suavemente
-        });
-        marcador.on('dragend', (e) => {
-            const pos = marcador.getLatLng();
-            actualizarTodo(pos.lat, pos.lng, true);
-        });
+                // Marcador draggable
+                var marcador = L.marker([latInicial, lngInicial], { draggable: true }).addTo(map)
+                    .bindPopup('Ubicación del Restaurante')
+                    .openPopup();
 
-        // Inputs: Lat/Lng manual
-        function manualUpdate() {
-            const lat = parseFloat(inputLat.value);
-            const lng = parseFloat(inputLng.value);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                actualizarTodo(lat, lng, true);
+                // Círculo de radio
+                var circulo = L.circle([latInicial, lngInicial], {
+                    color: '#1e4d35',      
+                    fillColor: '#dcfce7',  
+                    fillOpacity: 0.4,
+                    radius: radioInicial * 1000 
+                }).addTo(map);
+
+                // Exponer variables globalmente para otras funciones
+                window.map = map;
+                window.marcador = marcador;
+                window.circulo = circulo;
+
+                // --- 4. Lógica de Geolocalización y Sincronización ---
+
+                // Helper: Mostrar spinner de carga
+                window.toggleLoading = function(cargando) {
+                    if (cargando) {
+                        iconSearch.style.display = 'none';
+                        iconLoading.style.display = 'inline-block';
+                    } else {
+                        iconSearch.style.display = 'inline-block';
+                        iconLoading.style.display = 'none';
+                    }
+                };
+
+                // A. Actualizar Inputs y Mapa dado una Lat/Lng
+                window.actualizarTodo = function(lat, lng, buscarDireccion = false) {
+                    // 1. Mover visuales
+                    const nuevaPos = new L.LatLng(lat, lng);
+                    marcador.setLatLng(nuevaPos);
+                    circulo.setLatLng(nuevaPos);
+                    map.panTo(nuevaPos);
+
+                    // 2. Actualizar inputs numéricos
+                    inputLat.value = lat.toFixed(6);
+                    inputLng.value = lng.toFixed(6);
+
+                    // 3. Buscar dirección (Reverse Geocoding) si se solicita
+                    if (buscarDireccion) {
+                        obtenerNombreDireccion(lat, lng);
+                    }
+                };
+
+                // B. Reverse Geocoding (Coordenadas -> Texto)
+                window.obtenerNombreDireccion = async function(lat, lng) {
+                    toggleLoading(true);
+                    try {
+                        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        if (data && data.display_name) {
+                            inputDireccion.value = data.display_name;
+                        }
+                    } catch (e) {
+                        console.error("Error geocoding:", e);
+                    }
+                    toggleLoading(false);
+                };
+
+                // C. Forward Geocoding (Texto -> Coordenadas)
+                window.buscarPorDireccionTexto = async function() {
+                    const query = inputDireccion.value;
+                    if (query.length < 3) return;
+
+                    toggleLoading(true);
+                    try {
+                        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        
+                        if (data && data.length > 0) {
+                            const lat = parseFloat(data[0].lat);
+                            const lng = parseFloat(data[0].lon);
+                            actualizarTodo(lat, lng, false);
+                        } else {
+                            notyf.error("Dirección no encontrada");
+                        }
+                    } catch (e) {
+                        console.error("Error buscando:", e);
+                        notyf.error("Error al buscar la dirección");
+                    }
+                    toggleLoading(false);
+                };
+
+                // D. Obtener ubicación real del usuario
+                window.centrarEnMiUbicacion = function() {
+                    if (navigator.geolocation) {
+                        toggleLoading(true);
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                actualizarTodo(pos.coords.latitude, pos.coords.longitude, true);
+                                map.setZoom(15);
+                                toggleLoading(false);
+                            },
+                            (err) => {
+                                notyf.error("No se pudo obtener tu ubicación");
+                                toggleLoading(false);
+                            }
+                        );
+                    } else {
+                        notyf.error("Geolocalización no soportada");
+                    }
+                };
+
+                // --- 5. Event Listeners del Mapa ---
+
+                // Mapa: Click
+                map.on('click', (e) => {
+                    actualizarTodo(e.latlng.lat, e.latlng.lng, true);
+                });
+
+                // Marcador: Arrastrar
+                marcador.on('drag', (e) => {
+                    circulo.setLatLng(marcador.getLatLng());
+                });
+                marcador.on('dragend', (e) => {
+                    const pos = marcador.getLatLng();
+                    actualizarTodo(pos.lat, pos.lng, true);
+                });
+
+                // Inputs: Lat/Lng manual
+                function manualUpdate() {
+                    const lat = parseFloat(inputLat.value);
+                    const lng = parseFloat(inputLng.value);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        actualizarTodo(lat, lng, true);
+                    }
+                }
+                inputLat.addEventListener('change', manualUpdate);
+                inputLng.addEventListener('change', manualUpdate);
+
+                // Input: Radio
+                inputRadio.addEventListener('input', function() {
+                    const km = parseFloat(this.value);
+                    if (!isNaN(km)) {
+                        circulo.setRadius(km * 1000);
+                    }
+                });
             }
-        }
-        inputLat.addEventListener('change', manualUpdate);
-        inputLng.addEventListener('change', manualUpdate);
 
-        // Input: Radio
-        inputRadio.addEventListener('input', function() {
-            const km = parseFloat(this.value);
-            if (!isNaN(km)) {
-                circulo.setRadius(km * 1000);
+            // --- 6. Guardar Coordenadas ---
+            async function guardarCoordenadas() {
+                const lat = parseFloat(inputLat.value);
+                const lng = parseFloat(inputLng.value);
+                const radio = parseFloat(inputRadio.value);
+
+                // Validaciones
+                mensajesError.innerHTML = '';
+                const errores = [];
+
+                if (isNaN(lat) || lat < -90 || lat > 90) {
+                    errores.push('La latitud debe ser un número válido entre -90 y 90');
+                }
+
+                if (isNaN(lng) || lng < -180 || lng > 180) {
+                    errores.push('La longitud debe ser un número válido entre -180 y 180');
+                }
+
+                if (isNaN(radio) || radio <= 0) {
+                    errores.push('El radio debe ser un número mayor a 0');
+                }
+
+                if (errores.length > 0) {
+                    mensajesError.innerHTML = errores.map(err => 
+                        `<div class="text-red-500 text-sm mb-2">${escapeHtml(err)}</div>`
+                    ).join('');
+                    return;
+                }
+
+                const body = {
+                    latitude: lat,
+                    longitude: lng,
+                    radius: radio
+                };
+
+                try {
+                    btnGuardar.disabled = true;
+                    btnGuardar.textContent = 'Guardando...';
+
+                    let response;
+                    if (coordenadasExistentes === null) {
+                        // Crear nuevas coordenadas (endpoint 2)
+                        response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                            method: 'POST',
+                            body: JSON.stringify(body)
+                        });
+                    } else {
+                        // Actualizar coordenadas existentes (endpoint 3)
+                        response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                            method: 'PATCH',
+                            body: JSON.stringify(body)
+                        });
+                    }
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        // Manejar errores
+                        if (data.errors && Array.isArray(data.errors)) {
+                            mensajesError.innerHTML = data.errors.map(err => 
+                                `<div class="text-red-500 text-sm mb-2">${escapeHtml(err.message || err)}</div>`
+                            ).join('');
+                        } else {
+                            const errorMsg = data.message || response.statusText || 'Error al guardar las coordenadas';
+                            mensajesError.innerHTML = `<div class="text-red-500 text-sm mb-2">${escapeHtml(errorMsg)}</div>`;
+                            notyf.error(errorMsg);
+                        }
+                        return;
+                    }
+
+                    // Éxito
+                    coordenadasExistentes = data;
+                    notyf.success('Coordenadas guardadas exitosamente');
+
+                } catch (error) {
+                    console.error('Error guardando coordenadas:', error);
+                    const errorMsg = error.message || 'Error al guardar las coordenadas. Por favor, intenta nuevamente.';
+                    mensajesError.innerHTML = `<div class="text-red-500 text-sm mb-2">${escapeHtml(errorMsg)}</div>`;
+                    notyf.error(errorMsg);
+                } finally {
+                    btnGuardar.disabled = false;
+                    btnGuardar.textContent = 'Guardar Cambios';
+                }
             }
-        });
 
-        // --- 5. Ejecutar al inicio ---
-        window.onload = centrarEnMiUbicacion;
+            // Función helper para escapar HTML
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
+            // Event listeners del formulario
+            formCoordenadas.addEventListener('submit', (e) => {
+                e.preventDefault();
+                guardarCoordenadas();
+            });
+
+            btnCancelar.addEventListener('click', () => {
+                window.location.href = '/seguridad/usuarios';
+            });
+
+            // Inicializar
+            document.addEventListener('DOMContentLoaded', async () => {
+                await cargarCoordenadas();
+            });
+        })();
     </script>
 </body>
 </html>
