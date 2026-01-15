@@ -68,7 +68,7 @@ export function initDpLayout() {
 
   const shell = document.createElement('div');
   shell.id = 'dp-shell';
-  shell.className = 'min-h-screen bg-slate-50 flex';
+  shell.className = 'min-h-screen bg-brand-50 flex';
 
   const sidebarHost = document.createElement('aside');
   sidebarHost.id = 'dp-sidebar';
