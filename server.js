@@ -38,6 +38,12 @@ app.get('/config.js', (req, res) => {
   );
 });
 
+// Favicon (tanto en dev como en Vercel, Vercel servirá /favicon.ico desde public/, pero
+// en dev respondemos explícitamente para evitar 404 de ruido).
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'assets', '001novo_120744.ico'));
+});
+
 // Compatibilidad Vercel: mismo contenido que /config.js
 app.get('/api/config.js', (req, res) => {
   res.redirect(302, '/config.js');

@@ -37,8 +37,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(PROJECT_ROOT, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
 });
 
-// Evita ruido de 404 por favicon (opcional)
-app.get('/favicon.ico', (req, res) => res.status(204).end());
+// Favicon para Vercel (sirve el mismo ico que en dev)
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(PROJECT_ROOT, 'public', 'assets', '001novo_120744.ico'));
+});
 
 // Static: servir TODO el repo como archivos estáticos
 app.use(express.static(PROJECT_ROOT));
