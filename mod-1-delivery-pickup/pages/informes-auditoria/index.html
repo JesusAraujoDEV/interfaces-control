@@ -14,170 +14,114 @@
 		<header class="flex items-start sm:items-center justify-between gap-4">
 			<div>
 				<h1 class="text-2xl sm:text-3xl font-extrabold">Auditoría</h1>
-				<p class="mt-1 text-sm text-slate-600">Logs, reportes y exportación.</p>
+				<p class="mt-1 text-sm text-slate-600">Consola de logs operativos.</p>
 			</div>
-			<button type="button" class="inline-flex items-center justify-center rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Exportar</button>
+			<div class="flex items-center gap-2">
+				<button
+					id="dpAuditRefresh"
+					type="button"
+					class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+				>
+					Actualizar
+				</button>
+				<button
+					id="dpAuditExport"
+					type="button"
+					class="inline-flex items-center justify-center rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
+				>
+					Exportar
+				</button>
+			</div>
 		</header>
 
-		<main class="mt-5 bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
-				<!-- Octubre 2024 -->
-				<div class="mb-4">
-					<div class="flex items-center justify-between mb-3">
-						<div class="flex items-center gap-3 text-gray-700">
-							<button class="p-1 rounded hover:bg-gray-100">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-								</svg>
-							</button>
-							<h2 class="font-medium">Octubre 2024</h2>
-						</div>
-						<div>
-							<button class="p-1 rounded hover:bg-gray-100">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-								</svg>
-							</button>
-						</div>
-					</div>
-
-					<div class="text-xs text-gray-500 grid grid-cols-7 gap-2 mb-2 text-center">
-						<div>D</div><div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div>
-					</div>
-
-					<!-- Calendar grid for October with range background -->
-					<div class="range-bg p-3 rounded">
-						<div class="calendar-week">
-							<div class="calendar-cell text-gray-400"></div>
-							<div class="calendar-cell text-gray-400">1</div>
-							<div class="calendar-cell text-gray-400">2</div>
-							<div class="calendar-cell text-gray-400">3</div>
-							<div class="calendar-cell text-white">
-								<div class="w-8 h-8 bg-emerald-700 rounded-full flex items-center justify-center text-white">4</div>
+		<main class="mt-5 grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-4">
+			<section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 min-w-0">
+				<div class="flex flex-col gap-3">
+					<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+						<div class="dp-audit-bar">
+							<div class="dp-range">
+								<span class="dp-range__icon" aria-hidden="true">📅</span>
+								<input id="dpAuditFrom" type="date" class="dp-range__input" />
+								<span class="dp-range__sep" aria-hidden="true">—</span>
+								<input id="dpAuditTo" type="date" class="dp-range__input" />
 							</div>
-							<div class="calendar-cell text-white">
-								<div class="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white">5</div>
-							</div>
-							<div class="calendar-cell text-gray-800">6</div>
+							<select id="dpAuditLevel" class="dp-filter" aria-label="Nivel">
+								<option value="">Nivel (Todos)</option>
+								<option value="INFO">INFO</option>
+								<option value="WARNING">WARNING</option>
+								<option value="ERROR">ERROR</option>
+								<option value="CRITICAL">CRITICAL</option>
+								<option value="DEBUG">DEBUG</option>
+							</select>
+							<input id="dpAuditActor" type="text" class="dp-filter" placeholder="Usuario (Ej: Eyleen)" />
+							<input id="dpAuditQuery" type="text" class="dp-filter" placeholder="Buscar en logs..." />
 						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">8</div>
-							<div class="calendar-cell">9</div>
-							<div class="calendar-cell">10</div>
-							<div class="calendar-cell">11</div>
-							<div class="calendar-cell">12</div>
-							<div class="calendar-cell">13</div>
-							<div class="calendar-cell">14</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">15</div>
-							<div class="calendar-cell">16</div>
-							<div class="calendar-cell">17</div>
-							<div class="calendar-cell">18</div>
-							<div class="calendar-cell">19</div>
-							<div class="calendar-cell">20</div>
-							<div class="calendar-cell">21</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">22</div>
-							<div class="calendar-cell">23</div>
-							<div class="calendar-cell">24</div>
-							<div class="calendar-cell">25</div>
-							<div class="calendar-cell">26</div>
-							<div class="calendar-cell">27</div>
-							<div class="calendar-cell">28</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">29</div>
-							<div class="calendar-cell">30</div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
+						<div class="flex items-center justify-between lg:justify-end gap-3">
+							<div id="dpAuditMeta" class="text-xs text-slate-500"></div>
 						</div>
 					</div>
+
+					<div id="dpAuditError" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
 				</div>
 
-				<!-- November 2024 -->
-				<div class="mb-6">
-					<div class="flex items-center justify-between mb-3">
-						<div></div>
-						<h2 class="font-medium">Noviembre 2024</h2>
-						<div>
-							<button class="p-1 rounded hover:bg-gray-100">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-								</svg>
-							</button>
-						</div>
+				<div class="mt-4 dp-table-wrap">
+					<table class="dp-table">
+						<thead>
+							<tr>
+								<th>Timestamp</th>
+								<th>Nivel</th>
+								<th>Actor</th>
+								<th>Acción</th>
+								<th>Recurso</th>
+							</tr>
+						</thead>
+						<tbody id="dpAuditTableBody"></tbody>
+					</table>
+				</div>
+			</section>
+
+			<aside class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 dp-detail" aria-live="polite">
+				<div class="flex items-start justify-between gap-3">
+					<div>
+						<h2 class="text-lg font-extrabold text-slate-900">Detalle</h2>
+						<p id="dpAuditDetailHint" class="mt-1 text-sm text-slate-600">Selecciona un evento para inspeccionarlo.</p>
 					</div>
-
-					<div class="text-xs text-gray-500 grid grid-cols-7 gap-2 mb-2 text-center">
-						<div>D</div><div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div>
-					</div>
-
-					<div class="p-3 rounded range-bg">
-						<div class="calendar-week">
-							<div class="calendar-cell">1</div>
-							<div class="calendar-cell">2</div>
-							<div class="calendar-cell">3</div>
-							<div class="calendar-cell">4</div>
-							<div class="calendar-cell">5</div>
-							<div class="calendar-cell">6</div>
-							<div class="calendar-cell">
-								<div class="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white">7</div>
-							</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">8</div>
-							<div class="calendar-cell">9</div>
-							<div class="calendar-cell">10</div>
-							<div class="calendar-cell">11</div>
-							<div class="calendar-cell">12</div>
-							<div class="calendar-cell">13</div>
-							<div class="calendar-cell">14</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">15</div>
-							<div class="calendar-cell">16</div>
-							<div class="calendar-cell">17</div>
-							<div class="calendar-cell">18</div>
-							<div class="calendar-cell">19</div>
-							<div class="calendar-cell">20</div>
-							<div class="calendar-cell">21</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">22</div>
-							<div class="calendar-cell">23</div>
-							<div class="calendar-cell">24</div>
-							<div class="calendar-cell">25</div>
-							<div class="calendar-cell">26</div>
-							<div class="calendar-cell">27</div>
-							<div class="calendar-cell">28</div>
-						</div>
-
-						<div class="calendar-week mt-2">
-							<div class="calendar-cell">29</div>
-							<div class="calendar-cell">30</div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-							<div class="calendar-cell"></div>
-						</div>
-					</div>
+					<button id="dpAuditDetailClose" type="button" class="hidden dp-icon-btn" aria-label="Cerrar">✕</button>
 				</div>
 
-				<div class="pt-2">
-					<button class="w-full bg-emerald-700 text-white py-3 rounded-xl font-semibold hover:opacity-95">Generar informe</button>
+				<div id="dpAuditDetail" class="mt-4 hidden">
+					<div class="dp-detail-kv">
+						<div class="dp-detail-kv__k">Timestamp</div>
+						<div id="dpDetailTimestamp" class="dp-detail-kv__v"></div>
+					</div>
+					<div class="dp-detail-kv">
+						<div class="dp-detail-kv__k">Nivel</div>
+						<div id="dpDetailLevel" class="dp-detail-kv__v"></div>
+					</div>
+					<div class="dp-detail-kv">
+						<div class="dp-detail-kv__k">Actor</div>
+						<div id="dpDetailActor" class="dp-detail-kv__v"></div>
+					</div>
+					<div class="dp-detail-kv">
+						<div class="dp-detail-kv__k">Acción</div>
+						<div id="dpDetailAction" class="dp-detail-kv__v dp-mono"></div>
+					</div>
+					<div class="dp-detail-kv">
+						<div class="dp-detail-kv__k">Recurso</div>
+						<div id="dpDetailResource" class="dp-detail-kv__v"></div>
+					</div>
+
+					<div class="mt-4">
+						<h3 class="text-sm font-extrabold text-slate-900">Cambios</h3>
+						<div id="dpDetailDiff" class="mt-2 dp-diff"></div>
+					</div>
+
+					<div class="mt-4">
+						<h3 class="text-sm font-extrabold text-slate-900">Evento (JSON)</h3>
+						<pre id="dpDetailJson" class="mt-2 dp-json"></pre>
+					</div>
 				</div>
+			</aside>
 		</main>
 		<script type="module" src="/mod-1-delivery-pickup/pages/informes-auditoria/page.js"></script>
 	</body>
