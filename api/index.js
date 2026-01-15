@@ -7,6 +7,10 @@ const app = express();
 // Usar __dirname aquí apuntaría a /var/task/api y rompería los paths.
 const PROJECT_ROOT = process.cwd();
 
+function sendDpPage(res, folder) {
+  res.sendFile(path.join(PROJECT_ROOT, 'mod-1-delivery-pickup', 'pages', folder, 'index.html'));
+}
+
 // En Vercel, los archivos de /public se sirven desde la raíz del sitio.
 // Como esta API actúa como router principal (vercel.json), montamos /public aquí también.
 app.use(express.static(path.join(PROJECT_ROOT, 'public')));
@@ -54,6 +58,35 @@ app.get('/shared/admin-home/index.html', (req, res) => {
 // Alias bonito para el Home de Administración
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(PROJECT_ROOT, 'shared', 'admin-home', 'index.html'));
+});
+
+// Delivery & Pickup - Admin (Clean URLs)
+app.get(['/admin/dp', '/admin/dp/', '/admin/dp/pages/dashboard-home', '/admin/dp/pages/dashboard-home/'], (req, res) => {
+  sendDpPage(res, 'dashboard-home');
+});
+
+app.get('/admin/dp/orders', (req, res) => {
+  sendDpPage(res, 'pedidos');
+});
+
+app.get('/admin/dp/orders/:id', (req, res) => {
+  sendDpPage(res, 'pedido-12345');
+});
+
+app.get('/admin/dp/managers', (req, res) => {
+  sendDpPage(res, 'admin-gerentes');
+});
+
+app.get('/admin/dp/zones', (req, res) => {
+  sendDpPage(res, 'gestion-zonas');
+});
+
+app.get('/admin/dp/config', (req, res) => {
+  sendDpPage(res, 'configuracion-umbrales');
+});
+
+app.get('/admin/dp/audit', (req, res) => {
+  sendDpPage(res, 'informes-auditoria');
 });
 
 // Static: servir TODO el repo como archivos estáticos

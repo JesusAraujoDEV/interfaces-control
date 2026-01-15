@@ -3,9 +3,11 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "predev": "npm run build",
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "build": "tailwindcss -c tailwind.config.js -i ./styles/tailwind.css -o ./public/styles/tailwind.css"
+    "build": "tailwindcss -c tailwind.config.js -i ./styles/tailwind.css -o ./public/styles/tailwind.css",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",

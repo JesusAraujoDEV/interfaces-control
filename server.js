@@ -27,6 +27,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const preferredPort = Number(process.env.PORT) || 5173;
 
+function sendDpPage(res, folder) {
+  res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', folder, 'index.html'));
+}
+
 function jsString(value) {
   return String(value ?? '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
 }
@@ -61,6 +65,36 @@ app.get('/', (req, res) => {
 // Alias bonito para el Home de Administración
 app.get('/admin', (req, res) => {
 	res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
+});
+
+// Delivery & Pickup - Admin (Clean URLs)
+app.get(['/admin/dp', '/admin/dp/', '/admin/dp/pages/dashboard-home', '/admin/dp/pages/dashboard-home/'], (req, res) => {
+  sendDpPage(res, 'dashboard-home');
+});
+
+app.get('/admin/dp/orders', (req, res) => {
+  sendDpPage(res, 'pedidos');
+});
+
+// Ruta dinámica de detalle de orden
+app.get('/admin/dp/orders/:id', (req, res) => {
+  sendDpPage(res, 'pedido-12345');
+});
+
+app.get('/admin/dp/managers', (req, res) => {
+  sendDpPage(res, 'admin-gerentes');
+});
+
+app.get('/admin/dp/zones', (req, res) => {
+  sendDpPage(res, 'gestion-zonas');
+});
+
+app.get('/admin/dp/config', (req, res) => {
+  sendDpPage(res, 'configuracion-umbrales');
+});
+
+app.get('/admin/dp/audit', (req, res) => {
+  sendDpPage(res, 'informes-auditoria');
 });
 
 // Serve the workspace as static files (must come BEFORE "pretty" routes)
