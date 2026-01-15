@@ -43,6 +43,16 @@ app.get('/api/config.js', (req, res) => {
   res.redirect(302, '/config.js');
 });
 
+// Home: login de seguridad por defecto
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
+});
+
+// Ruta corta para el Home de Administración
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
+});
+
 // Serve the workspace as static files (must come BEFORE "pretty" routes)
 app.use(express.static(__dirname));
 
