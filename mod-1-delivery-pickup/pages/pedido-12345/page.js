@@ -6,17 +6,27 @@ function getOrderIdFromPath() {
   return '12345';
 }
 
-window.goTo = function goTo(pathOrUrl) {
-  const u = new URL(pathOrUrl, window.location.href);
-  u.search = window.location.search;
-  window.location.href = u.toString();
-};
+export async function init(params = {}) {
+  if (!document.getElementById('dp-shell')) {
+    initDpLayout();
+    mountDpSidebar();
+  }
 
-window.addEventListener('DOMContentLoaded', () => {
-  initDpLayout();
-  mountDpSidebar();
+  if (!window.__dpSpaRouter && typeof window.goTo !== 'function') {
+    window.goTo = function goTo(pathOrUrl) {
+      const u = new URL(pathOrUrl, window.location.href);
+      u.search = window.location.search;
+      window.location.href = u.toString();
+    };
+  }
 
-  const id = getOrderIdFromPath();
+  const id = params.orderId || getOrderIdFromPath();
   const titleEl = document.getElementById('orderTitle');
   if (titleEl) titleEl.textContent = `Pedido #${id}`;
-});
+}
+
+if (!window.__dpSpaRouter) {
+  window.addEventListener('DOMContentLoaded', () => {
+    init();
+  }, { once: true });
+}

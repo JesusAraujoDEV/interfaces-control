@@ -31,6 +31,10 @@ function sendDpPage(res, folder) {
   res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', folder, 'index.html'));
 }
 
+function sendDpAppShell(res) {
+  res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', 'app-shell', 'index.html'));
+}
+
 function jsString(value) {
   return String(value ?? '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
 }
@@ -67,34 +71,21 @@ app.get('/admin', (req, res) => {
 	res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
 });
 
-// Delivery & Pickup - Admin (Clean URLs)
-app.get(['/admin/dp', '/admin/dp/', '/admin/dp/pages/dashboard-home', '/admin/dp/pages/dashboard-home/'], (req, res) => {
-  sendDpPage(res, 'dashboard-home');
-});
-
-app.get('/admin/dp/orders', (req, res) => {
-  sendDpPage(res, 'pedidos');
-});
-
-// Ruta dinámica de detalle de orden
-app.get('/admin/dp/orders/:id', (req, res) => {
-  sendDpPage(res, 'pedido-12345');
-});
-
-app.get('/admin/dp/managers', (req, res) => {
-  sendDpPage(res, 'admin-gerentes');
-});
-
-app.get('/admin/dp/zones', (req, res) => {
-  sendDpPage(res, 'gestion-zonas');
-});
-
-app.get('/admin/dp/config', (req, res) => {
-  sendDpPage(res, 'configuracion-umbrales');
-});
-
-app.get('/admin/dp/audit', (req, res) => {
-  sendDpPage(res, 'informes-auditoria');
+// Delivery & Pickup - Admin (SPA Shell)
+// Todas estas rutas sirven el mismo "app shell"; el contenido se carga por JS con History API.
+app.get([
+  '/admin/dp',
+  '/admin/dp/',
+  '/admin/dp/pages/dashboard-home',
+  '/admin/dp/pages/dashboard-home/',
+  '/admin/dp/orders',
+  '/admin/dp/orders/:id',
+  '/admin/dp/managers',
+  '/admin/dp/zones',
+  '/admin/dp/config',
+  '/admin/dp/audit'
+], (req, res) => {
+  sendDpAppShell(res);
 });
 
 // Serve the workspace as static files (must come BEFORE "pretty" routes)
