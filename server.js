@@ -54,9 +54,9 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
 });
 
-// Ruta corta para el Home de Administración
+// Alias bonito para el Home de Administración
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
+	res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
 });
 
 // Serve the workspace as static files (must come BEFORE "pretty" routes)
