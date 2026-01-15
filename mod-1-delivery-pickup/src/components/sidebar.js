@@ -60,6 +60,178 @@ function elFromHTML(html) {
   return tpl.content.firstElementChild;
 }
 
+const DP_SIDEBAR_STORAGE_KEY = 'dp_sidebar_collapsed';
+const DP_SHELL_COLLAPSED_CLASS = 'dp-sidebar-collapsed';
+const DP_SHELL_MOBILE_OPEN_CLASS = 'dp-sidebar-mobile-open';
+
+function isMobileViewport() {
+  // Match Tailwind's `lg` breakpoint (1024px)
+  return window.matchMedia('(max-width: 1023px)').matches;
+}
+
+function readCollapsedPref() {
+  try {
+    return localStorage.getItem(DP_SIDEBAR_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeCollapsedPref(value) {
+  try {
+    localStorage.setItem(DP_SIDEBAR_STORAGE_KEY, value ? '1' : '0');
+  } catch {
+    // ignore
+  }
+}
+
+function setCollapsed(shell, collapsed) {
+  if (!shell) return;
+  shell.classList.toggle(DP_SHELL_COLLAPSED_CLASS, !!collapsed);
+}
+
+function setMobileOpen(shell, open) {
+  if (!shell) return;
+  shell.classList.toggle(DP_SHELL_MOBILE_OPEN_CLASS, !!open);
+  const btn = document.getElementById('dp-sidebar-fab');
+  if (btn) {
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+}
+
+function ensureDpSidebarStyles() {
+  if (document.getElementById('dp-sidebar-styles')) return;
+
+  const style = document.createElement('style');
+  style.id = 'dp-sidebar-styles';
+  style.textContent = `
+    /* Collapsible + mobile drawer behavior for DP sidebar */
+    #dp-shell { position: relative; }
+    #dp-sidebar { height: 100vh; overflow: auto; transition: width 180ms ease, transform 180ms ease; }
+
+    /* Desktop collapsed: icon-only rail */
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar { width: 4.5rem !important; }
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-sidebar-text,
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-nav-text,
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-nav-desc,
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-backlink-text,
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-footer-text { display: none !important; }
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-brand-row { justify-content: center; }
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar .dp-collapse-row { justify-content: center; }
+    #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar nav a { justify-content: center; }
+
+    /* Mobile: off-canvas drawer */
+    #dp-backdrop { display: none; }
+    @media (max-width: 1023px) {
+      #dp-sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-110%); z-index: 60; box-shadow: 0 16px 40px rgba(0,0,0,.18); }
+      #dp-shell.${DP_SHELL_MOBILE_OPEN_CLASS} #dp-sidebar { transform: translateX(0); }
+      #dp-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, .45); z-index: 55; }
+      #dp-shell.${DP_SHELL_MOBILE_OPEN_CLASS} #dp-backdrop { display: block; }
+      #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar { width: 18rem !important; }
+    }
+
+    /* Floating toggle button (always available, mainly for mobile) */
+    #dp-sidebar-fab {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      z-index: 70;
+    }
+    @media (min-width: 1024px) {
+      #dp-sidebar-fab { bottom: 18px; left: 18px; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function ensureDpSidebarControls() {
+  const shell = document.getElementById('dp-shell');
+  if (!shell) return;
+
+  ensureDpSidebarStyles();
+
+  if (!document.getElementById('dp-backdrop')) {
+    const backdrop = document.createElement('div');
+    backdrop.id = 'dp-backdrop';
+    backdrop.setAttribute('data-dp-action', 'mobile-close');
+    shell.prepend(backdrop);
+  }
+
+  if (!document.getElementById('dp-sidebar-fab')) {
+    const fab = elFromHTML(`
+      <button id="dp-sidebar-fab" type="button"
+        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-3 text-sm font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+        aria-label="Abrir/cerrar navegación"
+        aria-expanded="false"
+        data-dp-action="mobile-toggle">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-50 text-brand-800">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+            <path d="M4 6h16"/>
+            <path d="M4 12h16"/>
+            <path d="M4 18h16"/>
+          </svg>
+        </span>
+        <span class="hidden sm:inline">Menú</span>
+      </button>
+    `);
+    document.body.appendChild(fab);
+  }
+
+  if (window.__dpSidebarEventsBound) return;
+  window.__dpSidebarEventsBound = true;
+
+  document.addEventListener('click', (event) => {
+    const target = event.target?.closest?.('[data-dp-action]');
+    if (!target) return;
+
+    const action = target.getAttribute('data-dp-action');
+    const currentShell = document.getElementById('dp-shell');
+    if (!currentShell) return;
+
+    if (action === 'collapse-toggle') {
+      const next = !currentShell.classList.contains(DP_SHELL_COLLAPSED_CLASS);
+      setCollapsed(currentShell, next);
+      writeCollapsedPref(next);
+      return;
+    }
+
+    if (action === 'mobile-toggle') {
+      // On mobile, toggle drawer. On desktop, just toggle collapse for convenience.
+      if (isMobileViewport()) {
+        const open = !currentShell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS);
+        setMobileOpen(currentShell, open);
+      } else {
+        const next = !currentShell.classList.contains(DP_SHELL_COLLAPSED_CLASS);
+        setCollapsed(currentShell, next);
+        writeCollapsedPref(next);
+      }
+      return;
+    }
+
+    if (action === 'mobile-close') {
+      setMobileOpen(currentShell, false);
+    }
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const currentShell = document.getElementById('dp-shell');
+    if (!currentShell) return;
+    if (currentShell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS)) {
+      setMobileOpen(currentShell, false);
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const currentShell = document.getElementById('dp-shell');
+    if (!currentShell) return;
+    // If user rotated/resized into desktop, close the drawer.
+    if (!isMobileViewport() && currentShell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS)) {
+      setMobileOpen(currentShell, false);
+    }
+  });
+}
+
 export function initDpLayout() {
   const body = document.body;
   if (document.getElementById('dp-shell')) return;
@@ -82,6 +254,12 @@ export function initDpLayout() {
   shell.appendChild(main);
 
   body.prepend(shell);
+
+  // Apply persisted desktop collapsed preference.
+  setCollapsed(shell, readCollapsedPref());
+  // Mobile starts closed by default.
+  setMobileOpen(shell, false);
+  ensureDpSidebarControls();
 
   const movable = Array.from(body.children).filter(node => node !== shell && node.tagName !== 'SCRIPT');
   for (const node of movable) {
@@ -107,18 +285,31 @@ export function mountDpSidebar() {
 
   const header = elFromHTML(`
     <div class="p-5">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center">
+      <div class="flex items-center gap-3 dp-brand-row">
+        <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 7h18"/><path d="M6 7v14"/><path d="M18 7v14"/><path d="M6 21h12"/><path d="M9 7V3h6v4"/></svg>
         </div>
-        <div class="min-w-0">
+        <div class="min-w-0 dp-sidebar-text">
           <div class="text-sm font-extrabold text-slate-900 leading-5">Delivery & Pickup</div>
           <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
+        </div>
+        <div class="ml-auto flex items-center gap-2 dp-collapse-row">
+          <button type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50" aria-label="Colapsar/expandir sidebar" title="Colapsar/expandir" data-dp-action="collapse-toggle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <button type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 lg:hidden" aria-label="Cerrar menú" title="Cerrar" data-dp-action="mobile-close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <path d="M18 6 6 18"/>
+              <path d="M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
       </div>
       <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 hover:text-slate-800">
         <span aria-hidden="true">←</span>
-        Volver a Admin
+        <span class="dp-backlink-text">Volver a Admin</span>
       </a>
     </div>
   `);
@@ -129,15 +320,15 @@ export function mountDpSidebar() {
   for (const item of NAV) {
     const isActive = item.key === activeKey;
     const row = elFromHTML(`
-      <a href="${item.href}" class="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors border ${
+      <a href="${item.href}" title="${item.label}" class="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors border ${
         isActive
           ? 'bg-brand-50 text-brand-800 border-brand-50'
           : 'text-slate-700 hover:bg-slate-50 border-transparent'
       }">
         <div class="mt-0.5 ${isActive ? 'text-brand-800' : 'text-slate-500 group-hover:text-slate-700'}">${item.icon}</div>
-        <div class="min-w-0">
+        <div class="min-w-0 dp-nav-text">
           <div class="text-sm font-semibold leading-5">${item.label}</div>
-          <div class="text-xs text-slate-500 leading-4 truncate">${item.description}</div>
+          <div class="text-xs text-slate-500 leading-4 truncate dp-nav-desc">${item.description}</div>
         </div>
       </a>
     `);
@@ -147,7 +338,7 @@ export function mountDpSidebar() {
   const footer = elFromHTML(`
     <div class="mt-auto p-4 text-[11px] text-slate-400">
       <div class="rounded-xl border border-slate-200 bg-white p-3">
-        Navegación persistente (MPA)
+        <span class="dp-footer-text">Navegación persistente (MPA)</span>
       </div>
     </div>
   `);
@@ -159,4 +350,7 @@ export function mountDpSidebar() {
   wrapper.appendChild(footer);
 
   sidebarHost.appendChild(wrapper);
+
+  // Ensure controls exist even if mount is called without init.
+  ensureDpSidebarControls();
 }
