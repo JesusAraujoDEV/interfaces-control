@@ -186,8 +186,13 @@ async function render(pathname) {
 
     applyViewCss(doc, route.contentUrl);
 
-    const main = doc.querySelector('main');
-    container.innerHTML = main ? main.innerHTML : doc.body.innerHTML;
+    // Inject the visible view markup. Most of our legacy pages keep <header> outside <main>,
+    // so we cannot rely on main.innerHTML only.
+    const view = Array.from(doc.body.children)
+      .filter((el) => el && el.tagName !== 'SCRIPT')
+      .map((el) => el.outerHTML)
+      .join('');
+    container.innerHTML = view;
 
     document.title = doc.title || route.title || document.title;
 

@@ -8,6 +8,10 @@
 	transition:background 150ms ease,border-color 150ms ease,color 150ms ease;
 }
 
+.dp-tabs{display:flex;flex-wrap:wrap;gap:0.5rem}
+
+.dp-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.35rem;padding:0 0.45rem;border-radius:9999px;font-size:0.75rem;font-weight:800;background:rgb(241 245 249);color:rgb(51 65 85);border:1px solid rgb(226 232 240)}
+
 .dp-tab:hover{
 	background:rgb(248 250 252);
 	border-color:rgb(203 213 225);
@@ -40,3 +44,16 @@
 .dp-order-title{font-weight:800;font-size:1.05rem;color:#0f172a}
 .dp-order-sub{color:#64748b;font-size:0.875rem}
 .dp-order-thumb{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.dp-badge{display:inline-flex;align-items:center;gap:0.35rem;border-radius:9999px;padding:0.2rem 0.55rem;font-size:0.75rem;font-weight:800;border:1px solid transparent;white-space:nowrap}
+.dp-badge--muted{background:rgb(241 245 249);border-color:rgb(226 232 240);color:rgb(51 65 85)}
+.dp-badge--yellow{background:rgba(234, 179, 8, 0.14);border-color:rgba(234, 179, 8, 0.25);color:rgb(133, 77, 14)}
+.dp-badge--blue{background:rgba(37, 99, 235, 0.12);border-color:rgba(37, 99, 235, 0.24);color:rgb(30, 64, 175)}
+.dp-badge--green{background:rgba(34, 197, 94, 0.12);border-color:rgba(34, 197, 94, 0.24);color:rgb(21, 128, 61)}
+.dp-badge--purple{background:rgba(168, 85, 247, 0.12);border-color:rgba(168, 85, 247, 0.24);color:rgb(107, 33, 168)}
+.dp-badge--red{background:rgba(244, 63, 94, 0.12);border-color:rgba(244, 63, 94, 0.22);color:rgb(159, 18, 57)}
+
+.dp-timer{font-variant-numeric:tabular-nums;font-weight:800}
+.dp-timer--ok{color:rgb(71 85 105)}
+.dp-timer--warn{color:rgb(202, 138, 4)}
+.dp-timer--late{color:rgb(190, 18, 60)}
