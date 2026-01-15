@@ -3,26 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gestión de Zonas de Cobertura</title>
-    <link rel="stylesheet" href="./page.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Zonas — Delivery & Pickup</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link rel="stylesheet" href="/mod-1-delivery-pickup/pages/gestion-zonas/page.css" />
   </head>
-  <body class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-[380px] mx-auto">
-      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div class="px-5 py-4">
-          <div class="flex items-center gap-3">
-            <button aria-label="back" class="p-2 rounded-full hover:bg-gray-100">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-gray-700">
-                <path d="M15 18L9 12L15 6" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <h2 class="text-lg font-semibold text-gray-800">Gestión de Zonas de Cobertura</h2>
-          </div>
-        </div>
+  <body class="antialiased text-slate-900">
+    <header class="flex items-start sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold">Zonas</h1>
+        <p class="mt-1 text-sm text-slate-600">Cobertura, ETA y tarifas.</p>
+      </div>
+      <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">
+        <span aria-hidden="true">+</span>
+        Nueva zona
+      </button>
+    </header>
 
-        <div class="px-6 pb-6">
-          <h3 class="text-xl font-bold text-gray-800 mb-3">Zonas existentes</h3>
+    <main class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
+        <h3 class="text-lg font-extrabold text-slate-900 mb-3">Zonas existentes</h3>
 
           <ul class="space-y-3 mb-6">
             <li class="flex items-start justify-between bg-transparent">
@@ -50,9 +51,12 @@
             </li>
           </ul>
 
-          <h4 class="text-lg font-semibold text-gray-800 mb-3">Agregar nueva zona</h4>
+      </section>
 
-          <form class="space-y-4">
+      <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
+        <h4 class="text-lg font-extrabold text-slate-900 mb-3">Agregar nueva zona</h4>
+
+        <form class="space-y-4">
             <div>
               <label class="text-sm text-gray-700 block mb-2">Nombre de zona</label>
               <input type="text" placeholder="Ingrese nombre de zona" class="w-full bg-[var(--input)] text-gray-700 placeholder-gray-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" />
@@ -68,12 +72,12 @@
               <input type="text" placeholder="p. ej., 4.99" class="w-full bg-[var(--input)] text-gray-700 placeholder-gray-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" />
             </div>
 
-            <div class="pt-2">
-              <button type="submit" class="w-full bg-[var(--accent)] text-white rounded-lg py-3 font-semibold hover:brightness-105">Agregar zona</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <div class="pt-2">
+            <button type="submit" class="w-full bg-[var(--accent)] text-white rounded-xl py-3 font-semibold hover:brightness-105">Agregar zona</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/mod-1-delivery-pickup/pages/gestion-zonas/page.js"></script>
   </body>
 </html>

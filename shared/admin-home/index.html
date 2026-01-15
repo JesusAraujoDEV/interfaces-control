@@ -4,35 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Administración — Charlotte</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
-    <link rel="stylesheet" href="../styles/global.css" />
-    <link rel="stylesheet" href="./page.css" />
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link rel="stylesheet" href="/shared/admin-home/page.css" />
 
     <script src="/config.js"></script>
-
-    <script>
-      // Tailwind CDN lee esta config al cargar.
-      // Nota: no usamos `tailwind.config = ...` aquí porque `tailwind` todavía no existe.
-      window.tailwind = {
-        config: {
-          theme: {
-            extend: {
-              colors: {
-                brand: {
-                  50: '#f2f7f1',
-                  700: '#13532a',
-                  800: '#0f4a22'
-                }
-              },
-              fontFamily: {
-                sans: ['Inter', 'ui-sans-serif', 'system-ui']
-              }
-            }
-          }
-        }
-      };
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
   <body class="bg-brand-50 min-h-screen text-gray-800 font-sans">
@@ -51,7 +29,7 @@
           id="navDelivery"
           type="button"
           class="admin-card group text-left bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:shadow-md hover:border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-800"
-          data-href="/mod-1-delivery-pickup/pages/admin-gerentes/index.html"
+          data-href="/admin/dp/pages/dashboard-home/"
         >
           <div class="flex items-start justify-between gap-3">
             <div>
@@ -151,7 +129,7 @@
       </noscript>
     </main>
 
-    <script type="module" src="../components/app-header.js"></script>
-    <script type="module" src="./page.js"></script>
+    <script type="module" src="/shared/components/app-header.js"></script>
+    <script type="module" src="/shared/admin-home/page.js"></script>
   </body>
 </html>

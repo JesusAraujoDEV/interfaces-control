@@ -21,7 +21,15 @@ app.set("views", path.join(__dirname, "src/views"));
 
 app.use(express.json());
 
+// En Vercel, /public se sirve en la raíz (/...). En local replicamos ese comportamiento
+// para que rutas como /styles/tailwind.css funcionen.
+app.use(express.static(path.join(__dirname, 'public')));
+
 const preferredPort = Number(process.env.PORT) || 5173;
+
+function sendDpPage(res, folder) {
+  res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', folder, 'index.html'));
+}
 
 function jsString(value) {
   return String(value ?? '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
@@ -38,6 +46,12 @@ app.get('/config.js', (req, res) => {
   );
 });
 
+// Favicon (tanto en dev como en Vercel, Vercel servirá /favicon.ico desde public/, pero
+// en dev respondemos explícitamente para evitar 404 de ruido).
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'assets', '001novo_120744.ico'));
+});
+
 // Compatibilidad Vercel: mismo contenido que /config.js
 app.get('/api/config.js', (req, res) => {
   res.redirect(302, '/config.js');
@@ -48,9 +62,39 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
 });
 
-// Ruta corta para el Home de Administración
+// Alias bonito para el Home de Administración
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
+	res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
+});
+
+// Delivery & Pickup - Admin (Clean URLs)
+app.get(['/admin/dp', '/admin/dp/', '/admin/dp/pages/dashboard-home', '/admin/dp/pages/dashboard-home/'], (req, res) => {
+  sendDpPage(res, 'dashboard-home');
+});
+
+app.get('/admin/dp/orders', (req, res) => {
+  sendDpPage(res, 'pedidos');
+});
+
+// Ruta dinámica de detalle de orden
+app.get('/admin/dp/orders/:id', (req, res) => {
+  sendDpPage(res, 'pedido-12345');
+});
+
+app.get('/admin/dp/managers', (req, res) => {
+  sendDpPage(res, 'admin-gerentes');
+});
+
+app.get('/admin/dp/zones', (req, res) => {
+  sendDpPage(res, 'gestion-zonas');
+});
+
+app.get('/admin/dp/config', (req, res) => {
+  sendDpPage(res, 'configuracion-umbrales');
+});
+
+app.get('/admin/dp/audit', (req, res) => {
+  sendDpPage(res, 'informes-auditoria');
 });
 
 // Serve the workspace as static files (must come BEFORE "pretty" routes)

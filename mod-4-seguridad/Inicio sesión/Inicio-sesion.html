@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Charlotte - Iniciar Sesión</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="/config.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles/tailwind.css" />
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -130,7 +131,7 @@
             }
 
             localStorage.setItem('auth_token', token);
-            window.location.href = '/shared/admin-home/index.html';
+            window.location.href = '/admin';
         } catch (err) {
             setError('No se pudo conectar al servicio de autenticación.');
         } finally {
