@@ -42,6 +42,16 @@ app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(PROJECT_ROOT, 'public', 'assets', '001novo_120744.ico'));
 });
 
+// Home de administración (ruta corta)
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(PROJECT_ROOT, 'shared', 'admin-home', 'index.html'));
+});
+
+// Alias directo a la vista de admin-home (por compatibilidad con enlaces antiguos)
+app.get('/shared/admin-home/index.html', (req, res) => {
+  res.sendFile(path.join(PROJECT_ROOT, 'shared', 'admin-home', 'index.html'));
+});
+
 // Static: servir TODO el repo como archivos estáticos
 app.use(express.static(PROJECT_ROOT));
 
