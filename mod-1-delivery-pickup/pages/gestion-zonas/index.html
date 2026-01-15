@@ -15,65 +15,123 @@
         <h1 class="text-2xl sm:text-3xl font-extrabold">Zonas</h1>
         <p class="mt-1 text-sm text-slate-600">Cobertura, ETA y tarifas.</p>
       </div>
-      <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">
+      <div class="flex items-center gap-2">
+        <button
+          id="dpZonesRefresh"
+          type="button"
+          class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          aria-label="Actualizar"
+        >
+          Actualizar
+        </button>
+        <button
+          id="dpZonesNew"
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
+        >
         <span aria-hidden="true">+</span>
         Nueva zona
-      </button>
+        </button>
+      </div>
     </header>
 
     <main class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
       <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
-        <h3 class="text-lg font-extrabold text-slate-900 mb-3">Zonas existentes</h3>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-extrabold text-slate-900">Zonas existentes</h3>
+            <p class="mt-1 text-sm text-slate-600">Activa/desactiva, edita o elimina zonas.</p>
+          </div>
+          <div id="dpZonesMeta" class="text-xs text-slate-500"></div>
+        </div>
 
-          <ul class="space-y-3 mb-6">
-            <li class="flex items-start justify-between bg-transparent">
-              <div>
-                <div class="text-gray-800 font-medium">Centro</div>
-                <div class="text-sm text-gray-400">ETA estimado: 20-30 min</div>
-              </div>
-              <div class="text-gray-800 font-medium">$5.99</div>
-            </li>
+        <div id="dpZonesError" class="hidden mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
 
-            <li class="flex items-start justify-between bg-transparent">
-              <div>
-                <div class="text-gray-800 font-medium">Barrio Alto</div>
-                <div class="text-sm text-gray-400">ETA estimado: 15-25 min</div>
-              </div>
-              <div class="text-gray-800 font-medium">$4.99</div>
-            </li>
-
-            <li class="flex items-start justify-between bg-transparent">
-              <div>
-                <div class="text-gray-800 font-medium">Zona Media</div>
-                <div class="text-sm text-gray-400">ETA estimado: 25-35 min</div>
-              </div>
-              <div class="text-gray-800 font-medium">$6.99</div>
-            </li>
-          </ul>
+        <ul id="dpZonesList" class="mt-4 space-y-3"></ul>
 
       </section>
 
       <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
-        <h4 class="text-lg font-extrabold text-slate-900 mb-3">Agregar nueva zona</h4>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h4 id="dpZonesFormTitle" class="text-lg font-extrabold text-slate-900">Agregar nueva zona</h4>
+            <p class="mt-1 text-sm text-slate-600">Nombre, tarifa y ETA estimado.</p>
+          </div>
+          <button id="dpZonesCancelEdit" type="button" class="hidden rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+            Cancelar
+          </button>
+        </div>
 
-        <form class="space-y-4">
-            <div>
-              <label class="text-sm text-gray-700 block mb-2">Nombre de zona</label>
-              <input type="text" placeholder="Ingrese nombre de zona" class="w-full bg-[var(--input)] text-gray-700 placeholder-gray-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" />
-            </div>
+        <form id="dpZonesForm" class="mt-4 space-y-4" novalidate>
+          <input id="dpZonesId" type="hidden" />
 
-            <div>
-              <label class="text-sm text-gray-700 block mb-2">ETA estimado (mins)</label>
-              <input type="text" placeholder="p. ej., 20-30" class="w-full bg-[var(--input)] text-gray-700 placeholder-gray-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" />
-            </div>
+          <div>
+            <label class="text-sm text-slate-700 block mb-2">Nombre de zona</label>
+            <input
+              id="dpZoneName"
+              type="text"
+              required
+              placeholder="Ingrese nombre de zona"
+              class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+            />
+          </div>
 
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-sm text-gray-700 block mb-2">Costo de envío</label>
-              <input type="text" placeholder="p. ej., 4.99" class="w-full bg-[var(--input)] text-gray-700 placeholder-gray-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" />
+              <label class="text-sm text-slate-700 block mb-2">ETA mín (min)</label>
+              <input
+                id="dpEtaMin"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                step="1"
+                required
+                placeholder="15"
+                class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+              />
             </div>
+            <div>
+              <label class="text-sm text-slate-700 block mb-2">ETA máx (min)</label>
+              <input
+                id="dpEtaMax"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                step="1"
+                required
+                placeholder="25"
+                class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-sm text-slate-700 block mb-2">Costo de envío</label>
+            <div class="dp-money">
+              <span class="dp-money__prefix">$</span>
+              <input
+                id="dpShipping"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                required
+                placeholder="4.99"
+                class="dp-money__input"
+              />
+            </div>
+          </div>
+
+          <div id="dpZonesFormError" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
 
           <div class="pt-2">
-            <button type="submit" class="w-full bg-[var(--accent)] text-white rounded-xl py-3 font-semibold hover:brightness-105">Agregar zona</button>
+            <button
+              id="dpZonesSubmit"
+              type="submit"
+              class="w-full bg-[var(--accent)] text-white rounded-xl py-3 font-semibold hover:brightness-105"
+            >
+              Agregar zona
+            </button>
           </div>
         </form>
       </section>
