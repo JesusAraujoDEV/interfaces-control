@@ -1,0 +1,189 @@
+/* Estructura Principal */
+.contenedor-dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- BARRA LATERAL --- */
+.barra-lateral {
+    width: 260px;
+    background-color: white;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: fixed;
+    height: 100vh;
+}
+
+.perfil-usuario {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.perfil-usuario img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+}
+
+.perfil-usuario h3 {
+    font-weight: bold;
+    color: #1a202c;
+}
+
+.perfil-usuario p {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.menu-navegacion a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: #4a5568;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.menu-navegacion a i {
+    margin-right: 12px;
+    width: 20px;
+}
+
+.menu-navegacion a.activo {
+    background-color: #dcfce7; /* Verde clarito */
+    color: #1d4d35; /* Verde oscuro */
+    font-weight: 600;
+}
+
+.boton-logout {
+    margin-top: auto;
+    padding: 10px 15px;
+    color: #a0aec0;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* --- CONTENIDO PRINCIPAL --- */
+.contenido-principal {
+    margin-left: 260px; /* Espacio para la barra lateral */
+    flex: 1;
+    padding: 40px;
+}
+
+.cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.cabecera h1 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1a202c;
+}
+
+.boton-añadir {
+    background-color: #1d4d35;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Buscador */
+.contenedor-busqueda {
+    background-color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+}
+
+.contenedor-busqueda i {
+    color: #a0aec0;
+    margin-right: 15px;
+}
+
+.contenedor-busqueda input {
+    border: none;
+    outline: none;
+    width: 100%;
+    color: #4a5568;
+}
+
+/* Tabla */
+.tarjeta-tabla {
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.tabla-permisos {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-permisos thead {
+    background-color: #1d4d35;
+    color: white;
+}
+
+.tabla-permisos th {
+    text-align: left;
+    padding: 15px 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.tabla-permisos td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f2f5;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+/* Badges (Etiquetas de colores) */
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.azul { background-color: #eff6ff; color: #3b82f6; }
+.morado { background-color: #f5f3ff; color: #8b5cf6; }
+.gris { background-color: #f3f4f6; color: #6b7280; }
+.amarillo { background-color: #fefce8; color: #ca8a04; }
+
+/* Paginación */
+.paginacion {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.pagina-activa {
+    background-color: #dcfce7;
+    color: #1d4d35;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+}

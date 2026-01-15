@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/seguridad/cambioContraseña.css">
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="contenido-principal">
+            <header class="cabecera-crear" style="text-align: center;">
+                <div class="info-titulo">
+                    <h1>Cambiar contraseña</h1>
+                </div>
+            </header>
+
+            <div class="contenedor-centrado">
+                <section class="tarjeta-blanca">
+                    <form class="formulario-usuario">
+                        
+                        
+
+                        <div class="grupo-horizontal">
+                            <label>Nueva contraseña</label>
+                            <div class="input-icono">
+                                <input type="password" placeholder="Escribe la nueva contraseña">
+                                <i class="fa-regular fa-eye"></i>
+                            </div>
+                        </div>
+
+                        <div class="grupo-horizontal">
+                            <label>Confirmar contraseña</label>
+                            <div class="input-icono">
+                                <input type="password" placeholder="Confirma la nueva contraseña">
+                                <i class="fa-regular fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="botones-formulario">
+                            <button type="button" class="btn-cancelar">Cancelar</button>
+                            <button type="submit" class="btn-guardar">Guardar contraseña</button>
+                        </div>  
+
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+</body>
+</html>

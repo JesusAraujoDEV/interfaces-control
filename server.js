@@ -1,11 +1,26 @@
 const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
+const cookieParser = require("cookie-parser");
+const seguridadRouterModule = require("./src/routes/seguridad/seguridad");
+const apiSeguridadRouterModule = require("./src/routes/seguridad/apiSeguridad");
 
 // Load .env from repo root
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+const createSeguridadRouter = seguridadRouterModule.default || seguridadRouterModule;
+const createApiSeguridadRouter = apiSeguridadRouterModule.default || apiSeguridadRouterModule;
+
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "src/views"));
+
+app.use(express.json());
+
 const preferredPort = Number(process.env.PORT) || 5173;
 
 function jsString(value) {
@@ -28,9 +43,14 @@ app.get('/api/config.js', (req, res) => {
   res.redirect(302, '/config.js');
 });
 
-// Home: login
+// Home: login de seguridad por defecto
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'mod-4-seguridad', 'Inicio sesión', 'Inicio-sesion.html'));
+});
+
+// Ruta corta para el Home de Administración
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
 });
 
 // Serve the workspace as static files (must come BEFORE "pretty" routes)
@@ -59,4 +79,13 @@ function startServer(port, remainingAttempts) {
   });
 }
 
-startServer(preferredPort, 10);
+// Rutas de Seguridad
+app.use("/seguridad", createSeguridadRouter());
+app.use("/api/seguridad", createApiSeguridadRouter());
+
+if (require.main === module) {
+  // Iniciar el servidor solo si este archivo es el principal
+  startServer(preferredPort, 10);
+}
+
+module.exports = app;
