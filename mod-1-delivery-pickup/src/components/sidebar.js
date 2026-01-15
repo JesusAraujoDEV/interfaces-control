@@ -207,15 +207,10 @@ function ensureDpSidebarControls() {
     document.body.appendChild(toggle);
   }
 
-  // Bind once: this button is the ONLY way to open/close.
-  if (window.__dpSidebarToggleBound) {
-    syncDpTogglePlacement(shell);
-    return;
-  }
-  window.__dpSidebarToggleBound = true;
-
+  // Bind per-element (button may be recreated if sidebar is re-rendered).
   const btn = document.getElementById('dp-sidebar-toggle');
-  if (btn) {
+  if (btn && btn.dataset.dpBound !== '1') {
+    btn.dataset.dpBound = '1';
     btn.addEventListener('click', () => {
       const currentShell = document.getElementById('dp-shell');
       if (!currentShell) return;
@@ -230,11 +225,15 @@ function ensureDpSidebarControls() {
     });
   }
 
-  window.addEventListener('resize', () => {
-    const currentShell = document.getElementById('dp-shell');
-    if (!currentShell) return;
-    syncDpTogglePlacement(currentShell);
-  });
+  // Resize listener only once.
+  if (!window.__dpSidebarResizeBound) {
+    window.__dpSidebarResizeBound = true;
+    window.addEventListener('resize', () => {
+      const currentShell = document.getElementById('dp-shell');
+      if (!currentShell) return;
+      syncDpTogglePlacement(currentShell);
+    });
+  }
 
   syncDpTogglePlacement(shell);
 }
@@ -287,6 +286,13 @@ export function mountDpSidebar() {
   if (!sidebarHost) return;
 
   const activeKey = resolveActiveKey(window.location.pathname);
+
+  // Preserve the single toggle button if it currently lives inside the sidebar,
+  // otherwise it would get deleted by innerHTML=''.
+  const existingToggle = document.getElementById('dp-sidebar-toggle');
+  if (existingToggle && sidebarHost.contains(existingToggle)) {
+    document.body.appendChild(existingToggle);
+  }
 
   sidebarHost.innerHTML = '';
 
