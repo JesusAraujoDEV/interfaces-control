@@ -63,6 +63,7 @@ function elFromHTML(html) {
 const DP_SIDEBAR_STORAGE_KEY = 'dp_sidebar_collapsed';
 const DP_SHELL_COLLAPSED_CLASS = 'dp-sidebar-collapsed';
 const DP_SHELL_MOBILE_OPEN_CLASS = 'dp-sidebar-mobile-open';
+const DP_TOGGLE_FLOATING_CLASS = 'dp-toggle-floating';
 
 function isMobileViewport() {
   // Match Tailwind's `lg` breakpoint (1024px)
@@ -88,14 +89,36 @@ function writeCollapsedPref(value) {
 function setCollapsed(shell, collapsed) {
   if (!shell) return;
   shell.classList.toggle(DP_SHELL_COLLAPSED_CLASS, !!collapsed);
+  syncDpTogglePlacement(shell);
 }
 
 function setMobileOpen(shell, open) {
   if (!shell) return;
   shell.classList.toggle(DP_SHELL_MOBILE_OPEN_CLASS, !!open);
-  const btn = document.getElementById('dp-sidebar-fab');
-  if (btn) {
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  syncDpTogglePlacement(shell);
+}
+
+function isSidebarOpen(shell) {
+  if (!shell) return false;
+  if (isMobileViewport()) return shell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS);
+  return !shell.classList.contains(DP_SHELL_COLLAPSED_CLASS);
+}
+
+function syncDpTogglePlacement(shell) {
+  const btn = document.getElementById('dp-sidebar-toggle');
+  if (!btn) return;
+
+  const slot = document.getElementById('dp-sidebar-toggle-slot');
+  const open = isSidebarOpen(shell);
+
+  if (open && slot) {
+    if (btn.parentElement !== slot) slot.appendChild(btn);
+    btn.classList.remove(DP_TOGGLE_FLOATING_CLASS);
+    btn.setAttribute('aria-expanded', 'true');
+  } else {
+    if (btn.parentElement !== document.body) document.body.appendChild(btn);
+    btn.classList.add(DP_TOGGLE_FLOATING_CLASS);
+    btn.setAttribute('aria-expanded', 'false');
   }
 }
 
@@ -130,15 +153,23 @@ function ensureDpSidebarStyles() {
       #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar { width: 18rem !important; }
     }
 
-    /* Floating toggle button (always available, mainly for mobile) */
-    #dp-sidebar-fab {
+    /* Single toggle button: floats when sidebar is "closed", otherwise sits in footer slot */
+    #dp-sidebar-toggle.${DP_TOGGLE_FLOATING_CLASS} {
       position: fixed;
       left: 14px;
       bottom: 14px;
       z-index: 70;
+      width: auto;
+      border-radius: 9999px;
     }
     @media (min-width: 1024px) {
-      #dp-sidebar-fab { bottom: 18px; left: 18px; }
+      #dp-sidebar-toggle.${DP_TOGGLE_FLOATING_CLASS} { bottom: 18px; left: 18px; }
+    }
+    #dp-sidebar-toggle-slot #dp-sidebar-toggle {
+      position: static;
+      width: 100%;
+      z-index: auto;
+      border-radius: 0.75rem;
     }
   `;
   document.head.appendChild(style);
@@ -153,17 +184,15 @@ function ensureDpSidebarControls() {
   if (!document.getElementById('dp-backdrop')) {
     const backdrop = document.createElement('div');
     backdrop.id = 'dp-backdrop';
-    backdrop.setAttribute('data-dp-action', 'mobile-close');
     shell.prepend(backdrop);
   }
 
-  if (!document.getElementById('dp-sidebar-fab')) {
-    const fab = elFromHTML(`
-      <button id="dp-sidebar-fab" type="button"
-        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-3 text-sm font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+  if (!document.getElementById('dp-sidebar-toggle')) {
+    const toggle = elFromHTML(`
+      <button id="dp-sidebar-toggle" type="button"
+        class="inline-flex items-center justify-center gap-2 border border-slate-200 bg-white/95 px-4 py-3 text-sm font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
         aria-label="Abrir/cerrar navegación"
-        aria-expanded="false"
-        data-dp-action="mobile-toggle">
+        aria-expanded="false">
         <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-50 text-brand-800">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
             <path d="M4 6h16"/>
@@ -174,29 +203,22 @@ function ensureDpSidebarControls() {
         <span class="hidden sm:inline">Menú</span>
       </button>
     `);
-    document.body.appendChild(fab);
+    toggle.classList.add(DP_TOGGLE_FLOATING_CLASS);
+    document.body.appendChild(toggle);
   }
 
-  if (window.__dpSidebarEventsBound) return;
-  window.__dpSidebarEventsBound = true;
+  // Bind once: this button is the ONLY way to open/close.
+  if (window.__dpSidebarToggleBound) {
+    syncDpTogglePlacement(shell);
+    return;
+  }
+  window.__dpSidebarToggleBound = true;
 
-  document.addEventListener('click', (event) => {
-    const target = event.target?.closest?.('[data-dp-action]');
-    if (!target) return;
-
-    const action = target.getAttribute('data-dp-action');
-    const currentShell = document.getElementById('dp-shell');
-    if (!currentShell) return;
-
-    if (action === 'collapse-toggle') {
-      const next = !currentShell.classList.contains(DP_SHELL_COLLAPSED_CLASS);
-      setCollapsed(currentShell, next);
-      writeCollapsedPref(next);
-      return;
-    }
-
-    if (action === 'mobile-toggle') {
-      // On mobile, toggle drawer. On desktop, just toggle collapse for convenience.
+  const btn = document.getElementById('dp-sidebar-toggle');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const currentShell = document.getElementById('dp-shell');
+      if (!currentShell) return;
       if (isMobileViewport()) {
         const open = !currentShell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS);
         setMobileOpen(currentShell, open);
@@ -205,31 +227,16 @@ function ensureDpSidebarControls() {
         setCollapsed(currentShell, next);
         writeCollapsedPref(next);
       }
-      return;
-    }
-
-    if (action === 'mobile-close') {
-      setMobileOpen(currentShell, false);
-    }
-  });
-
-  window.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') return;
-    const currentShell = document.getElementById('dp-shell');
-    if (!currentShell) return;
-    if (currentShell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS)) {
-      setMobileOpen(currentShell, false);
-    }
-  });
+    });
+  }
 
   window.addEventListener('resize', () => {
     const currentShell = document.getElementById('dp-shell');
     if (!currentShell) return;
-    // If user rotated/resized into desktop, close the drawer.
-    if (!isMobileViewport() && currentShell.classList.contains(DP_SHELL_MOBILE_OPEN_CLASS)) {
-      setMobileOpen(currentShell, false);
-    }
+    syncDpTogglePlacement(currentShell);
   });
+
+  syncDpTogglePlacement(shell);
 }
 
 export function initDpLayout() {
@@ -293,19 +300,6 @@ export function mountDpSidebar() {
           <div class="text-sm font-extrabold text-slate-900 leading-5">Delivery & Pickup</div>
           <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
         </div>
-        <div class="ml-auto flex items-center gap-2 dp-collapse-row">
-          <button type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50" aria-label="Colapsar/expandir sidebar" title="Colapsar/expandir" data-dp-action="collapse-toggle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </button>
-          <button type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 lg:hidden" aria-label="Cerrar menú" title="Cerrar" data-dp-action="mobile-close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-              <path d="M18 6 6 18"/>
-              <path d="M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
       </div>
       <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-slate-500 hover:text-slate-800">
         <span aria-hidden="true">←</span>
@@ -338,7 +332,7 @@ export function mountDpSidebar() {
   const footer = elFromHTML(`
     <div class="mt-auto p-4 text-[11px] text-slate-400">
       <div class="rounded-xl border border-slate-200 bg-white p-3">
-        <span class="dp-footer-text">Navegación persistente (MPA)</span>
+        <div id="dp-sidebar-toggle-slot" class="mb-2"></div>
       </div>
     </div>
   `);
@@ -353,4 +347,6 @@ export function mountDpSidebar() {
 
   // Ensure controls exist even if mount is called without init.
   ensureDpSidebarControls();
+  // Now that the slot exists, relocate the single toggle as needed.
+  syncDpTogglePlacement(document.getElementById('dp-shell'));
 }
