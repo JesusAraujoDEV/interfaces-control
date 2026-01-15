@@ -7,6 +7,10 @@ const app = express();
 // Usar __dirname aquí apuntaría a /var/task/api y rompería los paths.
 const PROJECT_ROOT = process.cwd();
 
+// En Vercel, los archivos de /public se sirven desde la raíz del sitio.
+// Como esta API actúa como router principal (vercel.json), montamos /public aquí también.
+app.use(express.static(path.join(PROJECT_ROOT, 'public')));
+
 function jsString(value) {
   return String(value ?? '')
     .replace(/\\/g, '\\\\')

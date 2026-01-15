@@ -1,5 +1,19 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": [
+        "public/**",
+        "shared/**",
+        "mod-1-delivery-pickup/**",
+        "mod-2-kpis/**",
+        "mod-3-atencion-cliente/**",
+        "mod-4-seguridad/**",
+        "mod-5-cocina/**",
+        "src/**"
+      ]
+    }
+  },
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/api/index" }

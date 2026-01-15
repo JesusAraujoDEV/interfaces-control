@@ -21,6 +21,10 @@ app.set("views", path.join(__dirname, "src/views"));
 
 app.use(express.json());
 
+// En Vercel, /public se sirve en la raíz (/...). En local replicamos ese comportamiento
+// para que rutas como /styles/tailwind.css funcionen.
+app.use(express.static(path.join(__dirname, 'public')));
+
 const preferredPort = Number(process.env.PORT) || 5173;
 
 function jsString(value) {

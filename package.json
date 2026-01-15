@@ -4,7 +4,8 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "tailwindcss -c tailwind.config.js -i ./styles/tailwind.css -o ./public/styles/tailwind.css"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
@@ -15,6 +16,7 @@
     "serialize-javascript": "^7.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "tailwindcss": "^3.4.17"
   }
 }
