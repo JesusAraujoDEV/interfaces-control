@@ -69,6 +69,12 @@ app.get(['/menu', '/menu/'], (req, res) => {
   res.sendFile(path.join(PROJECT_ROOT, 'shared', 'pages', 'menu', 'index.html'));
 });
 
+// Ruta bonita para Checkout
+app.get(['/checkout', '/checkout/'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(PROJECT_ROOT, 'mod-1-delivery-pickup', 'pages', 'checkout', 'index.html'));
+});
+
 // Delivery & Pickup - Admin (SPA Shell)
 app.get([
   '/admin/dp',

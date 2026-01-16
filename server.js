@@ -76,6 +76,12 @@ app.get(['/menu', '/menu/'], (req, res) => {
   res.sendFile(path.join(__dirname, 'shared', 'pages', 'menu', 'index.html'));
 });
 
+// Ruta bonita para Checkout
+app.get(['/checkout', '/checkout/'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(__dirname, 'mod-1-delivery-pickup', 'pages', 'checkout', 'index.html'));
+});
+
 // Delivery & Pickup - Admin (SPA Shell)
 // Todas estas rutas sirven el mismo "app shell"; el contenido se carga por JS con History API.
 app.get([
