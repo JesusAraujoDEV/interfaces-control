@@ -1,7 +1,5 @@
 import { initDpLayout, mountDpSidebar } from '/mod-1-delivery-pickup/src/components/sidebar.js';
 
-const STORAGE_KEY = 'dp_orders_mock_v1';
-
 const STATUS = {
   PENDING_REVIEW: 'PENDING_REVIEW',
   IN_KITCHEN: 'IN_KITCHEN',
@@ -73,6 +71,62 @@ function minutesSince(iso) {
   return Math.max(0, Math.round((Date.now() - t) / 60000));
 }
 
+function normalizeBaseUrl(url) {
+  const raw = String(url ?? '').trim();
+  if (!raw) return '';
+  return raw.replace(/\/+$/g, '');
+}
+
+function getDpUrl() {
+  return normalizeBaseUrl(
+    (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
+      localStorage.getItem('DP_URL') ||
+      ''
+  );
+}
+
+function normalizeErrorMessage(error) {
+  if (!error) return 'Error desconocido';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message || 'Error';
+  return 'Error';
+}
+
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  const isJson = contentType.includes('application/json');
+  const body = isJson ? await response.json().catch(() => null) : await response.text().catch(() => '');
+
+  if (!response.ok) {
+    const message =
+      (body && typeof body === 'object' && (body.message || body.error)) ||
+      (typeof body === 'string' && body.trim()) ||
+      `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+
+  return body;
+}
+
+function formatMoneyCOP(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return '—';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(numericValue);
+}
+
 function timerTone(mins) {
   if (mins >= 30) return 'dp-timer--late';
   if (mins >= 20) return 'dp-timer--warn';
@@ -88,86 +142,23 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-function loadOrders() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const json = JSON.parse(raw);
-    if (!Array.isArray(json)) return null;
-    return json;
-  } catch {
-    return null;
-  }
-}
-
-function saveOrders(orders) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
-  } catch {
-    // ignore
-  }
-}
-
-function seedOrders() {
-  const now = Date.now();
-  const minAgo = (m) => new Date(now - m * 60000).toISOString();
-  return [
-    {
-      id: '12345',
-      noteId: '12345',
-      customer: 'Liam Carter',
-      serviceType: 'PICKUP',
-      status: STATUS.PENDING_REVIEW,
-      createdAt: minAgo(6),
-      address: null,
-      itemsSummary: '2x Hamburguesas, 1x Refresco',
-      driver: null
-    },
-    {
-      id: '67890',
-      noteId: '67890',
-      customer: 'Olivia Bennett',
-      serviceType: 'DELIVERY',
-      status: STATUS.READY_FOR_DISPATCH,
-      createdAt: minAgo(22),
-      address: 'Av. Principal 123, Zona Centro',
-      itemsSummary: '1x Ensalada, 1x Soda',
-      driver: null
-    },
-    {
-      id: '24680',
-      noteId: '24680',
-      customer: 'Noah Thompson',
-      serviceType: 'DELIVERY',
-      status: STATUS.EN_ROUTE,
-      createdAt: minAgo(34),
-      address: 'Calle 8 #45-12, Barrio Norte',
-      itemsSummary: '1x Pizza, 2x Papas',
-      driver: 'Driver 7'
-    },
-    {
-      id: '11223',
-      noteId: '11223',
-      customer: 'Ava Rodriguez',
-      serviceType: 'PICKUP',
-      status: STATUS.IN_KITCHEN,
-      createdAt: minAgo(12),
-      address: null,
-      itemsSummary: '1x Wrap, 1x Jugo',
-      driver: null
-    },
-    {
-      id: '99887',
-      noteId: '99887',
-      customer: 'Ethan Carter',
-      serviceType: 'DELIVERY',
-      status: STATUS.DELIVERED,
-      createdAt: minAgo(58),
-      address: 'Cra 10 #20-30',
-      itemsSummary: '2x Tacos, 1x Agua',
-      driver: 'Driver 3'
-    }
-  ];
+function mapOrderFromApi(o) {
+  const noteId = o?.note_id ?? o?.noteId ?? o?.id ?? null;
+  const readableId = o?.readable_id ?? o?.readableId ?? null;
+  return {
+    id: noteId || readableId,
+    noteId,
+    readableId,
+    customerName: o?.customer_name ?? o?.customerName ?? 'Cliente',
+    customerPhone: o?.customer_phone ?? o?.customerPhone ?? null,
+    customerEmail: o?.customer_email ?? o?.customerEmail ?? null,
+    address: o?.delivery_address ?? o?.deliveryAddress ?? null,
+    serviceType: o?.service_type ?? o?.serviceType ?? null,
+    status: normalizeStatus(o?.current_status ?? o?.status ?? o?.currentStatus),
+    createdAt: o?.timestamp_creation ?? o?.timestampCreation ?? o?.created_at ?? o?.createdAt ?? null,
+    total: o?.monto_total ?? o?.total_amount ?? o?.totalAmount ?? null,
+    shippingCost: o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
+  };
 }
 
 const TABS = [
@@ -180,8 +171,30 @@ const TABS = [
 
 let state = {
   tab: 'dispatch',
-  orders: []
+  orders: [],
+  loading: false
 };
+
+function setText(el, text) {
+  if (!el) return;
+  el.textContent = text;
+}
+
+function setHidden(el, hidden) {
+  if (!el) return;
+  el.classList.toggle('hidden', Boolean(hidden));
+}
+
+function setPageError(message) {
+  const errorEl = document.getElementById('dpOrdersError');
+  setText(errorEl, message ? `⚠️ ${message}` : '');
+  setHidden(errorEl, !message);
+}
+
+function setMeta(text) {
+  const metaEl = document.getElementById('dpOrdersMeta');
+  setText(metaEl, text || '');
+}
 
 function selectTab(key) {
   state.tab = key;
@@ -259,15 +272,22 @@ function renderOrders() {
     const addressLine = String(o.serviceType || '').toUpperCase() === 'DELIVERY'
       ? `<div class="mt-1 text-sm text-slate-600"><span class="font-semibold text-slate-800">Dirección:</span> ${escapeHtml(o.address || '—')}</div>`
       : `<div class="mt-1 text-sm text-slate-600"><span class="font-semibold text-slate-800">Recogida:</span> En mostrador</div>`;
-    const driverLine = o.driver
-      ? `<div class="mt-1 text-xs text-slate-500">Driver: <span class="font-semibold text-slate-700">${escapeHtml(o.driver)}</span></div>`
+
+    const totalsLine = `<div class="mt-2 text-sm text-slate-700"><span class="font-semibold text-slate-800">Total:</span> ${escapeHtml(formatMoneyCOP(o.total))} <span class="text-slate-500">(envío ${escapeHtml(formatMoneyCOP(o.shippingCost))})</span></div>`;
+
+    const contactLine = o.customerPhone
+      ? `<div class="mt-1 text-xs text-slate-500">Tel: <span class="font-semibold text-slate-700">${escapeHtml(o.customerPhone)}</span></div>`
       : '';
+
+    const openId = o.readableId || o.noteId || o.id;
+    const idLabel = o.readableId || o.noteId || o.id;
+    const createdIso = o.createdAt ? String(o.createdAt) : '';
     return `
-      <article class="dp-order" data-order-id="${escapeHtml(o.id)}" role="group" aria-label="Pedido ${escapeHtml(o.id)}">
+      <article class="dp-order" data-order-id="${escapeHtml(o.noteId || o.id)}" role="group" aria-label="Pedido ${escapeHtml(String(idLabel))}">
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
-              <div class="dp-order-meta">ID Nota: ${escapeHtml(o.noteId || o.id)}</div>
+              <div class="dp-order-meta" title="${escapeHtml(createdIso)}">${escapeHtml(String(idLabel))}</div>
               <span class="dp-badge dp-badge--muted" title="Tipo de servicio">
                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 border border-slate-200 text-slate-800">${escapeHtml(service.short)}</span>
                 ${escapeHtml(service.label)}
@@ -281,15 +301,15 @@ function renderOrders() {
                 <div class="dp-order-sub">Hace <span class="dp-timer ${timerTone(mins)}">${mins} min</span></div>
               </div>
               <div class="shrink-0">
-                <a href="/admin/dp/orders/${encodeURIComponent(String(o.id))}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" aria-label="Abrir detalle">
+                <a href="/admin/dp/orders/${encodeURIComponent(String(openId))}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" aria-label="Abrir detalle">
                   Ver
                 </a>
               </div>
             </div>
 
             ${addressLine}
-            <div class="mt-2 text-sm text-slate-700"><span class="font-semibold text-slate-800">Resumen:</span> ${escapeHtml(o.itemsSummary || '—')}</div>
-            ${driverLine}
+            ${totalsLine}
+            ${contactLine}
           </div>
 
           <div class="shrink-0 flex flex-col items-end gap-2">
@@ -308,32 +328,97 @@ function render() {
 
 function updateOrder(id, patch) {
   state.orders = state.orders.map((o) => (String(o.id) === String(id) ? { ...o, ...patch } : o));
-  saveOrders(state.orders);
 }
 
 async function handleAction(action, id) {
-  const order = state.orders.find((o) => String(o.id) === String(id));
+  const order = state.orders.find((o) => String(o.noteId || o.id) === String(id));
   if (!order) return;
 
   const st = normalizeStatus(order.status);
 
+  const dpBase = getDpUrl();
+  const noteId = order.noteId;
+  if (!noteId) {
+    setPageError('No se encontró note_id para esta orden.');
+    return;
+  }
+
+  async function patchStatus(nextStatus) {
+    const url = dpBase
+      ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(noteId)}/status`
+      : `/api/dp/v1/orders/${encodeURIComponent(noteId)}/status`;
+    await fetchJson(url, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+  }
+
   if (action === 'approve' && st === STATUS.PENDING_REVIEW) {
-    updateOrder(id, { status: STATUS.IN_KITCHEN });
-    render();
+    try {
+      setPageError('');
+      await patchStatus(STATUS.IN_KITCHEN);
+      await loadOrdersFromBackend();
+    } catch (e) {
+      setPageError(normalizeErrorMessage(e));
+    }
     return;
   }
 
   if (action === 'dispatch' && st === STATUS.READY_FOR_DISPATCH) {
-    const driver = window.prompt('Asignar driver (ej: Driver 7):', order.driver || '');
-    updateOrder(id, { status: STATUS.EN_ROUTE, driver: driver ? String(driver) : order.driver });
-    render();
+    try {
+      setPageError('');
+      const managerId = window.prompt('manager_id (uuid) para asignar (opcional):', '') || '';
+      const note = window.prompt('Nota de asignación (opcional):', '') || '';
+      if (managerId.trim()) {
+        const assignUrl = dpBase
+          ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(noteId)}/assign`
+          : `/api/dp/v1/orders/${encodeURIComponent(noteId)}/assign`;
+        await fetchJson(assignUrl, {
+          method: 'PATCH',
+          body: JSON.stringify({ manager_id: managerId.trim(), note: String(note || '') }),
+        });
+      }
+      await patchStatus(STATUS.EN_ROUTE);
+      await loadOrdersFromBackend();
+    } catch (e) {
+      setPageError(normalizeErrorMessage(e));
+    }
     return;
   }
 
   if (action === 'delivered' && st === STATUS.EN_ROUTE) {
-    updateOrder(id, { status: STATUS.DELIVERED });
-    render();
+    try {
+      setPageError('');
+      await patchStatus(STATUS.DELIVERED);
+      await loadOrdersFromBackend();
+    } catch (e) {
+      setPageError(normalizeErrorMessage(e));
+    }
     return;
+  }
+}
+
+async function loadOrdersFromBackend() {
+  if (state.loading) return;
+  state.loading = true;
+  try {
+    setPageError('');
+    setMeta('Cargando órdenes...');
+
+    const dpBase = getDpUrl();
+    const url = dpBase
+      ? `${dpBase}/api/dp/v1/orders?date=today`
+      : `/api/dp/v1/orders?date=today`;
+    const payload = await fetchJson(url, { method: 'GET' });
+
+    const list = Array.isArray(payload) ? payload : [];
+    state.orders = list.map(mapOrderFromApi);
+    setMeta(`Mostrando: hoy · ${state.orders.length} órdenes`);
+    render();
+  } catch (e) {
+    state.orders = [];
+    render();
+    setPageError(normalizeErrorMessage(e));
+    setMeta('');
+  } finally {
+    state.loading = false;
   }
 }
 
@@ -366,8 +451,7 @@ function bindEvents() {
   if (refresh && refresh.dataset.dpBound !== '1') {
     refresh.dataset.dpBound = '1';
     refresh.addEventListener('click', () => {
-      // For now, just re-render. Later, this is where we'd re-fetch from backend.
-      render();
+      loadOrdersFromBackend();
     });
   }
 }
@@ -389,9 +473,7 @@ export async function init() {
   }
 
   // Load initial dataset (mock stored in localStorage).
-  const existing = loadOrders();
-  state.orders = existing && existing.length ? existing : seedOrders();
-  saveOrders(state.orders);
+  await loadOrdersFromBackend();
 
   // Default tab: dispatcher focus.
   if (!TABS.some((t) => t.key === state.tab)) state.tab = 'dispatch';
