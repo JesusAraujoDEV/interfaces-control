@@ -157,6 +157,89 @@ function statusBarColor(status) {
   }
 }
 
+function setModalText(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+}
+
+function setModalHtml(id, html) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = html;
+}
+
+function closeEndStateModal() {
+  const modal = document.getElementById('dpEndStateModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function showEndStateModal(status) {
+  const st = normalizeStatus(status);
+  if (st !== 'DELIVERED' && st !== 'CANCELLED') return;
+
+  const modal = document.getElementById('dpEndStateModal');
+  if (!modal) return;
+
+  if (st === 'DELIVERED') {
+    setModalText('dpEndStateTitle', '¡Su pedido ha sido entregado!');
+    setModalText(
+      'dpEndStateSubtitle',
+      'Gracias por confiar en nosotros. Esperamos que lo disfrutes.'
+    );
+    setModalHtml(
+      'dpEndStateBody',
+      `<div class="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
+        <div class="font-semibold text-emerald-900">Todo listo ✅</div>
+        <ul class="mt-2 space-y-1 text-emerald-900/90">
+          <li>• Pedido marcado como <span class="font-semibold">Entregado</span></li>
+          <li>• Si tuviste algún problema, soporte está disponible</li>
+          <li>• ¿Te gustó? ¡Vuelve cuando quieras!</li>
+        </ul>
+      </div>`
+    );
+  } else {
+    setModalText('dpEndStateTitle', 'Disculpe, su pedido ha sido cancelado');
+    setModalText(
+      'dpEndStateSubtitle',
+      'Entendemos lo frustrante que es. Podemos ayudarte a pedir otra vez.'
+    );
+    setModalHtml(
+      'dpEndStateBody',
+      `<div class="rounded-xl bg-red-50 border border-red-100 p-4">
+        <div class="font-semibold text-red-900">Estado: Cancelado</div>
+        <p class="mt-2 text-red-900/90">
+          Si deseas, puedes volver al menú para realizar un nuevo pedido.
+        </p>
+      </div>`
+    );
+  }
+
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  const closeBtn = document.getElementById('dpEndStateClose');
+  if (closeBtn && !closeBtn.dataset.bound) {
+    closeBtn.dataset.bound = '1';
+    closeBtn.addEventListener('click', closeEndStateModal);
+  }
+
+  const backdrop = document.getElementById('dpEndStateBackdrop');
+  if (backdrop && !backdrop.dataset.bound) {
+    backdrop.dataset.bound = '1';
+    backdrop.addEventListener('click', closeEndStateModal);
+  }
+
+  if (!document.body.dataset.dpEndStateEscBound) {
+    document.body.dataset.dpEndStateEscBound = '1';
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeEndStateModal();
+    });
+  }
+}
+
 function serviceTypeLabel(value) {
   switch (String(value || '').toUpperCase()) {
     case 'DELIVERY':
@@ -301,6 +384,9 @@ function renderOrder(order) {
         .join('')
     );
   }
+
+  // If user reloads/returns and order is final, show the modal.
+  showEndStateModal(st);
 }
 
 (async function init() {
