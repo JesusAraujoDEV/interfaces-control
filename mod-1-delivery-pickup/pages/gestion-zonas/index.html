@@ -16,6 +16,10 @@
         <p class="mt-1 text-sm text-slate-600">Cobertura, ETA y tarifas.</p>
       </div>
       <div class="flex items-center gap-2">
+        <label class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 select-none">
+          <input id="dpZonesOnlyActive" type="checkbox" class="h-4 w-4" />
+          <span>Solo activas</span>
+        </label>
         <button
           id="dpZonesRefresh"
           type="button"
@@ -76,33 +80,18 @@
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-sm text-slate-700 block mb-2">ETA mín (min)</label>
-              <input
-                id="dpEtaMin"
-                type="number"
-                inputmode="numeric"
-                min="1"
-                step="1"
-                required
-                placeholder="15"
-                class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
-              />
-            </div>
-            <div>
-              <label class="text-sm text-slate-700 block mb-2">ETA máx (min)</label>
-              <input
-                id="dpEtaMax"
-                type="number"
-                inputmode="numeric"
-                min="1"
-                step="1"
-                required
-                placeholder="25"
-                class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
-              />
-            </div>
+          <div>
+            <label class="text-sm text-slate-700 block mb-2">ETA estimado (min)</label>
+            <input
+              id="dpEtaMinutes"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              step="1"
+              required
+              placeholder="15"
+              class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+            />
           </div>
 
           <div>
