@@ -71,6 +71,11 @@ app.get('/admin', (req, res) => {
 	res.sendFile(path.join(__dirname, 'shared', 'admin-home', 'index.html'));
 });
 
+// Alias bonito para el Menú compartido
+app.get(['/menu', '/menu/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'shared', 'pages', 'menu', 'index.html'));
+});
+
 // Delivery & Pickup - Admin (SPA Shell)
 // Todas estas rutas sirven el mismo "app shell"; el contenido se carga por JS con History API.
 app.get([

@@ -64,6 +64,11 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(PROJECT_ROOT, 'shared', 'admin-home', 'index.html'));
 });
 
+// Alias bonito para el Menú compartido
+app.get(['/menu', '/menu/'], (req, res) => {
+  res.sendFile(path.join(PROJECT_ROOT, 'shared', 'pages', 'menu', 'index.html'));
+});
+
 // Delivery & Pickup - Admin (SPA Shell)
 app.get([
   '/admin/dp',
