@@ -130,7 +130,14 @@ function ensureDpSidebarStyles() {
   style.textContent = `
     /* Collapsible + mobile drawer behavior for DP sidebar */
     #dp-shell { position: relative; }
-    #dp-sidebar { height: 100vh; overflow: auto; transition: width 180ms ease, transform 180ms ease; }
+    #dp-sidebar {
+      height: 100vh;
+      overflow: auto;
+      transition: width 180ms ease, transform 180ms ease;
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+    }
 
     /* Desktop collapsed: icon-only rail */
     #dp-shell.${DP_SHELL_COLLAPSED_CLASS} #dp-sidebar { width: 4.5rem !important; }
