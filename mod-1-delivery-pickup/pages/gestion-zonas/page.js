@@ -21,10 +21,19 @@ function normalizeErrorMessage(error) {
   return 'Error';
 }
 
+function normalizeBaseUrl(url) {
+  const raw = String(url ?? '').trim();
+  if (!raw) return '';
+  return raw.replace(/\/+$/g, '');
+}
+
 function getDpBaseUrl() {
-  const fromWindow = window.DP_URL;
-  if (typeof fromWindow === 'string' && fromWindow.trim()) return fromWindow.trim();
-  return '';
+  return normalizeBaseUrl(
+    (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
+      window.DP_URL ||
+      localStorage.getItem('DP_URL') ||
+      ''
+  );
 }
 
 function parseNumber(value) {
@@ -34,15 +43,23 @@ function parseNumber(value) {
   return Number(normalized);
 }
 
+function toFiniteNumberOrNull(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function validateForm({ name, etaMin, etaMax, shipping }) {
   const errors = [];
   if (!name || !String(name).trim()) errors.push('El nombre es obligatorio.');
-  if (!Number.isFinite(etaMin) || etaMin <= 0) errors.push('ETA mínimo debe ser un número mayor a 0.');
-  if (!Number.isFinite(etaMax) || etaMax <= 0) errors.push('ETA máximo debe ser un número mayor a 0.');
-  if (Number.isFinite(etaMin) && Number.isFinite(etaMax) && etaMin > etaMax) {
-    errors.push('ETA mínimo no puede ser mayor al ETA máximo.');
-  }
-  if (!Number.isFinite(shipping) || shipping < 0) errors.push('El costo de envío debe ser un número válido (>= 0).');
+
+  const eta = toFiniteNumberOrNull(etaMin);
+  if (eta === null || eta <= 0) errors.push('ETA estimado debe ser un número mayor a 0.');
+
+  const ship = toFiniteNumberOrNull(shipping);
+  if (ship === null || ship < 0) errors.push('El costo de envío debe ser un número válido (>= 0).');
+
   return errors;
 }
 
@@ -96,12 +113,14 @@ function zoneId(zone) {
 }
 
 function mapZoneFromApi(zone) {
+  const estimatedEta =
+    zone?.estimated_eta_minutes ?? zone?.estimatedEtaMinutes ?? zone?.estimated_eta ?? zone?.estimatedEta ?? null;
+
   return {
     raw: zone,
     id: zoneId(zone),
     name: zone?.name ?? zone?.zone_name ?? zone?.nombre ?? '(Sin nombre)',
-    etaMin: zone?.eta_min ?? zone?.etaMin ?? zone?.min_eta ?? zone?.minEta ?? null,
-    etaMax: zone?.eta_max ?? zone?.etaMax ?? zone?.max_eta ?? zone?.maxEta ?? null,
+    etaMinutes: estimatedEta,
     shipping: zone?.shipping_cost ?? zone?.shippingCost ?? zone?.delivery_fee ?? zone?.deliveryFee ?? null,
     isActive:
       typeof zone?.is_active === 'boolean'
@@ -149,11 +168,11 @@ function renderZoneRow(zone, { onToggleActive, onEdit, onDelete }) {
   const meta = document.createElement('div');
   meta.className = 'text-sm text-slate-600 mt-1 flex flex-wrap gap-4';
 
-  const etaText =
-    Number.isFinite(Number(zone.etaMin)) && Number.isFinite(Number(zone.etaMax))
-      ? `${zone.etaMin}–${zone.etaMax} min`
-      : 'ETA: —';
-  const shippingText = Number.isFinite(Number(zone.shipping)) ? formatMoneyCOP(zone.shipping) : 'Costo: —';
+  const eta = toFiniteNumberOrNull(zone.etaMinutes);
+  const ship = toFiniteNumberOrNull(zone.shipping);
+
+  const etaText = eta !== null ? `${eta} min` : 'ETA: —';
+  const shippingText = ship !== null ? formatMoneyCOP(ship) : 'Costo: —';
 
   const etaEl = document.createElement('span');
   etaEl.textContent = `⏱ ${etaText}`;
@@ -232,14 +251,14 @@ export async function init() {
   const errorEl = byId('dpZonesError');
   const refreshBtn = byId('dpZonesRefresh');
   const newBtn = byId('dpZonesNew');
+  const onlyActiveEl = byId('dpZonesOnlyActive');
 
   const formTitleEl = byId('dpZonesFormTitle');
   const form = byId('dpZonesForm');
   const formErrorEl = byId('dpZonesFormError');
   const idEl = byId('dpZonesId');
   const nameEl = byId('dpZoneName');
-  const etaMinEl = byId('dpEtaMin');
-  const etaMaxEl = byId('dpEtaMax');
+  const etaMinEl = byId('dpEtaMinutes');
   const shippingEl = byId('dpShipping');
   const cancelEditBtn = byId('dpZonesCancelEdit');
   const submitBtn = byId('dpZonesSubmit');
@@ -250,6 +269,7 @@ export async function init() {
     loading: false,
     zones: [],
     editingZoneId: null,
+    onlyActive: false,
   };
 
   function setPageError(message) {
@@ -278,7 +298,6 @@ export async function init() {
     idEl.value = '';
     nameEl.value = '';
     etaMinEl.value = '';
-    etaMaxEl.value = '';
     shippingEl.value = '';
     state.editingZoneId = null;
     setEditing(false);
@@ -288,8 +307,7 @@ export async function init() {
   function fillForm(zone) {
     idEl.value = zone.id ?? '';
     nameEl.value = zone.name ?? '';
-    etaMinEl.value = zone.etaMin ?? '';
-    etaMaxEl.value = zone.etaMax ?? '';
+    etaMinEl.value = toFiniteNumberOrNull(zone.etaMinutes) ?? '';
     shippingEl.value = zone.shipping ?? '';
     state.editingZoneId = zone.id ?? null;
     setEditing(true);
@@ -357,7 +375,11 @@ export async function init() {
     try {
       setPageError('');
       setText(metaEl, 'Cargando...');
-      const payload = await fetchJson(`${dpBase}/api/dp/v1/zones`, { method: 'GET' });
+      const endpoint = state.onlyActive ? 'active' : '';
+      const url = endpoint
+        ? `${dpBase}/api/dp/v1/zones/${endpoint}`
+        : `${dpBase}/api/dp/v1/zones`;
+      const payload = await fetchJson(url, { method: 'GET' });
       state.zones = extractZones(payload).map(mapZoneFromApi);
       render();
     } catch (e) {
@@ -370,6 +392,10 @@ export async function init() {
   }
 
   refreshBtn?.addEventListener('click', () => loadZones());
+  onlyActiveEl?.addEventListener('change', () => {
+    state.onlyActive = Boolean(onlyActiveEl.checked);
+    loadZones();
+  });
   newBtn?.addEventListener('click', () => {
     clearForm();
     nameEl?.focus?.();
@@ -384,7 +410,6 @@ export async function init() {
     const payload = {
       name: String(nameEl.value ?? '').trim(),
       etaMin: parseNumber(etaMinEl.value),
-      etaMax: parseNumber(etaMaxEl.value),
       shipping: parseNumber(shippingEl.value),
     };
 
@@ -402,13 +427,13 @@ export async function init() {
 
       const body = {
         name: payload.name,
-        eta_min: payload.etaMin,
-        eta_max: payload.etaMax,
-        shipping_cost: payload.shipping,
-        etaMin: payload.etaMin,
-        etaMax: payload.etaMax,
-        shippingCost: payload.shipping,
+        zone_name: payload.name,
       };
+
+      const etaMinutes = toFiniteNumberOrNull(payload.etaMin);
+      const shippingCost = toFiniteNumberOrNull(payload.shipping);
+      if (etaMinutes !== null) body.estimated_eta_minutes = etaMinutes;
+      if (shippingCost !== null) body.shipping_cost = shippingCost;
 
       if (isEditing) {
         await fetchJson(`${dpBase}/api/dp/v1/zones/${encodeURIComponent(editingId)}`, {
