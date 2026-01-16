@@ -72,23 +72,11 @@ function thresholdId(t) {
 }
 
 function mapThresholdFromApi(t) {
-  const unitRaw = (t?.unit ?? t?.unit_type ?? t?.unitType ?? '').toString().trim();
-  const unit = unitRaw || (t?.is_percentage ? '%' : unitRaw);
-
   return {
     raw: t,
     id: thresholdId(t),
-    name: t?.name ?? t?.title ?? t?.label ?? '',
-    description: t?.description ?? t?.desc ?? '',
-    metricKey: t?.metric_affected ?? t?.metricAffected ?? t?.metric_key ?? t?.metricKey ?? t?.metric ?? '',
-    unit: unit || (t?.value_type === 'percent' ? '%' : ''),
-    value:
-      t?.threshold_value ??
-      t?.thresholdValue ??
-      t?.value ??
-      t?.threshold ??
-      t?.limit ??
-      null,
+    metricAffected: t?.metric_affected ?? t?.metricAffected ?? '',
+    valueCritical: t?.value_critical ?? t?.valueCritical ?? null,
     isActive:
       typeof t?.is_active === 'boolean'
         ? t.is_active
@@ -109,16 +97,6 @@ function extractThresholds(payload) {
   return [];
 }
 
-function isMinutesUnit(unit) {
-  const u = String(unit ?? '').toLowerCase().trim();
-  return u === 'min' || u === 'mins' || u === 'minute' || u === 'minutes';
-}
-
-function isPercentUnit(unit) {
-  const u = String(unit ?? '').toLowerCase().trim();
-  return u === '%' || u === 'percent' || u === 'percentage' || u === 'pct';
-}
-
 function setButtonLoading(button, loading, labelWhenNotLoading) {
   if (!button) return;
   button.disabled = Boolean(loading);
@@ -136,51 +114,35 @@ function renderThresholdRow(rule, handlers) {
 
   const title = document.createElement('div');
   title.className = 'font-extrabold text-slate-900 truncate';
-  title.textContent = rule.name || '(Sin nombre)';
+  title.textContent = rule.metricAffected || '(Sin métrica)';
 
   const metric = document.createElement('div');
   metric.className = 'mt-0.5 text-xs text-slate-500 dp-mono truncate';
-  metric.textContent = rule.metricKey ? `metric_key: ${rule.metricKey}` : 'metric_key: —';
-
-  const desc = document.createElement('div');
-  desc.className = 'mt-1 text-sm text-slate-600';
-  desc.textContent = rule.description || '';
-  if (!rule.description) desc.classList.add('hidden');
+  metric.textContent = rule.id ? `threshold_id: ${rule.id}` : 'threshold_id: —';
 
   left.appendChild(title);
   left.appendChild(metric);
-  left.appendChild(desc);
 
   const right = document.createElement('div');
   right.className = 'flex items-center justify-between sm:justify-end gap-3';
 
   const valueWrap = document.createElement('div');
-  valueWrap.className = 'dp-suffix';
+  valueWrap.className = 'flex items-center gap-2';
 
-  const valueInput = document.createElement('input');
-  valueInput.type = 'number';
-  valueInput.inputMode = 'decimal';
-  valueInput.min = '0';
-  valueInput.step = isPercentUnit(rule.unit) ? '0.01' : '1';
-  valueInput.className = 'dp-suffix__input';
-  valueInput.value = rule.value ?? '';
-  valueInput.placeholder = '—';
+  const valueBadge = document.createElement('span');
+  valueBadge.className =
+    'inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-extrabold text-slate-900 dp-mono';
+  valueBadge.textContent = Number.isFinite(Number(rule.valueCritical)) ? String(rule.valueCritical) : '—';
 
-  const suffix = document.createElement('span');
-  suffix.className = 'dp-suffix__unit';
-  suffix.textContent = rule.unit || (isPercentUnit(rule.unit) ? '%' : (isMinutesUnit(rule.unit) ? 'min' : '')) || '—';
+  const valueLabel = document.createElement('span');
+  valueLabel.className = 'text-xs text-slate-500';
+  valueLabel.textContent = 'value_critical';
 
-  valueWrap.appendChild(valueInput);
-  valueWrap.appendChild(suffix);
+  valueWrap.appendChild(valueBadge);
+  valueWrap.appendChild(valueLabel);
 
   const actions = document.createElement('div');
   actions.className = 'dp-row-actions';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.type = 'button';
-  saveBtn.className = 'inline-flex items-center justify-center rounded-xl bg-brand-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700';
-  saveBtn.textContent = 'Guardar';
-  saveBtn.disabled = !rule.metricKey;
 
   const toggleWrap = document.createElement('label');
   toggleWrap.className = 'inline-flex items-center gap-2 select-none';
@@ -211,37 +173,6 @@ function renderThresholdRow(rule, handlers) {
   deleteBtn.textContent = '🗑️';
   deleteBtn.disabled = !rule.id;
   deleteBtn.addEventListener('click', () => handlers.onDelete(rule));
-
-  let originalValue = String(rule.value ?? '');
-  valueInput.addEventListener('input', () => {
-    const now = String(valueInput.value ?? '');
-    saveBtn.disabled = !rule.metricKey || now === originalValue;
-  });
-
-  async function doSave() {
-    const nextValue = parseNumber(valueInput.value);
-    if (!Number.isFinite(nextValue)) return;
-
-    await handlers.onSave(rule, {
-      value: nextValue,
-      unit: rule.unit,
-    });
-    originalValue = String(valueInput.value ?? '');
-    saveBtn.disabled = true;
-  }
-
-  saveBtn.addEventListener('click', () => {
-    setButtonLoading(saveBtn, true);
-    doSave().finally(() => setButtonLoading(saveBtn, false, 'Guardar'));
-  });
-  valueInput.addEventListener('keydown', e => {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    if (saveBtn.disabled) return;
-    saveBtn.click();
-  });
-
-  actions.appendChild(saveBtn);
   actions.appendChild(toggleWrap);
   actions.appendChild(deleteBtn);
 
@@ -261,29 +192,26 @@ export async function init() {
 
   const refreshBtn = byId('dpThresholdsRefresh');
   const addBtn = byId('dpThresholdsAdd');
+  const onlyActiveEl = byId('dpThresholdsOnlyActive');
   const metaEl = byId('dpThresholdsMeta');
   const errorEl = byId('dpThresholdsError');
-  const timesEl = byId('dpThresholdsTimes');
-  const criticalEl = byId('dpThresholdsCritical');
+  const listEl = byId('dpThresholdsList');
 
   const form = byId('dpThresholdsForm');
   const cancelBtn = byId('dpThresholdsCancel');
   const formErrorEl = byId('dpThresholdsFormError');
   const submitBtn = byId('dpThresholdsSubmit');
 
-  const idEl = byId('dpThresholdId');
-  const nameEl = byId('dpThresholdName');
-  const metricKeyEl = byId('dpThresholdMetricKey');
-  const descriptionEl = byId('dpThresholdDescription');
-  const unitEl = byId('dpThresholdUnit');
-  const valueEl = byId('dpThresholdValue');
-  const valueSuffixEl = byId('dpThresholdValueSuffix');
+  const metricEl = byId('dpThresholdMetricAffected');
+  const valueEl = byId('dpThresholdValueCritical');
+  const isActiveEl = byId('dpThresholdIsActive');
 
   const dpBase = getDpUrl();
 
   const state = {
     loading: false,
     thresholds: [],
+    onlyActive: false,
   };
 
   function setPageError(message) {
@@ -296,22 +224,13 @@ export async function init() {
     setHidden(formErrorEl, !message);
   }
 
-  function updateSuffix() {
-    if (!valueSuffixEl) return;
-    valueSuffixEl.textContent = unitEl?.value || '—';
-  }
-
   function clearForm() {
-    idEl.value = '';
-    nameEl.value = '';
-    metricKeyEl.value = '';
-    descriptionEl.value = '';
-    unitEl.value = 'min';
+    if (metricEl) metricEl.value = '';
     valueEl.value = '';
-    updateSuffix();
+    if (isActiveEl) isActiveEl.checked = true;
     setHidden(cancelBtn, true);
     setFormError('');
-    setButtonLoading(submitBtn, false, 'Crear regla');
+    setButtonLoading(submitBtn, false, 'Crear threshold');
   }
 
   function renderEmpty(listEl, message) {
@@ -323,13 +242,8 @@ export async function init() {
   }
 
   function render() {
-    if (!timesEl || !criticalEl) return;
-    timesEl.innerHTML = '';
-    criticalEl.innerHTML = '';
-
-    const times = state.thresholds.filter(t => isMinutesUnit(t.unit) || (!t.unit && String(t.metricKey).includes('time')));
-    const critical = state.thresholds.filter(t => isPercentUnit(t.unit));
-    const other = state.thresholds.filter(t => !times.includes(t) && !critical.includes(t));
+    if (!listEl) return;
+    listEl.innerHTML = '';
 
     const activeCount = state.thresholds.filter(t => t.isActive === true).length;
     setText(metaEl, `${state.thresholds.length} reglas · ${activeCount} activas`);
@@ -352,7 +266,7 @@ export async function init() {
       },
       onDelete: async rule => {
         if (!rule.id) return;
-        const ok = window.confirm(`¿Eliminar la regla "${rule.name || rule.metricKey}"? Esta acción no se puede deshacer.`);
+        const ok = window.confirm(`¿Eliminar el threshold "${rule.metricAffected}"? Esta acción no se puede deshacer.`);
         if (!ok) return;
         try {
           setPageError('');
@@ -365,43 +279,15 @@ export async function init() {
           setPageError(normalizeErrorMessage(e));
         }
       },
-      onSave: async (rule, { value }) => {
-        try {
-          setPageError('');
-          const url = dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds';
-          const body = {
-            id: rule.id,
-            threshold_id: rule.id,
-            metric_affected: rule.metricKey,
-            metricAffected: rule.metricKey,
-            unit: rule.unit,
-            threshold_value: value,
-            thresholdValue: value,
-            value,
-            name: rule.name,
-            title: rule.name,
-            description: rule.description,
-          };
-          await fetchJson(url, { method: 'POST', body: JSON.stringify(body) });
-          await loadThresholds();
-        } catch (e) {
-          setPageError(normalizeErrorMessage(e));
-        }
-      },
     };
 
-    if (!times.length && !other.length) renderEmpty(timesEl, 'No hay reglas de tiempo (min).');
-    else {
-      for (const rule of [...times, ...other]) {
-        timesEl.appendChild(renderThresholdRow(rule, handlers));
-      }
+    if (!state.thresholds.length) {
+      renderEmpty(listEl, 'No hay thresholds registrados.');
+      return;
     }
 
-    if (!critical.length) renderEmpty(criticalEl, 'No hay reglas críticas (%).');
-    else {
-      for (const rule of critical) {
-        criticalEl.appendChild(renderThresholdRow(rule, handlers));
-      }
+    for (const rule of state.thresholds) {
+      listEl.appendChild(renderThresholdRow(rule, handlers));
     }
   }
 
@@ -412,7 +298,9 @@ export async function init() {
       setPageError('');
       setText(metaEl, 'Cargando...');
 
-      const url = dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds';
+      const url = state.onlyActive
+        ? (dpBase ? `${dpBase}/api/dp/v1/thresholds/active` : '/api/dp/v1/thresholds/active')
+        : (dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds');
       const payload = await fetchJson(url, { method: 'GET' });
       state.thresholds = extractThresholds(payload).map(mapThresholdFromApi);
       render();
@@ -426,13 +314,15 @@ export async function init() {
   }
 
   refreshBtn?.addEventListener('click', () => loadThresholds());
+  onlyActiveEl?.addEventListener('change', () => {
+    state.onlyActive = Boolean(onlyActiveEl.checked);
+    loadThresholds();
+  });
   addBtn?.addEventListener('click', () => {
     setHidden(cancelBtn, false);
-    metricKeyEl?.focus?.();
+    metricEl?.focus?.();
   });
   cancelBtn?.addEventListener('click', () => clearForm());
-  unitEl?.addEventListener('change', updateSuffix);
-  updateSuffix();
 
   form?.addEventListener('submit', async ev => {
     ev.preventDefault();
@@ -440,19 +330,17 @@ export async function init() {
     setPageError('');
 
     const payload = {
-      id: String(idEl.value || '').trim() || null,
-      name: String(nameEl.value || '').trim(),
-      metricKey: String(metricKeyEl.value || '').trim(),
-      description: String(descriptionEl.value || '').trim(),
-      unit: String(unitEl.value || '').trim(),
-      value: parseNumber(valueEl.value),
+      metricAffected: String(metricEl?.value || '').trim(),
+      valueCritical: parseNumber(valueEl.value),
+      isActive: Boolean(isActiveEl?.checked),
     };
 
     const errors = [];
-    if (!payload.metricKey) errors.push('Metric key es obligatorio.');
-    if (!Number.isFinite(payload.value)) errors.push('El valor debe ser numérico.');
-    if (!payload.unit) errors.push('La unidad es obligatoria.');
-    if (payload.unit === '%' && (payload.value < 0 || payload.value > 100)) errors.push('Para %, el valor debe estar entre 0 y 100.');
+    if (!payload.metricAffected) errors.push('La métrica es obligatoria.');
+    if (!Number.isFinite(payload.valueCritical) || !Number.isInteger(payload.valueCritical)) {
+      errors.push('El valor crítico debe ser un entero.');
+    }
+    if (payload.valueCritical < 0) errors.push('El valor crítico no puede ser negativo.');
     if (errors.length) {
       setFormError(errors[0]);
       return;
@@ -462,19 +350,9 @@ export async function init() {
       setButtonLoading(submitBtn, true);
       const url = dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds';
       const body = {
-        id: payload.id,
-        threshold_id: payload.id,
-        metric_affected: payload.metricKey,
-        metricAffected: payload.metricKey,
-        unit: payload.unit,
-        threshold_value: payload.value,
-        thresholdValue: payload.value,
-        value: payload.value,
-        name: payload.name,
-        title: payload.name,
-        description: payload.description,
-        is_active: true,
-        isActive: true,
+        metric_affected: payload.metricAffected,
+        value_critical: payload.valueCritical,
+        is_active: payload.isActive,
       };
       await fetchJson(url, { method: 'POST', body: JSON.stringify(body) });
       clearForm();
@@ -482,7 +360,7 @@ export async function init() {
     } catch (e) {
       setFormError(normalizeErrorMessage(e));
     } finally {
-      setButtonLoading(submitBtn, false, 'Crear regla');
+      setButtonLoading(submitBtn, false, 'Crear threshold');
     }
   });
 
