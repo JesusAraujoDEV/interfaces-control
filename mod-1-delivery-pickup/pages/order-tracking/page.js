@@ -74,18 +74,36 @@ function formatDateTime(value) {
   return d.toLocaleString();
 }
 
+function normalizeStatus(rawStatus) {
+  const st = String(rawStatus || '').toUpperCase();
+
+  // Backward compatibility: older/other APIs used different names.
+  switch (st) {
+    case 'APPROVED':
+      return 'IN_KITCHEN';
+    case 'READY':
+      return 'READY_FOR_DISPATCH';
+    case 'DISPATCHED':
+      return 'EN_ROUTE';
+    case 'CLOSED':
+      return 'DELIVERED';
+    default:
+      return st;
+  }
+}
+
 function statusLabel(status) {
-  switch (String(status || '').toUpperCase()) {
+  switch (normalizeStatus(status)) {
     case 'PENDING_REVIEW':
       return 'Pendiente de revisión';
-    case 'APPROVED':
-      return 'Aprobado';
-    case 'READY':
-      return 'Listo';
-    case 'DISPATCHED':
-      return 'En camino';
-    case 'CLOSED':
-      return 'Entregado / Cerrado';
+    case 'IN_KITCHEN':
+      return 'En cocina';
+    case 'READY_FOR_DISPATCH':
+      return 'Listo para despacho';
+    case 'EN_ROUTE':
+      return 'En ruta';
+    case 'DELIVERED':
+      return 'Entregado';
     case 'CANCELLED':
       return 'Cancelado';
     default:
@@ -94,21 +112,48 @@ function statusLabel(status) {
 }
 
 function statusProgress(status) {
-  switch (String(status || '').toUpperCase()) {
-    case 'PENDING_REVIEW':
-      return 25;
-    case 'APPROVED':
-      return 45;
-    case 'READY':
-      return 70;
-    case 'DISPATCHED':
-      return 90;
-    case 'CLOSED':
-      return 100;
-    case 'CANCELLED':
-      return 100;
+  const st = normalizeStatus(status);
+
+  if (st === 'CANCELLED') return 100;
+  if (st === 'DELIVERED') return 100;
+
+  // Progress based on how close the order is to DELIVERED.
+  const flow = ['PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED'];
+  const idx = flow.indexOf(st);
+  if (idx < 0) return 15;
+
+  // Use a slightly "easing" curve so it feels more linear visually.
+  switch (idx) {
+    case 0:
+      return 18;
+    case 1:
+      return 40;
+    case 2:
+      return 65;
+    case 3:
+      return 88;
     default:
       return 15;
+  }
+}
+
+function statusBarColor(status) {
+  const st = normalizeStatus(status);
+  switch (st) {
+    case 'CANCELLED':
+      return '#dc2626'; // red-600
+    case 'DELIVERED':
+      return '#16a34a'; // green-600
+    case 'EN_ROUTE':
+      return '#22c55e'; // green-500
+    case 'READY_FOR_DISPATCH':
+      return '#f97316'; // orange-500
+    case 'IN_KITCHEN':
+      return '#f59e0b'; // amber-500
+    case 'PENDING_REVIEW':
+      return '#94a3b8'; // slate-400
+    default:
+      return '#0f4a22'; // brand-800 fallback
   }
 }
 
@@ -175,7 +220,10 @@ function renderOrder(order) {
   const st = order.current_status || order.status || '';
   setText('statusLabel', statusLabel(st));
   const bar = document.getElementById('statusBar');
-  if (bar) bar.style.width = `${statusProgress(st)}%`;
+  if (bar) {
+    bar.style.width = `${statusProgress(st)}%`;
+    bar.style.backgroundColor = statusBarColor(st);
+  }
 
   setText('serviceType', serviceTypeLabel(order.service_type));
 
