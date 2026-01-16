@@ -40,24 +40,35 @@
 					<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
 						<div class="dp-audit-bar">
 							<div class="dp-range">
-								<span class="dp-range__icon" aria-hidden="true">📅</span>
-								<input id="dpAuditFrom" type="date" class="dp-range__input" />
+								<span class="dp-range__icon" aria-hidden="true">🕒</span>
+								<input id="dpAuditFrom" type="datetime-local" class="dp-range__input" />
 								<span class="dp-range__sep" aria-hidden="true">—</span>
-								<input id="dpAuditTo" type="date" class="dp-range__input" />
+								<input id="dpAuditTo" type="datetime-local" class="dp-range__input" />
 							</div>
-							<select id="dpAuditLevel" class="dp-filter" aria-label="Nivel">
-								<option value="">Nivel (Todos)</option>
-								<option value="INFO">INFO</option>
-								<option value="WARNING">WARNING</option>
-								<option value="ERROR">ERROR</option>
-								<option value="CRITICAL">CRITICAL</option>
-								<option value="DEBUG">DEBUG</option>
+							<select id="dpAuditStatus" class="dp-filter" aria-label="Estado">
+								<option value="">Status (Todos)</option>
+								<option value="PENDING_REVIEW">PENDING_REVIEW</option>
+								<option value="IN_KITCHEN">IN_KITCHEN</option>
+								<option value="READY_FOR_DISPATCH">READY_FOR_DISPATCH</option>
+								<option value="EN_ROUTE">EN_ROUTE</option>
+								<option value="DELIVERED">DELIVERED</option>
+								<option value="CANCELLED">CANCELLED</option>
 							</select>
-							<input id="dpAuditActor" type="text" class="dp-filter" placeholder="Usuario (Ej: Eyleen)" />
-							<input id="dpAuditQuery" type="text" class="dp-filter" placeholder="Buscar en logs..." />
+							<input id="dpAuditManagerId" type="text" class="dp-filter dp-mono" placeholder="manager_id (uuid)" />
+							<input id="dpAuditNoteId" type="text" class="dp-filter dp-mono" placeholder="note_id (uuid)" />
+							<select id="dpAuditLimit" class="dp-filter" aria-label="Límite">
+								<option value="50" selected>50</option>
+								<option value="100">100</option>
+								<option value="200">200</option>
+								<option value="500">500</option>
+							</select>
 						</div>
 						<div class="flex items-center justify-between lg:justify-end gap-3">
 							<div id="dpAuditMeta" class="text-xs text-slate-500"></div>
+							<div class="flex items-center gap-2">
+								<button id="dpAuditPrev" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">←</button>
+								<button id="dpAuditNext" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">→</button>
+							</div>
 						</div>
 					</div>
 
@@ -69,10 +80,10 @@
 						<thead>
 							<tr>
 								<th>Timestamp</th>
-								<th>Nivel</th>
-								<th>Actor</th>
-								<th>Acción</th>
-								<th>Recurso</th>
+								<th>Orden</th>
+								<th>Manager</th>
+								<th>Transición</th>
+								<th>Motivo</th>
 							</tr>
 						</thead>
 						<tbody id="dpAuditTableBody"></tbody>
@@ -92,28 +103,31 @@
 				<div id="dpAuditDetail" class="mt-4 hidden">
 					<div class="dp-detail-kv">
 						<div class="dp-detail-kv__k">Timestamp</div>
-						<div id="dpDetailTimestamp" class="dp-detail-kv__v"></div>
+						<div id="dpDetailTimestamp" class="dp-detail-kv__v dp-mono"></div>
 					</div>
 					<div class="dp-detail-kv">
-						<div class="dp-detail-kv__k">Nivel</div>
-						<div id="dpDetailLevel" class="dp-detail-kv__v"></div>
+						<div class="dp-detail-kv__k">log_id</div>
+						<div id="dpDetailLogId" class="dp-detail-kv__v dp-mono"></div>
 					</div>
 					<div class="dp-detail-kv">
-						<div class="dp-detail-kv__k">Actor</div>
-						<div id="dpDetailActor" class="dp-detail-kv__v"></div>
+						<div class="dp-detail-kv__k">note_id</div>
+						<div id="dpDetailNoteId" class="dp-detail-kv__v dp-mono"></div>
 					</div>
 					<div class="dp-detail-kv">
-						<div class="dp-detail-kv__k">Acción</div>
-						<div id="dpDetailAction" class="dp-detail-kv__v dp-mono"></div>
+						<div class="dp-detail-kv__k">Manager</div>
+						<div id="dpDetailManager" class="dp-detail-kv__v"></div>
 					</div>
 					<div class="dp-detail-kv">
-						<div class="dp-detail-kv__k">Recurso</div>
-						<div id="dpDetailResource" class="dp-detail-kv__v"></div>
+						<div class="dp-detail-kv__k">Estado</div>
+						<div id="dpDetailTransition" class="dp-detail-kv__v dp-mono"></div>
+					</div>
+					<div class="dp-detail-kv">
+						<div class="dp-detail-kv__k">Motivo</div>
+						<div id="dpDetailReason" class="dp-detail-kv__v"></div>
 					</div>
 
 					<div class="mt-4">
-						<h3 class="text-sm font-extrabold text-slate-900">Cambios</h3>
-						<div id="dpDetailDiff" class="mt-2 dp-diff"></div>
+						<a id="dpDetailOpenOrder" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="#">Ver pedido</a>
 					</div>
 
 					<div class="mt-4">
