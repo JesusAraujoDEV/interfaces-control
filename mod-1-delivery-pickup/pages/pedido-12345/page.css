@@ -1,2 +1,11 @@
-/* small helper to mimic the thin separators in the mock */
-.thin-line { height: 1px; background-color: rgba(0,0,0,0.08); }
+.dp-badge{display:inline-flex;align-items:center;gap:0.35rem;border-radius:9999px;padding:0.25rem 0.65rem;font-size:0.75rem;font-weight:800;border:1px solid transparent;white-space:nowrap}
+.dp-badge--muted{background:rgb(241 245 249);border-color:rgb(226 232 240);color:rgb(51 65 85)}
+.dp-badge--yellow{background:rgba(234, 179, 8, 0.14);border-color:rgba(234, 179, 8, 0.25);color:rgb(133, 77, 14)}
+.dp-badge--blue{background:rgba(37, 99, 235, 0.12);border-color:rgba(37, 99, 235, 0.24);color:rgb(30, 64, 175)}
+.dp-badge--green{background:rgba(34, 197, 94, 0.12);border-color:rgba(34, 197, 94, 0.24);color:rgb(21, 128, 61)}
+.dp-badge--purple{background:rgba(168, 85, 247, 0.12);border-color:rgba(168, 85, 247, 0.24);color:rgb(107, 33, 168)}
+.dp-badge--red{background:rgba(244, 63, 94, 0.12);border-color:rgba(244, 63, 94, 0.22);color:rgb(159, 18, 57)}
+
+.dp-log{border:1px solid rgb(226 232 240);background:white;border-radius:1rem;padding:1rem;box-shadow:0 1px 0 rgba(16,24,40,0.03)}
+.dp-log-meta{font-size:12px;color:#94a3b8}
+.dp-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
