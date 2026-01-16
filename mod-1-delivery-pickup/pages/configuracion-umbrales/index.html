@@ -16,6 +16,10 @@
         <p class="mt-1 text-sm text-slate-600">Umbrales operativos y valores críticos.</p>
       </div>
       <div class="flex items-center gap-2">
+        <label class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 select-none">
+          <input id="dpThresholdsOnlyActive" type="checkbox" class="h-4 w-4" />
+          <span>Solo activos</span>
+        </label>
         <button
           id="dpThresholdsRefresh"
           type="button"
@@ -38,38 +42,22 @@
       <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
         <div class="flex items-start justify-between gap-3">
           <div>
-            <h3 class="text-lg font-extrabold text-slate-900">Reglas</h3>
-            <p class="mt-1 text-sm text-slate-600">Edita valores, activa/desactiva y elimina reglas.</p>
+            <h3 class="text-lg font-extrabold text-slate-900">Thresholds</h3>
+            <p class="mt-1 text-sm text-slate-600">Activa/desactiva o elimina umbrales por métrica.</p>
           </div>
           <div id="dpThresholdsMeta" class="text-xs text-slate-500"></div>
         </div>
 
         <div id="dpThresholdsError" class="hidden mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
 
-        <div class="mt-4 space-y-6">
-          <div>
-            <div class="flex items-center justify-between">
-              <h4 class="text-sm font-extrabold text-slate-900">Tiempos máximos</h4>
-              <span class="text-xs text-slate-500">unidad: min</span>
-            </div>
-            <ul id="dpThresholdsTimes" class="mt-3 space-y-3"></ul>
-          </div>
-
-          <div>
-            <div class="flex items-center justify-between">
-              <h4 class="text-sm font-extrabold text-slate-900">Valores críticos</h4>
-              <span class="text-xs text-slate-500">unidad: %</span>
-            </div>
-            <ul id="dpThresholdsCritical" class="mt-3 space-y-3"></ul>
-          </div>
-        </div>
+        <ul id="dpThresholdsList" class="mt-4 space-y-3"></ul>
       </section>
 
       <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
         <div class="flex items-start justify-between gap-3">
           <div>
-            <h4 id="dpThresholdsFormTitle" class="text-lg font-extrabold text-slate-900">Agregar métrica</h4>
-            <p class="mt-1 text-sm text-slate-600">Crea una nueva regla de umbral.</p>
+            <h4 id="dpThresholdsFormTitle" class="text-lg font-extrabold text-slate-900">Agregar threshold</h4>
+            <p class="mt-1 text-sm text-slate-600">Métrica, valor crítico e indicador activo.</p>
           </div>
           <button
             id="dpThresholdsCancel"
@@ -81,66 +69,43 @@
         </div>
 
         <form id="dpThresholdsForm" class="mt-4 space-y-4" novalidate>
-          <input id="dpThresholdId" type="hidden" />
-
           <div>
-            <label class="text-sm text-slate-700 block mb-2">Nombre (título)</label>
-            <input
-              id="dpThresholdName"
-              type="text"
-              placeholder="Ej: Tiempo máximo de asignación de driver"
-              class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
-            />
-          </div>
-
-          <div>
-            <label class="text-sm text-slate-700 block mb-2">Metric key</label>
-            <input
-              id="dpThresholdMetricKey"
-              type="text"
+            <label class="text-sm text-slate-700 block mb-2">Métrica</label>
+            <select
+              id="dpThresholdMetricAffected"
               required
-              placeholder="Ej: max_driver_assignment_time"
-              class="w-full bg-[var(--input)] font-mono text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
-            />
-            <p class="mt-2 text-xs text-slate-500">Se usa para identificar la métrica en backend (ej: kitchen_prep_time).</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-slate-700 block mb-2">Descripción (opcional)</label>
-            <input
-              id="dpThresholdDescription"
-              type="text"
-              placeholder="Ej: alerta si el driver tarda demasiado en asignarse"
-              class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
-            />
+              class="w-full bg-[var(--input)] text-slate-800 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+            >
+              <option value="" selected disabled>Seleccione una métrica…</option>
+              <option value="ORDERS_PENDING_MAX">ORDERS_PENDING_MAX</option>
+              <option value="KITCHEN_TIME_MAX_MINUTES">KITCHEN_TIME_MAX_MINUTES</option>
+              <option value="DISPATCH_CAPACITY_MAX">DISPATCH_CAPACITY_MAX</option>
+              <option value="DELIVERY_TRAVEL_TIME_MAX_MINUTES">DELIVERY_TRAVEL_TIME_MAX_MINUTES</option>
+              <option value="DRIVER_ASSIGNMENT_TIMEOUT_MINUTES">DRIVER_ASSIGNMENT_TIMEOUT_MINUTES</option>
+              <option value="PICKUP_WAIT_TIME_MAX_MINUTES">PICKUP_WAIT_TIME_MAX_MINUTES</option>
+              <option value="TOTAL_ORDER_CYCLE_MAX_MINUTES">TOTAL_ORDER_CYCLE_MAX_MINUTES</option>
+            </select>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-sm text-slate-700 block mb-2">Unidad</label>
-              <select
-                id="dpThresholdUnit"
-                class="w-full bg-[var(--input)] text-slate-800 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
-              >
-                <option value="min">min</option>
-                <option value="%">%</option>
-              </select>
+              <label class="text-sm text-slate-700 block mb-2">Valor crítico (entero)</label>
+              <input
+                id="dpThresholdValueCritical"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                required
+                placeholder="10"
+                class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+              />
             </div>
-            <div>
-              <label class="text-sm text-slate-700 block mb-2">Valor</label>
-              <div class="dp-suffix">
-                <input
-                  id="dpThresholdValue"
-                  type="number"
-                  inputmode="decimal"
-                  min="0"
-                  step="0.01"
-                  required
-                  placeholder="15"
-                  class="dp-suffix__input"
-                />
-                <span id="dpThresholdValueSuffix" class="dp-suffix__unit">min</span>
-              </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 select-none w-full justify-between">
+                <span>Activo</span>
+                <input id="dpThresholdIsActive" type="checkbox" class="h-4 w-4" checked />
+              </label>
             </div>
           </div>
 
@@ -152,7 +117,7 @@
               type="submit"
               class="w-full bg-[var(--accent)] text-white rounded-xl py-3 font-semibold hover:brightness-105"
             >
-              Crear regla
+              Crear threshold
             </button>
           </div>
         </form>

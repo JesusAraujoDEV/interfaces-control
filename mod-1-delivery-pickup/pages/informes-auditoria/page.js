@@ -84,22 +84,6 @@ function formatTimestamp(value) {
   return String(value);
 }
 
-function normalizeLevel(level) {
-  const raw = String(level ?? '').trim().toUpperCase();
-  if (!raw) return 'INFO';
-  if (raw === 'WARN') return 'WARNING';
-  return raw;
-}
-
-function levelBadgeClass(level) {
-  const l = normalizeLevel(level);
-  if (l === 'INFO') return 'dp-badge dp-badge--info';
-  if (l === 'WARNING') return 'dp-badge dp-badge--warning';
-  if (l === 'ERROR') return 'dp-badge dp-badge--error';
-  if (l === 'CRITICAL') return 'dp-badge dp-badge--critical';
-  return 'dp-badge dp-badge--debug';
-}
-
 function extractLogs(payload) {
   if (!payload) return [];
   if (Array.isArray(payload)) return payload;
@@ -114,102 +98,53 @@ function logId(log) {
 }
 
 function mapLogFromApi(log) {
-  const timestamp =
-    log?.timestamp ??
-    log?.created_at ??
-    log?.createdAt ??
-    log?.time ??
-    log?.date ??
+  const noteId = log?.note_id ?? log?.noteId ?? null;
+  const managerId = log?.manager_id ?? log?.managerId ?? null;
+  const managerName =
+    log?.manager?.name ??
+    log?.manager?.full_name ??
+    log?.manager?.manager_name ??
+    log?.manager?.email ??
     null;
-  const level = normalizeLevel(log?.level ?? log?.severity ?? log?.lvl ?? log?.type);
-  const actor =
-    log?.actor ??
-    log?.user ??
-    log?.username ??
-    log?.performed_by ??
-    log?.performedBy ??
-    log?.user_name ??
-    log?.userName ??
-    'System';
-  const action = log?.action ?? log?.event ?? log?.event_type ?? log?.eventType ?? log?.verb ?? '';
-  const resource =
-    log?.resource ??
-    log?.resource_id ??
-    log?.resourceId ??
-    log?.entity ??
-    log?.entity_id ??
-    log?.entityId ??
-    log?.order_id ??
-    log?.orderId ??
-    '';
-
-  const message = log?.message ?? log?.msg ?? '';
-
-  const before = log?.before ?? log?.old ?? log?.previous ?? log?.prev ?? null;
-  const after = log?.after ?? log?.new ?? log?.next ?? null;
-  const diff = log?.diff ?? log?.changes ?? null;
+  const readableId = log?.note?.readable_id ?? log?.note?.readableId ?? null;
 
   return {
     raw: log,
     id: logId(log),
-    timestamp,
-    level,
-    actor: typeof actor === 'string' ? actor : (actor?.name ?? actor?.full_name ?? actor?.email ?? 'System'),
-    action: String(action || '').trim(),
-    resource: String(resource || '').trim(),
-    message: String(message || '').trim(),
-    before,
-    after,
-    diff,
+    noteId,
+    readableId,
+    managerId,
+    managerName,
+    timestamp: log?.timestamp_transition ?? log?.timestampTransition ?? null,
+    statusFrom: log?.status_from ?? log?.statusFrom ?? null,
+    statusTo: log?.status_to ?? log?.statusTo ?? null,
+    cancellationReason: log?.cancellation_reason ?? log?.cancellationReason ?? null,
   };
 }
 
-function isObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value);
+function isUuidV4(value) {
+  const v = String(value || '').trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 }
 
-function stableStringify(value) {
-  try {
-    return JSON.stringify(value, Object.keys(value || {}).sort(), 2);
-  } catch {
-    try {
-      return JSON.stringify(value, null, 2);
-    } catch {
-      return String(value);
-    }
-  }
+function toIsoFromDatetimeLocal(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString();
 }
 
-function diffObjects(before, after, basePath = '', maxDepth = 4, out = []) {
-  if (maxDepth <= 0) return out;
-
-  if (before === after) return out;
-
-  const beforeIsObj = isObject(before);
-  const afterIsObj = isObject(after);
-
-  if (!beforeIsObj || !afterIsObj) {
-    // Array or primitive: treat as a leaf change
-    out.push({
-      path: basePath || '(root)',
-      before,
-      after,
-    });
-    return out;
-  }
-
-  const keys = new Set([...Object.keys(before || {}), ...Object.keys(after || {})]);
-  for (const key of Array.from(keys).sort()) {
-    const nextPath = basePath ? `${basePath}.${key}` : key;
-    const b = before ? before[key] : undefined;
-    const a = after ? after[key] : undefined;
-    if (b === a) continue;
-    const bObj = isObject(b);
-    const aObj = isObject(a);
-    if (bObj && aObj) diffObjects(b, a, nextPath, maxDepth - 1, out);
-    else out.push({ path: nextPath, before: b, after: a });
-  }
-  return out;
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function debounce(fn, waitMs) {
@@ -228,12 +163,15 @@ export async function init() {
 
   const refreshBtn = byId('dpAuditRefresh');
   const exportBtn = byId('dpAuditExport');
+  const prevBtn = byId('dpAuditPrev');
+  const nextBtn = byId('dpAuditNext');
 
   const fromEl = byId('dpAuditFrom');
   const toEl = byId('dpAuditTo');
-  const levelEl = byId('dpAuditLevel');
-  const actorEl = byId('dpAuditActor');
-  const queryEl = byId('dpAuditQuery');
+  const statusEl = byId('dpAuditStatus');
+  const managerIdEl = byId('dpAuditManagerId');
+  const noteIdEl = byId('dpAuditNoteId');
+  const limitEl = byId('dpAuditLimit');
 
   const metaEl = byId('dpAuditMeta');
   const errorEl = byId('dpAuditError');
@@ -243,11 +181,12 @@ export async function init() {
   const detailHint = byId('dpAuditDetailHint');
   const detailClose = byId('dpAuditDetailClose');
   const dTimestamp = byId('dpDetailTimestamp');
-  const dLevel = byId('dpDetailLevel');
-  const dActor = byId('dpDetailActor');
-  const dAction = byId('dpDetailAction');
-  const dResource = byId('dpDetailResource');
-  const dDiff = byId('dpDetailDiff');
+  const dLogId = byId('dpDetailLogId');
+  const dNoteId = byId('dpDetailNoteId');
+  const dManager = byId('dpDetailManager');
+  const dTransition = byId('dpDetailTransition');
+  const dReason = byId('dpDetailReason');
+  const dOpenOrder = byId('dpDetailOpenOrder');
   const dJson = byId('dpDetailJson');
 
   const dpBase = getDpUrl();
@@ -256,7 +195,8 @@ export async function init() {
     loading: false,
     logs: [],
     selectedId: null,
-    supportsSearch: true,
+    limit: 50,
+    offset: 0,
   };
 
   function setPageError(message) {
@@ -269,52 +209,40 @@ export async function init() {
   }
 
   function buildParams() {
-    const from = String(fromEl?.value || '').trim();
-    const to = String(toEl?.value || '').trim();
-    const level = String(levelEl?.value || '').trim();
-    const actor = String(actorEl?.value || '').trim();
-    const q = String(queryEl?.value || '').trim();
-    return { from, to, level, actor, q };
+    const from = toIsoFromDatetimeLocal(fromEl?.value);
+    const to = toIsoFromDatetimeLocal(toEl?.value);
+    const status = String(statusEl?.value || '').trim();
+    const manager_id = String(managerIdEl?.value || '').trim();
+    const note_id = String(noteIdEl?.value || '').trim();
+
+    const limit = Number(String(limitEl?.value || state.limit).trim());
+    const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(500, limit)) : 50;
+    state.limit = safeLimit;
+
+    return {
+      from,
+      to,
+      status,
+      manager_id,
+      note_id,
+      limit: state.limit,
+      offset: state.offset,
+    };
   }
 
   function buildQueryString(params) {
     const q = new URLSearchParams();
+    if (params.status) q.set('status', params.status);
+    if (params.manager_id) q.set('manager_id', params.manager_id);
     if (params.from) q.set('from', params.from);
     if (params.to) q.set('to', params.to);
-    if (params.level) q.set('level', params.level);
-    if (params.actor) q.set('actor', params.actor);
-    if (params.q) q.set('q', params.q);
-    q.set('limit', '200');
+    q.set('limit', String(params.limit ?? 50));
+    q.set('offset', String(params.offset ?? 0));
     return q.toString();
   }
 
-  function matchesFilter(log, params) {
-    if (params.level && normalizeLevel(log.level) !== normalizeLevel(params.level)) return false;
-
-    if (params.actor) {
-      const a = String(log.actor || '').toLowerCase();
-      if (!a.includes(params.actor.toLowerCase())) return false;
-    }
-
-    if (params.q) {
-      const hay = `${log.message} ${log.action} ${log.resource} ${stableStringify(log.raw)}`.toLowerCase();
-      if (!hay.includes(params.q.toLowerCase())) return false;
-    }
-
-    // Date filtering if timestamp is parseable
-    const t = new Date(log.timestamp);
-    if (!Number.isNaN(t.getTime())) {
-      if (params.from) {
-        const f = new Date(params.from + 'T00:00:00');
-        if (!Number.isNaN(f.getTime()) && t < f) return false;
-      }
-      if (params.to) {
-        const end = new Date(params.to + 'T23:59:59');
-        if (!Number.isNaN(end.getTime()) && t > end) return false;
-      }
-    }
-
-    return true;
+  function hasAnyFilter(params) {
+    return Boolean(params.status || params.manager_id || params.from || params.to);
   }
 
   function renderDetail(log) {
@@ -331,59 +259,28 @@ export async function init() {
 
     setText(dTimestamp, formatTimestamp(log.timestamp));
 
-    dLevel.innerHTML = `<span class="${levelBadgeClass(log.level)}">${normalizeLevel(log.level)}</span>`;
-    setText(dActor, log.actor || 'System');
-    setText(dAction, log.action || '—');
-    setText(dResource, log.resource || '—');
+    setText(dLogId, log.id || '—');
+    setText(dNoteId, log.noteId || '—');
 
-    // Diff
-    dDiff.innerHTML = '';
-    const hasBeforeAfter = log.before != null || log.after != null;
-    const diffs = hasBeforeAfter ? diffObjects(log.before, log.after) : [];
+    const manager = log.managerName
+      ? `${log.managerName}${log.managerId ? ` (${log.managerId})` : ''}`
+      : (log.managerId ? log.managerId : 'System');
+    setText(dManager, manager);
 
-    if (diffs.length) {
-      for (const row of diffs.slice(0, 50)) {
-        const div = document.createElement('div');
-        div.className = 'dp-diff__row';
-        const path = document.createElement('div');
-        path.className = 'dp-diff__path';
-        path.textContent = row.path;
-        const before = document.createElement('div');
-        before.className = 'dp-diff__before';
-        before.textContent = stableStringify(row.before);
-        const after = document.createElement('div');
-        after.className = 'dp-diff__after';
-        after.textContent = stableStringify(row.after);
-        div.appendChild(path);
-        div.appendChild(before);
-        div.appendChild(after);
-        dDiff.appendChild(div);
-      }
-    } else if (log.diff && isObject(log.diff)) {
-      const entries = Object.entries(log.diff);
-      if (entries.length) {
-        for (const [key, value] of entries.slice(0, 50)) {
-          const div = document.createElement('div');
-          div.className = 'dp-diff__row';
-          const path = document.createElement('div');
-          path.className = 'dp-diff__path';
-          path.textContent = key;
-          const before = document.createElement('div');
-          before.className = 'dp-diff__before';
-          before.textContent = stableStringify(value?.before ?? value?.old ?? value?.from ?? null);
-          const after = document.createElement('div');
-          after.className = 'dp-diff__after';
-          after.textContent = stableStringify(value?.after ?? value?.new ?? value?.to ?? value);
-          div.appendChild(path);
-          div.appendChild(before);
-          div.appendChild(after);
-          dDiff.appendChild(div);
-        }
+    const from = log.statusFrom ? String(log.statusFrom) : '—';
+    const to = log.statusTo ? String(log.statusTo) : '—';
+    setText(dTransition, `${from} → ${to}`);
+    setText(dReason, log.cancellationReason || '—');
+
+    if (dOpenOrder) {
+      const orderKey = log.readableId || log.noteId;
+      if (orderKey) {
+        dOpenOrder.href = `/admin/dp/orders/${encodeURIComponent(orderKey)}`;
+        dOpenOrder.classList.remove('hidden');
       } else {
-        dDiff.innerHTML = '<div class="dp-diff__empty">Sin cambios detectables.</div>';
+        dOpenOrder.href = '#';
+        dOpenOrder.classList.add('hidden');
       }
-    } else {
-      dDiff.innerHTML = '<div class="dp-diff__empty">Sin cambios detectables.</div>';
     }
 
     dJson.textContent = JSON.stringify(log.raw, null, 2);
@@ -393,12 +290,9 @@ export async function init() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const params = buildParams();
-    const filtered = state.logs.filter(l => matchesFilter(l, params));
+    setMeta(`${state.logs.length} eventos · offset ${state.offset} · limit ${state.limit}`);
 
-    setMeta(`${filtered.length} eventos`);
-
-    if (!filtered.length) {
+    if (!state.logs.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
       td.colSpan = 5;
@@ -410,7 +304,7 @@ export async function init() {
       return;
     }
 
-    for (const log of filtered.slice(0, 200)) {
+    for (const log of state.logs) {
       const tr = document.createElement('tr');
       if (state.selectedId && log.id && String(log.id) === String(state.selectedId)) tr.classList.add('is-selected');
 
@@ -418,24 +312,25 @@ export async function init() {
       tdTime.textContent = formatTimestamp(log.timestamp);
       tdTime.className = 'dp-mono';
 
-      const tdLevel = document.createElement('td');
-      tdLevel.innerHTML = `<span class="${levelBadgeClass(log.level)}">${normalizeLevel(log.level)}</span>`;
+      const tdOrder = document.createElement('td');
+      tdOrder.className = 'dp-mono';
+      tdOrder.textContent = log.readableId || log.noteId || '—';
 
-      const tdActor = document.createElement('td');
-      tdActor.textContent = log.actor || 'System';
+      const tdManager = document.createElement('td');
+      tdManager.textContent = log.managerName || log.managerId || 'System';
 
-      const tdAction = document.createElement('td');
-      tdAction.textContent = log.action || '—';
-      tdAction.className = 'dp-mono';
+      const tdTransition = document.createElement('td');
+      tdTransition.className = 'dp-mono';
+      tdTransition.textContent = `${log.statusFrom ?? '—'} → ${log.statusTo ?? '—'}`;
 
-      const tdRes = document.createElement('td');
-      tdRes.textContent = log.resource || '—';
+      const tdReason = document.createElement('td');
+      tdReason.textContent = log.cancellationReason || '—';
 
       tr.appendChild(tdTime);
-      tr.appendChild(tdLevel);
-      tr.appendChild(tdActor);
-      tr.appendChild(tdAction);
-      tr.appendChild(tdRes);
+      tr.appendChild(tdOrder);
+      tr.appendChild(tdManager);
+      tr.appendChild(tdTransition);
+      tr.appendChild(tdReason);
 
       tr.addEventListener('click', () => {
         state.selectedId = log.id || null;
@@ -448,10 +343,10 @@ export async function init() {
 
     // Keep detail in sync with selection
     const selected = state.selectedId ? state.logs.find(l => String(l.id) === String(state.selectedId)) : null;
-    renderDetail(selected || filtered[0]);
+    renderDetail(selected || state.logs[0]);
   }
 
-  async function loadLogs({ useSearch }) {
+  async function loadLogs() {
     if (state.loading) return;
     state.loading = true;
 
@@ -460,29 +355,32 @@ export async function init() {
       setMeta('Cargando...');
 
       const params = buildParams();
-      const qs = buildQueryString(params);
-
-      const searchUrl = dpBase
-        ? `${dpBase}/api/dp/v1/logs/search?${qs}`
-        : `/api/dp/v1/logs/search?${qs}`;
-      const listUrl = dpBase
-        ? `${dpBase}/api/dp/v1/logs?${qs}`
-        : `/api/dp/v1/logs?${qs}`;
+      const { note_id } = params;
 
       let payload;
-      if (useSearch && state.supportsSearch) {
-        try {
-          payload = await fetchJson(searchUrl, { method: 'GET' });
-        } catch {
-          state.supportsSearch = false;
-          payload = await fetchJson(listUrl, { method: 'GET' });
-        }
+      if (note_id) {
+        if (!isUuidV4(note_id)) throw new Error('note_id debe ser uuid v4');
+        const qs = buildQueryString({ limit: params.limit, offset: params.offset });
+        const url = dpBase
+          ? `${dpBase}/api/dp/v1/logs/by-note/${encodeURIComponent(note_id)}?${qs}`
+          : `/api/dp/v1/logs/by-note/${encodeURIComponent(note_id)}?${qs}`;
+        payload = await fetchJson(url, { method: 'GET' });
+      } else if (hasAnyFilter(params)) {
+        const qs = buildQueryString(params);
+        const url = dpBase
+          ? `${dpBase}/api/dp/v1/logs/search?${qs}`
+          : `/api/dp/v1/logs/search?${qs}`;
+        payload = await fetchJson(url, { method: 'GET' });
       } else {
-        payload = await fetchJson(listUrl, { method: 'GET' });
+        const qs = buildQueryString({ limit: params.limit, offset: params.offset });
+        const url = dpBase
+          ? `${dpBase}/api/dp/v1/logs?${qs}`
+          : `/api/dp/v1/logs?${qs}`;
+        payload = await fetchJson(url, { method: 'GET' });
       }
 
       state.logs = extractLogs(payload).map(mapLogFromApi);
-      // newest first
+      // newest first unless backend returns ASC (by-note is ASC). Normalize to DESC for UI.
       state.logs.sort((a, b) => {
         const ta = new Date(a.timestamp).getTime();
         const tb = new Date(b.timestamp).getTime();
@@ -500,34 +398,36 @@ export async function init() {
     }
   }
 
-  function initDefaultRange() {
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    if (!fromEl.value) fromEl.value = toIsoDateInputValue(sevenDaysAgo);
-    if (!toEl.value) toEl.value = toIsoDateInputValue(now);
-  }
+  const debouncedReload = debounce(() => {
+    state.offset = 0;
+    loadLogs();
+  }, 250);
 
-  const debouncedReload = debounce(() => loadLogs({ useSearch: true }), 250);
-
-  refreshBtn?.addEventListener('click', () => loadLogs({ useSearch: true }));
+  refreshBtn?.addEventListener('click', () => loadLogs());
   exportBtn?.addEventListener('click', () => {
-    const params = buildParams();
-    const qs = buildQueryString(params);
-    const url = dpBase ? `${dpBase}/api/dp/v1/logs/export?${qs}` : `/api/dp/v1/logs/export?${qs}`;
-    // Best effort: open in a new tab if the backend supports export.
-    window.open(url, '_blank');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    downloadJson(`dp-logs-${stamp}.json`, state.logs.map((l) => l.raw));
+  });
+
+  prevBtn?.addEventListener('click', () => {
+    state.offset = Math.max(0, state.offset - state.limit);
+    loadLogs();
+  });
+  nextBtn?.addEventListener('click', () => {
+    state.offset = state.offset + state.limit;
+    loadLogs();
   });
 
   fromEl?.addEventListener('change', debouncedReload);
   toEl?.addEventListener('change', debouncedReload);
-  levelEl?.addEventListener('change', debouncedReload);
-  actorEl?.addEventListener('input', debouncedReload);
-  queryEl?.addEventListener('input', debouncedReload);
+  statusEl?.addEventListener('change', debouncedReload);
+  managerIdEl?.addEventListener('input', debouncedReload);
+  noteIdEl?.addEventListener('input', debouncedReload);
+  limitEl?.addEventListener('change', debouncedReload);
 
   detailClose?.addEventListener('click', () => renderDetail(null));
 
-  initDefaultRange();
-  await loadLogs({ useSearch: true });
+  await loadLogs();
 }
 
 if (!window.__dpSpaRouter) {
