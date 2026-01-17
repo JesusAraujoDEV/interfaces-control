@@ -143,7 +143,7 @@ function escapeHtml(str) {
 }
 
 function mapOrderFromApi(o) {
-  const noteId = o?.note_id ?? o?.noteId ?? o?.id ?? null;
+  const noteId = o?.order_id ?? o?.noteId ?? o?.id ?? null;
   const readableId = o?.readable_id ?? o?.readableId ?? null;
   return {
     id: noteId || readableId,
@@ -339,7 +339,7 @@ async function handleAction(action, id) {
   const dpBase = getDpUrl();
   const noteId = order.noteId;
   if (!noteId) {
-    setPageError('No se encontró note_id para esta orden.');
+    setPageError('No se encontró order_id para esta orden.');
     return;
   }
 
