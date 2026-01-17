@@ -20,7 +20,7 @@ function getOrderIdFromUrl() {
       url.searchParams.get('readable_id') ||
       url.searchParams.get('orderId') ||
       url.searchParams.get('id') ||
-      url.searchParams.get('note_id');
+      url.searchParams.get('order_id');
 
     if (!id) {
       const parts = url.pathname.split('/').filter(Boolean);
@@ -295,7 +295,7 @@ async function loadOrderWithFallback(primaryId, fallbackId) {
 
 function renderOrder(order) {
   const readable = order.readable_id || order.readableId || '';
-  const noteId = order.note_id || order.noteId || '';
+  const noteId = order.order_id || order.noteId || '';
 
   setText('orderTitle', 'Seguimiento de Pedido');
   setText('orderSubtitle', readable ? `Orden ${readable}` : noteId ? `Orden ${noteId}` : '');

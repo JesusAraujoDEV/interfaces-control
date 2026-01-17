@@ -98,7 +98,7 @@ function logId(log) {
 }
 
 function mapLogFromApi(log) {
-  const noteId = log?.note_id ?? log?.noteId ?? null;
+  const noteId = log?.order_id ?? log?.noteId ?? null;
   const managerId = log?.manager_id ?? log?.managerId ?? null;
   const managerName =
     log?.manager?.name ??
@@ -213,7 +213,7 @@ export async function init() {
     const to = toIsoFromDatetimeLocal(toEl?.value);
     const status = String(statusEl?.value || '').trim();
     const manager_id = String(managerIdEl?.value || '').trim();
-    const note_id = String(noteIdEl?.value || '').trim();
+    const order_id = String(noteIdEl?.value || '').trim();
 
     const limit = Number(String(limitEl?.value || state.limit).trim());
     const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(500, limit)) : 50;
@@ -224,7 +224,7 @@ export async function init() {
       to,
       status,
       manager_id,
-      note_id,
+      order_id,
       limit: state.limit,
       offset: state.offset,
     };
@@ -355,15 +355,15 @@ export async function init() {
       setMeta('Cargando...');
 
       const params = buildParams();
-      const { note_id } = params;
+      const { order_id } = params;
 
       let payload;
-      if (note_id) {
-        if (!isUuidV4(note_id)) throw new Error('note_id debe ser uuid v4');
+      if (order_id) {
+        if (!isUuidV4(order_id)) throw new Error('order_id debe ser uuid v4');
         const qs = buildQueryString({ limit: params.limit, offset: params.offset });
         const url = dpBase
-          ? `${dpBase}/api/dp/v1/logs/by-note/${encodeURIComponent(note_id)}?${qs}`
-          : `/api/dp/v1/logs/by-note/${encodeURIComponent(note_id)}?${qs}`;
+          ? `${dpBase}/api/dp/v1/logs/by-note/${encodeURIComponent(order_id)}?${qs}`
+          : `/api/dp/v1/logs/by-note/${encodeURIComponent(order_id)}?${qs}`;
         payload = await fetchJson(url, { method: 'GET' });
       } else if (hasAnyFilter(params)) {
         const qs = buildQueryString(params);

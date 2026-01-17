@@ -270,11 +270,11 @@ function renderOrder(order) {
   const badgeEl = byId('dpOrderStatusBadge');
 
   const readableId = order.readable_id ?? order.readableId ?? '—';
-  const noteId = order.note_id ?? order.noteId ?? '—';
+  const noteId = order.order_id ?? order.noteId ?? '—';
   const status = order.current_status ?? order.status ?? '—';
 
   if (titleEl) titleEl.textContent = `Pedido ${readableId}`;
-  if (subtitleEl) subtitleEl.textContent = `note_id: ${noteId}`;
+  if (subtitleEl) subtitleEl.textContent = `order_id: ${noteId}`;
 
   if (badgeEl) {
     badgeEl.className = `dp-badge ${statusTone(status)}`;
