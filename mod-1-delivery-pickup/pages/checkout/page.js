@@ -444,9 +444,9 @@ form.addEventListener('submit', function (e) {
     (async () => {
       try {
         const result = await createOrder();
-        const noteId = result && (result.order_id || result.noteId || result.order_id || result.id || result.orderId);
+        const orderId = result && (result.order_id || result.id || result.orderId);
         const readableId = result && (result.readable_id || result.readableId);
-        const trackingId = readableId || noteId;
+        const trackingId = readableId || orderId;
 
         if (trackingId) {
           const nextUrl = new URL(`/order-tracking/${encodeURIComponent(String(trackingId))}`, window.location.href);

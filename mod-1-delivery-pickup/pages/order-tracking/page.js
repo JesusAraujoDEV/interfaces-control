@@ -263,9 +263,9 @@ function setHtml(id, html) {
   el.innerHTML = html;
 }
 
-async function loadOrder(noteId) {
+async function loadOrder(orderKey) {
   const base = normalizeBaseUrl(getDpUrl());
-  const url = base ? `${base}/api/dp/v1/orders/${noteId}` : `/api/dp/v1/orders/${noteId}`;
+  const url = base ? `${base}/api/dp/v1/orders/${orderKey}` : `/api/dp/v1/orders/${orderKey}`;
 
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   const data = await res.json().catch(() => ({}));
@@ -295,10 +295,10 @@ async function loadOrderWithFallback(primaryId, fallbackId) {
 
 function renderOrder(order) {
   const readable = order.readable_id || order.readableId || '';
-  const noteId = order.order_id || order.noteId || '';
+  const orderId = order.order_id || '';
 
   setText('orderTitle', 'Seguimiento de Pedido');
-  setText('orderSubtitle', readable ? `Orden ${readable}` : noteId ? `Orden ${noteId}` : '');
+  setText('orderSubtitle', readable ? `Orden ${readable}` : orderId ? `Orden ${orderId}` : '');
 
   const st = order.current_status || order.status || '';
   setText('statusLabel', statusLabel(st));

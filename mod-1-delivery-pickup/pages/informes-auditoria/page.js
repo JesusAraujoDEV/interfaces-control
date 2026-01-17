@@ -98,7 +98,7 @@ function logId(log) {
 }
 
 function mapLogFromApi(log) {
-  const noteId = log?.order_id ?? log?.noteId ?? null;
+  const orderId = log?.order_id ?? log?.orderId ?? null;
   const managerId = log?.manager_id ?? log?.managerId ?? null;
   const managerName =
     log?.manager?.name ??
@@ -106,12 +106,17 @@ function mapLogFromApi(log) {
     log?.manager?.manager_name ??
     log?.manager?.email ??
     null;
-  const readableId = log?.note?.readable_id ?? log?.note?.readableId ?? null;
+  const readableId =
+    log?.readable_id ??
+    log?.readableId ??
+    log?.order?.readable_id ??
+    log?.order?.readableId ??
+    null;
 
   return {
     raw: log,
     id: logId(log),
-    noteId,
+    orderId,
     readableId,
     managerId,
     managerName,
@@ -170,7 +175,7 @@ export async function init() {
   const toEl = byId('dpAuditTo');
   const statusEl = byId('dpAuditStatus');
   const managerIdEl = byId('dpAuditManagerId');
-  const noteIdEl = byId('dpAuditNoteId');
+  const orderIdEl = byId('dpAuditOrderId');
   const limitEl = byId('dpAuditLimit');
 
   const metaEl = byId('dpAuditMeta');
@@ -182,7 +187,7 @@ export async function init() {
   const detailClose = byId('dpAuditDetailClose');
   const dTimestamp = byId('dpDetailTimestamp');
   const dLogId = byId('dpDetailLogId');
-  const dNoteId = byId('dpDetailNoteId');
+  const dOrderId = byId('dpDetailOrderId');
   const dManager = byId('dpDetailManager');
   const dTransition = byId('dpDetailTransition');
   const dReason = byId('dpDetailReason');
@@ -213,7 +218,7 @@ export async function init() {
     const to = toIsoFromDatetimeLocal(toEl?.value);
     const status = String(statusEl?.value || '').trim();
     const manager_id = String(managerIdEl?.value || '').trim();
-    const order_id = String(noteIdEl?.value || '').trim();
+    const order_id = String(orderIdEl?.value || '').trim();
 
     const limit = Number(String(limitEl?.value || state.limit).trim());
     const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(500, limit)) : 50;
@@ -260,7 +265,7 @@ export async function init() {
     setText(dTimestamp, formatTimestamp(log.timestamp));
 
     setText(dLogId, log.id || '—');
-    setText(dNoteId, log.noteId || '—');
+    setText(dOrderId, log.orderId || '—');
 
     const manager = log.managerName
       ? `${log.managerName}${log.managerId ? ` (${log.managerId})` : ''}`
@@ -273,7 +278,7 @@ export async function init() {
     setText(dReason, log.cancellationReason || '—');
 
     if (dOpenOrder) {
-      const orderKey = log.readableId || log.noteId;
+      const orderKey = log.readableId || log.orderId;
       if (orderKey) {
         dOpenOrder.href = `/admin/dp/orders/${encodeURIComponent(orderKey)}`;
         dOpenOrder.classList.remove('hidden');
@@ -314,7 +319,7 @@ export async function init() {
 
       const tdOrder = document.createElement('td');
       tdOrder.className = 'dp-mono';
-      tdOrder.textContent = log.readableId || log.noteId || '—';
+      tdOrder.textContent = log.readableId || log.orderId || '—';
 
       const tdManager = document.createElement('td');
       tdManager.textContent = log.managerName || log.managerId || 'System';
@@ -362,8 +367,8 @@ export async function init() {
         if (!isUuidV4(order_id)) throw new Error('order_id debe ser uuid v4');
         const qs = buildQueryString({ limit: params.limit, offset: params.offset });
         const url = dpBase
-          ? `${dpBase}/api/dp/v1/logs/by-note/${encodeURIComponent(order_id)}?${qs}`
-          : `/api/dp/v1/logs/by-note/${encodeURIComponent(order_id)}?${qs}`;
+          ? `${dpBase}/api/dp/v1/logs/by-order/${encodeURIComponent(order_id)}?${qs}`
+          : `/api/dp/v1/logs/by-order/${encodeURIComponent(order_id)}?${qs}`;
         payload = await fetchJson(url, { method: 'GET' });
       } else if (hasAnyFilter(params)) {
         const qs = buildQueryString(params);
@@ -380,7 +385,7 @@ export async function init() {
       }
 
       state.logs = extractLogs(payload).map(mapLogFromApi);
-      // newest first unless backend returns ASC (by-note is ASC). Normalize to DESC for UI.
+      // newest first unless backend returns ASC (by-order is ASC). Normalize to DESC for UI.
       state.logs.sort((a, b) => {
         const ta = new Date(a.timestamp).getTime();
         const tb = new Date(b.timestamp).getTime();
@@ -422,7 +427,7 @@ export async function init() {
   toEl?.addEventListener('change', debouncedReload);
   statusEl?.addEventListener('change', debouncedReload);
   managerIdEl?.addEventListener('input', debouncedReload);
-  noteIdEl?.addEventListener('input', debouncedReload);
+  orderIdEl?.addEventListener('input', debouncedReload);
   limitEl?.addEventListener('change', debouncedReload);
 
   detailClose?.addEventListener('click', () => renderDetail(null));
