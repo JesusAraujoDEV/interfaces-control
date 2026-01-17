@@ -143,11 +143,11 @@ function escapeHtml(str) {
 }
 
 function mapOrderFromApi(o) {
-  const noteId = o?.order_id ?? o?.noteId ?? o?.id ?? null;
+  const orderId = o?.order_id ?? o?.id ?? null;
   const readableId = o?.readable_id ?? o?.readableId ?? null;
   return {
-    id: noteId || readableId,
-    noteId,
+    id: readableId || orderId,
+    orderId,
     readableId,
     customerName: o?.customer_name ?? o?.customerName ?? 'Cliente',
     customerPhone: o?.customer_phone ?? o?.customerPhone ?? null,
@@ -279,11 +279,11 @@ function renderOrders() {
       ? `<div class="mt-1 text-xs text-slate-500">Tel: <span class="font-semibold text-slate-700">${escapeHtml(o.customerPhone)}</span></div>`
       : '';
 
-    const openId = o.readableId || o.noteId || o.id;
-    const idLabel = o.readableId || o.noteId || o.id;
+    const openId = o.readableId || o.orderId || o.id;
+    const idLabel = o.readableId || o.orderId || o.id;
     const createdIso = o.createdAt ? String(o.createdAt) : '';
     return `
-      <article class="dp-order" data-order-id="${escapeHtml(o.noteId || o.id)}" role="group" aria-label="Pedido ${escapeHtml(String(idLabel))}">
+      <article class="dp-order" data-order-id="${escapeHtml(String(openId))}" role="group" aria-label="Pedido ${escapeHtml(String(idLabel))}">
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
@@ -331,22 +331,22 @@ function updateOrder(id, patch) {
 }
 
 async function handleAction(action, id) {
-  const order = state.orders.find((o) => String(o.noteId || o.id) === String(id));
+  const order = state.orders.find((o) => String(o.id) === String(id));
   if (!order) return;
 
   const st = normalizeStatus(order.status);
 
   const dpBase = getDpUrl();
-  const noteId = order.noteId;
-  if (!noteId) {
+  const orderId = order.orderId;
+  if (!orderId) {
     setPageError('No se encontró order_id para esta orden.');
     return;
   }
 
   async function patchStatus(nextStatus) {
     const url = dpBase
-      ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(noteId)}/status`
-      : `/api/dp/v1/orders/${encodeURIComponent(noteId)}/status`;
+      ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`
+      : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`;
     await fetchJson(url, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
   }
 
@@ -365,14 +365,14 @@ async function handleAction(action, id) {
     try {
       setPageError('');
       const managerId = window.prompt('manager_id (uuid) para asignar (opcional):', '') || '';
-      const note = window.prompt('Nota de asignación (opcional):', '') || '';
+      const assignmentNote = window.prompt('Nota de asignación (opcional):', '') || '';
       if (managerId.trim()) {
         const assignUrl = dpBase
-          ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(noteId)}/assign`
-          : `/api/dp/v1/orders/${encodeURIComponent(noteId)}/assign`;
+          ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`
+          : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`;
         await fetchJson(assignUrl, {
           method: 'PATCH',
-          body: JSON.stringify({ manager_id: managerId.trim(), note: String(note || '') }),
+          body: JSON.stringify({ manager_id: managerId.trim(), note: String(assignmentNote || '') }),
         });
       }
       await patchStatus(STATUS.EN_ROUTE);
