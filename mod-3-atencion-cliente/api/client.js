@@ -1,52 +1,34 @@
+// /mod-3-atencion-cliente/api/client.js
 
-window.HttpClient = {
-   
-    async request(fullUrl, options = {}) {
-        console.log(`📡 Fetching: ${fullUrl}`);
+window.ClientApi = {
 
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            ...options.headers
-        };
+    // Getter para la URL base de ATENCIÓN AL CLIENTE
+    getBaseUrl: () => {
+        const config = window.__APP_CONFIG__;
+        // Aquí usamos ATC_URL (o DP_URL según tu .env)
+        const baseUrl = config?.ATC_URL;
+        return `${baseUrl.replace(/\/$/, '')}/api/v1/atencion-cliente`;
+    },
 
-        // 🔐 AUTOMÁTICO: Si tenemos token guardado, lo inyectamos
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+    login: async (data) => {
+        // Asegúrate de tener tu CONFIG.API_BASE_URL definido en config.js
+        const url = `${window.ClientApi.getBaseUrl()}/clients`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || errorData.message || 'Error al registrar cliente');
         }
 
-        try {
-            const response = await fetch(fullUrl, { ...options, headers });
+        return await response.json();
+    },
 
-            // Validación de JSON vs HTML (Error común en proxys/404)
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") === -1) {
-                // Si el token expiró o es inválido, a veces el backend redirige al login HTML
-                if (response.status === 401 || response.status === 403) {
-                     localStorage.removeItem('auth_token');
-                     window.location.href = '/'; // Redirigir al login
-                }
-                throw new Error("Respuesta no válida del servidor (HTML recibido).");
-            }
-
-            if (!response.ok) {
-                const errorBody = await response.json();
-                
-                // Manejo de token expirado
-                if (response.status === 401) {
-                    console.warn("Sesión expirada");
-                    localStorage.removeItem('auth_token');
-                    // Opcional: window.location.href = '/';
-                }
-
-                throw new Error(errorBody.message || `Error ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('❌ API Error:', error);
-            throw error;
-        }
-    }
 };
