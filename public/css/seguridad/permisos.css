@@ -1,3 +1,75 @@
+/* Variables */
+:root {
+    --verde-oscuro: #1e4d35;
+    --verde-claro: #dcfce7;
+    --borde: #f0f0f0;
+    --texto-suave: #9ca3af;
+}
+
+.btn-añadir {
+    background: var(--verde-oscuro);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-container {
+    background: white;
+    width: 100%;
+    max-width: 650px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-cancelar-modal {
+    padding: 10px 24px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Modal form styles */
+.campo {
+    margin-bottom: 20px;
+}
+
+.campo label {
+    display: block;
+    font-size: 0.85rem;
+    color: #374151;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.campo input, .campo select {
+    width: 100%;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+    border-radius: 8px;
+    outline: none;
+    color: #111827;
+}
+
 /* Estructura Principal */
 .contenedor-dashboard {
     display: flex;
