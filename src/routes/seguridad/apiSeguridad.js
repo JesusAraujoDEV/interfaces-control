@@ -7,6 +7,63 @@ const URL_BASE_API_SEGURIDAD = SEGURIDAD_CONFIG.URL_BASE_API_SEGURIDAD;
 function createApiSeguridadRouter() {
   const router = Router();
 
+  router.post("/verify-location", async (req, res) => {
+    try {
+      const { latitude, longitude } = req.body;
+      const response = await fetch(
+        `${URL_BASE_API_SEGURIDAD}/api/seguridad/auth/verify-location`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ latitude, longitude }),
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.is_inside) {
+          const locationToken = data.locationToken;
+          const locationRefreshToken = data.locationRefreshToken;
+          res.cookie("location_token", locationToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+            maxAge: 10 * 60 * 1000, //  establece a 10 minutos
+          });
+          res.cookie("location_refresh_token", locationRefreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+            maxAge: 30 * 60 * 1000, // establece a 30 minutos
+          });
+          res.json({
+            success: true,
+            message: "Ubicación verificada con éxito",
+          });
+        } else {
+          res.status(403).json({
+            success: false,
+            message: "Ubicación fuera de los límites permitidos",
+          });
+        }
+      } else {
+        const error = await response.json();
+        res.status(response.status).json({
+          success: false,
+          message: error.message || "Error al verificar la ubicación",
+        });
+      }
+    }
+    catch (error) {
+      console.error("Error during location verification:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Error interno del servidor",
+      });
+    }
+  });
+
   router.post("/login", async (req, res) => {
     try {
       const { email, password } = req.body;

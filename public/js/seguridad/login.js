@@ -35,6 +35,13 @@ document.addEventListener("DOMContentLoaded", function () {
       window.seguridad_notyf.success(
         "Inicio de sesión exitoso. Redirigiendo..."
       );
+      // obtiene el parámetro redirect de la URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get("redirect");
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
       window.location.href = "/shared/admin-home/index.html";
       
     } else {

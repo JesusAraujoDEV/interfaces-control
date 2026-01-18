@@ -8,10 +8,20 @@ const apiUrl = SEGURIDAD_CONFIG.URL_BASE_API_SEGURIDAD;
 
 const createSeguridadRouter = () => {
   const router = Router();
+  router.use((req, res, next) => {
+    if (req.user) {
+      res.locals.user = req.user;
+    }
+    next();
+  });
   router.use(inyectarHelpers);
 
   router.get("/login", async (req, res) => {
     res.render("seguridad/login");
+  });
+  router.get("/logout", async (req, res) => {
+    res.clearCookie("access_token");
+    res.redirect("/seguridad/login");
   });
 
   router.get("/usuarios", async (req, res) => {
