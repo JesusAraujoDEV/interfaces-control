@@ -77,6 +77,21 @@ function normalizeBaseUrl(url) {
   return raw.replace(/\/+$/g, '');
 }
 
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function localTodayYYYYMMDD() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function normalizeDateFilter(value) {
+  const v = String(value || '').trim();
+  if (!v) return 'today';
+  return v === localTodayYYYYMMDD() ? 'today' : v;
+}
+
 function getDpUrl() {
   return normalizeBaseUrl(
     (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
@@ -172,7 +187,9 @@ const TABS = [
 let state = {
   tab: 'dispatch',
   orders: [],
-  loading: false
+  loading: false,
+  dateFilter: 'today',
+  cancelTarget: null
 };
 
 function setText(el, text) {
@@ -250,6 +267,11 @@ function actionFor(order) {
   return null;
 }
 
+function canCancel(order) {
+  const st = normalizeStatus(order.status);
+  return st !== STATUS.DELIVERED && st !== STATUS.CANCELLED;
+}
+
 function renderOrders() {
   const host = document.getElementById('dpOrdersList');
   if (!host) return;
@@ -314,6 +336,7 @@ function renderOrders() {
 
           <div class="shrink-0 flex flex-col items-end gap-2">
             ${a ? `<button type="button" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold shadow-sm ${a.tone}" data-action="${a.key}" data-order-id="${escapeHtml(o.id)}">${escapeHtml(a.label)}</button>` : ''}
+            ${canCancel(o) ? `<button type="button" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold shadow-sm bg-rose-600 hover:bg-rose-700 text-white" data-action="cancel" data-order-id="${escapeHtml(o.id)}">Cancelar</button>` : ''}
           </div>
         </div>
       </article>
@@ -330,30 +353,87 @@ function updateOrder(id, patch) {
   state.orders = state.orders.map((o) => (String(o.id) === String(id) ? { ...o, ...patch } : o));
 }
 
+async function patchOrderStatus(orderId, nextStatus) {
+  const dpBase = getDpUrl();
+  const url = dpBase
+    ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`
+    : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`;
+  await fetchJson(url, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+}
+
+function closeCancelModal() {
+  const modal = document.getElementById('dpCancelModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  state.cancelTarget = null;
+}
+
+function openCancelModal(order) {
+  const modal = document.getElementById('dpCancelModal');
+  if (!modal) return;
+
+  const label = order.readableId || order.orderId || order.id;
+  state.cancelTarget = { orderId: order.orderId, label };
+
+  const subtitle = document.getElementById('dpCancelSubtitle');
+  if (subtitle) subtitle.textContent = `¿Seguro que deseas cancelar la orden ${label}?`;
+
+  modal.classList.remove('hidden');
+}
+
+async function confirmCancelModal() {
+  const target = state.cancelTarget;
+  if (!target?.orderId) {
+    setPageError('No se encontró order_id para esta orden.');
+    closeCancelModal();
+    return;
+  }
+
+  const confirmBtn = document.getElementById('dpCancelConfirm');
+  const keepBtn = document.getElementById('dpCancelKeep');
+  const closeBtn = document.getElementById('dpCancelClose');
+
+  const prevText = confirmBtn?.textContent;
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Cancelando...';
+  }
+  if (keepBtn) keepBtn.disabled = true;
+  if (closeBtn) closeBtn.disabled = true;
+
+  try {
+    setPageError('');
+    await patchOrderStatus(target.orderId, STATUS.CANCELLED);
+    closeCancelModal();
+    await loadOrdersFromBackend();
+  } catch (e) {
+    setPageError(normalizeErrorMessage(e));
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = prevText || 'Sí, cancelar';
+    }
+    if (keepBtn) keepBtn.disabled = false;
+    if (closeBtn) closeBtn.disabled = false;
+  }
+}
+
 async function handleAction(action, id) {
   const order = state.orders.find((o) => String(o.id) === String(id));
   if (!order) return;
 
   const st = normalizeStatus(order.status);
 
-  const dpBase = getDpUrl();
   const orderId = order.orderId;
   if (!orderId) {
     setPageError('No se encontró order_id para esta orden.');
     return;
   }
 
-  async function patchStatus(nextStatus) {
-    const url = dpBase
-      ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`
-      : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`;
-    await fetchJson(url, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
-  }
-
   if (action === 'approve' && st === STATUS.PENDING_REVIEW) {
     try {
       setPageError('');
-      await patchStatus(STATUS.IN_KITCHEN);
+      await patchOrderStatus(orderId, STATUS.IN_KITCHEN);
       await loadOrdersFromBackend();
     } catch (e) {
       setPageError(normalizeErrorMessage(e));
@@ -367,6 +447,7 @@ async function handleAction(action, id) {
       const managerId = window.prompt('manager_id (uuid) para asignar (opcional):', '') || '';
       const assignmentNote = window.prompt('Nota de asignación (opcional):', '') || '';
       if (managerId.trim()) {
+        const dpBase = getDpUrl();
         const assignUrl = dpBase
           ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`
           : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`;
@@ -375,7 +456,7 @@ async function handleAction(action, id) {
           body: JSON.stringify({ manager_id: managerId.trim(), note: String(assignmentNote || '') }),
         });
       }
-      await patchStatus(STATUS.EN_ROUTE);
+      await patchOrderStatus(orderId, STATUS.EN_ROUTE);
       await loadOrdersFromBackend();
     } catch (e) {
       setPageError(normalizeErrorMessage(e));
@@ -386,11 +467,16 @@ async function handleAction(action, id) {
   if (action === 'delivered' && st === STATUS.EN_ROUTE) {
     try {
       setPageError('');
-      await patchStatus(STATUS.DELIVERED);
+      await patchOrderStatus(orderId, STATUS.DELIVERED);
       await loadOrdersFromBackend();
     } catch (e) {
       setPageError(normalizeErrorMessage(e));
     }
+    return;
+  }
+
+  if (action === 'cancel' && st !== STATUS.DELIVERED && st !== STATUS.CANCELLED) {
+    openCancelModal(order);
     return;
   }
 }
@@ -403,14 +489,16 @@ async function loadOrdersFromBackend() {
     setMeta('Cargando órdenes...');
 
     const dpBase = getDpUrl();
+    const dateParam = state.dateFilter || 'today';
     const url = dpBase
-      ? `${dpBase}/api/dp/v1/orders?date=today`
-      : `/api/dp/v1/orders?date=today`;
+      ? `${dpBase}/api/dp/v1/orders?date=${encodeURIComponent(dateParam)}`
+      : `/api/dp/v1/orders?date=${encodeURIComponent(dateParam)}`;
     const payload = await fetchJson(url, { method: 'GET' });
 
     const list = Array.isArray(payload) ? payload : [];
     state.orders = list.map(mapOrderFromApi);
-    setMeta(`Mostrando: hoy · ${state.orders.length} órdenes`);
+    const dateLabel = dateParam === 'today' ? 'hoy' : dateParam;
+    setMeta(`Mostrando: ${dateLabel} · ${state.orders.length} órdenes`);
     render();
   } catch (e) {
     state.orders = [];
@@ -423,6 +511,16 @@ async function loadOrdersFromBackend() {
 }
 
 function bindEvents() {
+  const dateEl = document.getElementById('dpOrdersDate');
+  if (dateEl && dateEl.dataset.dpBound !== '1') {
+    dateEl.dataset.dpBound = '1';
+    if (!dateEl.value) dateEl.value = localTodayYYYYMMDD();
+    dateEl.addEventListener('change', () => {
+      state.dateFilter = normalizeDateFilter(dateEl.value);
+      loadOrdersFromBackend();
+    });
+  }
+
   const tabs = document.getElementById('dpOrdersTabs');
   if (tabs && tabs.dataset.dpBound !== '1') {
     tabs.dataset.dpBound = '1';
@@ -452,6 +550,24 @@ function bindEvents() {
     refresh.dataset.dpBound = '1';
     refresh.addEventListener('click', () => {
       loadOrdersFromBackend();
+    });
+  }
+
+  const cancelModal = document.getElementById('dpCancelModal');
+  if (cancelModal && cancelModal.dataset.dpBound !== '1') {
+    cancelModal.dataset.dpBound = '1';
+
+    document.getElementById('dpCancelBackdrop')?.addEventListener('click', closeCancelModal);
+    document.getElementById('dpCancelClose')?.addEventListener('click', closeCancelModal);
+    document.getElementById('dpCancelKeep')?.addEventListener('click', closeCancelModal);
+    document.getElementById('dpCancelConfirm')?.addEventListener('click', () => {
+      confirmCancelModal();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const modal = document.getElementById('dpCancelModal');
+      if (modal && !modal.classList.contains('hidden')) closeCancelModal();
     });
   }
 }
