@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/config.js"></script>
     <script src="/js/dev-auth.js"></script>
+    <script src="/js/api.js"></script>
     <title>Inventario - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -38,7 +39,7 @@
         <header class="header">
             <h1 class="header__title">Inventario de Consumibles</h1>
             <div class="header__actions">
-                <button class="btn btn--primary">Añadir Stock / Reabastecer</button>
+                <button class="btn btn--primary">Nuevo Ítem</button>
                 <button class="btn btn--secondary">Reportar Desperdicio</button>
             </div>
         </header>
@@ -118,6 +119,184 @@
             </table>
         </section>
     </main>
+
+    <!-- Modal para Nuevo Ítem -->
+    <div id="newItemModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Nuevo Ítem de Inventario</h2>
+                <button class="modal__close" id="closeModal">&times;</button>
+            </div>
+            <form id="newItemForm" class="modal__form">
+                <div class="form-group">
+                    <label for="itemName">Nombre del Ítem</label>
+                    <input type="text" id="itemName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemCategory">Categoría</label>
+                    <select id="itemCategory" name="category" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Comida">Comida</option>
+                        <option value="Bebida">Bebida</option>
+                        <option value="Empaque">Empaque</option>
+                        <option value="Limpieza">Limpieza</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="itemUnit">Unidad</label>
+                    <input type="text" id="itemUnit" name="unit" required placeholder="ej. kg, cada uno, caja">
+                </div>
+                <div class="form-group">
+                    <label for="initialStock">Stock Inicial</label>
+                    <input type="number" id="initialStock" name="initial_stock" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="maxStock">Stock Máximo</label>
+                    <input type="number" id="maxStock" name="max_stock" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="minStock">Stock Mínimo</label>
+                    <input type="number" id="minStock" name="min_stock" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="costPerUnit">Costo por Unidad</label>
+                    <input type="number" id="costPerUnit" name="cost_per_unit" min="0" step="0.01" required>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Crear Ítem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Función para cargar el inventario
+        async function loadInventory() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/inventory/items`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const items = await response.json();
+                renderInventory(items);
+            } catch (error) {
+                console.error('Error cargando inventario:', error);
+                // Opcional: mostrar mensaje de error en la UI
+            }
+        }
+
+        // Función para renderizar las filas de la tabla
+        function renderInventory(items) {
+            const tbody = document.querySelector('.table__body');
+            tbody.innerHTML = ''; // Limpiar el tbody
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'table__row';
+
+                // Calcular si está bajo stock
+                const isLowStock = item.stock < item.min_stock;
+                const progressWidth = (item.stock / item.max_stock) * 100;
+                let progressClass = 'progress-bar__fill--success';
+                let badgeClass = 'badge--success';
+                let badgeText = 'En Stock';
+
+                if (isLowStock) {
+                    progressClass = 'progress-bar__fill--danger';
+                    badgeClass = 'badge--danger';
+                    badgeText = 'Stock Bajo';
+                } else if (progressWidth < 70) {
+                    progressClass = 'progress-bar__fill--warning';
+                    badgeClass = 'badge--warning';
+                    badgeText = 'Casi Bajo';
+                }
+
+                row.innerHTML = `
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.category}</td>
+                    <td>${item.unit}</td>
+                    <td>
+                        <div class="stock-indicator">
+                            <span class="stock-indicator__text ${isLowStock ? 'stock-indicator__text--danger' : ''}">${item.stock} / ${item.max_stock}</span>
+                            <div class="progress-bar">
+                                <div class="progress-bar__fill ${progressClass}" style="width: ${progressWidth}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${formatCurrency(item.cost_per_unit)}</td>
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Cargar inventario al cargar la página
+        document.addEventListener('DOMContentLoaded', loadInventory);
+
+        // Modal para nuevo ítem
+        const newItemModal = document.getElementById('newItemModal');
+        const newItemForm = document.getElementById('newItemForm');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const addItemBtn = document.querySelector('.header__actions .btn--primary');
+
+        // Abrir modal
+        addItemBtn.addEventListener('click', () => {
+            newItemModal.style.display = 'block';
+        });
+
+        // Cerrar modal
+        closeModal.addEventListener('click', () => {
+            newItemModal.style.display = 'none';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            newItemModal.style.display = 'none';
+        });
+
+        // Enviar formulario
+        newItemForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(newItemForm);
+            const payload = {
+                name: formData.get('name'),
+                category: formData.get('category'),
+                unit: formData.get('unit'),
+                stock: parseFloat(formData.get('initial_stock')),
+                max_stock: parseFloat(formData.get('max_stock')),
+                min_stock: parseFloat(formData.get('min_stock')),
+                cost_per_unit: parseFloat(formData.get('cost_per_unit'))
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/inventory/items`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                // Éxito: cerrar modal y recargar tabla
+                newItemModal.style.display = 'none';
+                newItemForm.reset();
+                loadInventory();
+            } catch (error) {
+                console.error('Error creando ítem:', error);
+                // Opcional: mostrar mensaje de error
+            }
+        });
+    </script>
 
     <script>lucide.createIcons();</script>
 </body>
