@@ -1,3 +1,5 @@
+const getdata = require('./api.js');
+
 const express = require('express')
 const path = require('path')
 
@@ -20,6 +22,18 @@ router.get('/kpis/operational-efficent', (req, res) => {
 
 router.get('/kpis/inventory', (req, res) => {
     res.sendFile(path.join(__dirname, 'public' ,'inventario.html'));
+});
+
+router.get('/test-connection', async (req, res) => {
+    try {
+        const data = await getdata('/kpi/dashboard/summary');
+        res.json({
+            status: 'Conection successful',
+            data: data.data
+        })
+    }catch (error) {
+        res.status(500).json({ message: 'Connection failed', error: error.message });
+    }
 });
 
 module.exports = router
