@@ -22,8 +22,8 @@ const viewsWithAuth = async (req, res, next) => {
   }
 
   const rutasProtegidas = [
-    "/perfil/editar",
-    "/perfil/cambioPassword",
+    "/seguridad/perfil/editar",
+    "/seguridad/perfil/cambioPassword",
   ];
 
   if (!rutasProtegidas.includes(rutaSolicitada)) {
@@ -32,7 +32,7 @@ const viewsWithAuth = async (req, res, next) => {
   if (!req.user) {
     return res.redirect(`/seguridad/login?redirect=${encodeURIComponent(req.originalUrl)}`);
   }
-
+  next();
 };
 
 module.exports = { viewsWithAuth };
