@@ -4,6 +4,16 @@ function normalizeBaseUrl(url) {
   return raw.replace(/\/+$/g, '');
 }
 
+const CART_KEY = 'dp_cart_v1';
+
+function clearCartStorage() {
+  try {
+    localStorage.removeItem(CART_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 function getDpUrl() {
   return (
     (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
@@ -180,6 +190,9 @@ function showEndStateModal(status) {
   const st = normalizeStatus(status);
   if (st !== 'DELIVERED' && st !== 'CANCELLED') return;
 
+  // Respaldo: si el usuario vuelve al menú desde aquí, que el carrito no quede pegado.
+  clearCartStorage();
+
   const modal = document.getElementById('dpEndStateModal');
   if (!modal) return;
 
@@ -219,6 +232,14 @@ function showEndStateModal(status) {
 
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+
+  const reorderBtn = document.getElementById('dpReorderBtn');
+  if (reorderBtn && !reorderBtn.dataset.bound) {
+    reorderBtn.dataset.bound = '1';
+    reorderBtn.addEventListener('click', () => {
+      clearCartStorage();
+    });
+  }
 
   const closeBtn = document.getElementById('dpEndStateClose');
   if (closeBtn && !closeBtn.dataset.bound) {
