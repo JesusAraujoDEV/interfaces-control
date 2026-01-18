@@ -704,10 +704,6 @@ video {
   z-index: 80;
 }
 
-.z-\[90\] {
-  z-index: 90;
-}
-
 .-mx-4 {
   margin-left: -1rem;
   margin-right: -1rem;
@@ -1709,11 +1705,6 @@ video {
 
 .text-red-900\/90 {
   color: rgb(127 29 29 / 0.9);
-}
-
-.text-rose-700 {
-  --tw-text-opacity: 1;
-  color: rgb(190 18 60 / var(--tw-text-opacity, 1));
 }
 
 .text-rose-800 {
