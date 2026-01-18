@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Order - Charlotte's Restaurant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#205638', secondary: '#E8F5E9' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+
+    <header class="md:hidden p-4 flex items-center bg-white sticky top-0 z-20 shadow-sm">
+        <button onclick="history.back()" class="p-2 -ml-2 mr-2 text-gray-600">
+            <span class="material-icons-outlined">arrow_back</span>
+        </button>
+        <h1 class="text-xl font-bold text-gray-900 flex-1 text-center">My Cart</h1>
+        <div class="w-8"></div>
+    </header>
+
+    <header class="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div class="container mx-auto max-w-6xl px-4 h-20 flex items-center justify-between">
+            <a href="menu.html" class="text-2xl font-bold text-gray-900 tracking-tight hover:text-primary transition">
+                Charlotte's Restaurant
+            </a>
+            <div id="desktop-nav-container" class="flex items-center gap-8"></div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-10">
+        
+        <h1 class="hidden md:block text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            <div class="lg:col-span-2 space-y-4" id="cart-items-container">
+                <div class="text-center py-10">
+                    <span class="animate-spin material-icons-outlined text-gray-400">refresh</span>
+                    <p class="text-gray-400 mt-2">Cargando carrito...</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:sticky md:top-24">
+                    <h3 class="font-bold text-gray-900 text-lg mb-6">Order Summary</h3>
+                    
+                    <div class="space-y-3 mb-6 pb-6 border-b border-gray-100">
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>Subtotal</span>
+                            <span id="summary-subtotal">$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>VAT (10%)</span>
+                            <span id="summary-vat">$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>Local Taxes (2%)</span>
+                            <span id="summary-tax">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-end mb-8">
+                        <span class="text-base font-medium text-gray-900">Total</span>
+                        <span class="text-2xl font-bold text-gray-900" id="summary-total">$0.00</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="openConfirmation()" id="btn-checkout" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                            Send to Kitchen
+                        </button>
+                        <a href="menu.html" class="block w-full text-center bg-gray-50 hover:bg-gray-100 text-gray-900 font-bold py-4 rounded-xl border border-gray-200 transition">
+                            Add More Items
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="confirmOverlay" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60 transition-opacity backdrop-blur-sm" onclick="closeConfirmation()"></div>
+        <div class="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 
+                    w-full md:w-[400px] bg-white md:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up md:animate-fade-in z-50">
+            <div class="p-6 pb-8 text-center">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 md:hidden"></div>
+                <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-icons-outlined text-3xl text-primary">restaurant</span>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900 mb-2">Send order to kitchen?</h2>
+                <p class="text-gray-500 text-sm mb-8">The chefs will start preparing your meal immediately. This cannot be undone.</p>
+                <div class="space-y-3">
+                    <button id="btn-confirm-send" onclick="sendOrderToKitchen()" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-3.5 rounded-xl shadow-md transition flex justify-center items-center gap-2">
+                        <span>Yes, Send Order</span>
+                    </button>
+                    <button onclick="closeConfirmation()" class="w-full bg-white hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl border border-gray-200 transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav id="mobile-nav-container"></nav>
+
+    <script src="/config.js"></script>
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/components/navbar.js"></script>
+    
+    <script>
+        let cart = [];
+        const TABLE_ID_DEFAULT = 1; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            renderCart();
+        });
+
+        function loadCart() {
+            try {
+                const saved = localStorage.getItem('charlotte_cart');
+                cart = saved ? JSON.parse(saved) : [];
+            } catch (e) { cart = []; }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const btnCheckout = document.getElementById('btn-checkout');
+
+            const subtotalEl = document.getElementById('summary-subtotal');
+            const vatEl = document.getElementById('summary-vat');
+            const taxEl = document.getElementById('summary-tax');
+            const totalEl = document.getElementById('summary-total');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-gray-100">
+                        <span class="material-icons-outlined text-gray-300 text-6xl mb-4">shopping_cart</span>
+                        <p class="text-gray-500 font-medium">Your cart is empty</p>
+                        <a href="menu.html" class="text-primary font-bold mt-2 inline-block hover:underline">Go to Menu</a>
+                    </div>`;
+                subtotalEl.textContent = '$0.00';
+                vatEl.textContent = '$0.00';
+                taxEl.textContent = '$0.00';
+                totalEl.textContent = '$0.00';
+                btnCheckout.disabled = true;
+                return;
+            }
+
+            btnCheckout.disabled = false;
+            let subtotal = 0;
+
+            container.innerHTML = cart.map((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                // CAMBIO AQUÍ: Usamos placehold.co en lugar de via.placeholder.com
+                const img = item.image || 'https://placehold.co/150';
+
+                return `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 transition hover:shadow-md">
+                    <img src="${img}" class="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover bg-gray-50" onerror="this.src='https://placehold.co/150'">
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-gray-900 text-lg line-clamp-1">${item.name}</h3>
+                                <span class="font-bold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                            ${item.notes ? `<p class="text-xs text-primary font-medium mt-1 truncate">${item.notes}</p>` : ''}
+                            <p class="text-[10px] uppercase tracking-wide text-gray-400 mt-1 font-bold">Pending Preparation</p>
+                        </div>
+                        <div class="flex justify-between items-end mt-2">
+                            <button onclick="removeItem(${index})" class="text-gray-400 hover:text-red-500 text-xs font-medium underline decoration-dotted">Remove</button>
+                            <div class="flex items-center bg-gray-50 rounded-lg border border-gray-200">
+                                <button onclick="updateQuantity(${index}, -1)" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary">-</button>
+                                <span class="text-sm font-semibold w-4 text-center">${item.quantity}</span>
+                                <button onclick="updateQuantity(${index}, 1)" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const vat = subtotal * 0.10;
+            const taxes = subtotal * 0.02;
+            const total = subtotal + vat + taxes;
+
+            subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+            vatEl.textContent = `$${vat.toFixed(2)}`;
+            taxEl.textContent = `$${taxes.toFixed(2)}`;
+            totalEl.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function updateQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                removeItem(index);
+                return;
+            }
+            saveAndRender();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('charlotte_cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        const overlay = document.getElementById('confirmOverlay');
+        
+        function openConfirmation() {
+            if (cart.length === 0) return;
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeConfirmation() {
+            overlay.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function sendOrderToKitchen() {
+            const btn = document.getElementById('btn-confirm-send');
+            const originalContent = btn.innerHTML;
+
+            // Transformación de datos para el backend
+            const orderPayload = {
+                mesaId: Number(localStorage.getItem('table_id')) || TABLE_ID_DEFAULT,
+                items: cart.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity,
+                    notes: item.notes || ""
+                }))
+            };
+
+            btn.innerHTML = `<span class="material-icons-outlined animate-spin mr-2">refresh</span> Sending...`;
+            btn.disabled = true;
+
+            try {
+                console.log("📤 Sending payload:", orderPayload);
+                await window.ClientApi.createOrder(orderPayload);
+                
+                localStorage.removeItem('charlotte_cart'); 
+                window.location.href = '../payment/successful-payment.html'; 
+
+            } catch (error) {
+                console.error(error);
+                alert('Error sending order: ' + error.message);
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                closeConfirmation();
+            }
+        }
+    </script>
+    
+    <style>
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slide-up 0.3s ease-out;
+        }
+
+        @media (min-width: 768px) {
+            @keyframes fade-in {
+                from { opacity: 0; transform: translate(-50%, -40%); }
+                to { opacity: 1; transform: translate(-50%, -50%); }
+            }
+            .md\:animate-fade-in {
+                animation: fade-in 0.2s ease-out forwards;
+            }
+        }
+    </style>
+</body>
+</html>

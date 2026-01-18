@@ -30,5 +30,33 @@ window.ClientApi = {
 
         return await response.json();
     },
+        /**
+     * TAREA VISTA 4: Enviar Orden
+     * Consumir POST /comandas
+     */
+    createOrder: async (orderPayload) => {
+        // Obtenemos el Token de sesión (asumiendo que se guardó al escanear QR o loguearse)
+        const token = localStorage.getItem('guest_token'); 
+        
+        // Endpoint: /comandas (Concatenado a tu base URL)
+        const url = `${window.ClientApi.getBaseUrl()}/comandas`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Importante para la seguridad híbrida
+            },
+            body: JSON.stringify(orderPayload) // Aquí va el JSON transformado
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Error al enviar la orden');
+        }
+
+        return await response.json();
+    }
 
 };
+
