@@ -9,6 +9,8 @@ const STATUS = {
   CANCELLED: 'CANCELLED'
 };
 
+const DATE_FILTER_STORAGE_KEY = 'dp_orders_date_filter_v1';
+
 function normalizeStatus(value) {
   const s = String(value || '').toUpperCase();
   // Legacy aliases seen in other pages
@@ -90,6 +92,23 @@ function normalizeDateFilter(value) {
   const v = String(value || '').trim();
   if (!v) return 'today';
   return v === localTodayYYYYMMDD() ? 'today' : v;
+}
+
+function readStoredDateFilter() {
+  try {
+    const stored = sessionStorage.getItem(DATE_FILTER_STORAGE_KEY);
+    return normalizeDateFilter(stored);
+  } catch {
+    return 'today';
+  }
+}
+
+function writeStoredDateFilter(value) {
+  try {
+    sessionStorage.setItem(DATE_FILTER_STORAGE_KEY, normalizeDateFilter(value));
+  } catch {
+    // ignore
+  }
 }
 
 function getDpUrl() {
@@ -514,9 +533,11 @@ function bindEvents() {
   const dateEl = document.getElementById('dpOrdersDate');
   if (dateEl && dateEl.dataset.dpBound !== '1') {
     dateEl.dataset.dpBound = '1';
-    if (!dateEl.value) dateEl.value = localTodayYYYYMMDD();
+    // Keep input in sync with current filter.
+    dateEl.value = state.dateFilter === 'today' ? localTodayYYYYMMDD() : String(state.dateFilter || localTodayYYYYMMDD());
     dateEl.addEventListener('change', () => {
       state.dateFilter = normalizeDateFilter(dateEl.value);
+      writeStoredDateFilter(state.dateFilter);
       loadOrdersFromBackend();
     });
   }
@@ -577,6 +598,9 @@ export async function init() {
     initDpLayout();
     mountDpSidebar();
   }
+
+  // Restore the last selected date filter when navigating back/forth.
+  state.dateFilter = readStoredDateFilter();
 
   // Back-compat for older markup calling goTo().
   if (!window.__dpSpaRouter && typeof window.goTo !== 'function') {
