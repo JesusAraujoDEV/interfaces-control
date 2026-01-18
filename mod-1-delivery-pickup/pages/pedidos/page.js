@@ -9,6 +9,8 @@ const STATUS = {
   CANCELLED: 'CANCELLED'
 };
 
+const DATE_FILTER_STORAGE_KEY = 'dp_orders_date_filter_v1';
+
 function normalizeStatus(value) {
   const s = String(value || '').toUpperCase();
   // Legacy aliases seen in other pages
@@ -92,6 +94,23 @@ function normalizeDateFilter(value) {
   return v === localTodayYYYYMMDD() ? 'today' : v;
 }
 
+function readStoredDateFilter() {
+  try {
+    const stored = sessionStorage.getItem(DATE_FILTER_STORAGE_KEY);
+    return normalizeDateFilter(stored);
+  } catch {
+    return 'today';
+  }
+}
+
+function writeStoredDateFilter(value) {
+  try {
+    sessionStorage.setItem(DATE_FILTER_STORAGE_KEY, normalizeDateFilter(value));
+  } catch {
+    // ignore
+  }
+}
+
 function getDpUrl() {
   return normalizeBaseUrl(
     (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
@@ -155,6 +174,34 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function setActionButtonLoading(buttonEl, loading, label) {
+  if (!buttonEl) return;
+
+  if (loading) {
+    const fallbackLabel = String(label || buttonEl.textContent || 'Procesando');
+    buttonEl.dataset.dpLabel = fallbackLabel;
+    buttonEl.disabled = true;
+    buttonEl.setAttribute('aria-busy', 'true');
+    buttonEl.classList.add('opacity-80');
+    buttonEl.innerHTML = `
+      <span class="inline-flex items-center gap-2">
+        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+        </svg>
+        <span>${escapeHtml(fallbackLabel)}</span>
+      </span>`;
+    return;
+  }
+
+  const prev = buttonEl.dataset.dpLabel;
+  if (prev) buttonEl.textContent = prev;
+  delete buttonEl.dataset.dpLabel;
+  buttonEl.disabled = false;
+  buttonEl.removeAttribute('aria-busy');
+  buttonEl.classList.remove('opacity-80');
 }
 
 function mapOrderFromApi(o) {
@@ -305,11 +352,10 @@ function renderOrders() {
     const idLabel = o.readableId || o.orderId || o.id;
     const createdIso = o.createdAt ? String(o.createdAt) : '';
     return `
-      <article class="dp-order" data-order-id="${escapeHtml(String(openId))}" role="group" aria-label="Pedido ${escapeHtml(String(idLabel))}">
+      <article class="dp-order" data-order-id="${escapeHtml(String(openId))}" role="group" aria-label="Orden ${escapeHtml(String(idLabel))}">
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
-              <div class="dp-order-meta" title="${escapeHtml(createdIso)}">${escapeHtml(String(idLabel))}</div>
               <span class="dp-badge dp-badge--muted" title="Tipo de servicio">
                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 border border-slate-200 text-slate-800">${escapeHtml(service.short)}</span>
                 ${escapeHtml(service.label)}
@@ -319,7 +365,8 @@ function renderOrders() {
 
             <div class="mt-2 flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <div class="dp-order-title truncate">${escapeHtml(o.customer || 'Cliente')}</div>
+                <div class="dp-order-title truncate">Orden #${escapeHtml(String(idLabel))}</div>
+                <div class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(o.customerName || '—')}</div>
                 <div class="dp-order-sub">Hace <span class="dp-timer ${timerTone(mins)}">${mins} min</span></div>
               </div>
               <div class="shrink-0">
@@ -514,9 +561,11 @@ function bindEvents() {
   const dateEl = document.getElementById('dpOrdersDate');
   if (dateEl && dateEl.dataset.dpBound !== '1') {
     dateEl.dataset.dpBound = '1';
-    if (!dateEl.value) dateEl.value = localTodayYYYYMMDD();
+    // Keep input in sync with current filter.
+    dateEl.value = state.dateFilter === 'today' ? localTodayYYYYMMDD() : String(state.dateFilter || localTodayYYYYMMDD());
     dateEl.addEventListener('change', () => {
       state.dateFilter = normalizeDateFilter(dateEl.value);
+      writeStoredDateFilter(state.dateFilter);
       loadOrdersFromBackend();
     });
   }
@@ -539,7 +588,22 @@ function bindEvents() {
       if (actionBtn) {
         e.preventDefault();
         e.stopPropagation();
-        handleAction(actionBtn.getAttribute('data-action'), actionBtn.getAttribute('data-order-id'));
+
+        const action = actionBtn.getAttribute('data-action');
+        const orderKey = actionBtn.getAttribute('data-order-id');
+
+        // Only show spinner for async status transitions.
+        const shouldSpin = action === 'approve' || action === 'dispatch' || action === 'delivered';
+        if (shouldSpin) setActionButtonLoading(actionBtn, true, 'Procesando...');
+
+        Promise.resolve(handleAction(action, orderKey))
+          .catch(() => {
+            // Errors are already surfaced via setPageError.
+          })
+          .finally(() => {
+            // Button may have been replaced by re-render; only restore if it still exists.
+            if (actionBtn && actionBtn.isConnected) setActionButtonLoading(actionBtn, false);
+          });
         return;
       }
     });
@@ -577,6 +641,9 @@ export async function init() {
     initDpLayout();
     mountDpSidebar();
   }
+
+  // Restore the last selected date filter when navigating back/forth.
+  state.dateFilter = readStoredDateFilter();
 
   // Back-compat for older markup calling goTo().
   if (!window.__dpSpaRouter && typeof window.goTo !== 'function') {
