@@ -40,6 +40,8 @@
             <h1 class="header__title">Inventario de Consumibles</h1>
             <div class="header__actions">
                 <button class="btn btn--primary">Nuevo Ítem</button>
+                <button class="btn btn--secondary" id="inboundBtn">Entrada (+)</button>
+                <button class="btn btn--secondary" id="outboundBtn">Salida (-)</button>
                 <button class="btn btn--secondary">Reportar Desperdicio</button>
             </div>
         </header>
@@ -65,6 +67,7 @@
                         <th>STOCK ACTUAL</th>
                         <th>COSTO / UNIDAD</th>
                         <th>ESTADO</th>
+                        <th>ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody class="table__body">
@@ -128,6 +131,7 @@
                 <button class="modal__close" id="closeModal">&times;</button>
             </div>
             <form id="newItemForm" class="modal__form">
+                <input type="hidden" id="itemId" name="id">
                 <div class="form-group">
                     <label for="itemName">Nombre del Ítem</label>
                     <input type="text" id="itemName" name="name" required>
@@ -147,8 +151,12 @@
                     <input type="text" id="itemUnit" name="unit" required placeholder="ej. kg, cada uno, caja">
                 </div>
                 <div class="form-group">
-                    <label for="initialStock">Stock Inicial</label>
-                    <input type="number" id="initialStock" name="initial_stock" min="0" required>
+                    <label for="currentStock">Stock Actual / Inicial</label>
+                    <input type="number" id="currentStock" name="current_stock" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="averageCost">Costo Promedio</label>
+                    <input type="number" id="averageCost" name="average_cost" min="0" step="0.01" readonly>
                 </div>
                 <div class="form-group">
                     <label for="maxStock">Stock Máximo</label>
@@ -164,10 +172,72 @@
                 </div>
                 <div class="modal__actions">
                     <button type="button" class="btn btn--secondary" id="cancelBtn">Cancelar</button>
-                    <button type="submit" class="btn btn--primary">Crear Ítem</button>
+                    <button type="submit" class="btn btn--primary">Guardar</button>
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Modal para Entrada de Inventario -->
+    <div id="inboundModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Movimiento de Entrada</h2>
+                <button class="modal__close" id="closeInboundModal">&times;</button>
+            </div>
+            <form id="inboundForm" class="modal__form">
+                <div class="form-group">
+                    <label for="inboundItem">Ítem</label>
+                    <select id="inboundItem" name="item_id" required>
+                        <option value="">Seleccionar ítem...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inboundQuantity">Cantidad</label>
+                    <input type="number" id="inboundQuantity" name="quantity" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="inboundUnitCost">Costo Unitario</label>
+                    <input type="number" id="inboundUnitCost" name="unit_cost" min="0.01" step="0.01" required>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelInboundBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Salida de Inventario -->
+    <div id="outboundModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Movimiento de Salida</h2>
+                <button class="modal__close" id="closeOutboundModal">&times;</button>
+            </div>
+            <form id="outboundForm" class="modal__form">
+                <div class="form-group">
+                    <label for="outboundItem">Ítem</label>
+                    <select id="outboundItem" name="item_id" required>
+                        <option value="">Seleccionar ítem...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="outboundQuantity">Cantidad a Restar</label>
+                    <input type="number" id="outboundQuantity" name="quantity" min="0.01" step="0.01" required>
+                    <span id="quantityError" class="error-message" style="display: none; color: red;">Cantidad excede el stock actual.</span>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelOutboundBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary" id="submitOutboundBtn">Registrar Salida</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast para mensajes -->
+    <div id="toast" class="toast" style="display: none;">
+        <span id="toastMessage"></span>
     </div>
 
     <script>
@@ -193,6 +263,7 @@
 
         // Función para renderizar las filas de la tabla
         function renderInventory(items) {
+            window.inventoryItems = items; // Guardar para edición
             const tbody = document.querySelector('.table__body');
             tbody.innerHTML = ''; // Limpiar el tbody
 
@@ -231,6 +302,7 @@
                     </td>
                     <td>${formatCurrency(item.cost_per_unit)}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td><button class="btn btn--small edit-btn" data-id="${item.id}">Editar</button></td>
                 `;
 
                 tbody.appendChild(row);
@@ -246,11 +318,49 @@
         const closeModal = document.getElementById('closeModal');
         const cancelBtn = document.getElementById('cancelBtn');
         const addItemBtn = document.querySelector('.header__actions .btn--primary');
+        const modalTitle = document.querySelector('.modal__header h2');
+        const submitBtn = document.querySelector('.modal__actions .btn--primary');
+        let isEditing = false;
 
-        // Abrir modal
+        // Abrir modal para nuevo ítem
         addItemBtn.addEventListener('click', () => {
+            isEditing = false;
+            modalTitle.textContent = 'Nuevo Ítem de Inventario';
+            submitBtn.textContent = 'Crear Ítem';
+            newItemForm.reset();
+            document.getElementById('currentStock').disabled = false;
+            document.getElementById('averageCost').disabled = false;
             newItemModal.style.display = 'block';
         });
+
+        // Event listener para botones editar
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-btn')) {
+                const itemId = e.target.dataset.id;
+                const item = window.inventoryItems.find(i => i.id == itemId);
+                if (item) {
+                    openEditModal(item);
+                }
+            }
+        });
+
+        function openEditModal(item) {
+            isEditing = true;
+            modalTitle.textContent = 'Editar Ítem de Inventario';
+            submitBtn.textContent = 'Actualizar Ítem';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemUnit').value = item.unit;
+            document.getElementById('currentStock').value = item.stock;
+            document.getElementById('currentStock').disabled = true; // Restricción
+            document.getElementById('averageCost').value = item.cost_per_unit;
+            document.getElementById('averageCost').disabled = true; // Restricción
+            document.getElementById('maxStock').value = item.max_stock;
+            document.getElementById('minStock').value = item.min_stock;
+            document.getElementById('costPerUnit').value = item.cost_per_unit;
+            newItemModal.style.display = 'block';
+        }
 
         // Cerrar modal
         closeModal.addEventListener('click', () => {
@@ -266,19 +376,28 @@
             e.preventDefault();
             
             const formData = new FormData(newItemForm);
-            const payload = {
+            let payload = {
                 name: formData.get('name'),
                 category: formData.get('category'),
                 unit: formData.get('unit'),
-                stock: parseFloat(formData.get('initial_stock')),
                 max_stock: parseFloat(formData.get('max_stock')),
                 min_stock: parseFloat(formData.get('min_stock')),
                 cost_per_unit: parseFloat(formData.get('cost_per_unit'))
             };
 
+            if (!isEditing) {
+                // Para nuevo, incluir stock
+                payload.stock = parseFloat(formData.get('current_stock'));
+            }
+
+            const url = isEditing 
+                ? `${API_BASE_URL}/inventory/items/${formData.get('id')}`
+                : `${API_BASE_URL}/inventory/items`;
+            const method = isEditing ? 'PATCH' : 'POST';
+
             try {
-                const response = await fetch(`${API_BASE_URL}/inventory/items`, {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
                 });
@@ -292,8 +411,199 @@
                 newItemForm.reset();
                 loadInventory();
             } catch (error) {
-                console.error('Error creando ítem:', error);
+                console.error('Error guardando ítem:', error);
                 // Opcional: mostrar mensaje de error
+            }
+        });
+    </script>
+
+    <script>
+        // Función para mostrar toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Función para poblar select de ítems
+        function populateItemSelect() {
+            const select = document.getElementById('inboundItem');
+            select.innerHTML = '<option value="">Seleccionar ítem...</option>';
+            if (window.inventoryItems) {
+                window.inventoryItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // Modal para entrada
+        const inboundModal = document.getElementById('inboundModal');
+        const inboundForm = document.getElementById('inboundForm');
+        const closeInboundModal = document.getElementById('closeInboundModal');
+        const cancelInboundBtn = document.getElementById('cancelInboundBtn');
+        const inboundBtn = document.getElementById('inboundBtn');
+
+        // Abrir modal de entrada
+        inboundBtn.addEventListener('click', () => {
+            populateItemSelect();
+            inboundModal.style.display = 'block';
+        });
+
+        // Cerrar modal
+        closeInboundModal.addEventListener('click', () => {
+            inboundModal.style.display = 'none';
+        });
+
+        cancelInboundBtn.addEventListener('click', () => {
+            inboundModal.style.display = 'none';
+        });
+
+        // Enviar formulario de entrada
+        inboundForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(inboundForm);
+            const quantity = parseFloat(formData.get('quantity'));
+            const unitCost = parseFloat(formData.get('unit_cost'));
+
+            // Validar positivos
+            if (quantity <= 0 || unitCost <= 0) {
+                showToast('Los valores numéricos deben ser positivos.');
+                return;
+            }
+
+            const payload = {
+                item_id: formData.get('item_id'),
+                quantity: quantity,
+                unit_cost: unitCost
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/inventory/inbound`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const newAverageCost = data.new_average_cost;
+                showToast(`Entrada registrada. Nuevo costo promedio: ${formatCurrency(newAverageCost)}`);
+
+                // Cerrar modal y recargar
+                inboundModal.style.display = 'none';
+                inboundForm.reset();
+                loadInventory();
+            } catch (error) {
+                console.error('Error registrando entrada:', error);
+                showToast('Error al registrar la entrada.');
+            }
+        });
+    </script>
+
+    <script>
+        // Función para poblar select de ítems para salida
+        function populateOutboundItemSelect() {
+            const select = document.getElementById('outboundItem');
+            select.innerHTML = '<option value="">Seleccionar ítem...</option>';
+            if (window.inventoryItems) {
+                window.inventoryItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = `${item.name} (Stock: ${item.stock})`;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // Modal para salida
+        const outboundModal = document.getElementById('outboundModal');
+        const outboundForm = document.getElementById('outboundForm');
+        const closeOutboundModal = document.getElementById('closeOutboundModal');
+        const cancelOutboundBtn = document.getElementById('cancelOutboundBtn');
+        const outboundBtn = document.getElementById('outboundBtn');
+        const outboundQuantity = document.getElementById('outboundQuantity');
+        const quantityError = document.getElementById('quantityError');
+        const submitOutboundBtn = document.getElementById('submitOutboundBtn');
+
+        // Abrir modal de salida
+        outboundBtn.addEventListener('click', () => {
+            populateOutboundItemSelect();
+            outboundModal.style.display = 'block';
+        });
+
+        // Cerrar modal
+        closeOutboundModal.addEventListener('click', () => {
+            outboundModal.style.display = 'none';
+        });
+
+        cancelOutboundBtn.addEventListener('click', () => {
+            outboundModal.style.display = 'none';
+        });
+
+        // Validación en tiempo real
+        outboundQuantity.addEventListener('input', () => {
+            const selectedItemId = document.getElementById('outboundItem').value;
+            const item = window.inventoryItems.find(i => i.id == selectedItemId);
+            const quantity = parseFloat(outboundQuantity.value);
+            if (item && quantity > item.stock) {
+                quantityError.style.display = 'block';
+                submitOutboundBtn.disabled = true;
+            } else {
+                quantityError.style.display = 'none';
+                submitOutboundBtn.disabled = false;
+            }
+        });
+
+        // Cambiar ítem también valida
+        document.getElementById('outboundItem').addEventListener('change', () => {
+            outboundQuantity.dispatchEvent(new Event('input'));
+        });
+
+        // Enviar formulario de salida
+        outboundForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (submitOutboundBtn.disabled) {
+                return; // No enviar si inválido
+            }
+
+            const formData = new FormData(outboundForm);
+            const payload = {
+                item_id: formData.get('item_id'),
+                quantity: parseFloat(formData.get('quantity'))
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/inventory/outbound`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                showToast('Salida registrada exitosamente.');
+
+                // Cerrar modal y recargar tabla
+                outboundModal.style.display = 'none';
+                outboundForm.reset();
+                loadInventory();
+            } catch (error) {
+                console.error('Error registrando salida:', error);
+                showToast('Error al registrar la salida.');
             }
         });
     </script>
