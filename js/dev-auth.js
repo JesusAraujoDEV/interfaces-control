@@ -33,8 +33,19 @@
             const data = await response.json();
             const token = data.token;
 
+            // ⚠️ Ajusta según la estructura real que devuelva tu backend
+            const staffId = data.staff?.id || data.staff_id;
+
             if (token) {
                 localStorage.setItem(TOKEN_KEY, token);
+
+                if (staffId) {
+                    localStorage.setItem('staff_id', staffId);
+                    console.log('✅ [DevAuth] Staff ID guardado en localStorage:', staffId);
+                } else {
+                    console.warn('⚠️ [DevAuth] No se recibió staff_id en la respuesta de login');
+                }
+
                 // Opcional: Recargar si la app necesita el token desde el inicio estricto
                 window.location.reload(); 
             } else {
@@ -44,6 +55,7 @@
             console.error('❌ [DevAuth] Falló el auto-login. Asegúrate de que el backend esté corriendo y las credenciales sean válidas.', error);
         }
     } else {
+        console.log('🔑 [DevAuth] Token ya existente en localStorage');
     }
 })();
 
@@ -73,8 +85,8 @@ window.apiFetch = async function(url, options = {}) {
     if (response.status === 401) {
         console.warn('⚠️ [apiFetch] Recibido 401 Unauthorized. Eliminando token expirado...');
         localStorage.removeItem(TOKEN_KEY);
-        // Podríamos intentar reloguear aquí recursivamente en una versión v2
+        // Podrías intentar reloguear aquí recursivamente en una versión v2
     }
 
-    return response;
+    return response.json(); // devolvemos JSON directamente
 };
