@@ -151,13 +151,20 @@ async function fetchJson(url, options = {}) {
   return body;
 }
 
-function formatMoneyCOP(value) {
-  const numericValue = Number(value);
+function formatMoneyCOP(value, options = {}) {
+  const numericValue = typeof value === 'number' ? value : Number(String(value ?? '').trim());
   if (!Number.isFinite(numericValue)) return '—';
+
+  const maximumFractionDigits =
+    typeof options.maximumFractionDigits === 'number' ? options.maximumFractionDigits : 0;
+  const minimumFractionDigits =
+    typeof options.minimumFractionDigits === 'number' ? options.minimumFractionDigits : 0;
+
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
-    maximumFractionDigits: 0,
+    maximumFractionDigits,
+    minimumFractionDigits,
   }).format(numericValue);
 }
 
@@ -219,7 +226,10 @@ function mapOrderFromApi(o) {
     status: normalizeStatus(o?.current_status ?? o?.status ?? o?.currentStatus),
     createdAt: o?.timestamp_creation ?? o?.timestampCreation ?? o?.created_at ?? o?.createdAt ?? null,
     total: o?.monto_total ?? o?.total_amount ?? o?.totalAmount ?? null,
-    shippingCost: o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
+    // Prefer zone shipping cost when available; otherwise fallback to common fields.
+    shippingCost:
+      (o?.zone && (o.zone.shipping_cost ?? o.zone.shippingCost)) ??
+      o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
   };
 }
 
@@ -342,7 +352,7 @@ function renderOrders() {
       ? `<div class="mt-1 text-sm text-slate-600"><span class="font-semibold text-slate-800">Dirección:</span> ${escapeHtml(o.address || '—')}</div>`
       : `<div class="mt-1 text-sm text-slate-600"><span class="font-semibold text-slate-800">Recogida:</span> En mostrador</div>`;
 
-    const totalsLine = `<div class="mt-2 text-sm text-slate-700"><span class="font-semibold text-slate-800">Total:</span> ${escapeHtml(formatMoneyCOP(o.total))} <span class="text-slate-500">(envío ${escapeHtml(formatMoneyCOP(o.shippingCost))})</span></div>`;
+    const totalsLine = `<div class="mt-2 text-sm text-slate-700"><span class="font-semibold text-slate-800">Total:</span> ${escapeHtml(formatMoneyCOP(o.total))} <span class="text-slate-500">(envío ${escapeHtml(formatMoneyCOP(o.shippingCost, { maximumFractionDigits: 2, minimumFractionDigits: 0 }))})</span></div>`;
 
     const contactLine = o.customerPhone
       ? `<div class="mt-1 text-xs text-slate-500">Tel: <span class="font-semibold text-slate-700">${escapeHtml(o.customerPhone)}</span></div>`
@@ -491,18 +501,7 @@ async function handleAction(action, id) {
   if (action === 'dispatch' && st === STATUS.READY_FOR_DISPATCH) {
     try {
       setPageError('');
-      const managerId = window.prompt('manager_id (uuid) para asignar (opcional):', '') || '';
-      const assignmentNote = window.prompt('Nota de asignación (opcional):', '') || '';
-      if (managerId.trim()) {
-        const dpBase = getDpUrl();
-        const assignUrl = dpBase
-          ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`
-          : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`;
-        await fetchJson(assignUrl, {
-          method: 'PATCH',
-          body: JSON.stringify({ manager_id: managerId.trim(), note: String(assignmentNote || '') }),
-        });
-      }
+      // Dispatchs should be direct now — no intermediate "assign manager" step.
       await patchOrderStatus(orderId, STATUS.EN_ROUTE);
       await loadOrdersFromBackend();
     } catch (e) {
