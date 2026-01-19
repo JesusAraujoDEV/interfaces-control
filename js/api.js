@@ -1,8 +1,12 @@
 // Configuración central para conexiones API
 // Archivo: js/api.js
 
-// Base URL para la API
-const API_BASE_URL = window.__APP_CONFIG__?.API_URL || 'http://localhost:3000/api';
+// Base URL para la API. Soporta estilos de config previos (KITCHEN_URL).
+const API_BASE_URL = window.__APP_CONFIG__?.API_URL || window.__APP_CONFIG__?.KITCHEN_URL || 'http://localhost:3000';
+
+// Exponer también para código existente que usa `KITCHEN_URL`
+window.API_BASE_URL = API_BASE_URL;
+window.KITCHEN_URL = API_BASE_URL;
 
 // Función para obtener headers comunes
 function getCommonHeaders() {
@@ -18,7 +22,8 @@ function getCommonHeaders() {
 
 // Función helper para formatear moneda
 function formatCurrency(amount) {
-    return `$ ${parseFloat(amount).toFixed(2)}`;
+    const n = Number(amount || 0);
+    return `$ ${n.toFixed(2)}`;
 }
 
 // Función helper para formatear unidades

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/config.js"></script>
     <script src="/js/dev-auth.js"></script>
+    <script src="/js/api.js"></script>
     <title>Gestión de Activos Fijos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -37,7 +38,7 @@
         <header class="header">
             <h1 class="header__title">Gestión de Activos Fijos</h1>
             <div class="header__actions">
-                <button class="btn btn--secondary">Añadir Nuevo Activo</button>
+                <button class="btn btn--secondary" id="addAssetBtn">Añadir Nuevo Activo</button>
                 <button class="btn btn--primary"><i data-lucide="clipboard-check"></i> Auditar Activos</button>
             </div>
         </header>
@@ -56,58 +57,205 @@
             </div>
         </section>
 
-        <section class="assets-grid">
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1594140710204-5825bc5f5d84?auto=format&fit=crop&w=400"
-                        alt="Sartén" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Sartén de teflón</h3>
-                    <p class="asset-card__total">Total: 25</p>
-                    <span class="badge badge--success">Operativo</span>
-                </div>
-            </article>
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=400"
-                        alt="Cuchillo" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Cuchillo de chef</h3>
-                    <p class="asset-card__total">Total: 15</p>
-                    <span class="badge badge--success">Operativo</span>
-                </div>
-            </article>
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1574633062347-99a0ad7934b5?auto=format&fit=crop&w=400"
-                        alt="Tazones" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Juego de tazones</h3>
-                    <p class="asset-card__total">Total: 10</p>
-                    <span class="badge badge--warning">Dañado</span>
-                </div>
-            </article>
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1582231243152-32a8264582f3?auto=format&fit=crop&w=400"
-                        alt="Tabla" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Tabla de cortar</h3>
-                    <p class="asset-card__total">Total: 30</p>
-                    <span class="badge badge--danger">Perdido</span>
-                </div>
-            </article>
-
+        <section id="assetsGrid" class="assets-grid">
+            <!-- Asset cards se poblarán vía JS -->
         </section>
     </main>
+
+    <!-- Modal para Nuevo Activo -->
+    <div id="newAssetModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Nuevo Activo</h2>
+                <button class="modal__close" id="closeNewAssetModal">&times;</button>
+            </div>
+            <form id="newAssetForm" class="modal__form">
+                <div class="form-group">
+                    <label for="assetName">Nombre del Activo</label>
+                    <input type="text" id="assetName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="assetTotal">Total</label>
+                    <input type="number" id="assetTotal" name="total" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="assetStatus">Estado</label>
+                    <select id="assetStatus" name="status" required>
+                        <option value="OPERATIONAL">Operativo</option>
+                        <option value="DAMAGED">Dañado</option>
+                        <option value="LOST">Perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="assetImage">URL de Imagen (opcional)</label>
+                    <input type="url" id="assetImage" name="image_url" placeholder="https://...">
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelNewAssetBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Crear Activo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</script>
+
+    <script>
+        // Cargar activos y renderizar cards
+        async function loadAssets() {
+            const container = document.getElementById('assetsGrid');
+            container.innerHTML = ''; // limpiar
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/assets`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+                if (!resp.ok) throw new Error(`Error: ${resp.status}`);
+                const assets = await resp.json();
+                if (!Array.isArray(assets) || assets.length === 0) {
+                    container.innerHTML = '<p>No hay activos registrados.</p>';
+                    return;
+                }
+
+                assets.forEach(a => {
+                    const status = (a.status || '').toUpperCase();
+                    let badgeClass = 'badge--warning';
+                    let badgeText = status;
+                    if (status === 'OPERATIONAL') {
+                        badgeClass = 'badge--success';
+                        badgeText = 'Operativo';
+                    } else if (status === 'DAMAGED') {
+                        badgeClass = 'badge--danger';
+                        badgeText = 'Dañado';
+                    } else if (status === 'LOST' || status === 'MISSING') {
+                        badgeClass = 'badge--danger';
+                        badgeText = 'Perdido';
+                    }
+
+                    const img = a.image_url || a.photo || 'https://via.placeholder.com/400x300?text=Activo';
+                    const title = a.name || a.title || 'Activo';
+                    const total = a.total != null ? a.total : (a.quantity || 0);
+
+                    const article = document.createElement('article');
+                    article.className = 'asset-card';
+                    article.innerHTML = `
+                        <div class="asset-card__image-wrapper">
+                            <img src="${img}" alt="${title}" class="asset-card__img">
+                        </div>
+                        <div class="asset-card__content">
+                            <h3 class="asset-card__title">${title}</h3>
+                            <p class="asset-card__total">Total: ${total}</p>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                    `;
+                    container.appendChild(article);
+                });
+            } catch (err) {
+                console.error('Error cargando activos:', err);
+                container.innerHTML = '<p>Error cargando activos. Revisa la consola.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAssets);
+
+        // Modal para nuevo activo
+        const newAssetModal = document.getElementById('newAssetModal');
+        const newAssetForm = document.getElementById('newAssetForm');
+        const closeNewAssetModal = document.getElementById('closeNewAssetModal');
+        const cancelNewAssetBtn = document.getElementById('cancelNewAssetBtn');
+        const addAssetBtn = document.getElementById('addAssetBtn');
+
+        // Abrir modal
+        addAssetBtn.addEventListener('click', () => {
+            newAssetModal.style.display = 'block';
+        });
+
+        // Cerrar modal
+        closeNewAssetModal.addEventListener('click', () => {
+            newAssetModal.style.display = 'none';
+        });
+
+        cancelNewAssetBtn.addEventListener('click', () => {
+            newAssetModal.style.display = 'none';
+        });
+
+        // Enviar formulario
+        newAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(newAssetForm);
+            const payload = {
+                name: formData.get('name'),
+                total: parseInt(formData.get('total')),
+                status: formData.get('status'),
+                image_url: formData.get('image_url') || null
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/assets`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const newAsset = await response.json();
+                // Agregar la nueva tarjeta al grid
+                addAssetCard(newAsset);
+
+                // Cerrar modal y resetear
+                newAssetModal.style.display = 'none';
+                newAssetForm.reset();
+            } catch (error) {
+                console.error('Error creando activo:', error);
+                // Opcional: mostrar mensaje de error
+            }
+        });
+
+        // Función para agregar una tarjeta de activo al grid
+        function addAssetCard(asset) {
+            const container = document.getElementById('assetsGrid');
+            // Si había mensaje vacío, limpiarlo
+            if (container.innerHTML.includes('No hay activos')) {
+                container.innerHTML = '';
+            }
+
+            const status = (asset.status || '').toUpperCase();
+            let badgeClass = 'badge--warning';
+            let badgeText = status;
+            if (status === 'OPERATIONAL') {
+                badgeClass = 'badge--success';
+                badgeText = 'Operativo';
+            } else if (status === 'DAMAGED') {
+                badgeClass = 'badge--danger';
+                badgeText = 'Dañado';
+            } else if (status === 'LOST') {
+                badgeClass = 'badge--danger';
+                badgeText = 'Perdido';
+            }
+
+            const img = asset.image_url || asset.photo || 'https://via.placeholder.com/400x300?text=Activo';
+            const title = asset.name || asset.title || 'Activo';
+            const total = asset.total != null ? asset.total : (asset.quantity || 0);
+
+            const article = document.createElement('article');
+            article.className = 'asset-card';
+            article.innerHTML = `
+                <div class="asset-card__image-wrapper">
+                    <img src="${img}" alt="${title}" class="asset-card__img">
+                </div>
+                <div class="asset-card__content">
+                    <h3 class="asset-card__title">${title}</h3>
+                    <p class="asset-card__total">Total: ${total}</p>
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                </div>
+            `;
+            container.appendChild(article);
+        }
+    </script>
 
     <script>lucide.createIcons();</script>
 </body>

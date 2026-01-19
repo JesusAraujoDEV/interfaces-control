@@ -85,6 +85,10 @@
                         </td>
                         <td>$0.75</td>
                         <td><span class="badge badge--danger">Stock Bajo</span></td>
+                        <td>
+                            <button class="btn btn--small edit-btn" data-id="static-1">Editar</button>
+                            <button class="btn btn--small history-btn" data-id="static-1">Ver Historial</button>
+                        </td>
                     </tr>
                     <tr class="table__row">
                         <td><strong>Hamburguesas de Res</strong></td>
@@ -101,6 +105,10 @@
                         </td>
                         <td>$12.50</td>
                         <td><span class="badge badge--success">En Stock</span></td>
+                        <td>
+                            <button class="btn btn--small edit-btn" data-id="static-2">Editar</button>
+                            <button class="btn btn--small history-btn" data-id="static-2">Ver Historial</button>
+                        </td>
                     </tr>
                     <tr class="table__row">
                         <td><strong>Servilletas de Papel</strong></td>
@@ -117,6 +125,10 @@
                         </td>
                         <td>22.00</td>
                         <td><span class="badge badge--warning">Casi Bajo</span></td>
+                        <td>
+                            <button class="btn btn--small edit-btn" data-id="static-3">Editar</button>
+                            <button class="btn btn--small history-btn" data-id="static-3">Ver Historial</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -244,7 +256,7 @@
         // Función para cargar el inventario
         async function loadInventory() {
             try {
-                const response = await fetch(`${API_BASE_URL}/inventory/items`, {
+                const response = await fetch(`${KITCHEN_URL}/inventory/items`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
@@ -302,7 +314,10 @@
                     </td>
                     <td>${formatCurrency(item.cost_per_unit)}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-                    <td><button class="btn btn--small edit-btn" data-id="${item.id}">Editar</button></td>
+                        <td>
+                            <button class="btn btn--small edit-btn" data-id="${item.id}">Editar</button>
+                            <button class="btn btn--small history-btn" data-id="${item.id}">Ver Historial</button>
+                        </td>
                 `;
 
                 tbody.appendChild(row);
@@ -341,6 +356,11 @@
                 if (item) {
                     openEditModal(item);
                 }
+            }
+            if (e.target.classList.contains('history-btn')) {
+                const itemId = e.target.dataset.id;
+                // Redirige a la página de auditoría con query param
+                window.location.href = `auditoria.html?itemId=${itemId}`;
             }
         });
 
@@ -391,8 +411,8 @@
             }
 
             const url = isEditing 
-                ? `${API_BASE_URL}/inventory/items/${formData.get('id')}`
-                : `${API_BASE_URL}/inventory/items`;
+                ? `${KITCHEN_URL}/inventory/items/${formData.get('id')}`
+                : `${KITCHEN_URL}/inventory/items`;
             const method = isEditing ? 'PATCH' : 'POST';
 
             try {
@@ -486,7 +506,7 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE_URL}/inventory/inbound`, {
+                const response = await fetch(`${KITCHEN_URL}/inventory/inbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -585,7 +605,7 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE_URL}/inventory/outbound`, {
+                const response = await fetch(`${KITCHEN_URL}/inventory/outbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
