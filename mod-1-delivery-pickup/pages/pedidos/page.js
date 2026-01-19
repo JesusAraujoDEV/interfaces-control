@@ -219,7 +219,10 @@ function mapOrderFromApi(o) {
     status: normalizeStatus(o?.current_status ?? o?.status ?? o?.currentStatus),
     createdAt: o?.timestamp_creation ?? o?.timestampCreation ?? o?.created_at ?? o?.createdAt ?? null,
     total: o?.monto_total ?? o?.total_amount ?? o?.totalAmount ?? null,
-    shippingCost: o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
+    // Prefer zone shipping cost when available; otherwise fallback to common fields.
+    shippingCost:
+      (o?.zone && (o.zone.shipping_cost ?? o.zone.shippingCost)) ??
+      o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
   };
 }
 
@@ -491,18 +494,7 @@ async function handleAction(action, id) {
   if (action === 'dispatch' && st === STATUS.READY_FOR_DISPATCH) {
     try {
       setPageError('');
-      const managerId = window.prompt('manager_id (uuid) para asignar (opcional):', '') || '';
-      const assignmentNote = window.prompt('Nota de asignación (opcional):', '') || '';
-      if (managerId.trim()) {
-        const dpBase = getDpUrl();
-        const assignUrl = dpBase
-          ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`
-          : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/assign`;
-        await fetchJson(assignUrl, {
-          method: 'PATCH',
-          body: JSON.stringify({ manager_id: managerId.trim(), note: String(assignmentNote || '') }),
-        });
-      }
+      // Dispatchs should be direct now — no intermediate "assign manager" step.
       await patchOrderStatus(orderId, STATUS.EN_ROUTE);
       await loadOrdersFromBackend();
     } catch (e) {

@@ -161,16 +161,18 @@ function ensureDpSidebarStyles() {
     }
 
     /* Single toggle button: floats when sidebar is "closed", otherwise sits in footer slot */
+    /* Move floating toggle to bottom-right to avoid obstructing main content on mobile. */
     #dp-sidebar-toggle.${DP_TOGGLE_FLOATING_CLASS} {
       position: fixed;
-      left: 14px;
+      right: 14px;
+      left: auto;
       bottom: 14px;
       z-index: 70;
       width: auto;
       border-radius: 9999px;
     }
     @media (min-width: 1024px) {
-      #dp-sidebar-toggle.${DP_TOGGLE_FLOATING_CLASS} { bottom: 18px; left: 18px; }
+      #dp-sidebar-toggle.${DP_TOGGLE_FLOATING_CLASS} { bottom: 18px; right: 18px; left: auto; }
     }
     #dp-sidebar-toggle-slot #dp-sidebar-toggle {
       position: static;
