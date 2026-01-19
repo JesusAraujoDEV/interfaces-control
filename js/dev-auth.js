@@ -2,7 +2,6 @@
 // Se ejecuta inmediatamente al cargar este script.
 
 (async function initDevAuth() {
-    console.log('🚧 [DevAuth] Inicializando sistema de autenticación de desarrollo...');
     
     // Configuración
     const TOKEN_KEY = 'jwt_token'; 
@@ -18,7 +17,6 @@
     const existingToken = localStorage.getItem(TOKEN_KEY);
 
     if (!existingToken) {
-        console.warn('⚠️ [DevAuth] No se encontró token. Intentando auto-login...');
         try {
             const response = await fetch(LOGIN_ENDPOINT, {
                 method: 'POST',
@@ -37,7 +35,6 @@
 
             if (token) {
                 localStorage.setItem(TOKEN_KEY, token);
-                console.log('✅ [DevAuth] Auto-login exitoso. Token inyectado en localStorage.');
                 // Opcional: Recargar si la app necesita el token desde el inicio estricto
                 window.location.reload(); 
             } else {
@@ -47,7 +44,6 @@
             console.error('❌ [DevAuth] Falló el auto-login. Asegúrate de que el backend esté corriendo y las credenciales sean válidas.', error);
         }
     } else {
-        console.log('ℹ️ [DevAuth] Token detectado (omitido auto-login).');
     }
 })();
 

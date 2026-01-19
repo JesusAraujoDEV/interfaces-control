@@ -71,65 +71,6 @@
                     </tr>
                 </thead>
                 <tbody class="table__body">
-                    <tr class="table__row">
-                        <td><strong>Panecillos de Brioche</strong></td>
-                        <td>Comida</td>
-                        <td>Cada uno</td>
-                        <td>
-                            <div class="stock-indicator">
-                                <span class="stock-indicator__text stock-indicator__text--danger">50 / 100</span>
-                                <div class="progress-bar">
-                                    <div class="progress-bar__fill progress-bar__fill--danger" style="width: 50%"></div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>$0.75</td>
-                        <td><span class="badge badge--danger">Stock Bajo</span></td>
-                        <td>
-                            <button class="btn btn--small edit-btn" data-id="static-1">Editar</button>
-                            <button class="btn btn--small history-btn" data-id="static-1">Ver Historial</button>
-                        </td>
-                    </tr>
-                    <tr class="table__row">
-                        <td><strong>Hamburguesas de Res</strong></td>
-                        <td>Comida</td>
-                        <td>kg</td>
-                        <td>
-                            <div class="stock-indicator">
-                                <span class="stock-indicator__text">87 / 100</span>
-                                <div class="progress-bar">
-                                    <div class="progress-bar__fill progress-bar__fill--success" style="width: 87%">
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>$12.50</td>
-                        <td><span class="badge badge--success">En Stock</span></td>
-                        <td>
-                            <button class="btn btn--small edit-btn" data-id="static-2">Editar</button>
-                            <button class="btn btn--small history-btn" data-id="static-2">Ver Historial</button>
-                        </td>
-                    </tr>
-                    <tr class="table__row">
-                        <td><strong>Servilletas de Papel</strong></td>
-                        <td>Empaque</td>
-                        <td>Caja</td>
-                        <td>
-                            <div class="stock-indicator">
-                                <span class="stock-indicator__text">4 / 10</span>
-                                <div class="progress-bar">
-                                    <div class="progress-bar__fill progress-bar__fill--warning" style="width: 40%">
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>22.00</td>
-                        <td><span class="badge badge--warning">Casi Bajo</span></td>
-                        <td>
-                            <button class="btn btn--small edit-btn" data-id="static-3">Editar</button>
-                            <button class="btn btn--small history-btn" data-id="static-3">Ver Historial</button>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </section>
@@ -285,7 +226,7 @@
 
                 // Calcular si está bajo stock
                 const isLowStock = item.stock < item.min_stock;
-                const progressWidth = (item.stock / item.max_stock) * 100;
+                const progressWidth = Math.min((item.stock / (item.min_stock * 2)) * 100, 100);
                 let progressClass = 'progress-bar__fill--success';
                 let badgeClass = 'badge--success';
                 let badgeText = 'En Stock';

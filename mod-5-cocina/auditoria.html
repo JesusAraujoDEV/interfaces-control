@@ -38,13 +38,35 @@
 
     <main class="main-content">
         <header class="header">
+            <div class="header__nav">
+                <button class="btn btn--secondary btn--small" onclick="window.history.back()">
+                    <i data-lucide="arrow-left"></i> Volver
+                </button>
+            </div>
             <h1 class="header__title">Registros de Auditoría y Movimientos</h1>
         </header>
 
         <section class="audit-filters">
-            <div class="date-picker">
-                <i data-lucide="calendar" class="date-picker__icon"></i>
-                <span class="date-picker__range">5 Ene, 2024 - 7 Feb, 2024</span>
+            <div class="filter-group">
+                <label for="dateFrom">Fecha Desde:</label>
+                <input type="date" id="dateFrom">
+            </div>
+            <div class="filter-group">
+                <label for="dateTo">Fecha Hasta:</label>
+                <input type="date" id="dateTo">
+            </div>
+            <div class="filter-group">
+                <label for="typeFilter">Tipo:</label>
+                <select id="typeFilter">
+                    <option value="">Todos</option>
+                    <option value="Compra">Compra</option>
+                    <option value="Venta">Venta</option>
+                    <option value="Merma">Merma</option>
+                    <option value="Ajuste">Ajuste</option>
+                    <option value="Deterioro">Deterioro</option>
+                    <option value="Pérdida">Pérdida</option>
+                    <option value="Robo">Robo</option>
+                </select>
             </div>
             <button class="btn btn--primary btn--icon">
                 <i data-lucide="download"></i> Exportar
@@ -56,11 +78,11 @@
                 <thead class="table__head">
                     <tr>
                         <th>FECHA</th>
-                        <th>ÍTEM</th>
-                        <th>TIPO DE MOVIMIENTO</th>
-                        <th>CANTIDAD</th>
-                        <th>USUARIO</th>
-                        <th>RAZÓN</th>
+                        <th id="itemHeader">ÍTEM</th>
+                        <th id="typeHeader">TIPO DE MOVIMIENTO</th>
+                        <th id="quantityHeader">CANTIDAD</th>
+                        <th id="userHeader">USUARIO</th>
+                        <th id="reasonHeader">RAZÓN</th>
                     </tr>
                 </thead>
                 <tbody id="auditTableBody" class="table__body">
@@ -71,59 +93,128 @@
     </main>
 
     <script>
-        // Leer query param itemId y cargar logs si existe
-        (async function loadAuditLogs() {
+        let allLogs = []; // Global para almacenar todos los logs
+
+        async function loadLogs() {
             const params = new URLSearchParams(window.location.search);
             const itemId = params.get('itemId');
+            const assetId = params.get('assetId');
             const tbody = document.getElementById('auditTableBody');
 
-            if (!itemId) {
-                // Si no hay itemId, mostrar mensaje en la tabla
-                tbody.innerHTML = '<tr class="table__row"><td colspan="6">Seleccione un ítem desde Inventario para ver su historial.</td></tr>';
+            if (!itemId && !assetId) {
+                // Si no hay ninguno, mostrar mensaje
+                tbody.innerHTML = '<tr class="table__row"><td colspan="6">Seleccione un ítem desde Inventario o un activo desde Activos para ver su historial.</td></tr>';
                 return;
             }
 
+            // Adaptar headers si es asset
+            if (assetId) {
+                document.getElementById('itemHeader').textContent = 'ACTIVO';
+                document.getElementById('typeHeader').textContent = 'MOTIVO';
+                document.getElementById('userHeader').textContent = 'REPORTADO POR';
+                document.getElementById('reasonHeader').textContent = 'DETALLE';
+                // Ocultar cantidad si no aplica, pero dejar por ahora
+            }
+
+            const endpoint = assetId ? `/assets/${assetId}/logs` : `/inventory/items/${itemId}/logs`;
+
             try {
-                const resp = await fetch(`${KITCHEN_URL}/inventory/items/${itemId}/logs`, {
+                const resp = await fetch(`${KITCHEN_URL}${endpoint}`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
 
                 if (!resp.ok) throw new Error(`Error: ${resp.status}`);
 
-                const logs = await resp.json();
+                allLogs = await resp.json();
 
-                if (!Array.isArray(logs) || logs.length === 0) {
-                    tbody.innerHTML = '<tr class="table__row"><td colspan="6">No se encontraron registros para este ítem.</td></tr>';
-                    return;
+                if (!Array.isArray(allLogs) || allLogs.length === 0) {
+                    // Mock data for testing
+                    allLogs = [
+                        {
+                            timestamp: '2024-01-20 10:00 AM',
+                            asset_name: assetId ? 'Activo Mock' : 'Ítem Mock',
+                            reason: 'Mock Reason',
+                            quantity: -1,
+                            reported_by: 'Admin',
+                            detail: 'Mock Detail'
+                        }
+                    ];
                 }
 
-                tbody.innerHTML = '';
-                logs.forEach(log => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'table__row';
-                    const date = log.timestamp || log.date || '';
-                    const itemName = log.item_name || log.name || '';
-                    const type = log.type || log.movement_type || '';
-                    const qty = (log.quantity || log.qty || 0);
-                    const user = log.user || log.username || log.performed_by || '';
-                    const reason = log.reason || log.note || '';
-
-                    tr.innerHTML = `
-                        <td>${date}</td>
-                        <td><strong>${itemName}</strong></td>
-                        <td><span class="badge-pill">${type}</span></td>
-                        <td>${qty}</td>
-                        <td>${user}</td>
-                        <td>${reason}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                renderLogs(allLogs);
             } catch (err) {
                 console.error('Error cargando logs:', err);
                 tbody.innerHTML = '<tr class="table__row"><td colspan="6">Error cargando registros. Revisa la consola.</td></tr>';
             }
-        })();
+        }
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = '';
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = 'table__row';
+                const date = log.timestamp || log.date || '';
+                const itemName = log.item_name || log.asset_name || log.name || '';
+                const type = log.type || log.movement_type || log.reason || '';
+                const qty = (log.quantity || log.qty || 0);
+                const user = log.user || log.username || log.reported_by || '';
+                const reason = log.reason || log.note || log.detail || '';
+
+                tr.innerHTML = `
+                    <td>${date}</td>
+                    <td><strong>${itemName}</strong></td>
+                    <td><span class="badge-pill">${type}</span></td>
+                    <td>${qty}</td>
+                    <td>${user}</td>
+                    <td>${reason}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            let filteredLogs = allLogs;
+
+            if (dateFrom) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logDate = new Date(log.timestamp || log.date);
+                    const fromDate = new Date(dateFrom);
+                    return logDate >= fromDate;
+                });
+            }
+
+            if (dateTo) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logDate = new Date(log.timestamp || log.date);
+                    const toDate = new Date(dateTo);
+                    toDate.setHours(23, 59, 59, 999); // Fin del día
+                    return logDate <= toDate;
+                });
+            }
+
+            if (typeFilter) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logType = log.type || log.movement_type || log.reason || '';
+                    return logType === typeFilter;
+                });
+            }
+
+            renderLogs(filteredLogs);
+        }
+
+        // Event listeners para filtros
+        document.getElementById('dateFrom').addEventListener('change', applyFilters);
+        document.getElementById('dateTo').addEventListener('change', applyFilters);
+        document.getElementById('typeFilter').addEventListener('change', applyFilters);
+
+        // Cargar logs al inicio
+        loadLogs();
     </script>
 
     <script>lucide.createIcons();</script>

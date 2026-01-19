@@ -98,6 +98,41 @@
         </div>
     </div>
 
+    <!-- Modal para Reportar Incidente -->
+    <div id="reportIncidentModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Reportar Incidente</h2>
+                <button class="modal__close" id="closeReportModal">&times;</button>
+            </div>
+            <form id="reportIncidentForm" class="modal__form">
+                <input type="hidden" id="incidentAssetId" name="asset_id">
+                <div class="form-group">
+                    <label for="incidentQuantity">Cantidad Perdida</label>
+                    <input type="number" id="incidentQuantity" name="quantity" min="1" required placeholder="ej. 2">
+                </div>
+                <div class="form-group">
+                    <label for="incidentReason">Motivo</label>
+                    <select id="incidentReason" name="reason" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Deterioro">Deterioro</option>
+                        <option value="Pérdida">Pérdida</option>
+                        <option value="Robo">Robo</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportedBy">Reportado Por</label>
+                    <input type="text" id="reportedBy" name="reported_by" readonly>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelReportBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Reportar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </script>
 
     <script>
@@ -144,8 +179,10 @@
                         </div>
                         <div class="asset-card__content">
                             <h3 class="asset-card__title">${title}</h3>
-                            <p class="asset-card__total">Total: ${total}</p>
+                            <p class="asset-card__total">Total: <span class="total-count">${total}</span></p>
                             <span class="badge ${badgeClass}">${badgeText}</span>
+                            <button class="btn btn--small report-incident-btn" data-id="${a.id}">Reportar Incidente</button>
+                            <button class="btn btn--small view-history-btn" data-id="${a.id}">Ver Historial</button>
                         </div>
                     `;
                     container.appendChild(article);
@@ -249,12 +286,102 @@
                 </div>
                 <div class="asset-card__content">
                     <h3 class="asset-card__title">${title}</h3>
-                    <p class="asset-card__total">Total: ${total}</p>
+                    <p class="asset-card__total">Total: <span class="total-count">${total}</span></p>
                     <span class="badge ${badgeClass}">${badgeText}</span>
-                </div>
+                    <button class="btn btn--small report-incident-btn" data-id="${asset.id}">Reportar Incidente</button>
+                    <button class="btn btn--small view-history-btn" data-id="${asset.id}">Ver Historial</button>                    <button class="btn btn--small view-history-btn" data-id="${a.id}">Ver Historial</button>                </div>
             `;
             container.appendChild(article);
         }
+    </script>
+
+    <script>
+        // Función para obtener usuario logueado
+        function getLoggedUser() {
+            // Asumir que está en localStorage o parsear JWT
+            const token = localStorage.getItem('jwt_token');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    return payload.username || payload.email || 'Usuario';
+                } catch (e) {
+                    return 'Admin';
+                }
+            }
+            return 'Admin';
+        }
+
+        // Modal para reportar incidente
+        const reportIncidentModal = document.getElementById('reportIncidentModal');
+        const reportIncidentForm = document.getElementById('reportIncidentForm');
+        const closeReportModal = document.getElementById('closeReportModal');
+        const cancelReportBtn = document.getElementById('cancelReportBtn');
+
+        // Event listener para botones reportar incidente
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('report-incident-btn')) {
+                const assetId = e.target.dataset.id;
+                openReportModal(assetId);
+            }
+            if (e.target.classList.contains('view-history-btn')) {
+                const assetId = e.target.dataset.id;
+                window.location.href = `auditoria.html?assetId=${assetId}`;
+            }
+        });
+
+        function openReportModal(assetId) {
+            document.getElementById('incidentAssetId').value = assetId;
+            document.getElementById('reportedBy').value = getLoggedUser();
+            reportIncidentModal.style.display = 'block';
+        }
+
+        // Cerrar modal
+        closeReportModal.addEventListener('click', () => {
+            reportIncidentModal.style.display = 'none';
+        });
+
+        cancelReportBtn.addEventListener('click', () => {
+            reportIncidentModal.style.display = 'none';
+        });
+
+        // Enviar formulario de reporte
+        reportIncidentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(reportIncidentForm);
+            const assetId = formData.get('asset_id');
+            const quantity = parseInt(formData.get('quantity'));
+            const payload = {
+                quantity: -quantity, // Negativo para baja
+                reason: formData.get('reason'),
+                reported_by: formData.get('reported_by')
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/assets/${assetId}/logs`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                // Actualizar el total en la tarjeta
+                const card = document.querySelector(`.report-incident-btn[data-id="${assetId}"]`).closest('.asset-card');
+                const totalSpan = card.querySelector('.total-count');
+                const currentTotal = parseInt(totalSpan.textContent);
+                totalSpan.textContent = currentTotal - quantity;
+
+                // Cerrar modal y resetear
+                reportIncidentModal.style.display = 'none';
+                reportIncidentForm.reset();
+            } catch (error) {
+                console.error('Error reportando incidente:', error);
+                // Opcional: mostrar mensaje de error
+            }
+        });
     </script>
 
     <script>lucide.createIcons();</script>

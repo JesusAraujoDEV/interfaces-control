@@ -60,6 +60,7 @@ body { font-family: 'Inter', sans-serif; background-color: #fbfcfd; color: var(-
 .main-content { flex: 1; padding: 2rem 3rem; }
 
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header__nav { display: flex; gap: 1rem; }
 .header__title { font-size: 1.75rem; font-weight: 800; color: #0f172a; }
 
 /* COMPONENTES: BOTONES */
@@ -471,6 +472,37 @@ input:checked + .switch__slider:before { transform: translateX(20px); }
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: var(--white);
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(45, 90, 67, 0.1);
 }
 
 .date-picker {
