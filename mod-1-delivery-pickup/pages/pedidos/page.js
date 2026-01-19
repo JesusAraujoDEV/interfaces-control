@@ -418,11 +418,33 @@ async function patchOrderStatus(orderId, nextStatus) {
   await fetchJson(url, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
 }
 
+async function cancelOrder(orderIdOrReadableId, reasonCancelled) {
+  const dpBase = getDpUrl();
+  const url = dpBase
+    ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderIdOrReadableId)}/cancel`
+    : `/api/dp/v1/orders/${encodeURIComponent(orderIdOrReadableId)}/cancel`;
+  await fetchJson(url, {
+    method: 'POST',
+    body: JSON.stringify({ reason_cancelled: reasonCancelled }),
+  });
+}
+
+function setCancelReasonError(message) {
+  const el = document.getElementById('dpCancelReasonError');
+  if (!el) return;
+  el.textContent = message || '';
+  el.classList.toggle('hidden', !message);
+}
+
 function closeCancelModal() {
   const modal = document.getElementById('dpCancelModal');
   if (!modal) return;
   modal.classList.add('hidden');
   state.cancelTarget = null;
+
+  const reasonEl = document.getElementById('dpCancelReason');
+  if (reasonEl) reasonEl.value = '';
+  setCancelReasonError('');
 }
 
 function openCancelModal(order) {
@@ -430,21 +452,41 @@ function openCancelModal(order) {
   if (!modal) return;
 
   const label = order.readableId || order.orderId || order.id;
-  state.cancelTarget = { orderId: order.orderId, label };
+  const cancelId = order.orderId || order.readableId || order.id;
+  state.cancelTarget = { cancelId, label };
 
   const subtitle = document.getElementById('dpCancelSubtitle');
   if (subtitle) subtitle.textContent = `¿Seguro que deseas cancelar la orden ${label}?`;
 
+  const reasonEl = document.getElementById('dpCancelReason');
+  if (reasonEl) reasonEl.value = '';
+  setCancelReasonError('');
+
   modal.classList.remove('hidden');
+
+  // Focus the input for faster cancellation.
+  window.setTimeout(() => {
+    document.getElementById('dpCancelReason')?.focus?.();
+  }, 0);
 }
 
 async function confirmCancelModal() {
   const target = state.cancelTarget;
-  if (!target?.orderId) {
-    setPageError('No se encontró order_id para esta orden.');
+  if (!target?.cancelId) {
+    setPageError('No se encontró el id para cancelar esta orden.');
     closeCancelModal();
     return;
   }
+
+  const reasonEl = document.getElementById('dpCancelReason');
+  const reason = String(reasonEl?.value ?? '').trim();
+  if (!reason) {
+    setCancelReasonError('Escribe el motivo de la cancelación.');
+    reasonEl?.focus?.();
+    return;
+  }
+
+  setCancelReasonError('');
 
   const confirmBtn = document.getElementById('dpCancelConfirm');
   const keepBtn = document.getElementById('dpCancelKeep');
@@ -460,7 +502,7 @@ async function confirmCancelModal() {
 
   try {
     setPageError('');
-    await patchOrderStatus(target.orderId, STATUS.CANCELLED);
+    await cancelOrder(target.cancelId, reason);
     closeCancelModal();
     await loadOrdersFromBackend();
   } catch (e) {
