@@ -151,13 +151,20 @@ async function fetchJson(url, options = {}) {
   return body;
 }
 
-function formatMoneyCOP(value) {
-  const numericValue = Number(value);
+function formatMoneyCOP(value, options = {}) {
+  const numericValue = typeof value === 'number' ? value : Number(String(value ?? '').trim());
   if (!Number.isFinite(numericValue)) return '—';
+
+  const maximumFractionDigits =
+    typeof options.maximumFractionDigits === 'number' ? options.maximumFractionDigits : 0;
+  const minimumFractionDigits =
+    typeof options.minimumFractionDigits === 'number' ? options.minimumFractionDigits : 0;
+
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
-    maximumFractionDigits: 0,
+    maximumFractionDigits,
+    minimumFractionDigits,
   }).format(numericValue);
 }
 
@@ -345,7 +352,7 @@ function renderOrders() {
       ? `<div class="mt-1 text-sm text-slate-600"><span class="font-semibold text-slate-800">Dirección:</span> ${escapeHtml(o.address || '—')}</div>`
       : `<div class="mt-1 text-sm text-slate-600"><span class="font-semibold text-slate-800">Recogida:</span> En mostrador</div>`;
 
-    const totalsLine = `<div class="mt-2 text-sm text-slate-700"><span class="font-semibold text-slate-800">Total:</span> ${escapeHtml(formatMoneyCOP(o.total))} <span class="text-slate-500">(envío ${escapeHtml(formatMoneyCOP(o.shippingCost))})</span></div>`;
+    const totalsLine = `<div class="mt-2 text-sm text-slate-700"><span class="font-semibold text-slate-800">Total:</span> ${escapeHtml(formatMoneyCOP(o.total))} <span class="text-slate-500">(envío ${escapeHtml(formatMoneyCOP(o.shippingCost, { maximumFractionDigits: 2, minimumFractionDigits: 0 }))})</span></div>`;
 
     const contactLine = o.customerPhone
       ? `<div class="mt-1 text-xs text-slate-500">Tel: <span class="font-semibold text-slate-700">${escapeHtml(o.customerPhone)}</span></div>`
