@@ -131,6 +131,7 @@
             }
 
             localStorage.setItem('auth_token', token);
+
             window.location.href = '/admin';
         } catch (err) {
             setError('No se pudo conectar al servicio de autenticación.');
