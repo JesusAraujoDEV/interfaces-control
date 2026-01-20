@@ -272,6 +272,7 @@ function renderOrder(order) {
   const readableId = order.readable_id ?? order.readableId ?? '—';
   const orderId = order.order_id ?? '—';
   const status = order.current_status ?? order.status ?? '—';
+  const normalized = normalizeStatus(status);
 
   if (titleEl) titleEl.textContent = `Pedido ${readableId}`;
   if (subtitleEl) subtitleEl.textContent = `order_id: ${orderId}`;
@@ -281,6 +282,13 @@ function renderOrder(order) {
     badgeEl.textContent = statusLabel(status);
     setHidden(badgeEl, false);
   }
+
+  const cancelReasonRow = byId('dpOrderCancelReasonRow');
+  const cancelReasonEl = byId('dpOrderCancelReason');
+  const cancelReason = order.reason_cancelled ?? order.reasonCancelled ?? order.cancel_reason ?? order.cancelReason ?? '';
+  const showCancelReason = normalized === STATUS.CANCELLED && String(cancelReason || '').trim().length > 0;
+  setHidden(cancelReasonRow, !showCancelReason);
+  if (cancelReasonEl) cancelReasonEl.textContent = showCancelReason ? String(cancelReason).trim() : '—';
 
   setText(byId('dpOrderCustomer'), order.customer_name ?? '—');
   setText(

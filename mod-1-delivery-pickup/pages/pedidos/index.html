@@ -61,6 +61,17 @@
 						<div class="mt-5 text-sm text-slate-700">
 							Esta acción cambiará el estado de la orden a <span class="font-extrabold text-rose-700">CANCELLED</span>.
 						</div>
+						<div class="mt-5">
+							<label for="dpCancelReason" class="block text-sm font-semibold text-slate-800">Motivo de la cancelación</label>
+							<textarea
+								id="dpCancelReason"
+								rows="3"
+								maxlength="250"
+								class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-200"
+								placeholder="Ej: Cliente solicitó cancelar"
+							></textarea>
+							<div id="dpCancelReasonError" class="hidden mt-2 text-xs font-semibold text-rose-700"></div>
+						</div>
 					</div>
 					<div class="px-6 pb-6 flex items-center justify-end gap-3">
 						<button id="dpCancelKeep" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">No cancelar</button>
