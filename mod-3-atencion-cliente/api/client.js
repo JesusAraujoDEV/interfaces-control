@@ -30,33 +30,73 @@ window.ClientApi = {
 
         return await response.json();
     },
+
+    updateClient: async (clientId, data) => {
+        const url = `${window.ClientApi.getBaseUrl()}/clients/${clientId}`;
+        const response = window.HttpClient.request(url, { 
+            method: 'PATCH',
+            body: JSON.stringify(data)
+        });
+
+        if(response.error) {
+            throw new Error(response.error);
+        }
+
+        return response;
+    },
+
         /**
      * TAREA VISTA 4: Enviar Orden
      * Consumir POST /comandas
      */
-    createOrder: async (orderPayload) => {
-        // Obtenemos el Token de sesión (asumiendo que se guardó al escanear QR o loguearse)
-        const token = localStorage.getItem('guest_token'); 
+    createOrder: async (orderPayload) => { 
         
-        // Endpoint: /comandas (Concatenado a tu base URL)
-        const url = `${window.ClientApi.getBaseUrl()}/comandas`;
+        const baseUrl = window.ClientApi.getBaseUrl();
+        const url = `${baseUrl}/comandas`;
 
-        const response = await fetch(url, {
+        const response = window.HttpClient.request(url, { 
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Importante para la seguridad híbrida
-            },
-            body: JSON.stringify(orderPayload) // Aquí va el JSON transformado
+            body: JSON.stringify(orderPayload)
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Error al enviar la orden');
+        if(response.error) {
+            throw new Error(response.error);
         }
 
-        return await response.json();
-    }
+        return response;
+    },
+
+    // 3. CANCELAR ORDEN (PUT /comandas/{id}) - NUEVO
+    cancelOrder: async (comandaId) => {
+        const baseUrl = window.ClientApi.getBaseUrl();
+        const url = `${baseUrl}/comandas/${comandaId}`;
+
+        const response = await window.HttpClient.request(url, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: "CANCELLED" })
+        });
+
+        if(response.error) {
+            throw new Error(response.error);
+        }
+        return response;
+    },
+
+    // 4. OBTENER ESTADO DE ORDEN (GET /comandas/{id}) - NUEVO
+    // Sirve para el polling (actualizar si pasó a 'COOKING' o 'DELIVERED')
+    getOrder: async (comandaId) => {
+        const baseUrl = window.ClientApi.getBaseUrl();
+        const url = `${baseUrl}/comandas/${comandaId}`;
+
+        const response = await window.HttpClient.request(url, {
+            method: 'GET'
+        });
+
+        if(response.error) {
+            throw new Error(response.error);
+        }
+        return response;
+    },
 
 };
 

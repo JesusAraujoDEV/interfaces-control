@@ -4,31 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Charlotte - Pago Completado</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#205638', secondary: '#E8F5E9' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
 </head>
-<body style="background-color: #fcfcfc; display: block;">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <main class="success-container">
-        <div class="status-icon">
-            <span class="material-icons-outlined">check</span>
+    <main class="bg-white w-full max-w-md p-8 rounded-3xl shadow-xl text-center border border-gray-100 animate-[fade-in_0.5s_ease-out]">
+        
+        <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-icons-outlined text-5xl text-primary">check_circle</span>
         </div>
 
-        <h1 class="success-container__title">
-            Pago Completado y Mesa Cerrada
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3 tracking-tight">
+            Pago Completado
         </h1>
+        <h2 class="text-lg font-semibold text-gray-600 mb-6">
+            Mesa Cerrada
+        </h2>
         
-        <p class="success-container__msg">
-            ¡Gracias por tu visita! Esperamos verte de nuevo pronto.
+        <p class="text-gray-500 mb-10 leading-relaxed">
+            ¡Gracias por tu visita! El pago ha sido procesado exitosamente en caja. Esperamos verte de nuevo pronto en Charlotte's.
         </p>
 
-        <div class="order-actions">
-            <a href="login.html" class="btn--login btn--full-width" style="text-decoration: none; text-align: center;">
-                Volver al Menú Principal
+        <div class="space-y-4">
+            <a id="btn-back-to-start" href="#" class="block w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
+                Volver al Inicio
             </a>
         </div>
+
     </main>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Recuperar el UUID que guardamos al principio
+            const storedQrUuid = localStorage.getItem('current_qr_uuid');
+            const btn = document.getElementById('btn-back-to-start');
+
+            if (storedQrUuid) {
+                // 2. Construir la URL completa para scan.html
+                // Asegúrate de que esta ruta relativa coincida con tu estructura de carpetas
+                // Si payment-success.html está en la misma carpeta que scan.html:
+                // btn.href = `scan.html?qr_uuid=${storedQrUuid}`;
+                
+                // Si payment-success.html está en la raíz o en otra carpeta, ajusta la ruta:
+                // Basado en tu URL de ejemplo: /mod-3-atencion-cliente/pages/login/scan.html
+                btn.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
+            } else {
+                // Fallback: Si por alguna razón se borró el localStorage, ir a una página genérica o root
+                console.warn("No se encontró UUID de mesa, redirigiendo a la raíz.");
+                btn.href = '/'; 
+            }
+        });
+    </script>
+
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </body>
 </html>

@@ -115,20 +115,21 @@
 
     </main>
 
-    <!-- ============ BOTTOM NAVIGATION (Mobile) ============ -->
-    <nav id="mobile-nav-container"></nav>
-
     <!-- ============ TOAST NOTIFICATION ============ -->
-    <div id="toast" class="fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+    <div id="toast" class="pointer-events-none fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl z-40 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
         <span class="material-icons-outlined text-green-400">check_circle</span>
         <span id="toast-message" class="flex-1 text-sm font-medium">Producto agregado al carrito</span>
     </div>
 
+    <!-- ============ BOTTOM NAVIGATION (Mobile) ============ -->
+    <nav id="mobile-nav-container"></nav>
+
     <!-- ============ SCRIPTS ============ -->
     <script src="/config.js"></script>
-    <script src="/mod-3-atencion-cliente/api/base.js"></script>
-    <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
     <script src="/mod-3-atencion-cliente/components/navbar.js"></script>
+    <script src="/mod-3-atencion-cliente/api/base.js"></script>
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
 
     <script>
         // ============ ESTADO GLOBAL ============
@@ -178,9 +179,9 @@
             const product = allProducts.find(p => getProductId(p) === productId);
             if (!product) return;
 
-            const price = parseFloat(product.price || product.precio || 0);
+            const price = parseFloat(product.price || product.precio || product.basePrice || 0);
             const name = product.name || product.nombre || 'Producto';
-            const image = product.imageUrl || product.image_url || product.image || '';
+            const image = product.imageUrl || product.image_url || product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';
 
             // Verificar si ya existe en el carrito
             const existingIndex = cart.findIndex(item => item.productId === productId);
@@ -375,7 +376,7 @@
             const id = getProductId(product);
             const name = product.name || product.nombre || 'Producto';
             const description = product.description || product.descripcion || '';
-            const price = parseFloat(product.price || product.precio || 0).toFixed(2);
+            const price = parseFloat(product.price || product.precio || product.basePrice || 0).toFixed(2);
             const image = product.imageUrl || product.image_url || product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';
             const categoryName = getProductCategoryName(product);
             
