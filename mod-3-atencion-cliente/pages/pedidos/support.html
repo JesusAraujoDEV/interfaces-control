@@ -54,7 +54,7 @@
             </p>
 
             <div class="w-full space-y-4">
-                <button onclick="callWaiter()" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] flex items-center justify-center gap-2">
+                <button id="callWaiterBtn" onclick="callWaiter()" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] flex items-center justify-center gap-2">
                     <span class="material-icons-outlined">notifications_active</span>
                     Call Waiter
                 </button>
@@ -90,22 +90,28 @@
             <h2 class="text-lg font-bold text-gray-900 mb-4">Select Issue</h2>
 
             <div class="grid grid-cols-2 gap-3 mb-8" id="issueGrid">
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm">Food Quality</button>
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm">Cleanliness</button>
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm">Utensils</button>
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm">Other</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-type="COMPLAINT" data-issue="Food Quality">Food Quality</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-type="COMPLAINT" data-issue="Cleanliness">Cleanliness</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-type="COMPLAINT" data-issue="Utensils">Utensils</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-type="COMPLAINT" data-issue="Other">Other</button>
             </div>
 
             <form onsubmit="submitReport(event)" class="space-y-6">
+                <input type="hidden" id="selectedIssueType" value="COMPLAINT">
+                <input type="hidden" id="selectedIssue" value="">
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Details</label>
                     <textarea 
+                        id="issueDetails"
                         class="w-full h-40 p-4 bg-white rounded-2xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-green-100 outline-none resize-none transition text-gray-700 placeholder-gray-400" 
                         placeholder="Please describe the issue..."
+                        required
                     ></textarea>
                 </div>
 
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-[0.98]">
+                <button type="submit" id="submitReportBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-[0.98] flex items-center justify-center gap-2">
+                    <span class="material-icons-outlined">send</span>
                     Send Report
                 </button>
             </form>
@@ -113,25 +119,80 @@
     </div>
 
     <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-[-20px] invisible z-[60]">
-        </div>
+    </div>
 
     <nav id="mobile-nav-container"></nav>
 
     <script src="../../components/navbar.js"></script>
     <script>
+        // --- CONFIGURACIÓN DE SIMULACIÓN (LocalStorage) ---
+        const SIMULATE_DELAY = 800; // 0.8 segundos para simular llamada a API
+        
+        // Clave para guardar solicitudes en LocalStorage
+        const STORAGE_KEY = 'restaurant_service_requests';
+        
+        // Función para obtener solicitudes guardadas
+        function getStoredRequests() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        // Función para guardar una nueva solicitud
+        function saveRequest(request) {
+            const requests = getStoredRequests();
+            const newRequest = {
+                id: Date.now(), // ID único basado en timestamp
+                timestamp: new Date().toISOString(),
+                type: request.type,
+                issue: request.issue || null,
+                message: request.message,
+                status: 'pending',
+                table: 'Table 5' // Puedes cambiar esto o hacerlo dinámico
+            };
+            
+            requests.push(newRequest);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+            
+            // Mostrar en consola para debug
+            console.log('📝 Solicitud guardada:', newRequest);
+            console.log('📋 Total de solicitudes:', requests.length);
+            
+            return newRequest;
+        }
+        
+        // Función para simular llamada a API
+        function simulateApiCall(data) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    try {
+                        const savedRequest = saveRequest(data);
+                        resolve({
+                            success: true,
+                            message: 'Request processed successfully',
+                            data: savedRequest
+                        });
+                    } catch (error) {
+                        reject(new Error('Failed to save request'));
+                    }
+                }, SIMULATE_DELAY);
+            });
+        }
+        
         // --- Lógica del Toast ---
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             
-            // Configurar estilos según el tipo
             if (type === 'success') {
                 toast.className = "fixed top-24 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 z-[60]";
                 toast.innerHTML = `<span class="material-icons-outlined text-green-400">check_circle</span> <span class="text-sm font-medium">${message}</span>`;
             } else if (type === 'error') {
                 toast.className = "fixed top-24 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 z-[60]";
                 toast.innerHTML = `<span class="material-icons-outlined text-white">error</span> <span class="text-sm font-medium">${message}</span>`;
+            } else if (type === 'warning') {
+                toast.className = "fixed top-24 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 z-[60]";
+                toast.innerHTML = `<span class="material-icons-outlined text-white">warning</span> <span class="text-sm font-medium">${message}</span>`;
             }
-
+            
             // Mostrar
             toast.classList.remove('opacity-0', 'translate-y-[-20px]', 'invisible');
             
@@ -140,47 +201,223 @@
                 toast.classList.add('opacity-0', 'translate-y-[-20px]', 'invisible');
             }, 3000);
         }
-
-        function callWaiter() {
-            showToast('Waiter has been notified!', 'success');
+        
+        // Función para llamar al mesero
+        async function callWaiter() {
+            const btn = document.getElementById('callWaiterBtn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                // Cambiar estado del botón
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-icons-outlined animate-spin">refresh</span> Calling...`;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                
+                // Simular llamada a API
+                const requestData = {
+                    type: "CALL_WAITER",
+                    message: "Cliente solicitó asistencia"
+                };
+                
+                const response = await simulateApiCall(requestData);
+                
+                // Mostrar confirmación
+                showToast('✅ Waiter has been notified! They will be with you shortly.', 'success');
+                
+                // Reproducir sonido (opcional)
+                playNotificationSound();
+                
+            } catch (error) {
+                console.error('Error calling waiter:', error);
+                showToast('❌ Failed to call waiter. Please try again.', 'error');
+            } finally {
+                // Restaurar botón
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }, 2000);
+            }
         }
-
+        
         // --- Lógica del Report Overlay ---
         const reportOverlay = document.getElementById('reportOverlay');
-
+        let selectedIssue = '';
+        
         function openReport() {
+            // Resetear formulario
+            document.getElementById('issueDetails').value = '';
+            selectedIssue = '';
+            document.getElementById('selectedIssue').value = '';
+            
+            // Deseleccionar todos los chips
+            document.querySelectorAll('.issue-chip').forEach(chip => {
+                chip.className = "issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm";
+            });
+            
+            // Mostrar overlay
             reportOverlay.classList.remove('hidden');
             reportOverlay.classList.add('flex');
-            document.body.style.overflow = 'hidden'; // Bloquear scroll del fondo
+            document.body.style.overflow = 'hidden';
         }
-
+        
         function closeReport() {
             reportOverlay.classList.add('hidden');
             reportOverlay.classList.remove('flex');
-            document.body.style.overflow = 'auto'; // Restaurar scroll
+            document.body.style.overflow = 'auto';
         }
-
-        // Selección de Chips (Botones)
+        
+        // Selección de Chips
         function selectChip(btn) {
             // 1. Quitar estado activo de todos
             document.querySelectorAll('.issue-chip').forEach(chip => {
-                // Clases base (inactivo)
                 chip.className = "issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm";
             });
-
+            
             // 2. Activar el clickeado
-            // Clases activo: Borde verde, texto verde, fondo verde claro
             btn.className = "issue-chip py-3 px-4 rounded-xl border-2 border-primary text-primary font-bold bg-green-50 transition text-sm";
+            
+            // 3. Guardar la selección
+            selectedIssue = btn.getAttribute('data-issue');
+            document.getElementById('selectedIssue').value = selectedIssue;
         }
-
-        function submitReport(e) {
+        
+        // Función para enviar reporte
+        async function submitReport(e) {
             e.preventDefault();
-            closeReport();
-            // Simular envío pequeño delay para que se sienta natural al cerrar el modal
-            setTimeout(() => {
-                showToast('Report sent successfully. We are on it.', 'error'); // Usamos estilo rojo o normal según prefieras
-            }, 300);
+            
+            const details = document.getElementById('issueDetails').value.trim();
+            const submitBtn = document.getElementById('submitReportBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Validación
+            if (!selectedIssue) {
+                showToast('⚠️ Please select an issue type', 'warning');
+                return;
+            }
+            
+            if (!details) {
+                showToast('⚠️ Please describe the issue', 'warning');
+                return;
+            }
+            
+            try {
+                // Cambiar estado del botón
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="material-icons-outlined animate-spin">refresh</span> Sending...`;
+                submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                
+                // Preparar datos
+                const requestData = {
+                    type: "COMPLAINT",
+                    issue: selectedIssue,
+                    message: `${selectedIssue}: ${details}`
+                };
+                
+                // Simular llamada a API
+                const response = await simulateApiCall(requestData);
+                
+                // Cerrar modal
+                closeReport();
+                
+                // Mostrar confirmación
+                setTimeout(() => {
+                    showToast('📤 Report sent successfully. We are on it.', 'success');
+                }, 300);
+                
+            } catch (error) {
+                console.error('Error submitting report:', error);
+                showToast('❌ Failed to send report. Please try again.', 'error');
+            } finally {
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
         }
+        
+        // Función para reproducir sonido de notificación
+        function playNotificationSound() {
+            try {
+                // Crear un tono simple
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log('Audio context not supported - silent mode');
+            }
+        }
+        
+        // --- FUNCIÓN EXTRA: Ver solicitudes guardadas (para debug) ---
+        function debugShowRequests() {
+            const requests = getStoredRequests();
+            console.log('=== SOLICITUDES GUARDADAS ===');
+            requests.forEach((req, index) => {
+                console.log(`${index + 1}. ${req.type} - ${req.issue || 'N/A'}`);
+                console.log(`   📝 ${req.message}`);
+                console.log(`   ⏰ ${new Date(req.timestamp).toLocaleTimeString()}`);
+                console.log(`   📍 ${req.table} | Status: ${req.status}`);
+                console.log('---');
+            });
+            
+            // Mostrar también en un alert (opcional)
+            if (requests.length > 0) {
+                alert(`Hay ${requests.length} solicitudes guardadas.\nRevisa la consola (F12) para ver los detalles.`);
+            } else {
+                alert('No hay solicitudes guardadas todavía.');
+            }
+        }
+        
+        // Agregar botón de debug (opcional - remover en producción)
+        window.addEventListener('DOMContentLoaded', () => {
+            // Botón flotante para debug
+            const debugBtn = document.createElement('button');
+            debugBtn.textContent = '🛠️ Debug';
+            debugBtn.id = 'debugBtn';
+            debugBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#666;color:white;padding:8px 12px;border-radius:20px;font-size:12px;z-index:1000;border:none;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2);';
+            debugBtn.onclick = debugShowRequests;
+            debugBtn.title = 'Ver solicitudes guardadas en LocalStorage';
+            document.body.appendChild(debugBtn);
+            
+            // Botón para limpiar datos
+            const clearBtn = document.createElement('button');
+            clearBtn.textContent = '🗑️ Clear';
+            clearBtn.id = 'clearBtn';
+            clearBtn.style.cssText = 'position:fixed;bottom:60px;right:20px;background:#dc2626;color:white;padding:8px 12px;border-radius:20px;font-size:12px;z-index:1000;border:none;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2);';
+            clearBtn.onclick = function() {
+                if (confirm('¿Estás seguro de que quieres borrar todas las solicitudes guardadas?')) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    alert('Datos borrados correctamente.');
+                    console.log('🗑️ LocalStorage limpiado.');
+                }
+            };
+            clearBtn.title = 'Borrar todas las solicitudes';
+            document.body.appendChild(clearBtn);
+        });
+        
+        // Manejar la tecla Escape para cerrar el modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !reportOverlay.classList.contains('hidden')) {
+                closeReport();
+            }
+        });
+        
+        // Mostrar mensaje de bienvenida en consola
+        console.log('🚀 Sistema de Ayuda - Modo LocalStorage activado');
+        console.log('📌 Las solicitudes se guardan en: ' + STORAGE_KEY);
+        console.log('ℹ️ Usa el botón 🛠️ Debug para ver las solicitudes guardadas');
     </script>
 
     <style>
@@ -191,6 +428,27 @@
         }
         .animate-fade-in {
             animation: fade-in 0.2s ease-out;
+        }
+        
+        /* Animación de spinner */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Estilos para los botones de debug */
+        #debugBtn:hover, #clearBtn:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+        #debugBtn:hover {
+            background: #555 !important;
+        }
+        #clearBtn:hover {
+            background: #b91c1c !important;
         }
     </style>
 </body>
