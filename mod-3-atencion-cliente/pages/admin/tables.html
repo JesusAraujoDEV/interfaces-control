@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charlotte Admin - Gestión de Mesas</title>
+    <title>Charlotte Admin - Panel de Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,6 +24,9 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .hidden { display: none !important; }
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        /* Animación suave para las cards */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card-enter { animation: fadeIn 0.3s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans h-screen overflow-hidden flex">
@@ -57,6 +60,17 @@
                 <a href="#" onclick="switchView('sessions')" id="nav-sessions" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 border-r-4 border-transparent transition-colors">
                     <span class="material-icons-outlined text-[20px]">people_alt</span>
                     <span class="text-sm font-medium">Monitor Sesiones</span>
+                </a>
+
+                <a href="#" onclick="switchView('requests')" id="nav-requests" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 border-r-4 border-transparent transition-colors">
+                    <div class="relative">
+                        <span class="material-icons-outlined text-[20px]">notifications_active</span>
+                        <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                        </span>
+                    </div>
+                    <span class="text-sm font-medium">Solicitudes</span>
                 </a>
              </nav>
         </div>
@@ -124,15 +138,14 @@
         </div>
 
         <div id="view-sessions" class="hidden flex-1 overflow-y-auto p-4 md:p-8 pt-0">
-            
             <div class="mb-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded shadow-sm flex items-start gap-3">
                 <span class="material-icons-outlined mt-1">info</span>
                 <div>
                     <p class="font-bold">Monitor de Actividad en Tiempo Real</p>
-                    <p class="text-sm mt-1">Aquí puedes ver quién está "logueado" en cada mesa.</p>
+                    <p class="text-sm mt-1">Aquí puedes ver quién está conectado en cada mesa.</p>
                     <div class="mt-2 text-sm bg-white p-2 rounded border border-blue-100 inline-block">
                         <span class="inline-block w-3 h-3 bg-red-100 border border-red-500 rounded-full mr-2"></span>
-                        <span class="font-bold text-red-700">Alerta Fantasma:</span> Filas rojas indican usuarios conectados hace <strong>+30 min</strong> sin consumo ($0).
+                        <span class="font-bold text-red-700">Alerta Fantasma:</span> +30 min sin consumo.
                     </div>
                 </div>
             </div>
@@ -149,10 +162,30 @@
                             <th class="p-4 text-xs font-semibold uppercase text-right">Control</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100" id="sessions-body">
-                        </tbody>
+                    <tbody class="divide-y divide-gray-100" id="sessions-body"></tbody>
                 </table>
             </div>
+        </div>
+
+        <div id="view-requests" class="hidden flex-1 overflow-y-auto p-4 md:p-8 pt-0 bg-gray-50">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sticky top-0 bg-gray-50 pt-2 pb-2 z-10">
+                <div class="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                    <button onclick="filterRequests('PENDING')" id="filter-pending" class="px-4 py-2 text-sm font-medium rounded-md bg-orange-100 text-orange-700 transition-colors">
+                        Pendientes
+                    </button>
+                    <button onclick="filterRequests('ATTENDED')" id="filter-attended" class="px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-colors">
+                        Historial Atendidos
+                    </button>
+                </div>
+                
+                <button onclick="loadRequestsData()" class="text-gray-500 hover:text-primary flex items-center gap-2 text-sm bg-white px-3 py-1 rounded border border-gray-200 shadow-sm">
+                    <span class="material-icons-outlined text-lg">refresh</span> Actualizar
+                </button>
+            </div>
+
+            <div id="requests-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
+                </div>
         </div>
 
     </main>
@@ -221,24 +254,38 @@
     <script src="/mod-3-atencion-cliente/api/auth.js"></script>
     <script src="/mod-3-atencion-cliente/api/client.js"></script>
     <script src="/mod-3-atencion-cliente/api/tables.js"></script>
+    <script src="/mod-3-atencion-cliente/api/service-request.js"></script>
 
     <script>
         // --- ESTADO GLOBAL ---
-        let currentView = 'tables'; // 'tables' o 'sessions'
+        let currentView = 'tables'; 
         let currentPage = 1;
         let isArchivedMode = false;
-        const itemsPerPage = 10;
+        let itemsPerPage = 10;
+        
+        // Estado específico de Requests
+        let requestStatusFilter = 'PENDING';
+        let requestInterval = null;
 
         // --- REFERENCIAS DOM ---
-        const viewTables = document.getElementById('view-tables');
-        const viewSessions = document.getElementById('view-sessions');
-        const navTables = document.getElementById('nav-tables');
-        const navSessions = document.getElementById('nav-sessions');
+        const views = {
+            tables: document.getElementById('view-tables'),
+            sessions: document.getElementById('view-sessions'),
+            requests: document.getElementById('view-requests')
+        };
+        
+        const navs = {
+            tables: document.getElementById('nav-tables'),
+            sessions: document.getElementById('nav-sessions'),
+            requests: document.getElementById('nav-requests')
+        };
+
         const pageTitle = document.getElementById('page-title');
         const tableActions = document.getElementById('table-actions');
 
         const tableBody = document.getElementById('table-body');
         const sessionsBody = document.getElementById('sessions-body');
+        const requestsGrid = document.getElementById('requests-grid');
 
         // Modales
         const modal = document.getElementById('create-modal');
@@ -247,37 +294,52 @@
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            loadTablesData(); // Carga inicial
+            loadTablesData(); 
         });
 
         // --- LOGICA DE NAVEGACIÓN ---
         window.switchView = (viewName) => {
             currentView = viewName;
+            
+            // Estilos de Navegación
             const activeClass = "bg-green-50 text-green-800 border-green-800";
             const inactiveClass = "text-gray-600 hover:bg-gray-50 border-transparent";
 
-            if (viewName === 'tables') {
-                // UI
-                navTables.className = `flex items-center gap-3 px-6 py-3 border-r-4 transition-colors ${activeClass}`;
-                navSessions.className = `flex items-center gap-3 px-6 py-3 border-r-4 transition-colors ${inactiveClass}`;
-                viewTables.classList.remove('hidden');
-                viewSessions.classList.add('hidden');
-                tableActions.classList.remove('hidden'); // Mostrar botones CRUD
-                pageTitle.textContent = isArchivedMode ? "Papelera de Reciclaje" : "Inventario de Mesas";
-                
-                // Data
-                loadTablesData();
-            } else {
-                // UI
-                navSessions.className = `flex items-center gap-3 px-6 py-3 border-r-4 transition-colors ${activeClass}`;
-                navTables.className = `flex items-center gap-3 px-6 py-3 border-r-4 transition-colors ${inactiveClass}`;
-                viewSessions.classList.remove('hidden');
-                viewTables.classList.add('hidden');
-                tableActions.classList.add('hidden'); // Ocultar botones CRUD (no aplican aqui)
-                pageTitle.textContent = "Monitor de Sesiones Activas";
+            // 1. Resetear todas las vistas y navs
+            Object.keys(views).forEach(key => {
+                views[key].classList.add('hidden');
+                if(navs[key]) {
+                    navs[key].className = `flex items-center gap-3 px-6 py-3 border-r-4 transition-colors ${inactiveClass}`;
+                }
+            });
 
-                // Data
+            // 2. Activar la seleccionada
+            views[viewName].classList.remove('hidden');
+            if(navs[viewName]) {
+                navs[viewName].className = `flex items-center gap-3 px-6 py-3 border-r-4 transition-colors ${activeClass}`;
+            }
+
+            // 3. Limpiar intervalos previos (para no sobrecargar)
+            if(requestInterval && viewName !== 'requests') {
+                clearInterval(requestInterval);
+                requestInterval = null;
+            }
+
+            // 4. Lógica específica
+            if (viewName === 'tables') {
+                tableActions.classList.remove('hidden');
+                pageTitle.textContent = isArchivedMode ? "Papelera de Reciclaje" : "Inventario de Mesas";
+                loadTablesData();
+            } else if (viewName === 'sessions') {
+                tableActions.classList.add('hidden');
+                pageTitle.textContent = "Monitor de Sesiones";
                 loadSessionsData();
+            } else if (viewName === 'requests') {
+                tableActions.classList.add('hidden');
+                pageTitle.textContent = "Solicitudes de Servicio";
+                loadRequestsData();
+                // Auto-refresco cada 15 seg
+                requestInterval = setInterval(loadRequestsData, 15000);
             }
         };
 
@@ -289,16 +351,15 @@
         };
 
         window.logout = () => {
-            if(confirm("¿Cerrar sesión?")) {
+            if(confirm("¿Cerrar sesión de administrador?")) {
                 localStorage.removeItem('auth_token');
                 window.location.href = '/';
             }
         };
 
         // ==========================================
-        // VISTA 1: LOGICA DE MESAS (CRUD)
+        // LOGICA 1: MESAS (CRUD)
         // ==========================================
-
         async function loadTablesData() {
             try {
                 tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Cargando...</td></tr>';
@@ -325,7 +386,6 @@
             const activeSessions = table.active_sessions || 0;
             const sessionColor = activeSessions > 0 ? 'text-green-600 font-bold' : 'text-gray-400';
 
-            // Botones condicionales
             let buttons = '';
             if(isArchivedMode) {
                 buttons = `<button onclick="window.handleRestore(${table.id})" class="text-green-600 hover:bg-green-50 px-2 py-1 rounded text-xs font-bold border border-green-200">RESTAURAR</button>`;
@@ -341,7 +401,7 @@
             }
 
             return `
-                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
                     <td class="p-4 text-sm text-gray-700">#${table.id}</td>
                     <td class="p-4 text-sm font-medium text-gray-900">${table.table_number} <span class="text-gray-400 text-xs font-normal">(Cap: ${table.capacity})</span></td>
                     <td class="p-4 text-center ${sessionColor}">${activeSessions}</td>
@@ -351,7 +411,7 @@
             `;
         }
 
-        // Funciones del Modal (Create/Edit)
+        // --- Funciones Modales Mesas ---
         window.openCreateModal = () => {
             form.reset();
             document.getElementById('table_id').value = "";
@@ -367,8 +427,7 @@
             document.getElementById('table_number').value = num;
             document.getElementById('capacity').value = cap;
             document.getElementById('modal_status').value = status;
-            
-            document.getElementById('table_number').disabled = true; // No editar numero
+            document.getElementById('table_number').disabled = true;
             document.getElementById('status-container').classList.remove('hidden');
             document.getElementById('modal-title').textContent = `Editar Mesa #${num}`;
             modal.classList.remove('hidden');
@@ -384,13 +443,9 @@
 
             try {
                 if (id) {
-                    // Update
                     await window.TablesApi.updateTable(id, { currentStatus: status });
-                    alert("Estado actualizado");
                 } else {
-                    // Create
                     await window.TablesApi.createTable({ table_number: parseInt(number), capacity: parseInt(capacity) });
-                    alert("Mesa creada");
                 }
                 closeModal();
                 loadTablesData();
@@ -425,9 +480,8 @@
             loadTablesData();
         };
 
-        // QR
         window.openQrModal = (num, uuid) => {
-            const url = `${window.location.origin}/scan?uuid=${uuid}`; // Ajusta tu URL real
+            const url = `${window.location.origin}/scan.html?uuid=${uuid}`; 
             document.getElementById('qr-table-num').textContent = `#${num}`;
             document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
             document.getElementById('qr-test-link').href = url;
@@ -435,98 +489,183 @@
         };
         window.closeQrModal = () => qrModalEl.classList.add('hidden');
 
-        // ==========================================
-        // VISTA 2: MONITOR DE SESIONES (LOGICA FANTASMA)
-        // ==========================================
 
+        // ==========================================
+        // LOGICA 2: SESIONES Y FANTASMAS
+        // ==========================================
         async function loadSessionsData() {
             sessionsBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center">Cargando sesiones activas...</td></tr>';
             
             try {
-                // 1. Usamos la API centralizada (HttpClient ya maneja el token)
                 const response = await window.ClientApi.getActiveClients();
-
-                // 2. Validamos la respuesta
                 if (response.success && response.data && response.data.length > 0) {
                     sessionsBody.innerHTML = response.data.map(renderSessionRow).join('');
                 } else {
                     sessionsBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">No hay clientes activos.</td></tr>';
                 }
-
             } catch (error) {
-                console.error("Error al cargar sesiones:", error);
-                sessionsBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500">Error: ${error.message || 'No se pudo conectar con el servidor'}</td></tr>`;
+                console.error(error);
+                sessionsBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500">Error: ${error.message}</td></tr>`;
             }
         }
 
         function renderSessionRow(client) {
-            // A. Cálculo de tiempo
             const created = new Date(client.createdAt);
             const now = new Date();
             const diffMs = now - created;
             const diffMins = Math.floor(diffMs / 60000);
             const timeString = created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            // B. LÓGICA FANTASMA (Ahora es precisa)
-            // Como el backend ya nos envía 'totalAmount' calculado sumando las comandas activas,
-            // podemos confiar en que si es 0, realmente no han pedido nada.
             const currentConsumption = client.totalAmount || 0;
             const isGhost = diffMins > 30 && currentConsumption === 0;
 
-            // C. Estilos Visuales
             const rowClass = isGhost ? 'bg-red-50 hover:bg-red-100 border-l-4 border-red-500' : 'hover:bg-gray-50 border-b border-gray-100';
             const timeClass = isGhost ? 'text-red-600 font-bold' : 'text-gray-600';
             
-            // Iconos informativos
-            const warningIcon = isGhost 
-                ? '<span class="material-icons-outlined text-red-500 text-sm ml-2 align-middle" title="Sin consumo por mucho tiempo">warning</span>' 
-                : '';
-            
-            // (Opcional) Icono si ya pidieron la cuenta
-            const billStatus = client.status === 'BILL_REQUESTED'
-                ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded ml-2 font-bold">PIDIÓ CUENTA</span>'
-                : '';
-
             return `
                 <tr class="${rowClass} transition-colors">
-                    <td class="p-4 text-sm font-bold text-gray-800">
-                        Mesa #${client.table.tableNumber}
+                    <td class="p-4 font-bold text-gray-800">Mesa ${client.tableId}</td>
+                    <td class="p-4 text-sm">
+                        <div class="font-medium">${client.name || 'Invitado'}</div>
+                        <div class="text-xs text-gray-500">ID: ${client.id}</div>
                     </td>
-                    <td class="p-4">
-                        <div class="text-sm font-medium text-gray-900">${client.customerName} ${billStatus}</div>
-                        <div class="text-xs text-gray-500">DNI: ${client.customerDni || 'N/A'}</div>
-                    </td>
-                    <td class="p-4 text-sm text-gray-500">${timeString}</td>
-                    <td class="p-4">
-                        <span class="${timeClass}">${diffMins} min</span> ${warningIcon}
-                    </td>
-                    <td class="p-4 text-sm font-medium">
-                        $${currentConsumption.toFixed(2)}
-                    </td>
+                    <td class="p-4 text-sm text-gray-600">${timeString}</td>
+                    <td class="p-4 text-sm ${timeClass}">${diffMins} min</td>
+                    <td class="p-4 text-sm font-mono">$${currentConsumption.toFixed(2)}</td>
                     <td class="p-4 text-right">
-                        <button onclick="window.closeSessionManually(${client.id}, '${client.customerName}', ${client.table.tableNumber})" 
-                                class="text-red-600 hover:text-white hover:bg-red-600 border border-red-200 bg-white px-3 py-1 rounded text-xs font-bold transition-all shadow-sm flex items-center gap-1 ml-auto">
-                            <span class="material-icons-outlined text-[16px]">block</span> CERRAR
-                        </button>
+                        <button onclick="forceCloseSession(${client.id})" class="text-xs text-red-500 hover:text-red-700 underline">Forzar Salida</button>
                     </td>
                 </tr>
             `;
         }
+        
+        window.forceCloseSession = async (clientId) => {
+            if(confirm("¿Estás seguro de cerrar forzosamente esta sesión?")) {
+                try {
+                   await window.ClientApi.updateClient(clientId, { status: "CLOSED" });
+                   loadSessionsData();
+                } catch(e) { alert(e.message); }
+            }
+        };
 
-        window.closeSessionManually = async (clientId, name, table) => {
-            if(!confirm(`⚠️ ¿Forzar salida?\n\nCliente: ${name}\nMesa: #${table}\n\nEsto liberará el cupo de este usuario.`)) return;
+
+        // ==========================================
+        // LOGICA 3: SOLICITUDES (CARDS)
+        // ==========================================
+        window.filterRequests = (status) => {
+            requestStatusFilter = status;
+            
+            const btnPending = document.getElementById('filter-pending');
+            const btnAttended = document.getElementById('filter-attended');
+            
+            if(status === 'PENDING') {
+                btnPending.className = "px-4 py-2 text-sm font-medium rounded-md bg-orange-100 text-orange-700 transition-colors shadow-sm";
+                btnAttended.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-colors";
+            } else {
+                btnPending.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-colors";
+                btnAttended.className = "px-4 py-2 text-sm font-medium rounded-md bg-green-100 text-green-700 transition-colors shadow-sm";
+            }
+
+            loadRequestsData();
+        };
+
+        async function loadRequestsData() {
+            // Spinner ligero si está vacío, si no, solo refresca silenciosamente
+            if(requestsGrid.innerHTML === '') {
+                requestsGrid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">Cargando solicitudes...</div>';
+            }
 
             try {
-                // Usamos updateClient del ClientApi
-                // Enviamos status 'CLOSED' (o 'INACTIVE' según manejes tu lógica final)
-                await window.ClientApi.updateClient(clientId, { status: 'CLOSED' });
-
-                alert("✅ Sesión cerrada correctamente.");
-                loadSessionsData(); // Recargamos la tabla
+                // Usamos la nueva API creada
+                const response = await window.ServiceRequestApi.getRequests(1, 20, requestStatusFilter);
                 
-            } catch(e) {
-                console.error(e);
-                alert(`❌ Error: ${e.message || "No se pudo cerrar la sesión"}`);
+                if (response.success && response.data.length > 0) {
+                    requestsGrid.innerHTML = response.data.map(renderRequestCard).join('');
+                } else {
+                    requestsGrid.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-400 bg-white rounded-lg border border-dashed border-gray-300">
+                            <span class="material-icons-outlined text-4xl mb-2">inbox</span>
+                            <p>No hay solicitudes ${requestStatusFilter === 'PENDING' ? 'pendientes' : 'en el historial'}.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error(error);
+                // Si falla y es auto-refresh, mejor no borrar lo que ya hay
+            }
+        }
+
+        function renderRequestCard(req) {
+            const created = new Date(req.created_at || req.createdAt);
+            const now = new Date();
+            const diffMins = Math.floor((now - created) / 60000);
+            
+            let timeString = diffMins < 1 ? 'Hace un momento' : `Hace ${diffMins} min`;
+            if (diffMins > 60) timeString = created.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+
+            const isComplaint = req.type === 'COMPLAINT';
+            const isPending = req.status === 'PENDING';
+            
+            // Estilos
+            const cardBorder = isComplaint ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-blue-500';
+            const iconBg = isComplaint ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600';
+            const iconName = isComplaint ? 'priority_high' : 'pan_tool';
+            const titleText = isComplaint ? 'Queja / Incidente' : 'Llamado a Mesero';
+            
+            // Safe access a table_info
+            const mesaId = req.table_info?.id || req.table_id || '?';
+
+            let actionButton = '';
+            if (isPending) {
+                actionButton = `
+                    <button onclick="attendRequest('${req.id}')" class="w-full mt-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-all font-medium text-sm flex items-center justify-center gap-2 group">
+                        <span class="material-icons-outlined text-gray-400 group-hover:text-green-600 text-lg">check_circle</span>
+                        Marcar como Atendido
+                    </button>
+                `;
+            } else {
+                const attendedTime = req.attended_at ? new Date(req.attended_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--:--';
+                actionButton = `
+                    <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-center text-gray-400">
+                        Atendido a las ${attendedTime}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="card-enter bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow flex flex-col justify-between ${isPending ? cardBorder : 'opacity-75'}">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full ${iconBg} flex items-center justify-center">
+                                    <span class="material-icons-outlined text-lg">${iconName}</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800 text-sm">${titleText}</h4>
+                                    <p class="text-xs text-gray-500 flex items-center gap-1">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span>
+                                        ${timeString}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded border border-gray-200">Mesa ${mesaId}</span>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-2 rounded text-gray-700 text-sm mb-2 leading-relaxed italic border border-gray-100">
+                            "${req.message || 'Sin mensaje'}"
+                        </div>
+                    </div>
+                    ${actionButton}
+                </div>
+            `;
+        }
+
+        window.attendRequest = async (id) => {
+            try {
+                // Optimistic UI: lo marcamos como atendido visualmente
+                await window.ServiceRequestApi.markAsAttended(id);
+                loadRequestsData(); // Recargar datos frescos
+            } catch (e) {
+                alert("Error al actualizar: " + e.message);
             }
         };
 
