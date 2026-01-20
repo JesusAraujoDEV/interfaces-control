@@ -59,6 +59,11 @@ const viewsWithPermission = async (req, res, next) => {
         resource = "DeliveryPickup_view";
         break;  
 
+    // Vistas de atc
+    case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/tables.html":
+        resource = "TableManagement_view";
+        break;
+
     default:
       return next();
   }
