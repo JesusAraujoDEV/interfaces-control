@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
-    <link rel="stylesheet" href="/public/css/seguridad/restauranteCoordenadas.css">
+    <link rel="stylesheet" href="/css/seguridad/restauranteCoordenadas.css">
     
     <style>
         /* Pequeño estilo para el icono de carga sin romper tu CSS */
@@ -39,7 +39,7 @@
                 <section class="tarjeta-formulario-geo">
                     <h3>Establecer Ubicación del Restaurante y Área de Entrega</h3>
                     
-                    <form class="formulario-geo" onsubmit="event.preventDefault(); alert('Configuración guardada');">
+                    <form class="formulario-geo" id="formCoordenadas">
                         <div class="grupo">
                             <label>Dirección o Nombre de la Ubicación</label>
                             <div class="input-con-icono">
@@ -67,8 +67,8 @@
                         </div>
 
                         <div class="acciones-geo">
-                            <button type="submit" class="btn-guardar">Guardar Cambios</button>
-                            <button type="button" class="btn-cancelar">Cancelar</button>
+                            <button type="submit" class="btn-guardar" id="btnGuardar">Guardar Cambios</button>
+                            <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
                             <button type="button" class="btn-cancelar" onclick="centrarEnMiUbicacion()" title="Usar mi ubicación actual" style="min-width: 40px; padding: 0 10px;">
                                 <i class="fa-solid fa-crosshairs"></i>
                             </button>
@@ -99,6 +99,8 @@
         let latInicial = parseFloat(inputLat.value) || 40.7128;
         let lngInicial = parseFloat(inputLng.value) || -74.0060;
         let radioInicial = parseFloat(inputRadio.value) || 2;
+        let coordenadasExistentes = null;
+        const notyf = window.seguridad_notyf || new Notyf();
 
         // --- 2. Inicializar Mapa ---
         var map = L.map('mapa').setView([latInicial, lngInicial], 13);
@@ -246,8 +248,138 @@
             }
         });
 
-        // --- 5. Ejecutar al inicio ---
-        window.onload = centrarEnMiUbicacion;
+        // --- 5. Funciones de API ---
+
+        // Cargar coordenadas existentes
+        async function cargarCoordenadas() {
+            try {
+                const response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                    method: 'GET'
+                });
+
+                if (response.status === 404) {
+                    // No hay coordenadas guardadas, usar valores por defecto
+                    coordenadasExistentes = null;
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar coordenadas');
+                }
+
+                const data = await response.json();
+                coordenadasExistentes = data;
+
+                // Cargar valores en los inputs
+                if (data.latitude && data.longitud) {
+                    latInicial = parseFloat(data.latitude);
+                    lngInicial = parseFloat(data.longitud);
+                    inputLat.value = latInicial.toFixed(6);
+                    inputLng.value = lngInicial.toFixed(6);
+                    
+                    // Actualizar mapa
+                    const nuevaPos = new L.LatLng(latInicial, lngInicial);
+                    marcador.setLatLng(nuevaPos);
+                    circulo.setLatLng(nuevaPos);
+                    map.setView([latInicial, lngInicial], 13);
+                }
+
+                if (data.radius) {
+                    radioInicial = parseFloat(data.radius);
+                    inputRadio.value = radioInicial;
+                    circulo.setRadius(radioInicial * 1000);
+                }
+
+                // Buscar dirección si hay coordenadas
+                if (data.latitude && data.longitud) {
+                    obtenerNombreDireccion(latInicial, lngInicial);
+                }
+            } catch (error) {
+                console.error('Error cargando coordenadas:', error);
+                // No mostrar error si es 404, es normal que no existan coordenadas
+                if (error.message && !error.message.includes('404')) {
+                    notyf.error('Error al cargar las coordenadas existentes');
+                }
+            }
+        }
+
+        // Guardar coordenadas
+        async function guardarCoordenadas() {
+            const lat = parseFloat(inputLat.value);
+            const lng = parseFloat(inputLng.value);
+            const radio = parseFloat(inputRadio.value);
+
+            if (isNaN(lat) || isNaN(lng) || isNaN(radio)) {
+                notyf.error('Por favor, completa todos los campos requeridos');
+                return;
+            }
+
+            const body = {
+                latitude: lat,
+                longitud: lng,
+                radius: radio
+            };
+
+            try {
+                const btnGuardar = document.getElementById('btnGuardar');
+                btnGuardar.disabled = true;
+                btnGuardar.textContent = 'Guardando...';
+
+                let response;
+                if (coordenadasExistentes === null) {
+                    // Crear nuevas coordenadas
+                    response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                        method: 'POST',
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    // Actualizar coordenadas existentes
+                    response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                        method: 'PATCH',
+                        body: JSON.stringify(body)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMsg = data.message || response.statusText || 'Error al guardar las coordenadas';
+                    throw new Error(errorMsg);
+                }
+
+                coordenadasExistentes = data;
+                notyf.success('Coordenadas guardadas exitosamente');
+            } catch (error) {
+                console.error('Error guardando coordenadas:', error);
+                const errorMsg = error.message || 'Error al guardar las coordenadas. Por favor, intenta nuevamente.';
+                notyf.error(errorMsg);
+            } finally {
+                const btnGuardar = document.getElementById('btnGuardar');
+                btnGuardar.disabled = false;
+                btnGuardar.textContent = 'Guardar Cambios';
+            }
+        }
+
+        // --- 6. Event Listeners del Formulario ---
+        const formCoordenadas = document.getElementById('formCoordenadas');
+        formCoordenadas.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await guardarCoordenadas();
+        });
+
+        const btnCancelar = document.getElementById('btnCancelar');
+        btnCancelar.addEventListener('click', () => {
+            window.location.href = '/seguridad';
+        });
+
+        // --- 7. Ejecutar al inicio ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarCoordenadas();
+            // Si no hay coordenadas, intentar usar geolocalización
+            if (coordenadasExistentes === null) {
+                centrarEnMiUbicacion();
+            }
+        });
 
     </script>
 </body>

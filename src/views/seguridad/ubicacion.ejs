@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <% include('../partials/inyectarHelpersCss.ejs') %>
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
 </head>
 <body>
 
@@ -37,44 +37,103 @@
     <script>
         // 1. Seleccionamos el botón
         const botonGeo = document.getElementById('btnGeo');
+        const originalBtnText = botonGeo.innerText;
+
+        // Función auxiliar para restaurar el botón en caso de error
+        const resetBtn = () => {
+            botonGeo.disabled = false;
+            botonGeo.innerText = originalBtnText;
+        };
 
         // 2. Agregamos el evento click
         botonGeo.addEventListener('click', () => {
             
+            // UI: Feedback visual de carga
+            botonGeo.disabled = true;
+            botonGeo.innerText = "Verificando...";
+
             // Verificamos si el navegador soporta geolocalización
             if ("geolocation" in navigator) {
                 
-                console.log("Solicitando permiso...");
-
-                /* getCurrentPosition toma 2 funciones:
-                   1. Éxito (success)
-                   2. Error (error) - Opcional pero recomendada
-                */
                 navigator.geolocation.getCurrentPosition(
-                    // Función de ÉXITO
-                    (position) => {
+                    // --- A. ÉXITO AL OBTENER COORDENADAS ---
+                    async (position) => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
-                        
-                        console.log("✅ Ubicación obtenida con éxito:");
-                        console.log("Latitud:", lat);
-                        console.log("Longitud:", lng);
-                        console.log("Objeto completo:", position);
-                        
-                        // Opcional: Mostrar alerta visual
-                        // alert(`Tu ubicación es: ${lat}, ${lng}`);
-                    },
-                    // Función de ERROR
-                    (error) => {
-                        console.warn("❌ Error obteniendo ubicación:", error.message);
-                        if(error.code === 1) {
-                            console.error("El usuario denegó el permiso de ubicación.");
+
+                        try {
+                            // Hacemos la petición a tu endpoint intermedio
+                            const response = await fetch('/api/seguridad/verify-location', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ 
+                                    latitude: lat, 
+                                    longitude: lng 
+                                })
+                            });
+
+                            const data = await response.json();
+
+                            if (data.success) {
+                                // 1. Notificar éxito
+                                window.seguridad_notyf.success(data.message);
+                                
+                                // 2. Redirigir al módulo de ATC (Ordenes)
+                                // NOTA: Ajusta esta URL a la ruta real de tu vista de ordenar
+                                setTimeout(() => {
+                                    
+                                    const urlParams = new URLSearchParams(window.location.search);
+                                    const redirectUrl = urlParams.get("redirect");
+                                    if (redirectUrl) {
+                                        window.location.href = redirectUrl;
+                                    } else {
+                                        window.location.href = '/atc/ordenar';
+                                    }
+                                     
+                                }, 1000); // Pequeño delay para que se lea la notificación
+
+                            } else {
+                                // El usuario está fuera del rango o hubo un error de lógica
+                                window.seguridad_notyf.error(data.message);
+                                resetBtn();
+                            }
+
+                        } catch (error) {
+                            console.error("Error de red:", error);
+                            window.seguridad_notyf.error("Error de conexión con el servidor.");
+                            resetBtn();
                         }
+                    },
+                    // --- B. ERROR AL OBTENER COORDENADAS (Navegador) ---
+                    (error) => {
+                        console.warn("❌ Error geolocalización:", error.message);
+                        
+                        let mensajeError = "No se pudo obtener tu ubicación.";
+                        
+                        if(error.code === 1) {
+                            mensajeError = "Debes permitir el acceso a tu ubicación para continuar.";
+                        } else if (error.code === 2) {
+                            mensajeError = "La ubicación no está disponible.";
+                        } else if (error.code === 3) {
+                            mensajeError = "Se agotó el tiempo para obtener la ubicación.";
+                        }
+
+                        window.seguridad_notyf.error(mensajeError);
+                        resetBtn();
+                    },
+                    // Opciones de geolocalización para mayor precisión
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
                     }
                 );
 
             } else {
-                console.error("Tu navegador no soporta geolocalización");
+                window.seguridad_notyf.error("Tu navegador no soporta geolocalización.");
+                resetBtn();
             }
         });
     </script>

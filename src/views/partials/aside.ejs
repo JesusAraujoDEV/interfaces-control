@@ -8,16 +8,23 @@
   </div>
 
   <nav class="menu-navegacion">
-    <a href="#"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
-    <a href="#"><i class="fa-solid fa-receipt"></i> Pedidos</a>
-    <a href="#" class="activo"
+    <a href="/seguridad/usuarios"
       ><i class="fa-solid fa-user-group"></i> Usuarios</a
     >
-    <a href="#"><i class="fa-solid fa-gear"></i> Ajustes</a>
+    <a href="/seguridad/roles"
+      ><i class="fa-solid fa-user-shield"></i> Roles</a>
+    <a href="/seguridad/permisos"
+      ><i class="fa-solid fa-key"></i> Permisos</a>
+    <a href="/seguridad/restaurante/coordenadas"
+      ><i class="fa-solid fa-location-dot"></i> Restaurante Coordenadas</a>
+    
+    <a href="/seguridad/perfil/editar"><i class="fa-solid fa-gear"></i> Mi perfil</a>
   </nav>
 
   <div class="menu-inferior">
-    <a href="#"><i class="fa-regular fa-circle-question"></i> Ayuda</a>
+    <% if (user) { %>
+      <a href="/seguridad/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    <% } %>
   </div>
 
 </aside>

@@ -3,9 +3,16 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const seguridadRouterModule = require("../src/routes/seguridad/seguridad");
 const apiSeguridadRouterModule = require("../src/routes/seguridad/apiSeguridad");
+const { viewsWithPermission } = require("../src/middlewares/seguridad/viewsWithPermission");
+const { viewsWithAuth } = require("../src/middlewares/seguridad/viewsWithAuth");
+const { requireLocation } = require("../src/middlewares/seguridad/locationRequired");
 
 const app = express();
 
+app.use(cookieParser());
+app.use(viewsWithAuth);
+app.use(viewsWithPermission);
+app.use(requireLocation);
 const createSeguridadRouter =
   seguridadRouterModule.default || seguridadRouterModule;
 const createApiSeguridadRouter =
@@ -44,7 +51,6 @@ function sendDpAppShell(res) {
 app.use(express.static(path.join(PROJECT_ROOT, "public")));
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 app.set("view engine", "ejs");
 app.set("views", path.join(PROJECT_ROOT, "src/views"));
