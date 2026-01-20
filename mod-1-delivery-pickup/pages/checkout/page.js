@@ -104,6 +104,14 @@ function updateCoverageFromSelectedChip() {
 // Carrito (solo visualización en checkout)
 const CART_KEY = 'dp_cart_v1';
 
+function clearCartStorage() {
+  try {
+    localStorage.removeItem(CART_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 function readCart() {
   try {
     const raw = localStorage.getItem(CART_KEY);
@@ -444,9 +452,13 @@ form.addEventListener('submit', function (e) {
     (async () => {
       try {
         const result = await createOrder();
-        const noteId = result && (result.note_id || result.noteId || result.order_id || result.id || result.orderId);
+
+        // La orden ya fue creada correctamente: limpiamos el carrito para la próxima compra.
+        clearCartStorage();
+
+        const orderId = result && (result.order_id || result.id || result.orderId);
         const readableId = result && (result.readable_id || result.readableId);
-        const trackingId = readableId || noteId;
+        const trackingId = readableId || orderId;
 
         if (trackingId) {
           const nextUrl = new URL(`/order-tracking/${encodeURIComponent(String(trackingId))}`, window.location.href);

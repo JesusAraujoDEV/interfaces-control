@@ -5,35 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Menú — Charlotte</title>
 
-    <link rel="stylesheet" href="../../styles/global.css" />
-    <link rel="stylesheet" href="./page.css" />
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link rel="stylesheet" href="/shared/pages/menu/page.css" />
 
     <script src="/config.js"></script>
-
-    <script>
-      // Tailwind CDN lee esta config al cargar.
-      // Nota: no usamos `tailwind.config = ...` aquí porque `tailwind` todavía no existe.
-      // Si en el futuro usas Vite: reemplaza la config runtime por `import.meta.env.VITE_DP_URL`.
-      window.tailwind = {
-        config: {
-          theme: {
-            extend: {
-              colors: {
-                brand: {
-                  50: '#f2f7f1',
-                  700: '#13532a',
-                  800: '#0f4a22'
-                }
-              },
-              fontFamily: {
-                sans: ['Inter', 'ui-sans-serif', 'system-ui']
-              }
-            }
-          }
-        }
-      };
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
   <body class="bg-brand-50 min-h-screen text-gray-800 font-sans">
@@ -765,6 +741,6 @@
       loadCatalog();
     </script>
 
-    <script type="module" src="../../components/app-header.js"></script>
+    <script type="module" src="/shared/components/app-header.js"></script>
   </body>
 </html>
