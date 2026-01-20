@@ -229,28 +229,63 @@
         });
 
 
-        // === 2. GEOLOCALIZACIÓN ===
+        // === 2. GEOLOCALIZACIÓN BLINDADA (Solución definitiva) ===
         function getUserLocation() {
             return new Promise((resolve, reject) => {
-                const MOCK_COORDS = { latitude: 10.12345, longitude: -67.12345 };
                 
+                // Esta bandera evita que se responda dos veces (el bug que tienes)
+                let hasFinished = false;
+
+                // Función de éxito (solo se ejecuta si no ha terminado)
+                const onSuccess = (position) => {
+                    if (hasFinished) return; 
+                    hasFinished = true;
+                    
+                    console.log("✅ Ubicación final aceptada:", position.coords);
+                    resolve({ 
+                        latitude: position.coords.latitude, 
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    });
+                };
+
+                // Función de error (con espera de seguridad)
+                const onError = (error) => {
+                    if (hasFinished) return;
+                    
+                    // TRUCO: Si el error es "User denied" (Code 1), esperamos 500ms
+                    // porque a veces el éxito llega justo después si hay conflicto de scripts.
+                    if (error.code === 1) {
+                        setTimeout(() => {
+                            if (!hasFinished) { // Si después de esperar aun no hay éxito, entonces sí fallamos
+                                hasFinished = true;
+                                reject(new Error("⛔ Acceso denegado. Haz clic en el candado 🔒 de la barra de dirección y selecciona 'Permitir'."));
+                            }
+                        }, 500);
+                    } else {
+                        hasFinished = true;
+                        // Mapeo de otros errores
+                        if (error.code === 2) reject(new Error("📡 Señal GPS débil. Intenta moverte a un lugar abierto."));
+                        else if (error.code === 3) reject(new Error("⌛ Tiempo de espera agotado."));
+                        else reject(error);
+                    }
+                };
+
                 if (!navigator.geolocation) {
-                    reject(new Error("Geolocalización no soportada"));
+                    reject(new Error("Navegador no compatible."));
                     return;
                 }
+
+                console.log("📍 Iniciando petición GPS...");
                 
                 navigator.geolocation.getCurrentPosition(
-                    (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
-                    (error) => {
-                        // Modo Desarrollo
-                        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                            console.warn("⚠️ [DEV] Usando mock coords");
-                            resolve(MOCK_COORDS);
-                        } else {
-                            reject(error);
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    onSuccess,
+                    onError,
+                    { 
+                        enableHighAccuracy: true, 
+                        timeout: 15000, 
+                        maximumAge: 0 
+                    }
                 );
             });
         }
@@ -280,6 +315,9 @@
                     throw new Error("Datos de mesa inválidos");
                 }
 
+                // --- NUEVO: Guardar el QR para usarlo al final del flujo ---
+                localStorage.setItem('current_qr_uuid', qrUuid);
+
                 // Actualizar UI básica
                 tableIndicator.innerText = `Mesa ${qrData.table_number}`;
                 document.getElementById('final-table-id').value = qrData.table_id;
@@ -293,7 +331,9 @@
                 // --- PASO B: Verificar Ubicación ---
                 updateProgress(60, "Verificando ubicación...");
                 const coords = await getUserLocation();
+                console.log("Coordenadas obtenidas:", coords);
                 const locData = await window.AuthApi.verify_location(coords.latitude, coords.longitude);
+                console.log("Datos de ubicación verificados:", locData);
 
                 if (!locData.is_inside) {
                     throw new Error("Debes estar dentro del restaurante para ordenar.");
@@ -441,11 +481,11 @@
             try {
                 console.log("Enviando login validado:", payload);
                 const response = await window.ClientApi.login(payload);
-
+                console.log("Respuesta login:", response);
                 if (response.session_token) {
-                    localStorage.setItem('session_token', response.session_token);
+                    localStorage.setItem('auth_token', response.session_token);
                     if (response.client) localStorage.setItem('user_client', JSON.stringify(response.client));
-                    window.location.href = '/mod-3-atencion-cliente/pages/menu/menu.html'; 
+                    window.location.href = '/mod-3-atencion-cliente/pages/pedidos/menu.html'; 
                 } else {
                     throw new Error("Token inválido.");
                 }
