@@ -1,8 +1,8 @@
-import { apiFetch } from '/js/api.js';
-
 async function cargarColaKDS() {
     try {
-    const tareas = await apiFetch('/kitchen/kds/queue');
+    const response = await fetch(`${KITCHEN_URL}/kds/queue`);
+    const tareas = await response.json();
+    console.log(tareas);
     renderizarTareas(tareas);
     } catch (error) {
     console.error('Error al cargar la cola KDS:', error);
@@ -72,7 +72,7 @@ function renderBotonAccion(tarea) {
 
 async function actualizarEstado(taskId, newStatus) {
     try {
-    await apiFetch(`/kitchen/kds/${taskId}/status`, {
+    await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ newStatus })
     });
@@ -84,7 +84,7 @@ async function actualizarEstado(taskId, newStatus) {
 
 async function marcarServido(taskId) {
     try {
-    await apiFetch(`/kitchen/kds/${taskId}/served`, {
+    await fetch(`${KITCHEN_URL}/kds/${taskId}/served`, {
         method: 'PATCH',
         body: JSON.stringify({ staff_id: localStorage.getItem('staff_id') })
     });
@@ -96,7 +96,7 @@ async function marcarServido(taskId) {
 
 async function asignarTarea(taskId, staffId, role = 'CHEF') {
     try {
-    const result = await apiFetch(`/kitchen/kds/${taskId}/assign`, {
+    const result = await fetch(`${KITCHEN_URL}/kds/${taskId}/assign`, {
         method: 'PATCH',
         body: JSON.stringify({ staffId, role })
     });

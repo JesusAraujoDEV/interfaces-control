@@ -1,55 +1,48 @@
-import { apiFetch } from './api.js';
-
-function renderStaffCards(staffList) {
-    const container = document.getElementById('staff-container');
-    container.innerHTML = '';
-
-    staffList.forEach(staff => {
-        const card = document.createElement('div');
-        card.className = 'staff-card';
-
-        card.innerHTML = `
-        <h3>${staff.name}</h3>
-        <p>Rol: ${staff.role}</p>
-        <p>Status: ${staff.online ? 'Online ✅' : 'Offline ❌'}</p>
-        <button data-id="${staff.id}" data-online="${staff.online}">
-            ${staff.online ? 'Check-out' : 'Check-in'}
-        </button>
-    `;
-
-    container.appendChild(card);
-    });
-
-    document.querySelectorAll('.staff-card button').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-        const staffId = e.target.dataset.id;
-        const isOnline = e.target.dataset.online === 'true';
-        await toggleShift(staffId, isOnline);
-    });
-    });
-}
-
 async function cargarStaff() {
     try {
-        const staffList = await apiFetch('/kitchen/staff/active');
-        renderStaffCards(staffList);
+        const response = await fetch(`${KITCHEN_URL}/kitchen/staff/active`, {
+        headers: getCommonHeaders()
+    });
+    const staff = await response.json();
+    renderizarStaff(staff);
     } catch (error) {
-    console.error('Error cargando staff:', error);
+    console.error('Error al cargar staff:', error);
     }
 }
 
-async function toggleShift(staffId, isOnline) {
-    try {
-        const action = isOnline ? 'checkout' : 'checkin';
-        const result = await apiFetch(`/kitchen/staff/${staffId}/shift`, {
-        method: 'POST',
-        body: JSON.stringify({ action })
-    });
+function renderizarStaff(staff) {
+    const staffList = document.querySelector('.staff-list');
+    staffList.innerHTML = '';
 
-    alert(`Shift actualizado: ${result.message}`);
+    staff.forEach(persona => {
+        const card = document.createElement('div');
+        card.className = 'staff-card';
+        card.innerHTML = `
+        <div class="staff-card__avatar-wrapper">
+        <img src="${persona.avatarUrl}" alt="${persona.name}" class="staff-card__img">
+        <span class="status-dot ${persona.online ? 'status-dot--online' : 'status-dot--offline'}"></span>
+        </div>
+        <div class="staff-card__info">
+        <p class="staff-card__name">${persona.name}</p>
+        <p class="staff-card__role">${persona.role}</p>
+        </div>
+        <button class="btn btn--primary" onclick="toggleShift('${persona.id}')">
+        ${persona.onShift ? 'Check-out' : 'Check-in'}
+        </button>
+    `;
+    staffList.appendChild(card);
+    });
+}
+
+async function toggleShift(staffId) {
+    try {
+        await fetch(`${KITCHEN_URL}/staff/${staffId}/shift`, {
+        method: 'POST',
+        headers: getCommonHeaders()
+    });
     cargarStaff();
     } catch (error) {
-    console.error('Error actualizando shift:', error);
+    console.error('Error al cambiar turno:', error);
     }
 }
 
