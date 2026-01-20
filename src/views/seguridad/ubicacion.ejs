@@ -83,7 +83,15 @@
                                 // 2. Redirigir al módulo de ATC (Ordenes)
                                 // NOTA: Ajusta esta URL a la ruta real de tu vista de ordenar
                                 setTimeout(() => {
-                                    window.location.href = '/atc/ordenar'; 
+                                    
+                                    const urlParams = new URLSearchParams(window.location.search);
+                                    const redirectUrl = urlParams.get("redirect");
+                                    if (redirectUrl) {
+                                        window.location.href = redirectUrl;
+                                    } else {
+                                        window.location.href = '/atc/ordenar';
+                                    }
+                                     
                                 }, 1000); // Pequeño delay para que se lea la notificación
 
                             } else {

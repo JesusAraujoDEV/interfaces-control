@@ -142,6 +142,10 @@ const createSeguridadRouter = () => {
     res.render("seguridad/cambioContraseña");
   });
 
+  router.get("/vista/require-location", async (req, res) => {
+    res.render("seguridad/requireLocation");
+  });
+
   return router;
 };
 module.exports = createSeguridadRouter;

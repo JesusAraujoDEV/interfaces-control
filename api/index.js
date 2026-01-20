@@ -5,12 +5,14 @@ const seguridadRouterModule = require("../src/routes/seguridad/seguridad");
 const apiSeguridadRouterModule = require("../src/routes/seguridad/apiSeguridad");
 const { viewsWithPermission } = require("../src/middlewares/seguridad/viewsWithPermission");
 const { viewsWithAuth } = require("../src/middlewares/seguridad/viewsWithAuth");
+const { requireLocation } = require("../src/middlewares/seguridad/locationRequired");
 
 const app = express();
 
 app.use(cookieParser());
 app.use(viewsWithAuth);
 app.use(viewsWithPermission);
+app.use(requireLocation);
 const createSeguridadRouter =
   seguridadRouterModule.default || seguridadRouterModule;
 const createApiSeguridadRouter =
