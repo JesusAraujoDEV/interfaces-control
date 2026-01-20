@@ -1,15 +1,20 @@
 const API_BASE = 'http://localhost:3000/api/kitchen';
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadCategories();
-    loadProducts();
-    loadInventory();
-});
-
 let allProducts = [];
 let allCategories = [];
 let allInventory = [];
 let currentRecipeProductId = null;
+let activeCategory = 'all';
+let searchTerm = '';
+
+document.addEventListener('DOMContentLoaded', () => {
+    injectStyles();
+    injectDashboard();
+    injectControls(); 
+    loadCategories();
+    loadProducts();
+    loadInventory();
+});
 
 function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -19,16 +24,117 @@ function getAuthHeaders() {
     };
 }
 
+function injectStyles() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .toast { min-width: 250px; margin-bottom: 10px; padding: 15px; border-radius: 4px; color: white; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: slideIn 0.3s ease-out forwards, fadeOut 0.5s ease-in 2.5s forwards; opacity: 0; }
+        .toast.success { background-color: #28a745; border-left: 5px solid #1e7e34; }
+        .toast.error { background-color: #dc3545; border-left: 5px solid #bd2130; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        
+        .controls-toolbar { margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; }
+        .search-box { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; }
+        .filter-btn { padding: 6px 12px; border: 1px solid #ced4da; background: white; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-size: 0.9em; }
+        .filter-btn:hover { background: #e2e6ea; }
+        .filter-btn.active { background: #007bff; color: white; border-color: #0056b3; }
+        .filters-container { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #007bff; }
+        .stat-card h3 { margin: 0; font-size: 2em; color: #333; }
+        .stat-card p { margin: 5px 0 0; color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card.green { border-left-color: #28a745; }
+        .stat-card.orange { border-left-color: #fd7e14; }
+        .stat-card.purple { border-left-color: #6f42c1; }
+    `;
+    document.head.appendChild(style);
+
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+}
+
+function injectDashboard() {
+    const tableContainer = document.querySelector('.table-responsive') || document.querySelector('table').parentNode;
+    
+    const dashboard = document.createElement('div');
+    dashboard.className = 'stats-container';
+    dashboard.innerHTML = `
+        <div class="stat-card">
+            <h3 id="stat-products">0</h3>
+            <p>Total Platos</p>
+        </div>
+        <div class="stat-card green">
+            <h3 id="stat-categories">0</h3>
+            <p>Categorías</p>
+        </div>
+        <div class="stat-card orange">
+            <h3 id="stat-avg-price">$0.00</h3>
+            <p>Precio Promedio</p>
+        </div>
+        <div class="stat-card purple">
+            <h3 id="stat-inventory">0</h3>
+            <p>Items en Despensa</p>
+        </div>
+    `;
+
+    tableContainer.parentNode.insertBefore(dashboard, tableContainer);
+}
+
+function updateDashboard() {
+    document.getElementById('stat-products').textContent = allProducts.length;
+    document.getElementById('stat-categories').textContent = allCategories.length;
+    document.getElementById('stat-inventory').textContent = allInventory.length;
+
+    if (allProducts.length > 0) {
+        const total = allProducts.reduce((sum, p) => sum + (p.price || p.basePrice || 0), 0);
+        const avg = total / allProducts.length;
+        document.getElementById('stat-avg-price').textContent = `$${avg.toFixed(2)}`;
+    }
+}
+
+function injectControls() {
+    const tableContainer = document.querySelector('.table-responsive') || document.querySelector('table').parentNode;
+    
+    const toolbar = document.createElement('div');
+    toolbar.className = 'controls-toolbar';
+    toolbar.innerHTML = `
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar producto...">
+        <div id="categoryFilters" class="filters-container"></div>
+    `;
+
+    tableContainer.parentNode.insertBefore(toolbar, tableContainer);
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchTerm = e.target.value.toLowerCase();
+        applyFilters();
+    });
+}
+
+window.showToast = function(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
         const data = await response.json();
         if (data.success) {
             allCategories = data.data;
+            renderCategoryFilters();
             renderCategorySelect();
+            updateDashboard();
         }
     } catch (error) {
         console.error(error);
+        showToast('Error cargando categorías', 'error');
     }
 }
 
@@ -38,10 +144,12 @@ async function loadProducts() {
         const result = await response.json();
         if (result.success) {
             allProducts = result.data;
-            renderProducts(allProducts);
+            applyFilters(); 
+            updateDashboard();
         }
     } catch (error) {
         console.error(error);
+        showToast('Error cargando productos', 'error');
     }
 }
 
@@ -52,10 +160,49 @@ async function loadInventory() {
         if (result.success) {
             allInventory = result.data;
             renderIngredientSelect();
+            updateDashboard();
         }
     } catch (error) {
         console.error(error);
     }
+}
+
+function renderCategoryFilters() {
+    const container = document.getElementById('categoryFilters');
+    if (!container) return;
+
+    container.innerHTML = `<button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>`;
+    
+    allCategories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.textContent = cat.name;
+        btn.onclick = () => setFilter(cat._id, btn);
+        container.appendChild(btn);
+    });
+}
+
+window.setFilter = function(catId, btnElement) {
+    activeCategory = catId;
+    
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btnElement.classList.add('active');
+    
+    applyFilters();
+}
+
+function applyFilters() {
+    let filtered = allProducts;
+
+    if (activeCategory !== 'all') {
+        filtered = filtered.filter(p => p.category && p.category._id === activeCategory);
+    }
+
+    if (searchTerm) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+    }
+
+    renderProducts(filtered);
 }
 
 function renderCategorySelect() {
@@ -94,16 +241,27 @@ function renderProducts(products) {
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    if (products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">No se encontraron productos</td></tr>';
+        return;
+    }
+
     products.forEach(prod => {
         const tr = document.createElement('tr');
         
         const cost = calculateProductCost(prod._id);
         const categoryName = prod.category ? prod.category.name : 'Sin Categoría';
+        const priceVal = prod.price || prod.basePrice || 0;
 
         tr.innerHTML = `
             <td>${prod.name}</td>
             <td>${categoryName}</td>
-            <td>$${prod.price.toFixed(2)}</td>
+            <td id="price-cell-${prod._id}" 
+                ondblclick="enablePriceEdit('${prod._id}', ${priceVal})" 
+                style="cursor: pointer;" 
+                title="Doble click para editar">
+                $${parseFloat(priceVal).toFixed(2)}
+            </td>
             <td>$${cost.toFixed(2)}</td>
             <td>
                 <button class="btn btn-sm btn-edit" onclick="editProduct('${prod._id}')">Editar</button>
@@ -221,7 +379,7 @@ window.saveProduct = async function() {
     const category = document.getElementById('productCategory').value;
 
     if (!name || !price || !category) {
-        alert('Complete todos los campos básicos');
+        showToast('Complete todos los campos básicos', 'error');
         return;
     }
 
@@ -230,8 +388,8 @@ window.saveProduct = async function() {
 
     const productPayload = {
         name,
-        price,
-        category,
+        basePrice: price, 
+        categoryId: category,
         description: 'Creado desde Kitchen OS'
     };
 
@@ -274,12 +432,12 @@ window.saveProduct = async function() {
             });
         }
 
-        alert('Producto guardado correctamente');
+        showToast('Producto guardado correctamente', 'success');
         closeModal();
         loadProducts();
 
     } catch (error) {
-        alert('Error al guardar: ' + error.message);
+        showToast('Error al guardar: ' + error.message, 'error');
         console.error(error);
     }
 }
@@ -289,6 +447,7 @@ window.addIngredient = function() {
     const quantity = parseFloat(document.getElementById('ingQuantity').value);
     
     if (!select.value || !quantity) {
+        showToast('Seleccione ingrediente y cantidad', 'error');
         return;
     }
 
@@ -342,5 +501,47 @@ window.onclick = function(event) {
     const rModal = document.getElementById('recipeModal');
     if (event.target == rModal) {
         closeModal();
+    }
+}
+
+window.enablePriceEdit = function(id, currentPrice) {
+    const cell = document.getElementById(`price-cell-${id}`);
+    if (!cell || cell.querySelector('input')) return;
+
+    cell.innerHTML = `
+        <input type="number" 
+               id="input-price-${id}" 
+               value="${currentPrice}" 
+               style="width: 80px;"
+               onblur="saveQuickPrice('${id}', this.value, ${currentPrice})"
+               onkeydown="if(event.key === 'Enter') this.blur()">
+    `;
+    setTimeout(() => document.getElementById(`input-price-${id}`).focus(), 50);
+}
+
+window.saveQuickPrice = async function(id, newPrice, oldPrice) {
+    const val = parseFloat(newPrice);
+    if (isNaN(val) || val === oldPrice) {
+        document.getElementById(`price-cell-${id}`).innerHTML = `$${parseFloat(oldPrice).toFixed(2)}`;
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/products/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ basePrice: val })
+        });
+        
+        if (res.ok) {
+            showToast('Precio actualizado', 'success');
+            loadProducts();
+        } else {
+            showToast('Error al actualizar precio', 'error');
+            loadProducts(); 
+        }
+    } catch (e) {
+        console.error(e);
+        showToast('Error de conexión', 'error');
     }
 }
