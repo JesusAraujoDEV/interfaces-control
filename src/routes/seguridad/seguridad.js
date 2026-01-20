@@ -16,6 +16,10 @@ const createSeguridadRouter = () => {
   });
   router.use(inyectarHelpers);
 
+  router.get("/", async (req, res) => {
+    res.render("seguridad/home");
+  });
+
   router.get("/login", async (req, res) => {
     res.render("seguridad/login");
   });

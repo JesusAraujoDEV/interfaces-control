@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Usuarios - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/public/css/seguridad/usuarios.css" />
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+  </head>
+  <body class="bg-gray-50">
+    <div class="contenedor-dashboard">
+      
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="contenido-principal w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6">
+        
+        <div class="max-w-2xl w-full text-center bg-white p-10 rounded-xl shadow-sm border border-gray-100">
+            <div class="mb-6">
+                <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-blue-600" style="color: #1e4d35;">
+                    <i class="fa-solid fa-user-shield text-5xl"></i>
+                </div>
+            </div>
+
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">Módulo de Seguridad</h1>
+            <p class="text-lg text-gray-500 mb-8 leading-relaxed">
+                Bienvenido al panel de administración de seguridad.
+            </p>
+
+            
+        </div>
+
+      </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    
+  </body>
+</html>

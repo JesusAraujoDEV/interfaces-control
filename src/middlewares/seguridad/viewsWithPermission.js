@@ -7,6 +7,9 @@ const viewsWithPermission = async (req, res, next) => {
   req
 
   switch (true) {
+
+    // Vistas de Seguridad
+
     case rutaSolicitada === "/seguridad/usuarios":
       resource = "UserManagement_view";
       break;
@@ -37,6 +40,25 @@ const viewsWithPermission = async (req, res, next) => {
     case rutaSolicitada === "/seguridad/restaurante/coordenadas":
       resource = "RestaurantCoordinates_view";
       break;
+
+    // Vistas de Delivery & Pickup
+
+    case rutaSolicitada === "/admin/dp":
+        resource = "DeliveryPickup_view";
+        break;
+    case rutaSolicitada === "/admin/dp/zones":
+        resource = "DeliveryPickup_view";
+        break;
+    case rutaSolicitada === "/admin/dp/orders":
+        resource = "DeliveryPickup_view";
+        break;
+    case rutaSolicitada === "/admin/dp/config":
+        resource = "DeliveryPickup_view";
+        break;
+    case rutaSolicitada === "/admin/dp/audit":
+        resource = "DeliveryPickup_view";
+        break;  
+
     default:
       return next();
   }
