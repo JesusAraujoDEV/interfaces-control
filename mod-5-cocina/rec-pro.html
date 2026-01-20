@@ -9,6 +9,93 @@
     <title>Catálogo de Recetas - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover { color: #000; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .recipe-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .recipe-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cost-display {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            text-align: right;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .btn-save-modal {
+            width: 100%;
+            padding: 12px;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn-save-modal:hover { opacity: 0.9; }
+    </style>
 </head>
 
 <body class="app-container">
@@ -23,8 +110,7 @@
         </div>
         <nav class="sidebar__nav">
             <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
-            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="utensils-crosses"></i> Recetas y
-                Productos</a>
+            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="utensils-crosses"></i> Recetas y Productos</a>
             <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
             <a href="#" class="sidebar__link"><i data-lucide="shopping-cart"></i> Pedidos</a>
         </nav>
@@ -37,105 +123,92 @@
         <main class="main-content main-content--with-aside">
             <header class="header">
                 <h1 class="header__title">Catálogo de Recetas y Productos</h1>
-                <button class="btn btn--primary"><i data-lucide="plus"></i> Añadir Nuevo Plato</button>
+                <button class="btn btn--primary" onclick="openModal()">
+                    <i data-lucide="plus"></i> Añadir Nuevo Plato
+                </button>
             </header>
 
             <section class="inventory-controls">
                 <div class="search-bar">
                     <i data-lucide="search" class="search-bar__icon"></i>
-                    <input type="text" class="search-bar__input"
-                        placeholder="Buscar por nombre de producto o categoría...">
+                    <input type="text" id="searchInput" class="search-bar__input" placeholder="Buscar por nombre...">
                 </div>
             </section>
 
             <div class="table-container">
-                <table class="table">
+                <table class="table" id="productTable">
                     <thead class="table__head">
                         <tr>
-                            <th style="width: 40px;"><input type="checkbox"></th>
                             <th>Nombre del Producto</th>
                             <th>Categoría</th>
                             <th>Precio</th>
-                            <th>Estado</th>
+                            <th>Costo</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="table__body">
-                        <tr class="table__row table__row--selected">
-                            <td><input type="checkbox" checked></td>
-                            <td>
-                                <div class="product-cell">
-                                    <img src="burger.jpg" alt="Burger" class="product-cell__img">
-                                    <strong>Charlotte Classic Burger</strong>
-                                </div>
-                            </td>
-                            <td>Hamburguesas</td>
-                            <td>$15.99</td>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" checked>
-                                    <span class="switch__slider"></span>
-                                </label>
-                            </td>
-                            <td>
-                                <div class="table__actions">
-                                    <button class="icon-btn-sm"><i data-lucide="pencil"></i></button>
-                                    <button class="icon-btn-sm"><i data-lucide="more-vertical"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody class="table__body" id="productTableBody">
                     </tbody>
                 </table>
-                <div class="pagination">
-                    <button class="pagination__btn"><i data-lucide="chevron-left"></i></button>
-                    <button class="pagination__btn pagination__btn--active">1</button>
-                    <button class="pagination__btn">2</button>
-                    <button class="pagination__btn">3</button>
-                    <span class="pagination__dots">...</span>
-                    <button class="pagination__btn">10</button>
-                    <button class="pagination__btn"><i data-lucide="chevron-right"></i></button>
-                </div>
             </div>
         </main>
-
-        <aside class="edit-panel">
-            <h2 class="edit-panel__title">Editando: Charlotte Classic Burger</h2>
-            <div class="edit-panel__image-container">
-                <img src="burger-large.jpg" alt="Burger" class="edit-panel__img">
-            </div>
-
-            <div class="edit-panel__section">
-                <div class="edit-panel__section-header">
-                    <h3>INGREDIENTES Y RECETA</h3>
-                    <button class="btn-text">+ Añadir</button>
-                </div>
-                <div class="ingredient-list">
-                    <div class="ingredient-item"><span>Pan Brioche</span> <strong>1 ud</strong></div>
-                    <div class="ingredient-item"><span>Carne de Ternera</span> <strong>0.2 kg</strong></div>
-                    <div class="ingredient-item"><span>Queso Cheddar</span> <strong>2 lonchas</strong></div>
-                </div>
-            </div>
-
-            <div class="edit-panel__section">
-                <h3>DISPONIBILIDAD</h3>
-                <label class="radio-card">
-                    <input type="radio" name="dispo" checked>
-                    <span class="radio-card__content">Todo (Restaurante y Domicilio)</span>
-                </label>
-                <label class="radio-card">
-                    <input type="radio" name="dispo">
-                    <span class="radio-card__content">Solo Domicilio</span>
-                </label>
-            </div>
-
-            <div class="edit-panel__actions">
-                <button class="btn btn--secondary">Cancelar</button>
-                <button class="btn btn--primary">Guardar Cambios</button>
-            </div>
-        </aside>
     </div>
 
-    <script>lucide.createIcons();</script>
-</body>
+    <div id="recipeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 style="margin-top:0;">Crear Nuevo Plato</h2>
+            
+            <div class="form-group">
+                <label>Nombre del Plato:</label>
+                <input type="text" id="productName" placeholder="Ej: Burger Clásica">
+            </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Categoría:</label>
+                    <select id="productCategory">
+                        <option value="plato_principal">Plato Principal</option>
+                        <option value="entrante">Entrante</option>
+                        <option value="bebida">Bebida</option>
+                        <option value="postre">Postre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Precio de Venta ($):</label>
+                    <input type="number" id="productPrice" step="0.01">
+                </div>
+            </div>
+
+            <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+
+            <h3>Composición (Receta)</h3>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Agregar Ingrediente:</label>
+                    <div style="display:flex; gap:10px;">
+                        <select id="ingredientSelect" style="flex:2;">
+                            <option value="">Cargando ingredientes...</option>
+                        </select>
+                        <input type="number" id="ingQuantity" placeholder="Cant." style="flex:1;">
+                        <button type="button" class="btn btn--primary" style="padding:0 15px;" onclick="addIngredient()">+</button>
+                    </div>
+                </div>
+
+                <ul id="recipeList" class="recipe-list">
+                </ul>
+
+                <div class="cost-display">
+                    Costo Total: $<span id="totalCost">0.00</span>
+                </div>
+            </div>
+
+            <button class="btn-save-modal" onclick="saveProduct()">GUARDAR PRODUCTO</button>
+        </div>
+    </div>
+
+    <script src="js/rec-pro.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
 </html>
