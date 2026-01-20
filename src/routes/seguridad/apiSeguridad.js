@@ -110,6 +110,37 @@ function createApiSeguridadRouter() {
     }
   });
 
+  router.post("/auth/passwordChange", async (req, res) => {
+      try {
+          const access_token = req.headers.authorization?.replace("Bearer ", "") || req.cookies.access_token;
+          const { current_password, new_password } = req.body;
+
+          if (!new_password || !/^[a-zA-Z0-9$@.*]{8,}$/.test(new_password)) {
+              return res.status(400).json({ success: false, message: " La contraseña debe tener al menos 8 caracteres y/o sólo contener letras, números y/o símbolos $ @ . * " });
+          }
+
+          const response = await fetch(`${URL_BASE_API_SEGURIDAD}/api/seguridad/auth/passwordChange`, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${access_token}`
+              },
+              body: JSON.stringify({ current_password, new_password })
+          });
+
+          const data = await response.json();
+
+      
+          return res.status(response.status).json(data);
+
+      } catch (error) {
+          console.error("Error en el bridge:", error);
+          if (!res.headersSent) {
+              return res.status(500).json({ success: false, message: "Error de comunicación con el servicio" });
+          }
+      }
+  });
+
   router.get("/roles", async (req, res) => {
     try {
       const { page = 1, limit = 12, search = "" } = req.query;
@@ -744,6 +775,120 @@ function createApiSeguridadRouter() {
       }
     } catch (error) {
       console.error("Error during role delete:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Error interno del servidor",
+      });
+    }
+  });
+
+  router.put("/perfil/editar", async (req, res) => {
+    try {
+      const access_token = req.cookies.access_token;
+      
+      if (!access_token) {
+        return res.status(401).json({
+          success: false,
+          message: "No se encontró el token de acceso",
+        });
+      }
+
+      // Decodificar el token para obtener el ID del usuario y guardar los datos
+      let userId;
+      let decodedToken;
+      try {
+        decodedToken = verifyToken(access_token);
+        userId = decodedToken.id || decodedToken.userId;
+        
+        if (!userId) {
+          return res.status(401).json({
+            success: false,
+            message: "Token inválido: no se pudo obtener el ID del usuario",
+          });
+        }
+      } catch (error) {
+        return res.status(401).json({
+          success: false,
+          message: "Token inválido o expirado",
+        });
+      }
+
+      // Obtener los datos del cuerpo de la petición
+      const { name, lastName, birthDate, dni, email, phone, address } = req.body;
+
+      // Construir el body para la API
+      const bodyData = {};
+      if (name !== undefined) bodyData.name = name;
+      if (lastName !== undefined) bodyData.lastName = lastName;
+      if (birthDate !== undefined) bodyData.birthDate = birthDate;
+      if (dni !== undefined) bodyData.dni = dni;
+      if (email !== undefined) bodyData.email = email;
+      if (phone !== undefined) bodyData.phone = phone;
+      if (address !== undefined) bodyData.address = address;
+
+      // Llamar al endpoint 6 de User (PATCH /api/seguridad/users/{id})
+      const response = await fetch(
+        `${URL_BASE_API_SEGURIDAD}/api/seguridad/users`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${access_token}`,
+          },
+          body: JSON.stringify(bodyData),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Retornar errores de validación
+        return res.status(response.status).json({
+          success: false,
+          message: data.message || "Error al actualizar el perfil",
+          errors: data.errors || [],
+        });
+      }
+
+      // Si la respuesta incluye un nuevo token, usarlo; si no, usar el mismo
+      const newToken = data.token || data.access_token || access_token;
+      
+      // Obtener los datos del usuario: primero de la respuesta, luego del token
+      let userData;
+      if (data.user) {
+        // Si la API retorna los datos del usuario directamente, usarlos
+        userData = data.user;
+      } else if (data.id) {
+        // Si la API retorna un objeto usuario con id, usarlo
+        userData = data;
+      } else {
+        // Si no, decodificar el token para obtener los datos
+        try {
+          userData = verifyToken(newToken);
+        } catch (error) {
+          console.error("Error decodificando nuevo token:", error);
+          // Como respaldo, usar los datos decodificados al inicio
+          userData = decodedToken;
+        }
+      }
+
+      // Establecer el nuevo token en la cookie
+      res.cookie("access_token", newToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
+      // Retornar el nuevo token y los datos del usuario
+      res.json({
+        success: true,
+        access_token: newToken,
+        user: userData,
+        message: "Perfil actualizado exitosamente",
+      });
+    } catch (error) {
+      console.error("Error durante la actualización del perfil:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Error interno del servidor",

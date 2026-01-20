@@ -34,7 +34,7 @@ const viewsWithPermission = async (req, res, next) => {
     case /^\/seguridad\/permisos\/[^/]+$/.test(rutaSolicitada):
       resource = "UserManagement_view";
       break;
-    case rutaSolicitada === "/restaurante/coordenadas":
+    case rutaSolicitada === "/seguridad/restaurante/coordenadas":
       resource = "RestaurantCoordinates_view";
       break;
     default:
