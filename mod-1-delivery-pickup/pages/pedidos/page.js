@@ -223,6 +223,7 @@ function mapOrderFromApi(o) {
     shippingCost:
       (o?.zone && (o.zone.shipping_cost ?? o.zone.shippingCost)) ??
       o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
+    notes: o?.notes ?? o?.note ?? null,
   };
 }
 
@@ -351,6 +352,10 @@ function renderOrders() {
       ? `<div class="mt-1 text-xs text-slate-500">Tel: <span class="font-semibold text-slate-700">${escapeHtml(o.customerPhone)}</span></div>`
       : '';
 
+    const notesLine = o.notes
+      ? `<div class="mt-1 text-xs text-slate-500"><span class="font-semibold text-slate-800">Nota:</span> ${escapeHtml(o.notes)}</div>`
+      : '';
+
     const openId = o.readableId || o.orderId || o.id;
     const idLabel = o.readableId || o.orderId || o.id;
     const createdIso = o.createdAt ? String(o.createdAt) : '';
@@ -382,6 +387,7 @@ function renderOrders() {
             ${addressLine}
             ${totalsLine}
             ${contactLine}
+            ${notesLine}
           </div>
 
           <div class="shrink-0 flex flex-col items-end gap-2">
