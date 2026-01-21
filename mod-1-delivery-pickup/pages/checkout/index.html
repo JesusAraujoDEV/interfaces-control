@@ -131,6 +131,31 @@
         </div>
       </div>
     </div>
+      <!-- Modal nota de pedido -->
+      <div id="notesModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="notesModalTitle">
+        <div id="notesBackdrop" class="absolute inset-0 bg-black/40"></div>
+        <div class="relative min-h-full flex items-end sm:items-center justify-center p-4" style="padding-bottom: calc(16px + env(safe-area-inset-bottom));">
+          <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+            <div class="p-5">
+              <div class="flex items-start justify-between gap-3">
+                <h2 id="notesModalTitle" class="text-lg font-extrabold text-gray-900">Agregar una nota al pedido (opcional)</h2>
+                <button id="notesModalClose" type="button" class="text-sm text-gray-600 hover:text-gray-900">Cerrar</button>
+              </div>
+
+              <div class="mt-4">
+                <label for="orderNote" class="block text-sm font-medium mb-2">Nota para cocina</label>
+                <textarea id="orderNote" rows="3" placeholder="Ej. Sin pepinillos, salsa aparte..." class="w-full rounded-md border border-gray-300 p-3 bg-white placeholder-gray-400"></textarea>
+                <p class="mt-2 text-xs text-gray-500">Esta nota será visible en la cocina para personalizar tu pedido.</p>
+              </div>
+
+              <div class="mt-6 flex items-center justify-end gap-3">
+                <button id="notesCancel" type="button" class="px-4 py-2 rounded-md bg-white border border-gray-200">Cancelar</button>
+                <button id="notesConfirm" type="button" class="px-4 py-2 rounded-md bg-brand-800 text-white">Agregar nota y continuar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     <script type="module" src="../../../shared/components/app-header.js"></script>
     <script type="module" src="./page.js"></script>
   </body>
