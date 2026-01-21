@@ -1,16 +1,15 @@
-import getdata from './api.js';
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+const getdata = require('./api.js');
+const { BrowserRouter } = require('react-router-dom');
+const React = require('react')
+const ReactDOMServer = require('react')
 
-import StaffMetricsPage from './components/StaffMetrics.jsx';
-import StaffRanking from './components/StaffRanking.jsx';
-import TrafficLight from './components/TrafficLight.jsx';
 
-import { Router } from 'express';
-import { join } from 'path';
+const { Router, static } = require('express');
+const { join } = require('path');
 
 const router = Router()
 
-router.use(express.static(join(__dirname, 'public')));
+router.use(static(join(__dirname, 'public')));
 
 router.get('/kpis/dashboard', (req, res) => {
     console.log(__dirname);
@@ -22,7 +21,7 @@ router.get('/kpis/bussines-intelligence', (req, res) => {
 });
 
 router.get('/kpis/operational-efficent', (req, res) => {
-    res.sendFile(join(__dirname, 'public' ,'eficiencia-operacional.html'));
+    res.sendFile(join(__dirname, 'components' ,'TrafficLight.html'));
 });
 
 router.get('/kpis/inventory', (req, res) => {
@@ -41,20 +40,5 @@ router.get('/test-connection', async (req, res) => {
     }
 });
 
-ReactDOM.render(
-  <React.StrictMode>
-    <Router>
-      <Routes>
-        <Route path="/operations/staff-ranking" element={<StaffRanking />} />
-        <Route path="/operations/sla-breakdown" element={<TrafficLight />} />
-        <Route path="/operations/staff-metrics/:waiter_id" element={<StaffMetricsPage />} />
-        {/* Ruta para páginas no encontradas (404) */}
-        <Route path="*" element={<div>Página no encontrada</div>} />
-      </Routes>
-    </Router>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
-
-export default router
+module.exports = router
 

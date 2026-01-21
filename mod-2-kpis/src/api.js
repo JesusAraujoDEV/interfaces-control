@@ -1,7 +1,7 @@
-import { create } from "axios";
+const { create } = require("axios");
 
 const api = create({
-    baseURL: "https://charlotte-indicadores-kpi.onrender.com/api/v1",
+    baseURL: "http://localhost:3000/api/v1/kpi",
     headers: {
         "Content-Type": "application/json",
     },
@@ -17,4 +17,4 @@ const getdata = async (endpoint) => {
     }
 };
 
-export default getdata;
+module.exports = getdata;
