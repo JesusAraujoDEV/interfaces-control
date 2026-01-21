@@ -23,6 +23,13 @@ router.get('/kpis/bussines-intelligence', (req, res) => {
 router.get('/kpis/operational-efficent', (req, res) => {
     res.sendFile(join(__dirname, 'components' ,'TrafficLight.html'));
 });
+router.get('/kpis/staff', (req, res) => {
+    res.sendFile(join(__dirname, 'components' ,'StaffRanking.html'));
+});
+
+router.get('/kpis/inventory', (req, res) => {
+    res.sendFile(join(__dirname, 'components' ,'InventoryView.html'));
+});
 
 router.get('/kpis/inventory', (req, res) => {
     res.sendFile(join(__dirname, 'public' ,'inventario.html'));

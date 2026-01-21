@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking de Meseros - Cafetería</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos adicionales si es necesario */
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            background-color: #3b82f6; /* Azul Tailwind */
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .active {
+            background-color: #10b981; /* Verde */
+            color: white;
+        }
+        .rest {
+            background-color: #f59e0b; /* Amarillo */
+            color: white;
+        }
+        /* Estilos para turnos */
+        .morning {
+            background-color: #fef3c7; /* Fondo amarillo claro para mañana */
+        }
+        .afternoon {
+            background-color: #1f2937; /* Fondo gris oscuro para tarde */
+            color: white; /* Texto blanco para contraste */
+        }
+        .afternoon .bg-white {
+            background-color: #374151; /* Ajustar filas para tarde */
+        }
+        .afternoon .bg-gray-50 {
+            background-color: #4b5563;
+        }
+        .afternoon .bg-gray-200 {
+            background-color: #6b7280;
+        }
+        .afternoon .avatar-circle {
+            background-color: #60a5fa; /* Azul más claro para tarde */
+        }
+        .afternoon .active {
+            background-color: #34d399; /* Verde más claro */
+        }
+        .afternoon .rest {
+            background-color: #fbbf24; /* Amarillo más claro */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4" id="body">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Ranking de Meseros</h1>
+        <div id="shift-indicator" class="mb-4 text-center font-semibold"></div>
+        <table id="ranking-table" class="w-full table-auto border-collapse">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="px-4 py-2 text-left">Avatar</th>
+                    <th class="px-4 py-2 text-left">Nombre</th>
+                    <th class="px-4 py-2 text-left">Pedidos Totales</th>
+                    <th class="px-4 py-2 text-left">Tiempo Promedio</th>
+                    <th class="px-4 py-2 text-left">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="ranking-body">
+                <!-- Las filas se agregarán aquí dinámicamente -->
+            </tbody>
+        </table>
+        <div id="pagination" class="mt-4 flex justify-center">
+            <!-- Botones de paginación se agregarán aquí -->
+        </div>
+    </div>
+
+    <script>
+        // Función para obtener iniciales del nombre
+        function getInitials(name) {
+            return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
+        }
+
+        // Función para mapear estado
+        function mapStatus(status) {
+            return status === 'ACTIVE' ? 'Activo' : 'Descanso';
+        }
+
+        // Función para obtener clase del badge
+        function getStatusClass(status) {
+            return status === 'Activo' ? 'active' : 'rest';
+        }
+
+        // Función para determinar el turno actual
+        function getCurrentShift() {
+            const now = new Date();
+            const hour = now.getHours();
+            if (hour >= 6 && hour < 12) {
+                return 'morning';
+            } else if (hour >= 12 && hour < 18) {
+                return 'afternoon';
+            } else {
+                return 'morning'; // Por defecto mañana fuera de turnos
+            }
+        }
+
+        // Función para aplicar el tema del turno
+        function applyShiftTheme(shift) {
+            const body = document.getElementById('body');
+            const indicator = document.getElementById('shift-indicator');
+            body.className = `p-4 ${shift}`;
+            indicator.textContent = shift === 'morning' ? 'Turno de Mañana' : 'Turno de Tarde';
+        }
+
+        // Función para detectar cambio de turno y recargar
+        let currentShift = getCurrentShift();
+        applyShiftTheme(currentShift);
+
+        setInterval(() => {
+            const newShift = getCurrentShift();
+            if (newShift !== currentShift) {
+                currentShift = newShift;
+                applyShiftTheme(currentShift);
+                // Recargar la página automáticamente al cambiar de turno
+                window.location.reload();
+            }
+        }, 60000); // Chequear cada minuto
+
+        // Función para cargar datos de la API
+        async function loadRanking(sort_by="EFFICIENCY", page = 1, limit = 10) {
+            try {
+                // Reemplaza con la URL real de tu API
+                const response = await fetch(`http://localhost:3000/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}&page=${page}&limit=${limit}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const { data, meta } = result;
+                    populateTable(data);
+                    setupPagination(meta);
+                } else {
+                    console.error('Error en la respuesta de la API');
+                }
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+            }
+        }
+
+        // Función para poblar la tabla
+        function populateTable(ranking) {
+            const tbody = document.getElementById('ranking-body');
+            tbody.innerHTML = ''; // Limpiar contenido anterior
+
+            ranking.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50'; // Zebra striping
+
+                const avatarCell = document.createElement('td');
+                avatarCell.className = 'px-4 py-2';
+                const avatar = document.createElement('div');
+                avatar.className = 'avatar-circle';
+                avatar.textContent = getInitials(item.name);
+                avatarCell.appendChild(avatar);
+
+                const nameCell = document.createElement('td');
+                nameCell.className = 'px-4 py-2';
+                nameCell.textContent = item.name;
+
+                const ordersCell = document.createElement('td');
+                ordersCell.className = 'px-4 py-2';
+                ordersCell.textContent = item.total_orders;
+
+                const timeCell = document.createElement('td');
+                timeCell.className = 'px-4 py-2';
+                timeCell.textContent = `${item.avg_time_minutes} min`;
+
+                const statusCell = document.createElement('td');
+                statusCell.className = 'px-4 py-2';
+                const badge = document.createElement('span');
+                badge.className = `status-badge ${getStatusClass(mapStatus(item.current_status))}`;
+                badge.textContent = mapStatus(item.current_status);
+                statusCell.appendChild(badge);
+
+                row.appendChild(avatarCell);
+                row.appendChild(nameCell);
+                row.appendChild(ordersCell);
+                row.appendChild(timeCell);
+                row.appendChild(statusCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Función para configurar paginación
+        function setupPagination(meta) {
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.innerHTML = ''; // Limpiar
+
+            const totalPages = Math.ceil(meta.total_items / meta.per_page);
+            const currentPage = meta.current_page;
+
+            // Botón anterior
+            if (currentPage > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'px-4 py-2 bg-blue-500 text-white rounded mr-2';
+                prevBtn.textContent = 'Anterior';
+                prevBtn.onclick = () => loadRanking(currentPage - 1, meta.per_page);
+                paginationDiv.appendChild(prevBtn);
+            }
+
+            // Botón siguiente
+            if (currentPage < totalPages) {
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'px-4 py-2 bg-blue-500 text-white rounded';
+                nextBtn.onclick = () => loadRanking(currentPage + 1, meta.per_page);
+                paginationDiv.appendChild(nextBtn);
+            }
+        }
+
+        // Cargar datos iniciales al cargar la página
+        window.onload = () => loadRanking();
+    </script>
+</body>
+</html>
