@@ -481,7 +481,7 @@
         };
 
         window.openQrModal = (num, uuid) => {
-            const url = `${window.location.origin}/scan.html?uuid=${uuid}`; 
+            const url = `${window.location.origin}/mod-3-atencion-cliente/pages/login/scan.html?uuid=${uuid}`; 
             document.getElementById('qr-table-num').textContent = `#${num}`;
             document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
             document.getElementById('qr-test-link').href = url;
@@ -523,9 +523,9 @@
             
             return `
                 <tr class="${rowClass} transition-colors">
-                    <td class="p-4 font-bold text-gray-800">Mesa ${client.tableId}</td>
+                    <td class="p-4 font-bold text-gray-800">Mesa ${client.table.tableNumber}</td>
                     <td class="p-4 text-sm">
-                        <div class="font-medium">${client.name || 'Invitado'}</div>
+                        <div class="font-medium">${client.customerName || 'Invitado'}</div>
                         <div class="text-xs text-gray-500">ID: ${client.id}</div>
                     </td>
                     <td class="p-4 text-sm text-gray-600">${timeString}</td>

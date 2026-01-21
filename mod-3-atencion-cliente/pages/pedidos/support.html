@@ -26,7 +26,7 @@
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
 
     <header class="md:hidden p-4 text-center bg-white sticky top-0 z-20 shadow-sm">
-        <h1 class="text-xl font-bold text-gray-900">Help & Service</h1>
+        <h1 class="text-xl font-bold text-gray-900">Ayuda y Servicio</h1>
     </header>
 
     <header class="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-30">
@@ -47,32 +47,32 @@
                 <span class="material-icons-outlined text-6xl text-orange-500">room_service</span>
             </div>
 
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">How can we help?</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">¿Cómo podemos ayudarte?</h2>
             
             <p class="text-gray-500 text-sm md:text-base leading-relaxed mb-8 max-w-xs mx-auto">
-                Our team is ready to assist you. Whether you need a refill, napkins, or have a question about the menu.
+                Nuestro equipo está listo para asistirte. Ya sea que necesites un refill, servilletas, o tengas una pregunta sobre el menú.
             </p>
 
             <div class="w-full space-y-4">
                 <button id="callWaiterBtn" onclick="callWaiter()" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] flex items-center justify-center gap-2">
                     <span class="material-icons-outlined">notifications_active</span>
-                    Call Waiter
+                    Llamar al Mesero
                 </button>
 
                 <button onclick="openReport()" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold py-4 rounded-xl border border-gray-200 transition flex items-center justify-center gap-2">
                     <span class="material-icons-outlined text-gray-500">report_problem</span>
-                    Report an Issue
+                    Reportar un Problema
                 </button>
             </div>
         </div>
 
         <div class="w-full max-w-md mx-auto md:mx-0">
-            <h3 class="text-lg font-bold text-gray-900 mb-4 px-2">Recent Requests</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-4 px-2">Solicitudes Recientes</h3>
             
             <div id="requestsList" class="space-y-3">
                 <div class="text-center py-10 text-gray-400 bg-white rounded-2xl border border-gray-100">
                     <span class="material-icons-outlined text-4xl mb-2 opacity-50">history</span>
-                    <p class="text-sm">No active requests yet.</p>
+                    <p class="text-sm">No hay solicitudes activas aún.</p>
                 </div>
             </div>
         </div>
@@ -84,25 +84,25 @@
             <button onclick="closeReport()" class="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
                 <span class="material-icons-outlined text-2xl">arrow_back</span>
             </button>
-            <h1 class="text-xl font-bold text-gray-900 ml-2">Report an Issue</h1>
+            <h1 class="text-xl font-bold text-gray-900 ml-2">Reportar un Problema</h1>
         </div>
         <div class="flex-grow p-6 max-w-md mx-auto w-full">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Select Issue</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Selecciona un Problema</h2>
             <div class="grid grid-cols-2 gap-3 mb-8" id="issueGrid">
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Food Quality">Food Quality</button>
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Cleanliness">Cleanliness</button>
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Utensils">Utensils</button>
-                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Other">Other</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Food Quality">Calidad de la Comida</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Cleanliness">Limpieza</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Utensils">Utensilios</button>
+                <button onclick="selectChip(this)" class="issue-chip py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium bg-white hover:bg-gray-50 transition text-sm" data-issue="Other">Otro</button>
             </div>
             <form onsubmit="submitReport(event)" class="space-y-6">
                 <input type="hidden" id="selectedIssue" value="">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Details</label>
-                    <textarea id="issueDetails" class="w-full h-40 p-4 bg-white rounded-2xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-green-100 outline-none resize-none transition text-gray-700 placeholder-gray-400" placeholder="Please describe the issue..." required></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Detalles</label>
+                    <textarea id="issueDetails" class="w-full h-40 p-4 bg-white rounded-2xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-green-100 outline-none resize-none transition text-gray-700 placeholder-gray-400" placeholder="Por favor describe el problema..." required></textarea>
                 </div>
                 <button type="submit" id="submitReportBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-[0.98] flex items-center justify-center gap-2">
                     <span class="material-icons-outlined">send</span>
-                    Send Report
+                    Enviar Reporte
                 </button>
             </form>
         </div>
@@ -200,7 +200,7 @@
                     
                     ${isPending ? `
                         <button onclick="cancelRequest('${request.id}')" class="text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition">
-                            Cancel
+                            Cancelar
                         </button>
                     ` : ''}
                 </div>
@@ -216,7 +216,7 @@
                 listContainer.innerHTML = `
                     <div class="text-center py-10 text-gray-400 bg-white rounded-2xl border border-gray-100">
                         <span class="material-icons-outlined text-4xl mb-2 opacity-50">history</span>
-                        <p class="text-sm">No active requests yet.</p>
+                        <p class="text-sm">No hay solicitudes activas aún.</p>
                     </div>`;
                 return;
             }
@@ -246,15 +246,15 @@
 
         // 4. Función para cancelar
         async function cancelRequest(id) {
-            if(!confirm("Are you sure you want to cancel this request?")) return;
+            if(!confirm("¿Estás seguro de que deseas cancelar esta solicitud?")) return;
 
             try {
                 await window.ClientApi.cancelServiceRequest(id);
-                showToast("Request cancelled successfully");
+                showToast("Solicitud cancelada", "success");
                 loadRequestHistory(); // Recargar lista
             } catch (error) {
                 console.error(error);
-                showToast("Failed to cancel request", "error");
+                showToast("Error al cancelar la solicitud", "error");
             }
         }
 
@@ -266,7 +266,7 @@
             
             try {
                 btn.disabled = true;
-                btn.innerHTML = `<span class="material-icons-outlined animate-spin">refresh</span> Calling...`;
+                btn.innerHTML = `<span class="material-icons-outlined animate-spin">refresh</span> Llamando...`;
                 btn.classList.add('opacity-70', 'cursor-not-allowed');
                 
                 const response = await window.ClientApi.sendServiceRequest("CALL_WAITER", "Customer needs assistance.");
@@ -276,7 +276,7 @@
                     saveRequestIdLocally(response.data.id);
                 }
 
-                showToast('✅ Waiter has been notified!', 'success');
+                showToast('✅ ¡Camarero notificado!', 'success');
                 playNotificationSound();
                 
             } catch (error) {
@@ -300,7 +300,7 @@
             
             try {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = `<span class="material-icons-outlined animate-spin">refresh</span> Sending...`;
+                submitBtn.innerHTML = `<span class="material-icons-outlined animate-spin">refresh</span> Enviando...`;
                 
                 const fullMessage = `[${selectedIssue}] ${details}`;
                 const response = await window.ClientApi.sendServiceRequest("COMPLAINT", fullMessage);
@@ -312,7 +312,7 @@
 
                 closeReport();
                 setTimeout(() => {
-                    showToast('📤 Report sent successfully.', 'success');
+                    showToast('📤 Reporte enviado con éxito.', 'success');
                     playNotificationSound();
                 }, 300);
                 

@@ -36,7 +36,7 @@
         <button onclick="history.back()" class="p-2 -ml-2 mr-2 text-gray-600">
             <span class="material-icons-outlined">arrow_back</span>
         </button>
-        <h1 class="text-xl font-bold text-gray-900 flex-1 text-center">My Order</h1>
+        <h1 class="text-xl font-bold text-gray-900 flex-1 text-center">Mi Orden</h1>
         <div class="w-8"></div>
     </header>
 
@@ -51,7 +51,7 @@
 
     <main class="flex-grow container mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-10">
         
-        <h1 class="hidden md:block text-3xl font-bold text-gray-900 mb-8">Order Management</h1>
+        <h1 class="hidden md:block text-3xl font-bold text-gray-900 mb-8">Gestión de Pedidos</h1>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
@@ -60,9 +60,9 @@
                     <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                         <h2 class="font-bold text-gray-800 flex items-center gap-2">
                             <span class="material-icons-outlined text-primary">shopping_cart</span>
-                            New Items (Unsent)
+                            Nuevos Ítems (No enviados)
                         </h2>
-                        <button onclick="clearCart()" id="btn-clear" class="text-xs text-red-500 font-medium hover:underline hidden">Clear All</button>
+                        <button onclick="clearCart()" id="btn-clear" class="text-xs text-red-500 font-medium hover:underline hidden">Limpiar Todo</button>
                     </div>
                     
                     <div id="cart-items-container" class="p-4 space-y-4 min-h-[150px]">
@@ -73,15 +73,15 @@
 
                     <div id="cart-footer" class="bg-gray-50 p-6 border-t border-gray-100">
                         <div class="flex justify-between items-end mb-4">
-                            <span class="text-gray-600">Total for new items:</span>
+                            <span class="text-gray-600">Total para nuevos ítems:</span>
                             <span class="text-2xl font-bold text-gray-900" id="summary-total">$0.00</span>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <a href="menu.html" class="flex items-center justify-center gap-2 w-full bg-white hover:bg-gray-50 text-gray-700 font-bold py-3 rounded-xl border border-gray-200 transition">
-                                <span class="material-icons-outlined text-sm">add</span> Add More
+                                <span class="material-icons-outlined text-sm">add</span> Añadir Más
                             </a>
                             <button onclick="openConfirmation()" id="btn-checkout" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-3 rounded-xl shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                Send to Kitchen
+                                Enviar a Cocina
                             </button>
                         </div>
                     </div>
@@ -93,24 +93,24 @@
                     <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                         <h3 class="font-bold text-gray-900 flex items-center gap-2">
                             <span class="material-icons-outlined text-gray-500">receipt_long</span>
-                            Order History
+                            Historial de Órdenes
                         </h3>
-                        <button onclick="updateOrdersStatus()" class="text-primary hover:bg-green-50 p-1 rounded-full transition" title="Refresh Status">
+                        <button onclick="updateOrdersStatus()" class="text-primary hover:bg-green-50 p-1 rounded-full transition" title="Actualizar Órdenes">
                             <span class="material-icons-outlined text-sm">refresh</span>
                         </button>
                     </div>
 
                     <div id="orders-history-container" class="p-4 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-                        <p class="text-center text-gray-400 text-sm py-4">No orders sent yet.</p>
+                        <p class="text-center text-gray-400 text-sm py-4">No órdenes enviadas aún.</p>
                     </div>
 
                     <div class="p-4 border-t border-gray-100 bg-gray-50">
                         <button id="btn-request-bill" onclick="requestBill()" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl shadow-md flex justify-center items-center gap-2 hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <span class="material-icons-outlined text-sm">payments</span>
-                            Request Bill & Pay
+                            Solicitar Cuenta y Pagar
                         </button>
                         <p id="bill-hint" class="text-xs text-center text-red-400 mt-2 hidden">
-                            Wait until all orders are delivered.
+                            Espera hasta que todas las órdenes sean entregadas.
                         </p>
                     </div>
                 </div>
@@ -126,13 +126,13 @@
                 <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span class="material-icons-outlined text-3xl text-primary">restaurant</span>
                 </div>
-                <h2 class="text-xl font-bold text-gray-900 mb-2">Send order to kitchen?</h2>
+                <h2 class="text-xl font-bold text-gray-900 mb-2">¿Enviar orden a la cocina?</h2>
                 <div class="space-y-3 mt-6">
                     <button id="btn-confirm-send" onclick="sendOrderToKitchen()" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-3.5 rounded-xl shadow-md transition">
-                        Yes, Send Order
+                        Sí, Enviar Orden
                     </button>
                     <button onclick="closeConfirmation()" class="w-full bg-white text-gray-700 font-bold py-3.5 rounded-xl border border-gray-200 transition">
-                        Cancel
+                        Cancelar
                     </button>
                 </div>
             </div>
@@ -146,14 +146,14 @@
                 <span class="material-icons-outlined text-4xl text-gray-600">storefront</span>
             </div>
 
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Payment in Progress</h2>
-            <p class="text-gray-500 mb-8">Please proceed to the counter to complete your payment.</p>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Pago en Progreso</h2>
+            <p class="text-gray-500 mb-8">Por favor, dirígete a la caja para completar tu pago.</p>
 
             <div class="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden">
                 <div id="payment-progress-bar" class="h-full bg-primary rounded-full w-0"></div>
             </div>
             
-            <p class="text-xs text-gray-400 font-medium">Validating payment status...</p>
+            <p class="text-xs text-gray-400 font-medium">Validando el estado del pago...</p>
         </div>
     </div>
 
@@ -225,9 +225,9 @@
                             <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
                             <span class="font-bold text-gray-900 text-sm">$${itemTotal.toFixed(2)}</span>
                         </div>
-                        <p class="text-xs text-gray-500 line-clamp-1">${item.notes || 'No special instructions'}</p>
+                        <p class="text-xs text-gray-500 line-clamp-1">${item.notes || 'No instrucciones especiales'}</p>
                         <div class="flex justify-between items-center mt-2">
-                            <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-wide">Remove</button>
+                            <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-wide">Eliminar</button>
                             <div class="flex items-center bg-gray-100 rounded-lg h-7">
                                 <button onclick="updateQuantity(${index}, -1)" class="w-7 flex items-center justify-center text-gray-500 hover:text-primary">-</button>
                                 <span class="text-xs font-bold w-4 text-center">${item.quantity}</span>
@@ -306,7 +306,7 @@
 
             if (!hasOrders) {
                 container.innerHTML = `<div class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p class="text-gray-400 text-sm">No orders sent to kitchen yet.</p>
+                    <p class="text-gray-400 text-sm">No hay órdenes enviadas a la cocina aún.</p>
                 </div>`;
                 return;
             }
@@ -330,7 +330,7 @@
                 <div class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm relative transition-all ${isCancelled ? 'opacity-60 grayscale-[0.5]' : ''}">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Order #${order.id.substring(0,6)}</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Orden #${order.id.substring(0,6)}</span>
                             <div class="flex items-center gap-1 mt-0.5">
                                 <span class="text-xs text-gray-500">${time}</span>
                             </div>
@@ -350,7 +350,7 @@
                     </div>
                     ${isPending ? `
                         <button onclick="cancelOrder('${order.id}')" class="w-full mt-1 py-1.5 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
-                            <span class="material-icons-outlined text-sm">close</span> Cancel Order
+                            <span class="material-icons-outlined text-sm">close</span> Cancelar Orden
                         </button>
                     ` : ''}
                 </div>`;
@@ -477,7 +477,7 @@
                     special_instructions: item.notes || ""
                 }))
             };
-            btn.innerHTML = `<span class="material-icons-outlined animate-spin mr-2">refresh</span> Sending...`;
+            btn.innerHTML = `<span class="material-icons-outlined animate-spin mr-2">refresh</span> Enviando...`;
             btn.disabled = true;
 
             try {
@@ -492,7 +492,7 @@
                 saveActiveOrders();
                 cart = []; saveCart(); loadCart(); renderCart(); renderActiveOrders(); 
                 closeConfirmation();
-                showToast('Order sent to kitchen!', 'success');
+                showToast('¡Orden enviada a la cocina!', 'success');
             } catch (error) {
                 console.error(error);
                 showToast('Error: ' + error.message, 'error');
@@ -503,7 +503,7 @@
         }
 
         async function cancelOrder(orderId) {
-            if(!confirm('Are you sure you want to cancel?')) return;
+            if(!confirm('¿Estás seguro de que deseas cancelar?')) return;
             try {
                 const response = await window.ClientApi.cancelOrder(orderId);
                 if (response.success) {
@@ -512,11 +512,11 @@
                         activeOrders[index].status = 'CANCELLED';
                         saveActiveOrders();
                         renderActiveOrders();
-                        showToast('Order cancelled', 'success');
+                        showToast('Orden cancelada', 'success');
                     }
                 } 
             } catch (error) {
-                showToast('Could not cancel', 'error');
+                showToast('No se pudo cancelar', 'error');
                 updateOrdersStatus(); 
             }
         }
@@ -538,7 +538,7 @@
                         if (serverStatus !== order.status) {
                             order.status = serverStatus;
                             changesDetected = true;
-                            if(serverStatus === 'DELIVERED') showToast(`Order delivered!`, 'success');
+                            if(serverStatus === 'DELIVERED') showToast(`¡Orden entregada!`, 'success');
                         }
                     }
                 } catch (e) { console.warn("Polling error", e); }
