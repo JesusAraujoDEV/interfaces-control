@@ -463,3 +463,55 @@ body {
 .btn-outline:hover {
     background: var(--bg-light);
 }
+
+.avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            background-color: #3b82f6; /* Azul Tailwind */
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .active {
+            background-color: #10b981; /* Verde */
+            color: white;
+        }
+        .rest {
+            background-color: #f59e0b; /* Amarillo */
+            color: white;
+        }
+        /* Estilos para turnos */
+        .morning {
+            background-color: #fef3c7; /* Fondo amarillo claro para mañana */
+        }
+        .afternoon {
+            background-color: #1f2937; /* Fondo gris oscuro para tarde */
+            color: white; /* Texto blanco para contraste */
+        }
+        .afternoon .bg-white {
+            background-color: #374151; /* Ajustar filas para tarde */
+        }
+        .afternoon .bg-gray-50 {
+            background-color: #4b5563;
+        }
+        .afternoon .bg-gray-200 {
+            background-color: #6b7280;
+        }
+        .afternoon .avatar-circle {
+            background-color: #60a5fa; /* Azul más claro para tarde */
+        }
+        .afternoon .active {
+            background-color: #34d399; /* Verde más claro */
+        }
+        .afternoon .rest {
+            background-color: #fbbf24; /* Amarillo más claro */
+        }

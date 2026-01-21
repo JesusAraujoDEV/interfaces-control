@@ -1,8 +1,4 @@
 const getdata = require('./api.js');
-const { BrowserRouter } = require('react-router-dom');
-const React = require('react')
-const ReactDOMServer = require('react')
-
 
 const { Router, static } = require('express');
 const { join } = require('path');
@@ -21,14 +17,7 @@ router.get('/kpis/bussines-intelligence', (req, res) => {
 });
 
 router.get('/kpis/operational-efficent', (req, res) => {
-    res.sendFile(join(__dirname, 'components' ,'TrafficLight.html'));
-});
-router.get('/kpis/staff', (req, res) => {
-    res.sendFile(join(__dirname, 'components' ,'StaffRanking.html'));
-});
-
-router.get('/kpis/inventory', (req, res) => {
-    res.sendFile(join(__dirname, 'components' ,'InventoryView.html'));
+    res.sendFile(join(__dirname, 'public' ,'eficiencia-operacional.html'));
 });
 
 router.get('/kpis/inventory', (req, res) => {
