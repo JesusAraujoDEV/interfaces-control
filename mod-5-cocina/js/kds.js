@@ -57,19 +57,6 @@ function renderizarTareas(tareas) {
     lucide.createIcons();
 }
 
-function renderBotonAccion(tarea) {
-    if (tarea.status === 'PENDING') {
-        return `<button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'COOKING')">EMPEZAR</button>`;
-    }
-    if (tarea.status === 'COOKING') {
-        return `<button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'READY')">LISTO</button>`;
-    }
-    if (tarea.status === 'READY') {
-        return `<button class="btn btn--success btn--full" onclick="marcarServido('${tarea.id}')"><i data-lucide="check-circle"></i> RECOGIDO</button>`;
-    }
-    return '';
-}
-
 async function actualizarEstado(taskId, newStatus) {
     try {
     await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
@@ -141,7 +128,7 @@ async function confirmarRechazo(taskId) {
     if (!ok) return;
 
     try {
-    const response = await fetch(`${KITCHEN_URL}/kitchen/kds/${taskId}/reject`, {
+    const response = await fetch(`${KITCHEN_URL}/kds/${taskId}/reject`, {
         method: 'POST',
         headers: getCommonHeaders(),
         body: JSON.stringify({ reason: 'Rejected by kitchen' })
@@ -163,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function syncKDS() {
     try {
-        const response = await fetch(`${KITCHEN_URL}/kitchen/kds/queue`, {
+        const response = await fetch(`${KITCHEN_URL}/kds/queue`, {
         headers: getCommonHeaders()
     });
     const serverTasks = await response.json();
@@ -174,38 +161,6 @@ async function syncKDS() {
     console.error('Error en sync KDS:', error);
     }
 }
-
-function renderizarTareas(tareas) {
-
-    tareas.forEach(tarea => {
-        const card = document.createElement('article');
-        card.className = 'order-card';
-        card.setAttribute('data-id', tarea.id);
-        card.setAttribute('data-created', tarea.createdAt);
-
-        card.innerHTML = `
-        <div class="order-card__header">
-            <div class="order-card__meta">
-                <span class="order-card__id">${tarea.displayLabel || tarea.externalOrderId}</span>
-                <span class="order-card__timer js-timer">—</span>
-            </div>
-                <span class="order-type order-type--${tarea.serviceMode.toLowerCase()}">
-            ${tarea.serviceMode === 'DINE_IN' ? '<i data-lucide="utensils"></i> En Restaurante' : '<i data-lucide="shopping-bag"></i> Para Llevar'}
-        </span>
-        </div>
-        <ul class="order-card__items">
-            <li><strong>${tarea.quantity}x</strong> ${tarea.product?.name || 'Producto'}</li>
-        </ul>
-        ${renderBotonAccion(tarea)}
-    `;
-    });
-
-    lucide.createIcons();
-    actualizarTimers();
-}
-
-const TIMER_MS = 60_000;
-setInterval(actualizarTimers, TIMER_MS);
 
 function actualizarTimers() {
     const cards = document.querySelectorAll('.order-card');

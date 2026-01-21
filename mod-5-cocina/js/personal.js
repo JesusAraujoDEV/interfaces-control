@@ -1,16 +1,29 @@
 async function cargarStaff() {
     try {
-        const response = await fetch(`${KITCHEN_URL}/kitchen/staff/active`, {
-        headers: getCommonHeaders()
+        const response = await fetch(`${KITCHEN_URL}/staff/active`, {
+            headers: getCommonHeaders()
     });
-    const staff = await response.json();
-    renderizarStaff(staff);
+        const data = await response.json();
+        console.log('Respuesta staff:', data);
+
+        if (Array.isArray(data)) {
+            renderizarStaff(data);
+        } else if (Array.isArray(data.staff)) {
+            renderizarStaff(data.staff);
+        } else {
+        console.error('Respuesta inesperada del backend:', data);
+        }
     } catch (error) {
-    console.error('Error al cargar staff:', error);
+        console.error('Error al cargar staff:', error);
     }
 }
 
-function renderizarStaff(staff) {
+function renderizarStaff(staff = []) {
+    if (!Array.isArray(staff)) {
+        console.error('La respuesta no es un array:', staff);
+        return;
+    }
+
     const staffList = document.querySelector('.staff-list');
     staffList.innerHTML = '';
 

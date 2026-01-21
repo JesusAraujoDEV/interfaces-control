@@ -1,6 +1,6 @@
 async function cargarDespacho() {
     try {
-    const response = await fetch(`${KITCHEN_URL}/kitchen/kds/queue`, {
+    const response = await fetch(`${KITCHEN_URL}/kds/queue`, {
         headers: getCommonHeaders()
     });
     const tareas = await response.json();
@@ -45,7 +45,7 @@ function renderizarDespacho(ordenes) {
 
 async function marcarEntregado(taskId) {
     try {
-    await fetch(`${KITCHEN_URL}/kitchen/kds/${taskId}/served`, {
+    await fetch(`${KITCHEN_URL}/kds/${taskId}/served`, {
         method: 'PATCH',
         headers: getCommonHeaders(),
         body: JSON.stringify({ staff_id: localStorage.getItem('staff_id') })
