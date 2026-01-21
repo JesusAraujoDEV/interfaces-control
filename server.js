@@ -85,6 +85,11 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "shared", "admin-home", "index.html"));
 });
 
+// Landing como ruta raíz
+app.get(["/", "//"], (req, res) => {
+  res.sendFile(path.join(__dirname, "landing", "index.html"));
+});
+
 // Alias bonito para el Menú compartido
 app.get(["/menu", "/menu/"], (req, res) => {
   res.sendFile(path.join(__dirname, "shared", "pages", "menu", "index.html"));

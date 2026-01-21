@@ -46,7 +46,7 @@
 
     <meta name="theme-color" content="#1a1a1a" />
 
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="/landing/styles.css" />
 
     <!-- Structured Data (JSON-LD) from Next.js page.tsx -->
     <script type="application/ld+json">
@@ -179,7 +179,7 @@
         <a class="brand" href="./" aria-label="Charlotte Bistró">
           <img
             class="brand__logo"
-            src="https://foodiewagon.de/graphics/fooiewagen%20logo.svg"
+            src="/assets/burger_icon.webp"
             alt="Charlotte Bistró"
             width="64"
             height="64"
@@ -198,15 +198,7 @@
           <span class="nav__pill" title="Standort">Ingolstadt</span>
         </nav>
 
-        <div class="header__badge" aria-hidden="true">
-          <img
-            src="https://foodiewagon.de/graphics/halal%20logo.svg"
-            alt=""
-            width="64"
-            height="64"
-            loading="lazy"
-          />
-        </div>
+        <!-- header badge removed -->
 
         <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav">
           <span class="menu-toggle__label">Menú</span>
@@ -242,15 +234,6 @@
 
         <div class="container hero__grid">
           <div class="hero__content">
-            <div class="hero__halal">
-              <img
-                src="https://foodiewagon.de/graphics/halal%20logo.svg"
-                alt="100% Halal Certified"
-                width="80"
-                height="80"
-                loading="eager"
-              />
-            </div>
 
             <h1 id="hero-title" class="hero__title">
               <span class="hero__title-primary">CHARLOTTE</span>
@@ -265,11 +248,7 @@
             </p>
 
             <div class="hero__cta">
-              <a class="btn btn--primary" href="tel:+4917622245627">
-                <span class="btn__icon" aria-hidden="true">☎</span>
-                +49 176 22245627
-              </a>
-              <a class="btn btn--outline" href="#menu">
+              <a class="btn btn--outline" href="/menu">
                 VER MENÚ
                 <span class="btn__arrow" aria-hidden="true">→</span>
               </a>
@@ -278,7 +257,7 @@
             <div class="hero__location">
               <img
                 class="hero__truck"
-                src="https://foodiewagon.de/graphics/truck.svg"
+                src="../public\assets\food_truck.png"
                 alt="Food Truck"
                 width="80"
                 height="80"
@@ -311,7 +290,7 @@
             <div class="hero__glow"></div>
             <img
               class="hero__image"
-              src="https://foodiewagon.de/graphics/tasty%20burger.svg"
+              src="/assets/burger_menu.png"
               alt=""
               width="800"
               height="600"
@@ -327,7 +306,7 @@
       <section id="menu" class="menu" aria-labelledby="menu-title">
         <div class="container">
           <header class="section-header">
-            <h2 id="menu-title" class="section-header__title">NUESTRAS HAMBURGUESAS</h2>
+            <h2 id="menu-title" class="section-header__title">NUESTRO MENÚ</h2>
             <p class="section-header__subtitle">
               Carne de res casera, pollo frito crujiente y ingredientes frescos
             </p>
@@ -335,8 +314,8 @@
 
           <div class="deal" role="note" aria-label="Menü Deal">
             <div class="deal__inner">
-              <p class="deal__headline">PROMO MENÚ</p>
-              <p class="deal__text">Hamburguesa + papas + bebida = <span>solo €4,50</span></p>
+              <p class="deal__headline">NUESTROS PRECIOS</p>
+              <p class="deal__text">AQUI SE DISFRUTA LA COMIDA !!<span> Y UN BUEN RATO</span></p>
             </div>
           </div>
 
@@ -564,6 +543,6 @@
       </div>
     </div>
 
-    <script type="module" src="./script.js"></script>
+    <script type="module" src="/landing/script.js"></script>
   </body>
 </html>
