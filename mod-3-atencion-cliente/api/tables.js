@@ -3,6 +3,9 @@ window.TablesApi = {
     getBaseUrl: () => {
         const config = window.__APP_CONFIG__;
         const baseUrl = config?.ATC_URL;
+        if (!baseUrl) {
+            console.error("⚠️ ATC_URL no está configurada en __APP_CONFIG__");
+        }
         return `${baseUrl.replace(/\/$/, '')}/api/v1/atencion-cliente`;
     },
 

@@ -76,6 +76,9 @@ app.get("/config.js", (req, res) => {
       )}\`;\n` +
       `window.__APP_CONFIG__.KITCHEN_URL = \`${jsString(
         process.env.KITCHEN_URL
+      )}\`;\n` +
+      `window.__APP_CONFIG__.ATC_URL = \`${jsString(
+        process.env.ATC_URL
       )}\`;\n`
   );
 });

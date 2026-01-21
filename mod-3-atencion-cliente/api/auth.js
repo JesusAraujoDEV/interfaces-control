@@ -5,6 +5,11 @@ window.AuthApi = {
         const config = window.__APP_CONFIG__;
         // Usamos AUTH_URL, no ATC_URL
         const baseUrl = config?.AUTH_URL; 
+
+        if (!baseUrl) {
+            console.error("⚠️ AUTH_URL no está configurada en __APP_CONFIG__");
+        }
+
         return baseUrl.replace(/\/$/, '');
     },
 
