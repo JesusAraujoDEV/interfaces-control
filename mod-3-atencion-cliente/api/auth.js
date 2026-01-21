@@ -32,7 +32,7 @@ window.AuthApi = {
         const token = response.token || response.data?.token;
 
         if (token) {
-            localStorage.setItem('auth_token', token);
+            localStorage.setItem('access_token', token);
             console.log('✅ Login exitoso, token guardado.');
         } else {
             throw new Error('No se recibió token del servidor');
@@ -42,7 +42,7 @@ window.AuthApi = {
     },
 
     logout: () => {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('access_token');
         window.location.href = '/';
     },
 

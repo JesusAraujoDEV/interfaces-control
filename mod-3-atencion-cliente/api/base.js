@@ -11,7 +11,7 @@ window.HttpClient = {
         };
 
         // 🔐 AUTOMÁTICO: Si tenemos token guardado, lo inyectamos
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('access_token');
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -24,7 +24,7 @@ window.HttpClient = {
             if (contentType && contentType.indexOf("application/json") === -1) {
                 // Si el token expiró o es inválido, a veces el backend redirige al login HTML
                 if (response.status === 401 || response.status === 403) {
-                     localStorage.removeItem('auth_token');
+                     localStorage.removeItem('access_token');
                      window.location.href = '/'; // Redirigir al login
                 }
                 throw new Error("Respuesta no válida del servidor (HTML recibido).");
@@ -36,7 +36,7 @@ window.HttpClient = {
                 // Manejo de token expirado
                 if (response.status === 401) {
                     console.warn("Sesión expirada");
-                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('access_token');
                     // Opcional: window.location.href = '/';
                 }
 

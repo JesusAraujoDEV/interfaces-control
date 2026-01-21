@@ -352,7 +352,7 @@
 
         window.logout = () => {
             if(confirm("¿Cerrar sesión de administrador?")) {
-                localStorage.removeItem('auth_token');
+                localStorage.removeItem('access_token');
                 window.location.href = '/';
             }
         };

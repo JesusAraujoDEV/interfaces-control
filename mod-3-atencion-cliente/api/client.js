@@ -174,7 +174,7 @@ window.logout = function() {
     localStorage.removeItem('user_client');
     localStorage.removeItem('my_service_requests');
     localStorage.removeItem('restaurant_service_requests');
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('access_token');
 
     const storedQrUuid = localStorage.getItem('current_qr_uuid');
 
