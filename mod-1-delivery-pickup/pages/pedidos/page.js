@@ -608,12 +608,40 @@ function bindEvents() {
   const dateEl = document.getElementById('dpOrdersDate');
   if (dateEl && dateEl.dataset.dpBound !== '1') {
     dateEl.dataset.dpBound = '1';
+
+    const openNativePicker = () => {
+      // Chromium supports showPicker(); fallback keeps focus for other browsers.
+      try {
+        if (typeof dateEl.showPicker === 'function') {
+          dateEl.showPicker();
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      dateEl.focus();
+    };
+
     // Keep input in sync with current filter.
     dateEl.value = state.dateFilter === 'today' ? localTodayYYYYMMDD() : String(state.dateFilter || localTodayYYYYMMDD());
     dateEl.addEventListener('change', () => {
       state.dateFilter = normalizeDateFilter(dateEl.value);
       writeStoredDateFilter(state.dateFilter);
       loadOrdersFromBackend();
+    });
+
+    // Make the whole "Día" control clickable (label + text + the date itself)
+    // so users don't need to click only the calendar icon.
+    const wrapper = dateEl.closest('label');
+    if (wrapper) {
+      wrapper.addEventListener('click', () => {
+        openNativePicker();
+      });
+    }
+
+    // Some browsers only open the picker via the icon; force it on click.
+    dateEl.addEventListener('click', () => {
+      openNativePicker();
     });
   }
 
