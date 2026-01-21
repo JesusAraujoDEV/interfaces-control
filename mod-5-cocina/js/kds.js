@@ -57,19 +57,6 @@ function renderizarTareas(tareas) {
     lucide.createIcons();
 }
 
-function renderBotonAccion(tarea) {
-    if (tarea.status === 'PENDING') {
-        return `<button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'COOKING')">EMPEZAR</button>`;
-    }
-    if (tarea.status === 'COOKING') {
-        return `<button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'READY')">LISTO</button>`;
-    }
-    if (tarea.status === 'READY') {
-        return `<button class="btn btn--success btn--full" onclick="marcarServido('${tarea.id}')"><i data-lucide="check-circle"></i> RECOGIDO</button>`;
-    }
-    return '';
-}
-
 async function actualizarEstado(taskId, newStatus) {
     try {
     await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
@@ -113,8 +100,92 @@ async function asignarTarea(taskId, staffId, role = 'CHEF') {
     }
 }
 
+function renderBotonAccion(tarea) {
+    if (tarea.status === 'PENDING') {
+    return `
+        <div class="card-actions">
+            <button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'COOKING')">EMPEZAR</button>
+            <button class="btn btn--danger btn--icon" title="Rechazar" onclick="confirmarRechazo('${tarea.id}')">✕</button>
+        </div>
+    `;
+    }
+    if (tarea.status === 'COOKING') {
+    return `
+        <div class="card-actions">
+            <button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'READY')">LISTO</button>
+            <button class="btn btn--danger btn--icon" title="Rechazar" onclick="confirmarRechazo('${tarea.id}')">✕</button>
+        </div>
+    `;
+    }
+    if (tarea.status === 'READY') {
+    return `<button class="btn btn--success btn--full" onclick="marcarServido('${tarea.id}')"><i data-lucide="check-circle"></i> RECOGIDO</button>`;
+    }
+    return '';
+}
+
+async function confirmarRechazo(taskId) {
+    const ok = window.confirm('¿Seguro que deseas rechazar esta orden? Esta acción no se puede deshacer.');
+    if (!ok) return;
+
+    try {
+    const response = await fetch(`${KITCHEN_URL}/kds/${taskId}/reject`, {
+        method: 'POST',
+        headers: getCommonHeaders(),
+        body: JSON.stringify({ reason: 'Rejected by kitchen' })
+    });
+    if (!response.ok) throw new Error(`Reject failed: ${response.status}`);
+    const card = document.querySelector(`.order-card[data-id="${taskId}"]`);
+    if (card) card.remove();
+    } catch (error) {
+    console.error('Error rechazando orden:', error);
+    }
+}
+
+const POLL_MS = 30_000;
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarColaKDS();
+    setInterval(syncKDS, POLL_MS);
+});
+
+async function syncKDS() {
+    try {
+        const response = await fetch(`${KITCHEN_URL}/kds/queue`, {
+        headers: getCommonHeaders()
+    });
+    const serverTasks = await response.json();
+
+    renderizarTareas(serverTasks);
+
+    } catch (error) {
+    console.error('Error en sync KDS:', error);
+    }
+}
+
+function actualizarTimers() {
+    const cards = document.querySelectorAll('.order-card');
+    const now = Date.now();
+
+    cards.forEach(card => {
+        const created = new Date(card.getAttribute('data-created')).getTime();
+        const diff = now - created;
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+
+        const timerEl = card.querySelector('.js-timer');
+    if (timerEl) timerEl.textContent = `${minutes}m ${seconds}s`;
+
+    if (diff > 20 * 60 * 1000) {
+        card.classList.add('border-red-500');
+    } else {
+        card.classList.remove('border-red-500');
+    }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', cargarColaKDS);
 
+window.confirmarRechazo = confirmarRechazo;
 window.actualizarEstado = actualizarEstado;
 window.marcarServido = marcarServido;
 window.asignarTarea = asignarTarea;
