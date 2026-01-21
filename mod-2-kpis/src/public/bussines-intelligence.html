@@ -6,6 +6,15 @@
     <title>Informes Históricos - Charlotte</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+    
+    <style>
+    /* Estilos para cumplir el requisito de Tabla Densa */
+    .data-table--dense th, .data-table--dense td { padding: 4px 8px !important; font-size: 0.85rem; }
+    .data-table--dense tr:hover { background-color: #f1f8ff; cursor: pointer; }
+    /* Estilos para el botón de carga */
+    .btn-loading { background-color: #6c757d !important; cursor: wait !important; pointer-events: none; }
+    .btn-success { background-color: #28a745 !important; border-color: #28a745 !important; }
+</style>
 </head>
 <body>
 
@@ -47,8 +56,9 @@
                     <h1 class="header-top__title">Informes Históricos</h1>
                     <p class="header-top__subtitle">Descarga de datos históricos y contabilidad.</p>
                 </div>
-                <button class="btn-primary">
-                    <span>📥</span> Exportar a Excel (.CSV)
+                <button id="btnExport" class="btn-primary" onclick="iniciarExportacion()">
+                    <span id="btnIcon">⬇️</span> 
+                    <span id="btnText">Exportar a Excel (.CSV)</span>
                 </button>
             </header>
 
@@ -86,7 +96,7 @@
 
                 <section class="table-section">
                     <div class="card" style="padding: 0; overflow: hidden;">
-                        <table class="data-table">
+                        <table class="data-table data-table--dense">
                             <thead class="data-table__thead">
                                 <tr>
                                     <th class="data-table__th">ID TRANSACCIÓN</th>
@@ -97,7 +107,7 @@
                                     <th class="data-table__th">DURACIÓN TOTAL</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tableBody">
                                 <tr>
                                     <td class="data-table__td">TXN-001254</td>
                                     <td class="data-table__td">08/08/2024</td>
@@ -120,6 +130,62 @@
             </div>
         </main>
     </div>
+    <script>
+        // 1. Script para Simular la Tabla Densa con Datos
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; // Limpia lo que haya
+            // Generamos 20 filas para que se vea "Densa" como pide la tarea
+            for(let i=1; i<=20; i++) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="data-table__td">TXN-00${1000+i}</td>
+                        <td class="data-table__td">2024-08-${i < 10 ? '0'+i : i}</td>
+                        <td class="data-table__td">14:${10+i}</td>
+                        <td class="data-table__td">Cajero ${i%3 + 1}</td>
+                        <td class="data-table__td">$${(Math.random()*100).toFixed(2)}</td>
+                        <td class="data-table__td">${Math.floor(Math.random()*30)} min</td>
+                        <td class="data-table__td"><span style="color:green; font-weight:bold;">Done</span></td>
+                    </tr>`;
+            }
+        });
 
+        // 2. Lógica del Botón Exportar (POLLING requerido)
+        function iniciarExportacion() {
+            const btn = document.getElementById('btnExport');
+            const icon = document.getElementById('btnIcon');
+            const text = document.getElementById('btnText');
+
+            // Estado: Cargando
+            btn.classList.add('btn-loading');
+            text.innerText = "Generando archivo...";
+            icon.innerText = "⏳";
+
+            // Simulamos Polling (Preguntar cada 2 seg)
+            let intentos = 0;
+            const intervalo = setInterval(() => {
+                intentos++;
+                console.log("Consultando estado del archivo... Intento " + intentos);
+                
+                // A los 4 segundos (2 intentos), simulamos que terminó
+                if(intentos >= 2) {
+                    clearInterval(intervalo);
+                    // Estado: Éxito
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('btn-success');
+                    text.innerText = "¡Descarga Lista!";
+                    icon.innerText = "✅";
+                    alert("⬇️ Descargando reporte_mensual.csv ...");
+                    
+                    // Resetear botón a los 3 seg
+                    setTimeout(() => {
+                        btn.classList.remove('btn-success');
+                        text.innerText = "Exportar a Excel (.CSV)";
+                        icon.innerText = "⬇️";
+                    }, 3000);
+                }
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
