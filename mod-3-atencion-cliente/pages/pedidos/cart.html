@@ -314,6 +314,12 @@
             const sortedOrders = [...activeOrders].sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
 
             container.innerHTML = sortedOrders.map(order => {
+
+                if (!order || !order.id) {
+                    console.warn("Orden corrupta detectada en render:", order);
+                    return ''; // Retornamos vacío para no romper la vista
+                }
+
                 const isPending = order.status === 'PENDING';
                 const isCancelled = order.status === 'CANCELLED';
                 const isDelivered = order.status === 'DELIVERED';
@@ -324,13 +330,20 @@
                 if(isDelivered) { statusColor = "bg-green-100 text-green-800"; statusIcon = "check_circle"; }
                 if(order.status === 'COOKING' || order.status === 'READY') { statusColor = "bg-blue-100 text-blue-800"; statusIcon = "soup_kitchen"; }
 
-                const time = new Date(order.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                // 2. FECHA SEGURA
+                const fechaSegura = order.sentAt ? new Date(order.sentAt) : new Date();
+                const time = fechaSegura.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                // 3. ID SEGURO (Aquí estaba el error del substring)
+                const shortId = (order.id && typeof order.id === 'string') 
+                                ? order.id.substring(0,6) 
+                                : '???';
 
                 return `
                 <div class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm relative transition-all ${isCancelled ? 'opacity-60 grayscale-[0.5]' : ''}">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Orden #${order.id.substring(0,6)}</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Orden #${shortId}</span>
                             <div class="flex items-center gap-1 mt-0.5">
                                 <span class="text-xs text-gray-500">${time}</span>
                             </div>
