@@ -51,7 +51,7 @@
                 <div class="flex-1">
                     <h2 class="text-lg font-semibold mb-2">Gráfico de Pareto</h2>
                     <div id="pareto-chart" class="w-full h-96 bg-gray-50 rounded-lg flex items-end justify-center relative">
-                    <!-- Aquí se renderizará el gráfico SVG -->
+                        <!-- Aquí se renderizará el gráfico SVG -->
                     </div>
                     <p class="text-sm text-gray-600 mt-2">Datos obtenidos de la API. El producto campeón está resaltado en rojo.</p>
                 </div>
@@ -146,7 +146,7 @@
                 rect.setAttribute('y', y);
                 rect.setAttribute('width', barWidth);
                 rect.setAttribute('height', barHeight);
-                rect.setAttribute('fill', product.is_champion ? '#ef4444' : '#3b82f6'); // Rojo para campeón, azul para otros
+                rect.setAttribute('fill', product.is_champion ? '#6F4E37' : '#3b82f6'); // Marron para campeón, azul para otros
                 rect.setAttribute('class', 'cursor-pointer');
                 rect.setAttribute('title', `${product.name}: $${product.revenue_generated} (Cant: ${product.quantity_sold})`);
                 g.appendChild(rect);
