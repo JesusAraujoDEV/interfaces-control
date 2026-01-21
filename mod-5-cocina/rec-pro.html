@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/js/dev-auth.js"></script>
     <title>Catálogo de Recetas - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
@@ -95,6 +96,62 @@
             margin-top: 20px;
         }
         .btn-save-modal:hover { opacity: 0.9; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #28a745; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .row-inactive {
+            opacity: 0.5;
+            background-color: #f8f9fa;
+        }
+
+        .scope-radios {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .scope-radios label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .stock-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
     </style>
 </head>
 
@@ -123,9 +180,14 @@
         <main class="main-content main-content--with-aside">
             <header class="header">
                 <h1 class="header__title">Catálogo de Recetas y Productos</h1>
-                <button class="btn btn--primary" onclick="openModal()">
-                    <i data-lucide="plus"></i> Añadir Nuevo Plato
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn--secondary" onclick="openCategoryModal()" style="background-color: #6c757d; color: white;">
+                        <i data-lucide="list"></i> Gestionar Categorías
+                    </button>
+                    <button class="btn btn--primary" onclick="openModal()">
+                        <i data-lucide="plus"></i> Añadir Nuevo Plato
+                    </button>
+                </div>
             </header>
 
             <section class="inventory-controls">
@@ -139,10 +201,13 @@
                 <table class="table" id="productTable">
                     <thead class="table__head">
                         <tr>
+                            <th style="width: 60px;">Img</th>
                             <th>Nombre del Producto</th>
                             <th>Categoría</th>
                             <th>Precio</th>
                             <th>Costo</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -167,10 +232,7 @@
                 <div class="form-group">
                     <label>Categoría:</label>
                     <select id="productCategory">
-                        <option value="plato_principal">Plato Principal</option>
-                        <option value="entrante">Entrante</option>
-                        <option value="bebida">Bebida</option>
-                        <option value="postre">Postre</option>
+                        <option value="">Cargando...</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -183,8 +245,17 @@
 
             <h3>Composición (Receta)</h3>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                
                 <div class="form-group">
-                    <label>Agregar Ingrediente:</label>
+                    <label>Aplicar ingrediente en:</label>
+                    <div class="scope-radios">
+                        <label><input type="radio" name="ingScope" value="all" checked> Todo</label>
+                        <label><input type="radio" name="ingScope" value="delivery"> Solo Delivery</label>
+                        <label><input type="radio" name="ingScope" value="restaurant"> Solo Mesa</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <div style="display:flex; gap:10px;">
                         <select id="ingredientSelect" style="flex:2;">
                             <option value="">Cargando ingredientes...</option>
@@ -203,6 +274,32 @@
             </div>
 
             <button class="btn-save-modal" onclick="saveProduct()">GUARDAR PRODUCTO</button>
+        </div>
+    </div>
+
+    <div id="categoryModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeCategoryModal()">&times;</span>
+            <h2 style="margin-top:0;">Gestión de Categorías</h2>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="catNameInput" placeholder="Nombre de la categoría..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <button class="btn btn--primary" onclick="saveCategory()">Guardar</button>
+                <button class="btn" onclick="resetCategoryForm()" style="background:#ddd; display:none;" id="cancelCatEdit">Cancelar</button>
+            </div>
+
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table class="table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Nombre</th>
+                            <th style="width: 80px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoryListBody">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

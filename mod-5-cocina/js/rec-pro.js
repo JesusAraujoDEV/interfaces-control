@@ -1,11 +1,10 @@
-const API_BASE = 'http://localhost:3000/api/kitchen';
-
 let allProducts = [];
 let allCategories = [];
 let allInventory = [];
 let currentRecipeProductId = null;
 let activeCategory = 'all';
 let searchTerm = '';
+let editingCategoryId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
@@ -15,14 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
     loadInventory();
 });
-
-function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-    };
-}
 
 function injectStyles() {
     const style = document.createElement('style');
@@ -124,13 +115,17 @@ window.showToast = function(message, type = 'success') {
 
 async function loadCategories() {
     try {
-        const response = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
+        const response = await fetch(`${KITCHEN_URL}/categories`, { headers: getCommonHeaders() });
         const data = await response.json();
         if (data.success) {
             allCategories = data.data;
             renderCategoryFilters();
             renderCategorySelect();
             updateDashboard();
+            
+            if(document.getElementById('categoryModal').style.display === 'block') {
+                renderCategoryList();
+            }
         }
     } catch (error) {
         console.error(error);
@@ -140,12 +135,13 @@ async function loadCategories() {
 
 async function loadProducts() {
     try {
-        const response = await fetch(`${API_BASE}/products`, { headers: getAuthHeaders() });
+        const response = await fetch(`${KITCHEN_URL}/products`, { headers: getCommonHeaders() });
         const result = await response.json();
         if (result.success) {
             allProducts = result.data;
             applyFilters(); 
             updateDashboard();
+            checkAvailability(); 
         }
     } catch (error) {
         console.error(error);
@@ -153,9 +149,35 @@ async function loadProducts() {
     }
 }
 
+async function checkAvailability() {
+    for (const prod of allProducts) {
+        try {
+            const res = await fetch(`${KITCHEN_URL}/products/${prod._id}/availability`, { headers: getCommonHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                const stockEl = document.getElementById(`stock-${prod._id}`);
+                if (stockEl) {
+                    if (data.status === 'AVAILABLE' || data.isAvailable) {
+                        stockEl.innerHTML = '<span class="stock-badge" style="background: #28a745;"></span>OK';
+                        stockEl.style.color = '#28a745';
+                    } else {
+                        stockEl.innerHTML = '<span class="stock-badge" style="background: #dc3545;"></span>Falta';
+                        stockEl.style.color = '#dc3545';
+                        if(data.missing_items && data.missing_items.length > 0) {
+                            stockEl.title = 'Falta: ' + data.missing_items.join(', ');
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error verificando stock', e);
+        }
+    }
+}
+
 async function loadInventory() {
     try {
-        const response = await fetch(`${API_BASE}/inventory/items`, { headers: getAuthHeaders() });
+        const response = await fetch(`${KITCHEN_URL}/inventory/items`, { headers: getCommonHeaders() });
         const result = await response.json();
         if (result.success) {
             allInventory = result.data;
@@ -242,18 +264,29 @@ function renderProducts(products) {
     tbody.innerHTML = '';
 
     if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">No se encontraron productos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">No se encontraron productos</td></tr>';
         return;
     }
 
     products.forEach(prod => {
         const tr = document.createElement('tr');
         
+        const isActive = (prod.isActive !== undefined) ? prod.isActive : true;
+
+        if (!isActive) {
+            tr.classList.add('row-inactive');
+        }
+
         const cost = calculateProductCost(prod._id);
         const categoryName = prod.category ? prod.category.name : 'Sin Categoría';
         const priceVal = prod.price || prod.basePrice || 0;
+        const imgSrc = prod.image || '/assets/default-food.png';
 
         tr.innerHTML = `
+            <td>
+                <img src="${imgSrc}" onerror="this.src='/assets/default-food.png'" 
+                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+            </td>
             <td>${prod.name}</td>
             <td>${categoryName}</td>
             <td id="price-cell-${prod._id}" 
@@ -263,6 +296,15 @@ function renderProducts(products) {
                 $${parseFloat(priceVal).toFixed(2)}
             </td>
             <td>$${cost.toFixed(2)}</td>
+            <td id="stock-${prod._id}" style="font-size:0.9em; color:#666;">
+                <span class="stock-badge" style="background: #ccc;"></span>...
+            </td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleProductStatus('${prod._id}', ${isActive})">
+                    <span class="slider"></span>
+                </label>
+            </td>
             <td>
                 <button class="btn btn-sm btn-edit" onclick="editProduct('${prod._id}')">Editar</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteProduct('${prod._id}')">X</button>
@@ -270,6 +312,32 @@ function renderProducts(products) {
         `;
         tbody.appendChild(tr);
     });
+    
+    checkAvailability();
+}
+
+window.toggleProductStatus = async function(id, currentStatus) {
+    const newStatus = !currentStatus;
+    
+    try {
+        const res = await fetch(`${KITCHEN_URL}/products/${id}`, {
+            method: 'PUT',
+            headers: getCommonHeaders(),
+            body: JSON.stringify({ isActive: newStatus })
+        });
+        
+        if (res.ok) {
+            showToast(newStatus ? 'Producto activado' : 'Producto desactivado', 'success');
+            loadProducts();
+        } else {
+            showToast('Error al cambiar estado', 'error');
+            loadProducts(); 
+        }
+    } catch (e) {
+        console.error(e);
+        showToast('Error de conexión', 'error');
+        loadProducts(); 
+    }
 }
 
 function calculateProductCost(productId) {
@@ -332,8 +400,8 @@ async function loadRecipeIngredients() {
         ingredients = localData[currentRecipeProductId];
     } else if (!currentRecipeProductId.startsWith('new_')) {
         try {
-            const res = await fetch(`${API_BASE}/recipes/product/${currentRecipeProductId}`, {
-                headers: getAuthHeaders()
+            const res = await fetch(`${KITCHEN_URL}/recipes/product/${currentRecipeProductId}`, {
+                headers: getCommonHeaders()
             });
             const json = await res.json();
             if (json.success && json.data) {
@@ -343,7 +411,8 @@ async function loadRecipeIngredients() {
                     name: i.inventoryItem.nombre || i.inventoryItem.name,
                     quantity: i.quantity,
                     unitCost: i.inventoryItem.costoUnitario || i.inventoryItem.unitCost,
-                    unit: i.inventoryItem.unidadMedida || i.inventoryItem.unit
+                    unit: i.inventoryItem.unidadMedida || i.inventoryItem.unit,
+                    apply_on: i.apply_on || 'all'
                 }));
                 localData[currentRecipeProductId] = ingredients;
                 saveLocalRecipes(localData);
@@ -365,12 +434,21 @@ function addIngredientToDOM(ing) {
     const list = document.getElementById('recipeList');
     const li = document.createElement('li');
     li.id = `ing-${ing.id || ing.inventoryItem}`;
+    
+    let scopeIcon = '<i data-lucide="globe" style="width:16px; margin-right:5px; vertical-align:middle;" title="Todo"></i>';
+    if(ing.apply_on === 'delivery') scopeIcon = '<i data-lucide="bike" style="width:16px; margin-right:5px; vertical-align:middle;" title="Solo Delivery"></i>';
+    if(ing.apply_on === 'restaurant') scopeIcon = '<i data-lucide="utensils" style="width:16px; margin-right:5px; vertical-align:middle;" title="Solo Mesa"></i>';
+
     li.innerHTML = `
-        <span>${ing.name} (${ing.quantity} ${ing.unit})</span>
+        <span style="display:flex; align-items:center;">
+            ${scopeIcon}
+            ${ing.name} (${ing.quantity} ${ing.unit})
+        </span>
         <span>$${(ing.quantity * ing.unitCost).toFixed(2)}</span>
         <button onclick="removeIngredient('${ing.id || ing.inventoryItem}')" style="color:red; margin-left:10px;">&times;</button>
     `;
     list.appendChild(li);
+    lucide.createIcons();
 }
 
 window.saveProduct = async function() {
@@ -397,18 +475,18 @@ window.saveProduct = async function() {
         let savedProduct;
         
         if (currentRecipeProductId.startsWith('new_')) {
-            const res = await fetch(`${API_BASE}/products`, {
+            const res = await fetch(`${KITCHEN_URL}/products`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
+                headers: getCommonHeaders(),
                 body: JSON.stringify(productPayload)
             });
             const json = await res.json();
             if (!json.success) throw new Error(json.message);
             savedProduct = json.data;
         } else {
-            const res = await fetch(`${API_BASE}/products/${currentRecipeProductId}`, {
+            const res = await fetch(`${KITCHEN_URL}/products/${currentRecipeProductId}`, {
                 method: 'PUT',
-                headers: getAuthHeaders(),
+                headers: getCommonHeaders(),
                 body: JSON.stringify(productPayload)
             });
             const json = await res.json();
@@ -421,13 +499,14 @@ window.saveProduct = async function() {
                 product: savedProduct._id,
                 ingredients: ingredients.map(i => ({
                     inventoryItem: i.inventoryItem,
-                    quantity: i.quantity
+                    quantity: i.quantity,
+                    apply_on: i.apply_on || 'all'
                 }))
             };
 
-            await fetch(`${API_BASE}/recipes`, {
+            await fetch(`${KITCHEN_URL}/recipes`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
+                headers: getCommonHeaders(),
                 body: JSON.stringify(recipePayload)
             });
         }
@@ -446,6 +525,12 @@ window.addIngredient = function() {
     const select = document.getElementById('ingredientSelect');
     const quantity = parseFloat(document.getElementById('ingQuantity').value);
     
+    const scopeRadios = document.getElementsByName('ingScope');
+    let selectedScope = 'all';
+    for(const radio of scopeRadios){
+        if(radio.checked) selectedScope = radio.value;
+    }
+
     if (!select.value || !quantity) {
         showToast('Seleccione ingrediente y cantidad', 'error');
         return;
@@ -459,7 +544,8 @@ window.addIngredient = function() {
         name: option.text.split(' ($')[0],
         quantity: quantity,
         unitCost: parseFloat(option.dataset.cost),
-        unit: option.dataset.unit
+        unit: option.dataset.unit,
+        apply_on: selectedScope
     };
 
     const localData = getLocalRecipes();
@@ -497,13 +583,6 @@ window.removeIngredient = async function(id) {
     }
 }
 
-window.onclick = function(event) {
-    const rModal = document.getElementById('recipeModal');
-    if (event.target == rModal) {
-        closeModal();
-    }
-}
-
 window.enablePriceEdit = function(id, currentPrice) {
     const cell = document.getElementById(`price-cell-${id}`);
     if (!cell || cell.querySelector('input')) return;
@@ -527,9 +606,9 @@ window.saveQuickPrice = async function(id, newPrice, oldPrice) {
     }
 
     try {
-        const res = await fetch(`${API_BASE}/products/${id}`, {
+        const res = await fetch(`${KITCHEN_URL}/products/${id}`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: getCommonHeaders(),
             body: JSON.stringify({ basePrice: val })
         });
         
@@ -544,4 +623,112 @@ window.saveQuickPrice = async function(id, newPrice, oldPrice) {
         console.error(e);
         showToast('Error de conexión', 'error');
     }
+}
+
+window.openCategoryModal = function() {
+    document.getElementById('categoryModal').style.display = 'block';
+    renderCategoryList();
+    resetCategoryForm();
+}
+
+window.closeCategoryModal = function() {
+    document.getElementById('categoryModal').style.display = 'none';
+    resetCategoryForm();
+}
+
+function renderCategoryList() {
+    const tbody = document.getElementById('categoryListBody');
+    tbody.innerHTML = '';
+
+    allCategories.forEach(cat => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${cat.name}</td>
+            <td>
+                <button onclick="startEditCategory('${cat._id}', '${cat.name}')" style="cursor:pointer; border:none; background:none; color:blue;">✏️</button>
+                <button onclick="deleteCategory('${cat._id}')" style="cursor:pointer; border:none; background:none; color:red;">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.saveCategory = async function() {
+    const nameInput = document.getElementById('catNameInput');
+    const name = nameInput.value.trim();
+
+    if (!name) {
+        showToast('El nombre no puede estar vacío', 'error');
+        return;
+    }
+
+    try {
+        let url = `${KITCHEN_URL}/categories`;
+        let method = 'POST';
+        
+        if (editingCategoryId) {
+            url = `${KITCHEN_URL}/categories/${editingCategoryId}`;
+            method = 'PUT';
+        }
+
+        const res = await fetch(url, {
+            method: method,
+            headers: getCommonHeaders(),
+            body: JSON.stringify({ name: name })
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+            showToast(editingCategoryId ? 'Categoría actualizada' : 'Categoría creada', 'success');
+            resetCategoryForm();
+            loadCategories(); 
+        } else {
+            showToast(json.message || 'Error al guardar', 'error');
+        }
+
+    } catch (error) {
+        console.error(error);
+        showToast('Error de conexión', 'error');
+    }
+}
+
+window.startEditCategory = function(id, name) {
+    editingCategoryId = id;
+    document.getElementById('catNameInput').value = name;
+    document.getElementById('cancelCatEdit').style.display = 'inline-block';
+    document.getElementById('catNameInput').focus();
+}
+
+window.resetCategoryForm = function() {
+    editingCategoryId = null;
+    document.getElementById('catNameInput').value = '';
+    document.getElementById('cancelCatEdit').style.display = 'none';
+}
+
+window.deleteCategory = async function(id) {
+    if(!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
+
+    try {
+        const res = await fetch(`${KITCHEN_URL}/categories/${id}`, {
+            method: 'DELETE',
+            headers: getCommonHeaders()
+        });
+
+        if (res.ok) {
+            showToast('Categoría eliminada', 'success');
+            loadCategories();
+        } else {
+            showToast('No se pudo eliminar (quizás tiene productos)', 'error');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+window.onclick = function(event) {
+    const cModal = document.getElementById('categoryModal');
+    const rModal = document.getElementById('recipeModal');
+    if (event.target == cModal) closeCategoryModal();
+    if (event.target == rModal) closeModal();
 }
