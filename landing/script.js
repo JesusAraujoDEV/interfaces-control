@@ -275,12 +275,12 @@ function renderMenuItems(activeKey) {
       price.textContent = item.price
       media.appendChild(price)
 
-      const halal = document.createElement("img")
-      halal.className = "menu-item__halal"
-      halal.src = "https://foodiewagon.de/graphics/halal%20logo.svg"
-      halal.alt = "100% Halal"
-      halal.loading = "lazy"
-      media.appendChild(halal)
+      const aura = document.createElement("img")
+      aura.className = "menu-item__halal"
+      aura.src = "https://foodiewagon.de/graphics/aura%20logo.svg"
+      aura.alt = "100% aura"
+      aura.loading = "lazy"
+      media.appendChild(aura)
     } else {
       const placeholder = document.createElement("div")
       placeholder.style.padding = "24px"
@@ -294,12 +294,12 @@ function renderMenuItems(activeKey) {
       price.textContent = item.price
       media.appendChild(price)
 
-      const halal = document.createElement("img")
-      halal.className = "menu-item__halal"
-      halal.src = "https://foodiewagon.de/graphics/halal%20logo.svg"
-      halal.alt = "100% Halal"
-      halal.loading = "lazy"
-      media.appendChild(halal)
+      const aura = document.createElement("img")
+      aura.className = "menu-item__halal"
+      aura.src = "https://foodiewagon.de/graphics/aura%20logo.svg"
+      aura.alt = "100% aura"
+      aura.loading = "lazy"
+      media.appendChild(aura)
     }
 
     const body = document.createElement("div")
