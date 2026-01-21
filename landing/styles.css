@@ -25,6 +25,10 @@
 
 * { box-sizing: border-box; }
 
+/* Ensure the HTML `hidden` attribute actually hides elements.
+  Needed because `.nav { display:flex; }` would otherwise override UA styles. */
+[hidden] { display: none !important; }
+
 html {
   scroll-behavior: smooth;
 }

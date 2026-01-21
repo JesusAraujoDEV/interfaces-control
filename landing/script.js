@@ -162,6 +162,8 @@ function initMobileMenu() {
 
   const closeLinks = $all("[data-close-menu]", mobileNav)
 
+  const isOpen = () => toggle.getAttribute("aria-expanded") === "true"
+
   const setOpen = (open) => {
     toggle.classList.toggle("is-open", open)
     toggle.setAttribute("aria-expanded", open ? "true" : "false")
@@ -169,12 +171,33 @@ function initMobileMenu() {
   }
 
   toggle.addEventListener("click", () => {
-    const isOpen = toggle.getAttribute("aria-expanded") === "true"
-    setOpen(!isOpen)
+    setOpen(!isOpen())
   })
 
   closeLinks.forEach((link) => {
     link.addEventListener("click", () => setOpen(false))
+  })
+
+  // Fallback: close when clicking ANY link inside the mobile nav
+  // (covers cases where data-close-menu is missing or markup changes)
+  mobileNav.addEventListener("click", (e) => {
+    const a = e.target?.closest?.("a")
+    if (!a) return
+    setOpen(false)
+  })
+
+  // Close when tapping/clicking outside the menu
+  document.addEventListener("click", (e) => {
+    if (!isOpen()) return
+    const target = e.target
+    if (toggle.contains(target)) return
+    if (mobileNav.contains(target)) return
+    setOpen(false)
+  })
+
+  // Close after hash navigation (e.g., #menu)
+  window.addEventListener("hashchange", () => {
+    if (isOpen()) setOpen(false)
   })
 
   // Close on Escape
