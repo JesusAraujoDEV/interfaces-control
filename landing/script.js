@@ -1,13 +1,13 @@
 const MENU_DATA = {
   beef: {
-    label: "Beef Burger",
+    label: "Hamburguesas de res",
     icon: "🍔",
     items: [
       {
         name: "Cheesy Buffalo",
         price: "10,50€",
         description:
-          "Brioche Bun, Hausgemachte Beef Patty 140g, Käse, Burger Sauce, Gurke, Zwiebel, Tomaten, Salat",
+          "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, cebolla, tomate, lechuga",
         spiceLevel: 3,
         image: "https://foodiewagon.de/burgers/beef/Cheesy-Buffalo_10,50euros.webp",
       },
@@ -15,7 +15,7 @@ const MENU_DATA = {
         name: "Angry Bull",
         price: "12,00€",
         description:
-          "Brioche Bun, Hausgemachte Beef Patty 140g, Käse, Chili Cheese Sauce, Jalapeno, Gurke, Zwiebel, Salat",
+          "Pan brioche, carne de res casera 140g, queso, salsa chili cheese, jalapeño, pepinillo, cebolla, lechuga",
         spiceLevel: 3,
         image: "https://foodiewagon.de/burgers/beef/Angry-Bull_12euros.webp",
       },
@@ -23,7 +23,7 @@ const MENU_DATA = {
         name: "Smokie Beefy BBQ",
         price: "13,00€",
         description:
-          "Brioche Bun, Hausgemachte Beef Patty 140g, Käse, Burger Sauce, Gurke, Onion Rings, Geröstete Zwiebel, BBQ Sauce, Tomaten, Salat",
+          "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, aros de cebolla, cebolla tostada, salsa BBQ, tomate, lechuga",
         spiceLevel: 3,
         image: "https://foodiewagon.de/burgers/beef/Smookie-Beefy-BBQ_13euros.webp",
       },
@@ -31,7 +31,7 @@ const MENU_DATA = {
         name: "Blazing Nacho Beef",
         price: "13,00€",
         description:
-          "Brioche Bun, Hausgemachte Beef Patty 140g, Käse, Burger Sauce, Gurke, Jalapeno, Nachos, Sriracha Sauce, Tomaten, Salat",
+          "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, jalapeño, nachos, salsa sriracha, tomate, lechuga",
         spiceLevel: 3,
         image: "https://foodiewagon.de/burgers/beef/Blazing-Nacho-Beef_13euros.webp",
       },
@@ -39,34 +39,34 @@ const MENU_DATA = {
         name: "Cheese Burger",
         price: "7,00€",
         description:
-          "Brioche Bun, Hausgemachte Beef Patty 140g, Käse, Burger Sauce, Gurke, Zwiebel, Tomaten, Salat",
+          "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, cebolla, tomate, lechuga",
         spiceLevel: 1,
         image: "https://foodiewagon.de/burgers/beef/Cheese-Burger_7euros.webp",
       },
     ],
   },
   chicken: {
-    label: "Chicken Burger",
+    label: "Hamburguesas de pollo",
     icon: "🔥",
     items: [
       {
         name: "Crunchy Chicken",
         price: "8,50€",
-        description: "Brioche Bun, Chicken Strips, Käse, Burger Sauce, Salat",
+        description: "Pan brioche, tiras de pollo, queso, salsa de la casa, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Chrunchy-Chicken_8,50euros.webp",
       },
       {
         name: "Loaded Crunchy",
         price: "9,00€",
-        description: "Brioche Bun, Chicken Strips, Käse, Burger Sauce, Tomaten, Zwiebel, Gurke, Salat",
+        description: "Pan brioche, tiras de pollo, queso, salsa de la casa, tomate, cebolla, pepinillo, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Loaded-Chrunchy_9euros.webp",
       },
       {
         name: "Crispy Ringer",
         price: "10,00€",
-        description: "Brioche Bun, Chicken Strips, Käse, Burger Sauce, Onion Rings, Zwiebel, Tomaten, Salat",
+        description: "Pan brioche, tiras de pollo, queso, salsa de la casa, aros de cebolla, cebolla, tomate, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Crispy-Ringer_10euros.webp",
       },
@@ -74,14 +74,14 @@ const MENU_DATA = {
         name: "Mexican Cracker",
         price: "11,00€",
         description:
-          "Brioche Bun, Chicken Strips, Käse, Burger Sauce, Jalapeno, Gurke, Nachos, Sriracha Sauce, Zwiebel, Salat",
+          "Pan brioche, tiras de pollo, queso, salsa de la casa, jalapeño, pepinillo, nachos, salsa sriracha, cebolla, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Mexican-Cracker_11euros.webp",
       },
       {
         name: "Flip Chicken Burger",
         price: "6,00€",
-        description: "Brioche Bun, Chicken Strips, Käse, Burger Sauce, Salat",
+        description: "Pan brioche, tiras de pollo, queso, salsa de la casa, lechuga",
         spiceLevel: 1,
         image: "https://foodiewagon.de/burgers/chicken/Flip-Chicken-Burger_6euros.webp",
       },
@@ -89,20 +89,20 @@ const MENU_DATA = {
         name: "Foodie Bomber",
         price: "13,00€",
         description:
-          "Brioche Bun, Chicken Strips, Käse, Chili Cheese Nuggets, Chili Cheese Sauce, Zwiebel, Jalapeno, Salat",
+          "Pan brioche, tiras de pollo, queso, nuggets chili cheese, salsa chili cheese, cebolla, jalapeño, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Foodie-Bomber-13euros.webp",
       },
     ],
   },
   veggie: {
-    label: "Veggie",
+    label: "Vegetariano",
     icon: "🥬",
     items: [
       {
         name: "Plant Power",
         price: "9,00€",
-        description: "Brioche Bun, Falafel, Käse, Burger Sauce, Gurke, Salat, Zwiebel, Tomaten",
+        description: "Pan brioche, falafel, queso, salsa de la casa, pepinillo, lechuga, cebolla, tomate",
         spiceLevel: 0,
         image: null,
       },
@@ -110,14 +110,14 @@ const MENU_DATA = {
         name: "Veggie BBQ",
         price: "11,00€",
         description:
-          "Brioche Bun, Falafel, Käse, Burger Sauce, Gurke, Onion Rings, Geröstete Zwiebel, BBQ Sauce, Tomaten, Salat",
+          "Pan brioche, falafel, queso, salsa de la casa, pepinillo, aros de cebolla, cebolla tostada, salsa BBQ, tomate, lechuga",
         spiceLevel: 0,
         image: null,
       },
     ],
   },
   drinks: {
-    label: "Getränke",
+    label: "Bebidas",
     icon: "🥤",
     items: [
       {
@@ -132,12 +132,12 @@ const MENU_DATA = {
         description: "330ml Dose",
         image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg",
       },
-      { name: "Fanta", price: "2,50€", description: "330ml Dose", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Sprite", price: "2,50€", description: "330ml Dose", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
+      { name: "Fanta", price: "2,50€", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
+      { name: "Sprite", price: "2,50€", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
       { name: "Capri Sonne", price: "1,50€", description: "200ml", image: "https://foodiewagon.de/graphics/caprisun.svg" },
-      { name: "Wasser", price: "2,00€", description: "500ml", image: "https://foodiewagon.de/graphics/water.svg" },
-      { name: "Mezzo Mix", price: "2,50€", description: "330ml Dose", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Red Bull", price: "3,50€", description: "250ml Dose", image: "https://foodiewagon.de/graphics/redbull.svg" },
+      { name: "Agua", price: "2,00€", description: "500ml", image: "https://foodiewagon.de/graphics/water.svg" },
+      { name: "Mezzo Mix", price: "2,50€", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
+      { name: "Red Bull", price: "3,50€", description: "Lata 250ml", image: "https://foodiewagon.de/graphics/redbull.svg" },
     ],
   },
 }
@@ -263,7 +263,7 @@ function renderMenuItems(activeKey) {
       placeholder.style.padding = "24px"
       placeholder.style.textAlign = "center"
       placeholder.style.color = "rgba(244, 240, 230, 0.65)"
-      placeholder.textContent = "Bild folgt"
+      placeholder.textContent = "Imagen próximamente"
       media.appendChild(placeholder)
 
       const price = document.createElement("div")
