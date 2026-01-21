@@ -40,26 +40,9 @@
                 </div>
             </header>
 
-            <section class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-                <div class="kpi-card status-card">
-                    <div class="status-card__header">
-                        <span class="dot dot--success"></span> Órdenes Rápidas (<5m)
-                    </div>
-                    <p class="kpi-card__value">85%</p>
-                </div>
-                <div class="kpi-card status-card">
-                    <div class="status-card__header">
-                        <span class="dot dot--warning"></span> Espera Media (5-10m)
-                    </div>
-                    <p class="kpi-card__value">10%</p>
-                </div>
-                <div class="kpi-card status-card">
-                    <div class="status-card__header">
-                        <span class="dot dot--danger"></span> Retrasos Críticos (>10m)
-                    </div>
-                    <p class="kpi-card__value">5%</p>
-                </div>
-            </section>
+            <div id="app" class="container mx-auto p-4">
+                <!-- El contenido se renderizará aquí con JavaScript -->
+            </div>
 
             <div class="dashboard-main-grid">
                 <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -85,15 +68,15 @@
             </div>
 
                 <section class="meta-section">
-                    <h2 class="card__title" style="color: var(--primary-color);">Meta de Rotación</h2>
-                    <div class="card gauge-container">
+                    <h2 class="card__title text-xl font-bold" style="color: var(--primary-color);">Meta de Rotación</h2>
+                    <div class="card gauge-container bg-white p-4 rounded-lg shadow-md">
                         <div class="gauge-placeholder">
                             <div class="gauge-placeholder__fill"></div>
                         </div>
-                        <p class="gauge-container__value">1.2</p>
-                        <p class="gauge-container__label">Rotación Actual</p>
+                        <p class="gauge-container__value text-2xl font-bold mt-2" id="current-value">Cargando...</p>
+                        <p class="gauge-container__label text-sm text-gray-600">Rotación Actual</p>
                         <p style="font-size: 0.7rem; margin-top: 15px; color: var(--text-muted);">
-                            <span class="dot dot--danger" style="width: 6px; height: 6px;"></span> Meta: 1.7
+                            <span class="dot dot--danger" style="width: 6px; height: 6px;"></span> Meta: <span id="target-value">Cargando...</span>
                         </p>
                     </div>
                 </section>
@@ -101,6 +84,38 @@
         </main>
     </div>
     <script>
+        function updateGauge(current, target) {
+            const percentage = Math.min((current / target) * 100, 100); // Máximo 100%
+            document.documentElement.style.setProperty('--percentage', percentage);
+            document.getElementById('current-value').textContent = current.toFixed(1);
+            document.getElementById('target-value').textContent = target.toFixed(1);
+        }
+
+    // Función para hacer fetch a la API
+    async function fetchRotationData() {
+        try {
+            const response = await fetch('http://localhost:3000/api/v1/kpi/operations/staff-ranking');
+            if (!response.ok) throw new Error('Error en la API');
+            const result = await response.json();
+            if (result.success && result.data && result.data.length > 0) {
+                // Calcular el promedio de efficiency_score como "rotación actual"
+                const totalScore = result.data.reduce((sum, item) => sum + item.efficiency_score, 0);
+                const averageScore = totalScore / result.data.length;
+                const target = 1007; 
+                updateGauge(averageScore, target);
+            } else {
+                console.error('Datos inválidos o array vacío en la API');
+                updateGauge(0, 107); // Valor por defecto
+            }
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+            updateGauge(0, 107); // Valor por defecto
+        }
+    }
+
+    // Llamar a la función al cargar la página
+    window.addEventListener('load', fetchRotationData);
+
         // Función para obtener iniciales del nombre
         function getInitials(name) {
             return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
@@ -115,41 +130,6 @@
         function getStatusClass(status) {
             return status === 'Activo' ? 'active' : 'rest';
         }
-
-        // Función para determinar el turno actual
-        function getCurrentShift() {
-            const now = new Date();
-            const hour = now.getHours();
-            if (hour >= 6 && hour < 12) {
-                return 'morning';
-            } else if (hour >= 12 && hour < 18) {
-                return 'afternoon';
-            } else {
-                return 'morning'; // Por defecto mañana fuera de turnos
-            }
-        }
-
-        // Función para aplicar el tema del turno
-        function applyShiftTheme(shift) {
-            const body = document.getElementById('body');
-            const indicator = document.getElementById('shift-indicator');
-            body.className = `p-4 ${shift}`;
-            indicator.textContent = shift === 'morning' ? 'Turno de Mañana' : 'Turno de Tarde';
-        }
-
-        // Función para detectar cambio de turno y recargar
-        let currentShift = getCurrentShift();
-        applyShiftTheme(currentShift);
-
-        setInterval(() => {
-            const newShift = getCurrentShift();
-            if (newShift !== currentShift) {
-                currentShift = newShift;
-                applyShiftTheme(currentShift);
-                // Recargar la página automáticamente al cambiar de turno
-                window.location.reload();
-            }
-        }, 60000); // Chequear cada minuto
 
         // Función para cargar datos de la API
         async function loadRanking(sort_by="EFFICIENCY", page = 1, limit = 10) {
@@ -243,6 +223,79 @@
 
         // Cargar datos iniciales al cargar la página
         window.onload = () => loadRanking();
+
+        let data = null;
+    let loading = true;
+    let error = null;
+
+    // URL de la API (usando un valor por defecto ya que process.env no está disponible en vanilla JS)
+    const API_URL = 'http://localhost:3000/api/v1/kpi/operations/sla-breakdown'; // Ajusta si es necesario
+
+    // Función para renderizar una zona
+    function renderZone(zoneName, zoneData, bgColor, textColor) {
+      return `
+        <div class="p-4 rounded-lg shadow-md ${bgColor} ${textColor} mb-4">
+          <h3 class="text-lg font-bold mb-2 capitalize">${zoneName.replace('_', ' ')}</h3>
+          <p class="mb-1">${zoneData} %</p>
+        </div>
+      `;
+    }
+
+    // Función para renderizar el componente completo
+    function render() {
+      const app = document.getElementById('app');
+
+      if (loading) {
+        app.innerHTML = '<p class="text-center">Cargando datos...</p>';
+        return;
+      }
+
+      if (error) {
+        app.innerHTML = `<p class="text-center text-red-500">${error}</p>`;
+        return;
+      }
+
+      app.innerHTML = `
+        <h2 class="text-2xl font-bold mb-6 text-center">Desglose de SLA de Comandas</h2>
+        
+        <!-- Bloque para la fecha -->
+        <div class="p-4 rounded-lg shadow-md bg-gray-100 text-gray-800 mb-6">
+          <h3 class="text-lg font-bold">Fecha</h3>
+          <p>${data.data_timestamp || 'Fecha no disponible'}</p>
+        </div>
+
+        <!-- Bloques para las zonas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          ${renderZone('green_zone', data.green_zone_percent, 'bg-green-100', 'text-green-800')}
+          ${renderZone('yellow_zone', data.yellow_zone_percent, 'bg-yellow-100', 'text-yellow-800')}
+          ${renderZone('red_zone', data.red_zone_percent, 'bg-red-100', 'text-red-800')}
+        </div>
+      `;
+    }
+
+    // Función para obtener datos de la API
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL.toString(), {headers: {
+          "Content-Type": "application/json",
+        }});
+        if (!response.ok) {
+          throw new Error('Error en la respuesta de la API');
+        }
+        const result = await response.json();
+        data = result;
+        loading = false;
+        render();
+      } catch (err) {
+        error = 'Error al cargar los datos. Verifica la conexión a la API.';
+        loading = false;
+        render();
+      }
+    }
+
+    // Inicializar: llamar a fetchData y renderizar inicialmente
+    render(); // Render inicial con loading
+    fetchData();
     </script>
 </body>
 </html>

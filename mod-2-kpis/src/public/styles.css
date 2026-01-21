@@ -330,26 +330,6 @@ body {
     padding: 20px;
 }
 
-.gauge-placeholder {
-    width: 200px;
-    height: 100px;
-    border: 15px solid #f1f3f5;
-    border-bottom: none;
-    border-radius: 100px 100px 0 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.gauge-placeholder__fill {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    border: 15px solid var(--primary-color);
-    border-bottom: none;
-    border-radius: 100px 100px 0 0;
-    transform-origin: center bottom;
-    transform: rotate(45deg); /* Ejemplo de valor */
-}
-
 .gauge-container__value {
     font-size: 2rem;
     font-weight: 800;
@@ -514,4 +494,30 @@ body {
         }
         .afternoon .rest {
             background-color: #fbbf24; /* Amarillo más claro */
+        }
+
+.gauge-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--primary-color) 0deg,
+                var(--primary-color) calc(var(--percentage) * 3.6deg), /* 3.6deg por 1% (360/100) */
+                #e5e7eb calc(var(--percentage) * 3.6deg),
+                #e5e7eb 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dot--danger {
+            background-color: #ef4444; /* Rojo para el dot */
+            border-radius: 50%;
+            display: inline-block;
         }
