@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
+    <title>Historial de Pedidos - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-container">
+    <main class="main-content">
+        <header class="header">
+        <h1 class="header__title">Historial de Pedidos</h1>
+        <div class="filters">
+            <input type="date" id="fromDate">
+            <input type="date" id="toDate">
+        <button class="btn btn--primary" id="btnBuscar">Buscar</button>
+        </div>
+    </header>
+
+    <section class="table-wrapper">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Orden</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Creado</th>
+                <th>Servido</th>
+                <th>Staff</th>
+            </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+        </section>
+    </main>
+
+    <script type="module" src="./js/historial_pedidos.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
