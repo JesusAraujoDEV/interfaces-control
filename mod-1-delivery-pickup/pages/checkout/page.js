@@ -198,6 +198,26 @@ document.addEventListener('keydown', e => {
   const modal = document.getElementById('cartModal');
   if (modal && !modal.classList.contains('hidden')) closeCartModal();
 });
+// Notas modal bindings
+document.getElementById('notesConfirm')?.addEventListener('click', () => {
+  closeNotesModal();
+  // Submit the pending order flow; mode was set when opening the modal
+  submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
+});
+document.getElementById('notesCancel')?.addEventListener('click', () => {
+  closeNotesModal();
+});
+document.getElementById('notesModalClose')?.addEventListener('click', () => {
+  closeNotesModal();
+});
+document.getElementById('notesBackdrop')?.addEventListener('click', () => {
+  closeNotesModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const modal = document.getElementById('notesModal');
+  if (modal && !modal.classList.contains('hidden')) closeNotesModal();
+});
 function setZone(zone) {
   const byName = zoneChips.find(btn => btn.dataset.zone === zone);
   const byId = zoneChips.find(btn => btn.dataset.zoneId === zone);
@@ -369,7 +389,66 @@ function buildOrderPayload() {
   };
 
   if (isDelivery) payload.zone_id = zone && zone.zone_id ? zone.zone_id : '';
+  // Nota opcional para cocina (campo añadido en el modal)
+  try {
+    const noteEl = document.getElementById('orderNote');
+    const note = noteEl ? String(noteEl.value || '').trim() : '';
+    if (note) payload.notes = note;
+  } catch (e) {
+    // ignore
+  }
   return payload;
+}
+
+// Estado temporal cuando el usuario confirma el formulario y se muestra el modal de notas
+let pendingOrderMode = null;
+
+function openNotesModal() {
+  const modal = document.getElementById('notesModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+}
+
+function closeNotesModal() {
+  const modal = document.getElementById('notesModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
+async function submitOrderFlow(mode) {
+  if (proceedBtn) {
+    proceedBtn.disabled = true;
+    proceedBtn.textContent = 'Creando orden…';
+  }
+
+  try {
+    const result = await createOrder();
+
+    // Limpiar carrito
+    clearCartStorage();
+
+    const orderId = result && (result.order_id || result.id || result.orderId);
+    const readableId = result && (result.readable_id || result.readableId);
+    const trackingId = readableId || orderId;
+
+    if (trackingId) {
+      const nextUrl = new URL(`/order-tracking/${encodeURIComponent(String(trackingId))}`, window.location.href);
+      nextUrl.searchParams.set('mode', mode);
+      window.location.href = nextUrl.toString();
+    } else {
+      const nextUrl = new URL('/mod-1-delivery-pickup/pages/order-tracking/index.html', window.location.href);
+      nextUrl.searchParams.set('mode', mode);
+      window.location.href = nextUrl.toString();
+    }
+  } catch (err) {
+    setSubmitError(err && err.message ? err.message : 'No se pudo crear la orden.');
+  } finally {
+    if (proceedBtn) {
+      proceedBtn.disabled = false;
+      proceedBtn.textContent = 'Continuar';
+    }
+    pendingOrderMode = null;
+  }
 }
 
 async function createOrder() {
@@ -441,43 +520,11 @@ form.addEventListener('submit', function (e) {
   }
 
   if (valid) {
+    // En lugar de crear la orden directamente, abrimos un modal para permitir añadir una nota opcional.
     const mode = deliveryBtn.getAttribute('aria-pressed') === 'true' ? 'delivery' : 'pickup';
     localStorage.setItem('dp_service_type', mode);
-
-    if (proceedBtn) {
-      proceedBtn.disabled = true;
-      proceedBtn.textContent = 'Creando orden…';
-    }
-
-    (async () => {
-      try {
-        const result = await createOrder();
-
-        // La orden ya fue creada correctamente: limpiamos el carrito para la próxima compra.
-        clearCartStorage();
-
-        const orderId = result && (result.order_id || result.id || result.orderId);
-        const readableId = result && (result.readable_id || result.readableId);
-        const trackingId = readableId || orderId;
-
-        if (trackingId) {
-          const nextUrl = new URL(`/order-tracking/${encodeURIComponent(String(trackingId))}`, window.location.href);
-          nextUrl.searchParams.set('mode', mode);
-          window.location.href = nextUrl.toString();
-        } else {
-          const nextUrl = new URL('/mod-1-delivery-pickup/pages/order-tracking/index.html', window.location.href);
-          nextUrl.searchParams.set('mode', mode);
-          window.location.href = nextUrl.toString();
-        }
-      } catch (err) {
-        setSubmitError(err && err.message ? err.message : 'No se pudo crear la orden.');
-      } finally {
-        if (proceedBtn) {
-          proceedBtn.disabled = false;
-          proceedBtn.textContent = 'Continuar';
-        }
-      }
-    })();
+    pendingOrderMode = mode;
+    openNotesModal();
   } else {
     // Scroll to first error
     const firstErr = document.querySelector('p.text-red-600:not(.hidden)');
