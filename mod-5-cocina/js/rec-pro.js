@@ -1,3 +1,6 @@
+const API_BASE = 'http://localhost:3000/api/kitchen';
+const INVENTORY_URL = 'http://localhost:3000/api/inventory';
+
 let allProducts = [];
 let allCategories = [];
 let allInventory = [];
@@ -7,728 +10,454 @@ let searchTerm = '';
 let editingCategoryId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    injectStyles();
-    injectDashboard();
-    injectControls();
-    loadCategories();
-    loadProducts();
-    loadInventory();
+    injectStyles();     
+    injectDashboard();  
+    loadCategories();   
+    loadProducts();     
+    loadInventory();    
 });
 
-function injectStyles() {
-    const style = document.createElement('style');
-    style.innerHTML = `
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { min-width: 250px; margin-bottom: 10px; padding: 15px; border-radius: 4px; color: white; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: slideIn 0.3s ease-out forwards, fadeOut 0.5s ease-in 2.5s forwards; opacity: 0; }
-        .toast.success { background-color: #28a745; border-left: 5px solid #1e7e34; }
-        .toast.error { background-color: #dc3545; border-left: 5px solid #bd2130; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        
-        .controls-toolbar { margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; }
-        .search-box { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; }
-        .filter-btn { padding: 6px 12px; border: 1px solid #ced4da; background: white; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-size: 0.9em; }
-        .filter-btn:hover { background: #e2e6ea; }
-        .filter-btn.active { background: #007bff; color: white; border-color: #0056b3; }
-        .filters-container { display: flex; gap: 8px; flex-wrap: wrap; }
+function getCategoryImage(categoryName) {
+    const name = (categoryName || '').toLowerCase();
+    let icon = '🍽️';
+    let color = '#e5e7eb'; 
 
-        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #007bff; }
-        .stat-card h3 { margin: 0; font-size: 2em; color: #333; }
-        .stat-card p { margin: 5px 0 0; color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-card.green { border-left-color: #28a745; }
-        .stat-card.orange { border-left-color: #fd7e14; }
-        .stat-card.purple { border-left-color: #6f42c1; }
+    if (name.includes('pizza')) { icon = '🍕'; color = '#fef3c7'; }
+    else if (name.includes('hamburg') || name.includes('burger')) { icon = '🍔'; color = '#fee2e2'; }
+    else if (name.includes('bebida') || name.includes('refres') || name.includes('jugo')) { icon = '🥤'; color = '#dbeafe'; }
+    else if (name.includes('cafe') || name.includes('café')) { icon = '☕'; color = '#fff7ed'; }
+    else if (name.includes('postre') || name.includes('dulce') || name.includes('torta') || name.includes('pastel')) { icon = '🍰'; color = '#fce7f3'; }
+    else if (name.includes('ensalada') || name.includes('vege') || name.includes('sana')) { icon = '🥗'; color = '#dcfce7'; }
+    else if (name.includes('sushi') || name.includes('pesca') || name.includes('marisco')) { icon = '🍣'; color = '#fae8ff'; }
+    else if (name.includes('carne') || name.includes('parri') || name.includes('asado')) { icon = '🥩'; color = '#fecaca'; }
+    else if (name.includes('pollo') || name.includes('alas') || name.includes('fry')) { icon = '🍗'; color = '#ffedd5'; }
+    else if (name.includes('taco') || name.includes('mexi')) { icon = '🌮'; color = '#fef9c3'; }
+    else if (name.includes('pasta') || name.includes('ital')) { icon = '🍝'; color = '#ffedd5'; }
+    else if (name.includes('sopa') || name.includes('caldo')) { icon = '🥣'; color = '#e0f2fe'; }
+    else if (name.includes('sandw') || name.includes('bocad')) { icon = '🥪'; color = '#f3f4f6'; }
+    else if (name.includes('frita') || name.includes('papas')) { icon = '🍟'; color = '#fef3c7'; }
+
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+        <rect width="100%" height="100%" fill="${color}"/>
+        <text x="50%" y="50%" font-family="Segoe UI, Emoji, Arial" font-size="80" text-anchor="middle" dominant-baseline="middle">${icon}</text>
+    </svg>`;
+    
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function injectStyles() {
+    if (document.getElementById('dynamic-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'dynamic-styles';
+    style.innerHTML = `
+        :root { --primary: #2563eb; --success: #22c55e; --danger: #ef4444; --bg-card: #ffffff; --text-main: #1f2937; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
+        .kpi-value { font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 10px 0 5px 0; }
+        .kpi-label { color: #6b7280; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
     `;
     document.head.appendChild(style);
-
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    document.body.appendChild(container);
 }
 
 function injectDashboard() {
-    const tableContainer = document.querySelector('.table-responsive') || document.querySelector('table').parentNode;
-    
-    const dashboard = document.createElement('div');
-    dashboard.className = 'stats-container';
-    dashboard.innerHTML = `
-        <div class="stat-card">
-            <h3 id="stat-products">0</h3>
-            <p>Total Platos</p>
+    const dash = document.getElementById('dashboard-stats');
+    if (!dash) return;
+    dash.innerHTML = `
+        <div class="kpi-card" style="border-left-color: #2563eb;">
+            <div class="kpi-label">Total Productos</div>
+            <div class="kpi-value" id="total-products">0</div>
         </div>
-        <div class="stat-card green">
-            <h3 id="stat-categories">0</h3>
-            <p>Categorías</p>
+        <div class="kpi-card" style="border-left-color: #22c55e;">
+            <div class="kpi-label">Activos en Menú</div>
+            <div class="kpi-value" id="active-products">0</div>
         </div>
-        <div class="stat-card orange">
-            <h3 id="stat-avg-price">$0.00</h3>
-            <p>Precio Promedio</p>
-        </div>
-        <div class="stat-card purple">
-            <h3 id="stat-inventory">0</h3>
-            <p>Items en Despensa</p>
+        <div class="kpi-card" style="border-left-color: #f59e0b;">
+            <div class="kpi-label">Categorías</div>
+            <div class="kpi-value" id="total-categories">0</div>
         </div>
     `;
-
-    tableContainer.parentNode.insertBefore(dashboard, tableContainer);
 }
 
 function updateDashboard() {
-    document.getElementById('stat-products').textContent = allProducts.length;
-    document.getElementById('stat-categories').textContent = allCategories.length;
-    document.getElementById('stat-inventory').textContent = allInventory.length;
-
-    if (allProducts.length > 0) {
-        const total = allProducts.reduce((sum, p) => sum + (p.price || p.basePrice || 0), 0);
-        const avg = total / allProducts.length;
-        document.getElementById('stat-avg-price').textContent = `$${avg.toFixed(2)}`;
-    }
+    const activeProds = allProducts.filter(p => p.isActive !== false);
+    document.getElementById('total-products').textContent = activeProds.length;
+    document.getElementById('active-products').textContent = activeProds.length;
+    document.getElementById('total-categories').textContent = allCategories.length;
 }
 
-function injectControls() {
-    const tableContainer = document.querySelector('.table-responsive') || document.querySelector('table').parentNode;
-    
-    const toolbar = document.createElement('div');
-    toolbar.className = 'controls-toolbar';
-    toolbar.innerHTML = `
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar producto...">
-        <div id="categoryFilters" class="filters-container"></div>
-    `;
-
-    tableContainer.parentNode.insertBefore(toolbar, tableContainer);
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        searchTerm = e.target.value.toLowerCase();
-        applyFilters();
-    });
-}
-
-window.showToast = function(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-async function loadCategories() {
-    try {
-        const response = await fetch(`${KITCHEN_URL}/categories`, { headers: getCommonHeaders() });
-        const data = await response.json();
-        if (data.success) {
-            allCategories = data.data;
-            renderCategoryFilters();
-            renderCategorySelect();
-            updateDashboard();
-            
-            if(document.getElementById('categoryModal').style.display === 'block') {
-                renderCategoryList();
-            }
-        }
-    } catch (error) {
-        console.error(error);
-        showToast('Error cargando categorías', 'error');
-    }
+function getCommonHeaders() {
+    const token = localStorage.getItem('token'); 
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
 }
 
 async function loadProducts() {
     try {
-        const response = await fetch(`${KITCHEN_URL}/products`, { headers: getCommonHeaders() });
-        const result = await response.json();
-        if (result.success) {
-            allProducts = result.data;
-            applyFilters(); 
+        const res = await fetch(`${API_BASE}/products`, { headers: getCommonHeaders() });
+        const responseData = await res.json();
+        const productsList = responseData.data || responseData;
+
+        if (Array.isArray(productsList)) {
+            allProducts = productsList;
             updateDashboard();
-            checkAvailability(); 
+            renderProducts();
+        } else {
+            if(allProducts.length === 0) allProducts = []; 
         }
-    } catch (error) {
-        console.error(error);
+    } catch (e) {
         showToast('Error cargando productos', 'error');
     }
 }
 
-async function checkAvailability() {
-    for (const prod of allProducts) {
-        try {
-            const res = await fetch(`${KITCHEN_URL}/products/${prod._id}/availability`, { headers: getCommonHeaders() });
-            if (res.ok) {
-                const data = await res.json();
-                const stockEl = document.getElementById(`stock-${prod._id}`);
-                if (stockEl) {
-                    if (data.status === 'AVAILABLE' || data.isAvailable) {
-                        stockEl.innerHTML = '<span class="stock-badge" style="background: #28a745;"></span>OK';
-                        stockEl.style.color = '#28a745';
-                    } else {
-                        stockEl.innerHTML = '<span class="stock-badge" style="background: #dc3545;"></span>Falta';
-                        stockEl.style.color = '#dc3545';
-                        if(data.missing_items && data.missing_items.length > 0) {
-                            stockEl.title = 'Falta: ' + data.missing_items.join(', ');
-                        }
-                    }
-                }
+async function loadCategories() {
+    try {
+        const res = await fetch(`${API_BASE}/categories`, { headers: getCommonHeaders() });
+        const responseData = await res.json();
+        const categoriesList = responseData.data || responseData;
+
+        if (Array.isArray(categoriesList)) {
+            allCategories = categoriesList;
+            
+            const filterSelect = document.getElementById('categoryFilter');
+            const formSelect = document.getElementById('prodCategory');
+            
+            if(filterSelect) {
+                filterSelect.innerHTML = '<option value="all">Todas las Categorías</option>' + 
+                    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             }
-        } catch (e) {
-            console.error('Error verificando stock', e);
+            if(formSelect) {
+                formSelect.innerHTML = '<option value="">Seleccione...</option>' + 
+                    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+            updateDashboard();
+            renderCategoriesList();
+            renderProducts(); 
         }
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function loadInventory() {
     try {
-        const response = await fetch(`${KITCHEN_URL}/inventory/items`, { headers: getCommonHeaders() });
-        const result = await response.json();
-        if (result.success) {
-            allInventory = result.data;
-            renderIngredientSelect();
-            updateDashboard();
+        const res = await fetch(INVENTORY_URL, { headers: getCommonHeaders() });
+        if(res.ok) {
+            const data = await res.json();
+            allInventory = data.data || data;
         }
-    } catch (error) {
-        console.error(error);
-    }
+    } catch (e) { console.warn('Inventario offline'); }
 }
 
-function renderCategoryFilters() {
-    const container = document.getElementById('categoryFilters');
-    if (!container) return;
-
-    container.innerHTML = `<button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>`;
+function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
     
-    allCategories.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.textContent = cat.name;
-        btn.onclick = () => setFilter(cat._id, btn);
-        container.appendChild(btn);
-    });
-}
-
-window.setFilter = function(catId, btnElement) {
-    activeCategory = catId;
+    let filtered = allProducts.filter(p => p.isActive === true);
     
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btnElement.classList.add('active');
-    
-    applyFilters();
-}
-
-function applyFilters() {
-    let filtered = allProducts;
-
     if (activeCategory !== 'all') {
-        filtered = filtered.filter(p => p.category && p.category._id === activeCategory);
+        filtered = filtered.filter(p => p.categoryId === activeCategory);
     }
-
+    
     if (searchTerm) {
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(term));
     }
 
-    renderProducts(filtered);
-}
-
-function renderCategorySelect() {
-    const select = document.getElementById('productCategory');
-    if (!select) return;
-    select.innerHTML = '<option value="">Seleccione una categoría</option>';
-    allCategories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat._id; 
-        opt.textContent = cat.name;
-        select.appendChild(opt);
-    });
-}
-
-function renderIngredientSelect() {
-    const select = document.getElementById('ingredientSelect');
-    if (!select) return;
-    select.innerHTML = '<option value="">Seleccionar ingrediente...</option>';
-    allInventory.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item._id;
-        
-        const nombre = item.nombre || item.name || 'Ingrediente';
-        const costo = item.costoUnitario || item.unitCost || 0;
-        const unidad = item.unidadMedida || item.unit || 'ud';
-        
-        opt.textContent = `${nombre} ($${costo}/${unidad})`;
-        opt.dataset.cost = costo;
-        opt.dataset.unit = unidad;
-        select.appendChild(opt);
-    });
-}
-
-function renderProducts(products) {
-    const tbody = document.getElementById('productTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">No se encontraron productos</td></tr>';
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-search" style="font-size: 3rem; color: #ccc;"></i>
+                <h3>Nada por aquí</h3>
+                <p>No hay productos visibles en esta categoría.</p>
+            </div>`;
         return;
     }
 
-    products.forEach(prod => {
-        const tr = document.createElement('tr');
-        
-        const isActive = (prod.isActive !== undefined) ? prod.isActive : true;
+    filtered.forEach(p => {
+        const categoryName = allCategories.find(c => c.id === p.categoryId)?.name || 'General';
+        const fallbackImage = getCategoryImage(categoryName);
+        const imageUrl = p.imageUrl || fallbackImage;
 
-        if (!isActive) {
-            tr.classList.add('row-inactive');
-        }
-
-        const cost = calculateProductCost(prod._id);
-        const categoryName = prod.category ? prod.category.name : 'Sin Categoría';
-        const priceVal = prod.price || prod.basePrice || 0;
-        const imgSrc = prod.image || '/assets/default-food.png';
-
-        tr.innerHTML = `
-            <td>
-                <img src="${imgSrc}" onerror="this.src='/assets/default-food.png'" 
-                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-            </td>
-            <td>${prod.name}</td>
-            <td>${categoryName}</td>
-            <td id="price-cell-${prod._id}" 
-                ondblclick="enablePriceEdit('${prod._id}', ${priceVal})" 
-                style="cursor: pointer;" 
-                title="Doble click para editar">
-                $${parseFloat(priceVal).toFixed(2)}
-            </td>
-            <td>$${cost.toFixed(2)}</td>
-            <td id="stock-${prod._id}" style="font-size:0.9em; color:#666;">
-                <span class="stock-badge" style="background: #ccc;"></span>...
-            </td>
-            <td>
-                <label class="switch">
-                    <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleProductStatus('${prod._id}', ${isActive})">
-                    <span class="slider"></span>
-                </label>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-edit" onclick="editProduct('${prod._id}')">Editar</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct('${prod._id}')">X</button>
-            </td>
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="card-badge status-active">ACTIVO</div>
+            <img 
+                src="${imageUrl}" 
+                alt="${p.name}" 
+                class="card-img" 
+                onerror="this.onerror=null; this.src='${fallbackImage}';"
+            >
+            <div class="card-body">
+                <h3 class="card-title">${p.name}</h3>
+                <p class="card-desc">${p.description || ''}</p>
+                <div class="card-meta">
+                    <span class="price">$${parseFloat(p.basePrice).toFixed(2)}</span>
+                    <span class="category-tag">${categoryName}</span>
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn" onclick="openEditProduct('${p.id}')"><i class="fas fa-edit"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
+                <button class="action-btn" onclick="openRecipeModal('${p.id}')"><i class="fas fa-scroll"></i></button>
+            </div>
+             <div style="padding: 10px; border-top: 1px solid #eee;">
+                 <button class="action-btn" style="width:100%" onclick="checkAvailability('${p.id}')">
+                    <i class="fas fa-check-circle"></i> Verificar Stock
+                </button>
+            </div>
         `;
-        tbody.appendChild(tr);
+        grid.appendChild(card);
     });
+}
+
+function filterByCategory() {
+    activeCategory = document.getElementById('categoryFilter').value;
+    renderProducts();
+}
+
+function filterProducts() {
+    searchTerm = document.getElementById('searchInput').value;
+    renderProducts();
+}
+
+async function saveProduct(e) {
+    e.preventDefault();
+    const id = document.getElementById('prodId').value;
     
-    checkAvailability();
-}
-
-window.toggleProductStatus = async function(id, currentStatus) {
-    const newStatus = !currentStatus;
+    const formData = new FormData();
+    formData.append('name', document.getElementById('prodName').value);
+    formData.append('basePrice', document.getElementById('prodPrice').value);
+    formData.append('categoryId', document.getElementById('prodCategory').value);
+    formData.append('description', document.getElementById('prodDesc').value);
     
-    try {
-        const res = await fetch(`${KITCHEN_URL}/products/${id}`, {
-            method: 'PUT',
-            headers: getCommonHeaders(),
-            body: JSON.stringify({ isActive: newStatus })
-        });
-        
-        if (res.ok) {
-            showToast(newStatus ? 'Producto activado' : 'Producto desactivado', 'success');
-            loadProducts();
-        } else {
-            showToast('Error al cambiar estado', 'error');
-            loadProducts(); 
-        }
-    } catch (e) {
-        console.error(e);
-        showToast('Error de conexión', 'error');
-        loadProducts(); 
-    }
-}
-
-function calculateProductCost(productId) {
-    const localData = getLocalRecipes();
-    const ingredients = localData[productId] || [];
-    return ingredients.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0);
-}
-
-function getLocalRecipes() {
-    return JSON.parse(localStorage.getItem('temp_recipes')) || {};
-}
-
-function saveLocalRecipes(data) {
-    localStorage.setItem('temp_recipes', JSON.stringify(data));
-}
-
-window.openModal = function() {
-    currentRecipeProductId = 'new_' + Date.now();
-    document.getElementById('recipeModal').style.display = 'block';
+    const imageFile = document.getElementById('prodImage').files[0];
     
-    document.getElementById('productName').value = '';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productCategory').value = '';
-    document.getElementById('recipeList').innerHTML = '';
-    document.getElementById('totalCost').textContent = '0.00';
-    document.getElementById('ingQuantity').value = ''; 
-    
-    const localData = getLocalRecipes();
-    localData[currentRecipeProductId] = [];
-    saveLocalRecipes(localData);
-}
-
-window.closeModal = function() {
-    document.getElementById('recipeModal').style.display = 'none';
-    currentRecipeProductId = null;
-}
-
-window.editProduct = function(id) {
-    const prod = allProducts.find(p => p._id === id);
-    if (!prod) return;
-
-    currentRecipeProductId = id;
-    document.getElementById('recipeModal').style.display = 'block';
-    document.getElementById('productName').value = prod.name;
-    document.getElementById('productPrice').value = prod.price;
-    document.getElementById('productCategory').value = prod.category ? prod.category._id : '';
-
-    loadRecipeIngredients();
-}
-
-async function loadRecipeIngredients() {
-    const list = document.getElementById('recipeList');
-    list.innerHTML = '';
-    let total = 0;
-
-    const localData = getLocalRecipes();
-    let ingredients = [];
-
-    if (localData[currentRecipeProductId]) {
-        ingredients = localData[currentRecipeProductId];
-    } else if (!currentRecipeProductId.startsWith('new_')) {
+    if (imageFile) {
+        formData.append('image', imageFile);
+    } else {
+        const base64Png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
         try {
-            const res = await fetch(`${KITCHEN_URL}/recipes/product/${currentRecipeProductId}`, {
-                headers: getCommonHeaders()
-            });
-            const json = await res.json();
-            if (json.success && json.data) {
-                ingredients = json.data.ingredients.map(i => ({
-                    id: i._id,
-                    inventoryItem: i.inventoryItem._id,
-                    name: i.inventoryItem.nombre || i.inventoryItem.name,
-                    quantity: i.quantity,
-                    unitCost: i.inventoryItem.costoUnitario || i.inventoryItem.unitCost,
-                    unit: i.inventoryItem.unidadMedida || i.inventoryItem.unit,
-                    apply_on: i.apply_on || 'all'
-                }));
-                localData[currentRecipeProductId] = ingredients;
-                saveLocalRecipes(localData);
-            }
-        } catch (e) {
-            console.error(e);
+            const res = await fetch(base64Png);
+            const blob = await res.blob();
+            const dummyFile = new File([blob], 'default_image.png', { type: 'image/png' });
+            formData.append('image', dummyFile);
+        } catch (err) {
+            console.error(err);
         }
     }
 
-    ingredients.forEach(ing => {
-        addIngredientToDOM(ing);
-        total += (ing.quantity * ing.unitCost);
-    });
-
-    document.getElementById('totalCost').textContent = total.toFixed(2);
-}
-
-function addIngredientToDOM(ing) {
-    const list = document.getElementById('recipeList');
-    const li = document.createElement('li');
-    li.id = `ing-${ing.id || ing.inventoryItem}`;
-    
-    let scopeIcon = '<i data-lucide="globe" style="width:16px; margin-right:5px; vertical-align:middle;" title="Todo"></i>';
-    if(ing.apply_on === 'delivery') scopeIcon = '<i data-lucide="bike" style="width:16px; margin-right:5px; vertical-align:middle;" title="Solo Delivery"></i>';
-    if(ing.apply_on === 'restaurant') scopeIcon = '<i data-lucide="utensils" style="width:16px; margin-right:5px; vertical-align:middle;" title="Solo Mesa"></i>';
-
-    li.innerHTML = `
-        <span style="display:flex; align-items:center;">
-            ${scopeIcon}
-            ${ing.name} (${ing.quantity} ${ing.unit})
-        </span>
-        <span>$${(ing.quantity * ing.unitCost).toFixed(2)}</span>
-        <button onclick="removeIngredient('${ing.id || ing.inventoryItem}')" style="color:red; margin-left:10px;">&times;</button>
-    `;
-    list.appendChild(li);
-    lucide.createIcons();
-}
-
-window.saveProduct = async function() {
-    const name = document.getElementById('productName').value;
-    const price = parseFloat(document.getElementById('productPrice').value);
-    const category = document.getElementById('productCategory').value;
-
-    if (!name || !price || !category) {
-        showToast('Complete todos los campos básicos', 'error');
-        return;
-    }
-
-    const localData = getLocalRecipes();
-    const ingredients = localData[currentRecipeProductId] || [];
-
-    const productPayload = {
-        name,
-        basePrice: price, 
-        categoryId: category,
-        description: 'Creado desde Kitchen OS'
-    };
+    const method = id ? 'PATCH' : 'POST';
+    const url = id ? `${API_BASE}/products/${id}` : `${API_BASE}/products`;
 
     try {
-        let savedProduct;
-        
-        if (currentRecipeProductId.startsWith('new_')) {
-            const res = await fetch(`${KITCHEN_URL}/products`, {
-                method: 'POST',
-                headers: getCommonHeaders(),
-                body: JSON.stringify(productPayload)
-            });
-            const json = await res.json();
-            if (!json.success) throw new Error(json.message);
-            savedProduct = json.data;
-        } else {
-            const res = await fetch(`${KITCHEN_URL}/products/${currentRecipeProductId}`, {
-                method: 'PUT',
-                headers: getCommonHeaders(),
-                body: JSON.stringify(productPayload)
-            });
-            const json = await res.json();
-            if (!json.success) throw new Error(json.message);
-            savedProduct = json.data;
-        }
-
-        if (ingredients.length > 0) {
-            const recipePayload = {
-                product: savedProduct._id,
-                ingredients: ingredients.map(i => ({
-                    inventoryItem: i.inventoryItem,
-                    quantity: i.quantity,
-                    apply_on: i.apply_on || 'all'
-                }))
-            };
-
-            await fetch(`${KITCHEN_URL}/recipes`, {
-                method: 'POST',
-                headers: getCommonHeaders(),
-                body: JSON.stringify(recipePayload)
-            });
-        }
-
-        showToast('Producto guardado correctamente', 'success');
-        closeModal();
-        loadProducts();
-
-    } catch (error) {
-        showToast('Error al guardar: ' + error.message, 'error');
-        console.error(error);
-    }
-}
-
-window.addIngredient = function() {
-    const select = document.getElementById('ingredientSelect');
-    const quantity = parseFloat(document.getElementById('ingQuantity').value);
-    
-    const scopeRadios = document.getElementsByName('ingScope');
-    let selectedScope = 'all';
-    for(const radio of scopeRadios){
-        if(radio.checked) selectedScope = radio.value;
-    }
-
-    if (!select.value || !quantity) {
-        showToast('Seleccione ingrediente y cantidad', 'error');
-        return;
-    }
-
-    const option = select.options[select.selectedIndex];
-    
-    const fakeItem = {
-        id: 'local-' + Date.now(),
-        inventoryItem: select.value,
-        name: option.text.split(' ($')[0],
-        quantity: quantity,
-        unitCost: parseFloat(option.dataset.cost),
-        unit: option.dataset.unit,
-        apply_on: selectedScope
-    };
-
-    const localData = getLocalRecipes();
-    if (!localData[currentRecipeProductId]) {
-        localData[currentRecipeProductId] = [];
-    }
-    localData[currentRecipeProductId].push(fakeItem);
-    saveLocalRecipes(localData);
-
-    addIngredientToDOM(fakeItem);
-    
-    let currentIngredients = localData[currentRecipeProductId];
-    calculateTotalCost(currentIngredients);
-
-    document.getElementById('ingQuantity').value = ''; 
-}
-
-function calculateTotalCost(ingredients) {
-    const total = ingredients.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0);
-    document.getElementById('totalCost').textContent = total.toFixed(2);
-}
-
-window.removeIngredient = async function(id) {
-    const localData = getLocalRecipes();
-    if (localData[currentRecipeProductId]) {
-        localData[currentRecipeProductId] = localData[currentRecipeProductId].filter(i => (i.id !== id && i.inventoryItem !== id));
-        saveLocalRecipes(localData);
-    }
-
-    const element = document.getElementById(`ing-${id}`);
-    if(element) element.remove();
-    
-    if (localData[currentRecipeProductId]) {
-        calculateTotalCost(localData[currentRecipeProductId]);
-    }
-}
-
-window.enablePriceEdit = function(id, currentPrice) {
-    const cell = document.getElementById(`price-cell-${id}`);
-    if (!cell || cell.querySelector('input')) return;
-
-    cell.innerHTML = `
-        <input type="number" 
-               id="input-price-${id}" 
-               value="${currentPrice}" 
-               style="width: 80px;"
-               onblur="saveQuickPrice('${id}', this.value, ${currentPrice})"
-               onkeydown="if(event.key === 'Enter') this.blur()">
-    `;
-    setTimeout(() => document.getElementById(`input-price-${id}`).focus(), 50);
-}
-
-window.saveQuickPrice = async function(id, newPrice, oldPrice) {
-    const val = parseFloat(newPrice);
-    if (isNaN(val) || val === oldPrice) {
-        document.getElementById(`price-cell-${id}`).innerHTML = `$${parseFloat(oldPrice).toFixed(2)}`;
-        return;
-    }
-
-    try {
-        const res = await fetch(`${KITCHEN_URL}/products/${id}`, {
-            method: 'PUT',
-            headers: getCommonHeaders(),
-            body: JSON.stringify({ basePrice: val })
-        });
-        
-        if (res.ok) {
-            showToast('Precio actualizado', 'success');
-            loadProducts();
-        } else {
-            showToast('Error al actualizar precio', 'error');
-            loadProducts(); 
-        }
-    } catch (e) {
-        console.error(e);
-        showToast('Error de conexión', 'error');
-    }
-}
-
-window.openCategoryModal = function() {
-    document.getElementById('categoryModal').style.display = 'block';
-    renderCategoryList();
-    resetCategoryForm();
-}
-
-window.closeCategoryModal = function() {
-    document.getElementById('categoryModal').style.display = 'none';
-    resetCategoryForm();
-}
-
-function renderCategoryList() {
-    const tbody = document.getElementById('categoryListBody');
-    tbody.innerHTML = '';
-
-    allCategories.forEach(cat => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${cat.name}</td>
-            <td>
-                <button onclick="startEditCategory('${cat._id}', '${cat.name}')" style="cursor:pointer; border:none; background:none; color:blue;">✏️</button>
-                <button onclick="deleteCategory('${cat._id}')" style="cursor:pointer; border:none; background:none; color:red;">🗑️</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-window.saveCategory = async function() {
-    const nameInput = document.getElementById('catNameInput');
-    const name = nameInput.value.trim();
-
-    if (!name) {
-        showToast('El nombre no puede estar vacío', 'error');
-        return;
-    }
-
-    try {
-        let url = `${KITCHEN_URL}/categories`;
-        let method = 'POST';
-        
-        if (editingCategoryId) {
-            url = `${KITCHEN_URL}/categories/${editingCategoryId}`;
-            method = 'PUT';
-        }
-
         const res = await fetch(url, {
             method: method,
             headers: getCommonHeaders(),
-            body: JSON.stringify({ name: name })
+            body: formData
         });
+        const data = await res.json();
 
-        const json = await res.json();
-
-        if (json.success) {
-            showToast(editingCategoryId ? 'Categoría actualizada' : 'Categoría creada', 'success');
-            resetCategoryForm();
-            loadCategories(); 
+        if (res.ok) {
+            showToast('Guardado correctamente', 'success');
+            closeModal('productModal');
+            loadProducts(); 
         } else {
-            showToast(json.message || 'Error al guardar', 'error');
+            showToast(data.message || 'Error al guardar', 'error');
         }
-
-    } catch (error) {
-        console.error(error);
-        showToast('Error de conexión', 'error');
-    }
+    } catch (error) { showToast('Error de conexión', 'error'); }
 }
 
-window.startEditCategory = function(id, name) {
+async function deleteProduct(id) {
+    if(!confirm('¿Estás seguro de ELIMINAR este producto?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/products/${id}`, {
+            method: 'DELETE',
+            headers: getCommonHeaders()
+        });
+        if(res.ok) {
+            showToast('Producto eliminado', 'success');
+            allProducts = allProducts.filter(p => p.id !== id);
+            renderProducts();
+            updateDashboard();
+            loadProducts();
+        } else {
+            showToast('No se pudo eliminar', 'error');
+        }
+    } catch (e) { showToast('Error de conexión', 'error'); }
+}
+
+function openEditProduct(id) {
+    const product = allProducts.find(p => p.id === id);
+    if (!product) return;
+
+    document.getElementById('modalTitle').textContent = 'Editar Producto';
+    document.getElementById('prodId').value = product.id;
+    document.getElementById('prodName').value = product.name;
+    document.getElementById('prodPrice').value = product.basePrice;
+    document.getElementById('prodCategory').value = product.categoryId;
+    document.getElementById('prodDesc').value = product.description || '';
+    
+    document.getElementById('productModal').style.display = 'block';
+}
+
+async function saveCategory() {
+    const name = document.getElementById('catNameInput').value.trim();
+    if(!name) return;
+
+    const method = editingCategoryId ? 'PATCH' : 'POST';
+    const url = editingCategoryId ? `${API_BASE}/categories/${editingCategoryId}` : `${API_BASE}/categories`;
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
+            body: JSON.stringify({ name })
+        });
+        if(res.ok) {
+            document.getElementById('catNameInput').value = '';
+            editingCategoryId = null;
+            document.getElementById('cancelCatEdit').style.display = 'none';
+            loadCategories();
+        }
+    } catch(e) { showToast('Error guardando categoría', 'error'); }
+}
+
+function renderCategoriesList() {
+    const tbody = document.getElementById('categoryListBody');
+    if(!tbody) return;
+    
+    tbody.innerHTML = allCategories.map(c => `
+        <tr>
+            <td>${c.name}</td>
+            <td style="text-align:right">
+                <button onclick="editCategory('${c.id}', '${c.name}')"><i class="fas fa-edit"></i></button>
+                <button onclick="deleteCategory('${c.id}')" style="color:red"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function editCategory(id, name) {
     editingCategoryId = id;
     document.getElementById('catNameInput').value = name;
-    document.getElementById('cancelCatEdit').style.display = 'inline-block';
-    document.getElementById('catNameInput').focus();
+    document.getElementById('cancelCatEdit').style.display = 'block';
 }
 
-window.resetCategoryForm = function() {
+function resetCategoryForm() {
     editingCategoryId = null;
     document.getElementById('catNameInput').value = '';
     document.getElementById('cancelCatEdit').style.display = 'none';
 }
 
-window.deleteCategory = async function(id) {
-    if(!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
-
+async function deleteCategory(id) {
+    if(!confirm('¿Borrar categoría?')) return;
     try {
-        const res = await fetch(`${KITCHEN_URL}/categories/${id}`, {
-            method: 'DELETE',
-            headers: getCommonHeaders()
-        });
-
-        if (res.ok) {
-            showToast('Categoría eliminada', 'success');
-            loadCategories();
-        } else {
-            showToast('No se pudo eliminar (quizás tiene productos)', 'error');
-        }
-    } catch (error) {
-        console.error(error);
-    }
+        await fetch(`${API_BASE}/categories/${id}`, { method:'DELETE', headers: getCommonHeaders() });
+        loadCategories();
+    } catch(e) {}
 }
 
-window.onclick = function(event) {
-    const cModal = document.getElementById('categoryModal');
-    const rModal = document.getElementById('recipeModal');
-    if (event.target == cModal) closeCategoryModal();
-    if (event.target == rModal) closeModal();
+async function openRecipeModal(id) {
+    currentRecipeProductId = id;
+    document.getElementById('recipeModal').style.display = 'block';
+    
+    const select = document.getElementById('ingredientSelect');
+    if(allInventory.length === 0) await loadInventory();
+    
+    select.innerHTML = '<option value="">Seleccione...</option>' + 
+        allInventory.map(i => `<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+
+    loadRecipeIngredients(id);
+}
+
+async function loadRecipeIngredients(prodId) {
+    const tbody = document.getElementById('recipeListBody');
+    tbody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
+    
+    try {
+        const res = await fetch(`${API_BASE}/recipes?productId=${prodId}`, { headers: getCommonHeaders() });
+        const data = await res.json();
+        const recipes = data.data || data; 
+
+        tbody.innerHTML = '';
+        if(Array.isArray(recipes) && recipes.length > 0) {
+            recipes.forEach(r => {
+                const item = allInventory.find(i => i.id === r.inventoryItemId);
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item ? item.name : 'Item Inventario'}</td>
+                        <td>${r.quantityRequired} ${item ? item.unit : ''}</td>
+                        <td><button onclick="deleteRecipeItem('${r.id}')" style="color:red">X</button></td>
+                    </tr>`;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Sin ingredientes asignados</td></tr>';
+        }
+    } catch(e) { tbody.innerHTML = ''; }
+}
+
+async function addIngredientToRecipe() {
+    const invId = document.getElementById('ingredientSelect').value;
+    const qty = document.getElementById('ingredientQty').value;
+    if(!invId || !qty) return;
+
+    try {
+        await fetch(`${API_BASE}/recipes`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', ...getCommonHeaders()},
+            body: JSON.stringify({
+                productId: currentRecipeProductId,
+                inventoryItemId: invId,
+                quantityRequired: Number(qty),
+                applyOn: 'ALL'
+            })
+        });
+        loadRecipeIngredients(currentRecipeProductId);
+    } catch(e) { showToast('Error agregando', 'error'); }
+}
+
+window.deleteRecipeItem = async function(id) {
+    try {
+        await fetch(`${API_BASE}/recipes/${id}`, { method:'DELETE', headers: getCommonHeaders() });
+        loadRecipeIngredients(currentRecipeProductId);
+    } catch(e) {}
+};
+
+window.checkAvailability = async function(productId) {
+    try {
+        showToast('Consultando almacén...', 'info');
+        const res = await fetch(`${API_BASE}/products/${productId}/availability`, { headers: getCommonHeaders() });
+        const data = await res.json();
+
+        if (res.ok) {
+            alert('✅ STOCK DISPONIBLE\n¡A cocinar!');
+        } else {
+            const reason = data.reason || 'Faltan ingredientes';
+            const missing = data.missingItems ? `\nFalta: ${data.missingItems.join(', ')}` : '';
+            alert(`❌ NO DISPONIBLE\n${reason}${missing}`);
+        }
+    } catch (e) { showToast('Error verificando disponibilidad', 'error'); }
+}
+
+window.openCreateProductModal = function() {
+    document.getElementById('productModal').style.display = 'block';
+    document.getElementById('productForm').reset();
+    document.getElementById('prodId').value = '';
+    document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+}
+window.openCategoryModal = function() {
+    document.getElementById('categoryModal').style.display = 'block';
+}
+window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; }
+window.closeCategoryModal = function() { document.getElementById('categoryModal').style.display = 'none'; }
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    if(t) {
+        t.textContent = msg;
+        t.className = `toast show ${type}`;
+        setTimeout(() => t.className = t.className.replace('show',''), 3000);
+    }
 }
