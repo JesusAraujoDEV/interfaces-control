@@ -1,44 +1,53 @@
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnCargar').addEventListener('click', cargarShifts);
-});
+    async function cargarShifts() {
+    try {
+        const staffId = localStorage.getItem('staff_id');
+        if (!staffId) {
+        alert('Debes hacer check-in primero para ver tu historial de turnos');
+        return;
+        }
 
-async function cargarShifts() {
-    const staffId = document.getElementById('staffId').value || localStorage.getItem('staff_id');
-    if (!staffId) {
-        alert('Debes indicar un ID de staff');
+        const res = await fetch(`${KITCHEN_URL}/staff/${staffId}/shifts`, {
+        headers: getCommonHeaders()
+        });
+        if (!res.ok) {
+        throw new Error(`Error ${res.status}: no se pudo obtener los turnos`);
+        }
+
+        const shifts = await res.json();
+        console.log('Historial de turnos:', shifts);
+
+        renderizarShifts(shifts);
+    } catch (error) {
+        console.error('Error al cargar turnos:', error);
+    }
+    }
+
+    function renderizarShifts(shifts) {
+    const historialList = document.querySelector('.historial-list');
+    if (!historialList) {
+        console.error('No existe el contenedor .historial-list en el HTML');
         return;
     }
 
-    try {
-        const response = await fetch(`${KITCHEN_URL}/staff/${staffId}/shifts`, {
-            headers: getCommonHeaders()
-    });
-        const shifts = await response.json();
-        renderShifts(shifts);
-    } catch (error) {
-        console.error('Error cargando shifts:', error);
-    }
-}
-
-function renderShifts(shifts = []) {
-    const tbody = document.getElementById('shiftsBody');
-    tbody.innerHTML = '';
+    historialList.innerHTML = '';
 
     shifts.forEach(s => {
-        const start = new Date(s.start);
-        const end = s.end ? new Date(s.end) : null;
-        const hours = end ? ((end - start) / 3600000) : 0;
-
-        const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td>${formatDate(start)}</td>
-        <td>${end ? formatDate(end) : '—'}</td>
-        <td>${hours.toFixed(2)}</td>
-    `;
-        tbody.appendChild(tr);
+        const card = document.createElement('div');
+        card.className = 'shift-card';
+        card.innerHTML = `
+        <p><strong>Turno:</strong> ${s.id}</p>
+        <p>Entrada: ${new Date(s.checkInAt).toLocaleString()}</p>
+        <p>Salida: ${s.checkOutAt ? new Date(s.checkOutAt).toLocaleString() : 'En curso'}</p>
+        <p>Horas trabajadas: ${s.hoursWorked || calcularHoras(s.checkInAt, s.checkOutAt)} </p>
+        `;
+        historialList.appendChild(card);
     });
-}
+    }
 
-function formatDate(d) {
-    return new Date(d).toLocaleString();
-}
+    function calcularHoras(checkIn, checkOut) {
+    if (!checkOut) return '0';
+    const diffMs = new Date(checkOut) - new Date(checkIn);
+    return (diffMs / (1000 * 60 * 60)).toFixed(2);
+    }
+
+    document.addEventListener('DOMContentLoaded', cargarShifts);

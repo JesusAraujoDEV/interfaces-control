@@ -9,7 +9,7 @@ let editingCategoryId = null;
 document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
     injectDashboard();
-    injectControls(); 
+    injectControls();
     loadCategories();
     loadProducts();
     loadInventory();

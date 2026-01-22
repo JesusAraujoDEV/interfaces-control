@@ -1,45 +1,54 @@
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnBuscar').addEventListener('click', buscarHistorial);
-});
-
-async function buscarHistorial() {
-    const from = document.getElementById('fromDate').value;
-    const to = document.getElementById('toDate').value;
-
-    const params = new URLSearchParams();
-    if (from) params.append('from', from);
-    if (to) params.append('to', to);
-
+    async function cargarHistorialPedidos() {
     try {
-        const response = await fetch(`${KITCHEN_URL}/kitchen/kds/history?${params.toString()}`, {
+        const startDate = document.querySelector('#startDate').value;
+        const endDate = document.querySelector('#endDate').value;
+        const status = document.querySelector('#status').value;
+
+        // Construir la URL con parámetros dinámicos
+        let url = `${KITCHEN_URL}/kds/history?`;
+        if (startDate) url += `start_date=${startDate}&`;
+        if (endDate) url += `end_date=${endDate}&`;
+        if (status) url += `status=${status}`;
+
+        const res = await fetch(url, {
         headers: getCommonHeaders()
-    });
-        const data = await response.json();
-        renderTabla(data);
+        });
+        if (!res.ok) {
+        throw new Error(`Error ${res.status}: no se pudo obtener el historial`);
+        }
+
+        const orders = await res.json();
+        console.log('Historial de pedidos:', orders);
+
+        renderizarHistorialPedidos(orders);
     } catch (error) {
-        console.error('Error consultando historial:', error);
+        console.error('Error al cargar historial de pedidos:', error);
     }
-}
+    }
 
-function renderTabla(rows = []) {
-    const tbody = document.getElementById('historyBody');
-    tbody.innerHTML = '';
+    function renderizarHistorialPedidos(orders) {
+    const pedidosBody = document.querySelector('#pedidosBody');
+    if (!pedidosBody) return;
 
-    rows.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${r.displayLabel || r.externalOrderId}</td>
-            <td>${r.product?.name || 'Producto'}</td>
-            <td>${r.quantity ?? 1}</td>
-            <td>${formatDate(r.createdAt)}</td>
-            <td>${formatDate(r.servedAt)}</td>
-            <td>${r.servedBy?.name || '—'}</td>
+    pedidosBody.innerHTML = '';
+
+    const data = Array.isArray(orders) ? orders : orders.history || [];
+
+    data.forEach(o => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+        <td>${o.displayLabel || o.externalOrderId}</td>
+        <td>${o.serviceMode}</td>
+        <td>${o.status}</td>
+        <td>${new Date(o.createdAt).toLocaleString()}</td>
+        <td>${o.servedAt ? new Date(o.servedAt).toLocaleString() : 'No entregado'}</td>
+        <td>${o.chef ? o.chef.name : '—'}</td>
         `;
-        tbody.appendChild(tr);
+        pedidosBody.appendChild(row);
     });
-}
+    }
 
-function formatDate(d) {
-    if (!d) return '—';
-    return new Date(d).toLocaleString();
-}
+    // Asociar el botón de búsqueda
+    document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#btnBuscar').addEventListener('click', cargarHistorialPedidos);
+    });

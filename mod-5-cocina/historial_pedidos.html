@@ -2,11 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/config.js"></script>
-    <script src="/js/api.js"></script>
     <title>Historial de Pedidos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="app-container">
@@ -14,25 +13,33 @@
         <header class="header">
         <h1 class="header__title">Historial de Pedidos</h1>
         <div class="filters">
-            <input type="date" id="fromDate">
-            <input type="date" id="toDate">
-        <button class="btn btn--primary" id="btnBuscar">Buscar</button>
+            <label>Desde: <input type="date" id="startDate"></label>
+            <label>Hasta: <input type="date" id="endDate"></label>
+            <label>Estado:
+                <select id="status">
+                    <option value="">Todos</option>
+                    <option value="READY">READY</option>
+                    <option value="SERVED">SERVED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+            </select>
+            </label>
+            <button class="btn btn--primary" id="btnBuscar">Buscar</button>
         </div>
     </header>
 
-    <section class="table-wrapper">
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Orden</th>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Creado</th>
-                <th>Servido</th>
-                <th>Staff</th>
-            </tr>
+        <section class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Modo</th>
+                        <th>Estado</th>
+                        <th>Creado</th>
+                        <th>Servido</th>
+                        <th>Chef</th>
+                    </tr>
             </thead>
-            <tbody id="historyBody"></tbody>
+            <tbody id="pedidosBody"></tbody>
         </table>
         </section>
     </main>
