@@ -483,9 +483,27 @@
 
             try {
                 if (id) {
-                    await window.TablesApi.updateTable(id, { currentStatus: status });
+                    const updatedTable = await window.TablesApi.updateTable(id, { currentStatus: status });
+
+                    if (updatedTable.success) {
+                        alert(`Mesa #${updatedTable.data.table_number} actualizada con éxito.`);
+                    }
+
+                    if (!updatedTable.success) {
+                        alert(`Error: ${updatedTable.error} ${updatedTable.status ? `(Código: ${updatedTable.status})` : ''}`);
+                    }
+
                 } else {
-                    await window.TablesApi.createTable({ table_number: parseInt(number), capacity: parseInt(capacity) });
+                    const newTable = await window.TablesApi.createTable({ table_number: parseInt(number), capacity: parseInt(capacity) });
+
+                    console.log(newTable);
+                    if (newTable.success) {
+                        alert(`Mesa #${newTable.data.table_number} creada con éxito.`);
+                    }
+
+                    if (!newTable.success) {
+                        alert(`Error: ${newTable.error} ${newTable.status ? `(Código: ${newTable.status})` : ''}`);
+                    }
                 }
                 closeModal();
                 loadTablesData();
