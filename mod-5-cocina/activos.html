@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/config.js"></script>
-    <script src="/js/dev-auth.js"></script>
-    <script src="/js/api.js"></script>
+    <script src="../api/config.js"></script>
+    <script src="../js/dev-auth.js"></script>
+    <script src="../js/api.js"></script>
     <title>Gestión de Activos Fijos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -141,7 +141,7 @@
             const container = document.getElementById('assetsGrid');
             container.innerHTML = ''; // limpiar
             try {
-                const resp = await fetch(`${KITCHEN_URL}/assets`, {
+                const resp = await fetch(`/assets`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
@@ -229,7 +229,7 @@
             };
 
             try {
-                const response = await fetch(`${KITCHEN_URL}/assets`, {
+                const response = await fetch(`/assets`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -289,7 +289,8 @@
                     <p class="asset-card__total">Total: <span class="total-count">${total}</span></p>
                     <span class="badge ${badgeClass}">${badgeText}</span>
                     <button class="btn btn--small report-incident-btn" data-id="${asset.id}">Reportar Incidente</button>
-                    <button class="btn btn--small view-history-btn" data-id="${asset.id}">Ver Historial</button>                    <button class="btn btn--small view-history-btn" data-id="${a.id}">Ver Historial</button>                </div>
+                    <button class="btn btn--small view-history-btn" data-id="${asset.id}">Ver Historial</button>
+                </div>
             `;
             container.appendChild(article);
         }
@@ -358,7 +359,7 @@
             };
 
             try {
-                const response = await fetch(`${KITCHEN_URL}/assets/${assetId}/logs`, {
+                const response = await fetch(`/assets/${assetId}/logs`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)

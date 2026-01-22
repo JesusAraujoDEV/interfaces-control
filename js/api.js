@@ -2,21 +2,33 @@
 // Archivo: js/api.js
 
 // Base URL para la API. Soporta estilos de config previos (KITCHEN_URL).
-const API_BASE_URL = window.__APP_CONFIG__?.API_URL || window.__APP_CONFIG__?.KITCHEN_URL || 'http://localhost:3000';
+// Para desarrollo local, usar el mismo host y puerto del servidor actual
+const currentHost = window.location.hostname;
+const currentPort = window.location.port;
+const isLocalhost = currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost === '0.0.0.0';
+
+// Usar siempre la configuración del backend real, independientemente del entorno
+const API_BASE_URL = window.__APP_CONFIG__?.KITCHEN_URL || 'https://charlotte-cocina.onrender.com';
+
+// Mantener el prefijo /api/kitchen para todas las llamadas
+const API_PREFIX = '/api/kitchen';
 
 // Exponer también para código existente que usa `KITCHEN_URL`
 window.API_BASE_URL = API_BASE_URL;
-window.KITCHEN_URL = API_BASE_URL;
+window.KITCHEN_URL = API_BASE_URL + API_PREFIX;
 
 // Función para obtener headers comunes
 function getCommonHeaders() {
-    const token = localStorage.getItem('jwt_token');
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('auth_token');
     const headers = {
         'Content-Type': 'application/json'
     };
+
+    // Incluir Authorization si hay token
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
+
     return headers;
 }
 
