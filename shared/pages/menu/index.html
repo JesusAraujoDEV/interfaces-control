@@ -704,13 +704,9 @@
 
       document.getElementById('deliveryPickupBtn')?.addEventListener('click', () => {
         localStorage.setItem('dp_service_type', 'delivery_or_pickup');
-        // Enviamos al checkout de mod-1.
-        // Si mod-3 usa otro checkout, puedes decidir la ruta aquí por parámetro/flag.
-        const checkoutUrl = new URL(
-          '../../../mod-1-delivery-pickup/pages/checkout/index.html',
-          window.location.href
-        );
-        window.location.href = checkoutUrl.toString();
+        // Navegar a la ruta "bonita" para Checkout.
+        // La API/server resuelve qué vista servir en /checkout.
+        window.location.href = '/checkout';
       });
 
       function toggleCart(open) {
