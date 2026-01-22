@@ -11,7 +11,7 @@ const isLocalhost = currentHost === 'localhost' || currentHost === '127.0.0.1' |
 const API_BASE_URL = window.__APP_CONFIG__?.KITCHEN_URL || 'https://charlotte-cocina.onrender.com';
 
 // Mantener el prefijo /api/kitchen para todas las llamadas
-const API_PREFIX = '/api/kitchen';
+const API_PREFIX = '';
 
 // Exponer también para código existente que usa `KITCHEN_URL`
 window.API_BASE_URL = API_BASE_URL;

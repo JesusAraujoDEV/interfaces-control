@@ -197,7 +197,7 @@
         // Función para cargar el inventario
         async function loadInventory() {
             try {
-                const response = await fetch(`/inventory/items`, {
+                const response = await fetch(`${KITCHEN_URL}/inventory/items`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
@@ -352,8 +352,8 @@
             }
 
             const url = isEditing 
-                ? `/inventory/items/${formData.get('id')}`
-                : `/inventory/items`;
+                ? `${KITCHEN_URL}/inventory/items/${formData.get('id')}`
+                : `${KITCHEN_URL}/inventory/items`;
             const method = isEditing ? 'PATCH' : 'POST';
 
             try {
@@ -447,7 +447,7 @@
             };
 
             try {
-                const response = await fetch(`/inventory/inbound`, {
+                const response = await fetch(`${KITCHEN_URL}/inventory/inbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -546,7 +546,7 @@
             };
 
             try {
-                const response = await fetch(`/inventory/outbound`, {
+                const response = await fetch(`${KITCHEN_URL}/inventory/outbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)

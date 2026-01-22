@@ -141,7 +141,7 @@
             const container = document.getElementById('assetsGrid');
             container.innerHTML = ''; // limpiar
             try {
-                const resp = await fetch(`/assets`, {
+                const resp = await fetch(`${KITCHEN_URL}/assets`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
@@ -229,7 +229,7 @@
             };
 
             try {
-                const response = await fetch(`/assets`, {
+                const response = await fetch(`${KITCHEN_URL}/assets`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -359,7 +359,7 @@
             };
 
             try {
-                const response = await fetch(`/assets/${assetId}/logs`, {
+                const response = await fetch(`${KITCHEN_URL}/assets/${assetId}/logs`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
