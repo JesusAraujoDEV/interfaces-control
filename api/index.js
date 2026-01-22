@@ -3,6 +3,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const seguridadRouterModule = require("../src/routes/seguridad/seguridad");
 const apiSeguridadRouterModule = require("../src/routes/seguridad/apiSeguridad");
+const apiAtencionClienteRouterModule = require("../mod-3-atencion-cliente/router/auth_cliente.js");
 const { viewsWithPermission } = require("../src/middlewares/seguridad/viewsWithPermission");
 const { viewsWithAuth } = require("../src/middlewares/seguridad/viewsWithAuth");
 const { requireLocation } = require("../src/middlewares/seguridad/locationRequired");
@@ -170,6 +171,7 @@ app.get("/order-tracking/:id", (req, res) => {
 // Rutas de Seguridad
 app.use("/seguridad", createSeguridadRouter());
 app.use("/api/seguridad", createApiSeguridadRouter());
+app.use("/api/atencion-cliente", apiAtencionClienteRouterModule());
 
 // 404 controlado (si no existe archivo/ruta)
 app.use((req, res) => {
