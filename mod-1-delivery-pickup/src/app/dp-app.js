@@ -58,16 +58,6 @@ function routeFor(pathname) {
     };
   }
 
-  if (p === '/admin/dp/managers') {
-    return {
-      key: 'managers',
-      title: 'DP - Personal',
-      contentUrl: '/mod-1-delivery-pickup/pages/admin-gerentes/index.html',
-      moduleUrl: '/mod-1-delivery-pickup/pages/admin-gerentes/page.js',
-      params: {}
-    };
-  }
-
   if (p === '/admin/dp/zones') {
     return {
       key: 'zones',

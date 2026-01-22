@@ -14,13 +14,6 @@ const NAV = [
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>`
   },
   {
-    key: 'managers',
-    label: 'Personal',
-    description: 'Gerentes/Drivers',
-    href: '/admin/dp/managers',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
-  },
-  {
     key: 'zones',
     label: 'Zonas',
     description: 'Cobertura y tarifas',
@@ -45,7 +38,6 @@ const NAV = [
 
 function resolveActiveKey(pathname) {
   if (pathname.startsWith('/admin/dp/orders')) return 'orders';
-  if (pathname.startsWith('/admin/dp/managers')) return 'managers';
   if (pathname.startsWith('/admin/dp/zones')) return 'zones';
   if (pathname.startsWith('/admin/dp/config')) return 'config';
   if (pathname.startsWith('/admin/dp/audit')) return 'audit';
