@@ -163,17 +163,40 @@ function renderCartModal() {
     .map(it => {
       const qty = it.qty || 0;
       const lineTotal = parsePrice(it.price) * qty;
+      const notes = String(it.notes ?? '');
       return `
         <div class="py-4 flex items-start justify-between gap-4">
           <div class="min-w-0">
             <div class="font-semibold text-gray-900 truncate">${it.name ?? 'Producto'}</div>
             <div class="text-sm text-gray-600 mt-0.5">${formatPrice(it.price)} · x${qty}</div>
+            <div class="mt-2">
+              <label class="block text-xs text-gray-500">Notas por ítem (opcional)</label>
+              <textarea
+                data-note-id="${it.id}"
+                rows="2"
+                class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                placeholder="Ej: sin cebolla, mucha aura…"
+              >${notes.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')}</textarea>
+            </div>
           </div>
           <div class="shrink-0 text-sm font-extrabold text-gray-900">${formatPrice(lineTotal)}</div>
         </div>
       `;
     })
     .join('');
+}
+
+function updateCartItemNotes(productId, notes) {
+  const cart = readCart();
+  const items = cart.items || [];
+  const item = items.find(it => it.id === productId);
+  if (!item) return;
+  item.notes = String(notes ?? '');
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  } catch {
+    // ignore
+  }
 }
 
 function openCartModal() {
@@ -197,6 +220,15 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   const modal = document.getElementById('cartModal');
   if (modal && !modal.classList.contains('hidden')) closeCartModal();
+});
+
+// Editar notas por ítem desde el modal de carrito
+document.getElementById('cartModalItems')?.addEventListener('input', e => {
+  const el = e.target;
+  if (!(el instanceof HTMLTextAreaElement)) return;
+  const id = el.getAttribute('data-note-id');
+  if (!id) return;
+  updateCartItemNotes(id, el.value);
 });
 // Notas modal bindings
 document.getElementById('notesConfirm')?.addEventListener('click', () => {
@@ -366,12 +398,17 @@ function buildOrderPayload() {
   const cart = readCart();
   const items = (cart.items || [])
     .filter(it => (it.qty || 0) > 0)
-    .map(it => ({
-      product_id: it.id,
-      product_name: it.name,
-      quantity: it.qty,
-      unit_price: parsePrice(it.price)
-    }));
+    .map(it => {
+      const notes = String(it.notes ?? '').trim();
+      const row = {
+        product_id: it.id,
+        product_name: it.name,
+        quantity: it.qty,
+        unit_price: parsePrice(it.price)
+      };
+      if (notes) row.notes = notes;
+      return row;
+    });
 
   const customer = {
     name: document.getElementById('fullName').value.trim(),

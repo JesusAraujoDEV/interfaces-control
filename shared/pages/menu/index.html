@@ -162,6 +162,15 @@
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
       }
 
+      function escapeHtml(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
       function cartCount(cart) {
         return (cart.items || []).reduce((acc, it) => acc + (it.qty || 0), 0);
       }
@@ -243,6 +252,15 @@
         setCartUI();
       }
 
+      function updateItemNotes(productId, notes) {
+        const cart = readCart();
+        const items = cart.items || [];
+        const item = items.find(it => it.id === productId);
+        if (!item) return;
+        item.notes = String(notes ?? '');
+        writeCart(cart);
+      }
+
       function renderCartPanel() {
         const cart = readCart();
         const itemsEl = document.getElementById('cartItems');
@@ -262,8 +280,18 @@
             it => `
               <div class="p-4 flex items-start justify-between gap-4">
                 <div class="min-w-0">
-                  <div class="font-semibold text-gray-900 truncate">${it.name}</div>
+                  <div class="font-semibold text-gray-900 truncate">${escapeHtml(it.name)}</div>
                   <div class="text-sm text-gray-600 mt-0.5">${formatPrice(it.price)}</div>
+                  <div class="mt-2">
+                    <label class="block text-xs text-gray-500">Notas (opcional)</label>
+                    <textarea
+                      data-action="note"
+                      data-id="${it.id}"
+                      rows="2"
+                      class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                      placeholder="Ej: sin cebolla, mucha aura…"
+                    >${escapeHtml(it.notes || '')}</textarea>
+                  </div>
                   <button data-action="remove" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
                 </div>
                 <div class="shrink-0 flex items-center gap-2">
@@ -292,7 +320,8 @@
             name: product.name,
             price: product.price,
             imageUrl: product.imageUrl,
-            qty: 1
+            qty: 1,
+            notes: ''
           });
         }
 
@@ -710,6 +739,16 @@
         if (action === 'inc') updateQty(id, 1);
         else if (action === 'dec') updateQty(id, -1);
         else if (action === 'remove') removeItem(id);
+      });
+
+      // Notas por ítem (no re-render para no romper el cursor mientras escribe)
+      document.getElementById('cartPanel')?.addEventListener('input', e => {
+        const el = e.target;
+        if (!(el instanceof HTMLTextAreaElement)) return;
+        if (el.getAttribute('data-action') !== 'note') return;
+        const id = el.getAttribute('data-id');
+        if (!id) return;
+        updateItemNotes(id, el.value);
       });
 
       // Click handler único para "Añadir" (evita duplicados al re-render por categorías)
