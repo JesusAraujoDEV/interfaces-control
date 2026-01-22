@@ -16,11 +16,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.3",
     "serialize-javascript": "^7.0.2",
-    "parcel-bundler": "^1.6.1",
-    "@teleporthq/react-components": "latest",
-    "next": "^12.1.10",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "parcel-bundler": "^1.6.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11",
