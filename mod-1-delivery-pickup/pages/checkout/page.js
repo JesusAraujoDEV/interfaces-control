@@ -415,8 +415,8 @@ function buildOrderPayload() {
     phone: document.getElementById('phone').value.trim(),
     email: document.getElementById('email').value.trim(),
     address: isDelivery
-      ? (document.getElementById('addressDetail') ? document.getElementById('addressDetail').value.trim() : '')
-      : ''
+      ? (document.getElementById('addressDetail') ? document.getElementById('addressDetail').value.trim() : ' ')
+      : ' '
   };
 
   const payload = {
@@ -513,6 +513,20 @@ async function createOrder() {
   }
 
   return data;
+}
+
+// Listener en fase de captura para loguear el payload antes de que el handler principal
+// haga `preventDefault()` o muestre el modal de notas.
+if (form) {
+  form.addEventListener('submit', (e) => {
+    try {
+      const payload = buildOrderPayload();
+      console.log('Checkout payload:', payload);
+      console.log('Checkout payload (JSON):', JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Error construyendo payload de checkout para logging:', err);
+    }
+  }, { capture: true });
 }
 
 form.addEventListener('submit', function (e) {
