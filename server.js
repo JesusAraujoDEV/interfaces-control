@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const seguridadRouterModule = require("./src/routes/seguridad/seguridad");
 const apiSeguridadRouterModule = require("./src/routes/seguridad/apiSeguridad");
+const apiAtencionClienteRouterModule = require("./mod-3-atencion-cliente/router/auth_cliente.js");
 
 // Load .env from repo root
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -163,6 +164,7 @@ function startServer(port, remainingAttempts) {
 // Rutas de Seguridad
 app.use("/seguridad", createSeguridadRouter());
 app.use("/api/seguridad", createApiSeguridadRouter());
+app.use("/api/atencion-cliente", apiAtencionClienteRouterModule());
 
 if (require.main === module) {
   // Iniciar el servidor solo si este archivo es el principal

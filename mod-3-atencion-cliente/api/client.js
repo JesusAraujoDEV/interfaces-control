@@ -14,8 +14,9 @@ window.ClientApi = {
     },
 
     login: async (data) => {
-        // Asegúrate de tener tu CONFIG.API_BASE_URL definido en config.js
-        const url = `${window.ClientApi.getBaseUrl()}/clients`;
+        // En lugar de ir a Render, vamos a tu endpoint local
+        // Asumiendo que server.js monta en: /api/atencion-cliente
+        const url = '/api/atencion-cliente/login'; 
 
         const response = await fetch(url, {
             method: 'POST',
@@ -28,7 +29,7 @@ window.ClientApi = {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || errorData.message || 'Error al registrar cliente');
+            throw new Error(errorData.message || 'Error al registrar cliente');
         }
 
         return await response.json();
@@ -161,22 +162,4 @@ window.ClientApi = {
         return response;
     },
 
-};
-
-// --- FUNCIÓN GLOBAL DE LOGOUT ---
-window.logout = function() {
-    // 1. Confirmación suave (opcional)
-    if(!confirm("¿Deseas cerrar sesión y volver al inicio?")) return;
-
-    // Limpiar carritos y sesión
-    localStorage.removeItem('charlotte_cart');
-    localStorage.removeItem('charlotte_active_orders');
-    localStorage.removeItem('user_client');
-    localStorage.removeItem('my_service_requests');
-    localStorage.removeItem('restaurant_service_requests');
-    localStorage.removeItem('access_token');
-
-    const storedQrUuid = localStorage.getItem('current_qr_uuid');
-
-    window.location.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
 };

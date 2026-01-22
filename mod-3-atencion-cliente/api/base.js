@@ -40,7 +40,13 @@ window.HttpClient = {
                     // Opcional: window.location.href = '/';
                 }
 
-                return { error: errorBody.error, status: response.status};
+                return { 
+                    success: false, // Flag explícito ayuda mucho
+                    error: errorBody.error || 'Error en la solicitud', // Título principal
+                    message: errorBody.message, // Detalle (ej: "Hay clientes sentados")
+                    validationErrors: errorBody.errors, // Detalle Zod (ej: "Mínimo 2")
+                    status: response.status
+                };
             }
 
             return await response.json();

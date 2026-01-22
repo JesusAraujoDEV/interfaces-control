@@ -4,52 +4,55 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // 0. FUNCIÓN DE LOGOUT (Integrada aquí para no depender de otros archivos)
     window.handleLogout = async function() {
-        if(!confirm("Are you sure you want to exit?")) return;
+        if(!confirm("¿Estás seguro de que quieres salir?")) return;
 
-        // A. Intentar obtener el ID del cliente del localStorage
-        // (Asumo que cuando haces Login guardas el objeto 'client_info' o el 'id')
-        const storedClient = localStorage.getItem('user_client'); // O como hayas llamado a la variable donde guardas al user
+        // --- PASO 1: Obtener ID y poner status CLOSED en Render ---
+        const storedClient = localStorage.getItem('user_client'); 
         let clientId = null;
 
         if (storedClient) {
             try {
                 const clientData = JSON.parse(storedClient);
-
-                if (clientData && clientData.id){
-                    clientId = clientData.id;
-                } else {
-                    console.warn("El objeto del cliente no tiene un ID válido.");
-                }
-                
+                if (clientData && clientData.id) clientId = clientData.id;
             } catch (e) {
                 console.warn("No se pudo leer el ID del cliente localmente");
             }
         }
 
-        // B. Si tenemos ID, avisamos al servidor que el cliente está CLOSED
         if (clientId) {
-            // Mostrar un pequeño indicador de carga en el botón (opcional, pero buena UX)
-            // Como es muy rápido, a veces no hace falta, pero el try/catch es vital.
             try {
+                // Nota: Esto usa el token del localStorage que AÚN existe en este punto
                 await window.ClientApi.updateClient(clientId, { status: "CLOSED" });
-                console.log("Estado del cliente actualizado a CLOSED en el servidor.");
+                console.log("Estado del cliente actualizado a CLOSED.");
             } catch (error) {
-                console.error("Error al cerrar sesión en el servidor:", error);
-                // Aún si falla el servidor, procedemos a cerrar localmente para no bloquear al usuario
+                console.error("Error al actualizar estado (no bloqueante):", error);
             }
         }
 
-        // Limpiar carritos y sesión
+        // --- PASO 2: Llamar a Vercel para borrar la Cookie HttpOnly ---
+        try {
+            await fetch('/api/atencion-cliente/logout', { method: 'POST' });
+            console.log("Cookie de sesión eliminada.");
+        } catch (e) { 
+            console.error("Error contactando endpoint de logout", e); 
+        }
+
+        // --- PASO 3: Limpiar LocalStorage y Redirigir ---
         localStorage.removeItem('charlotte_cart');
         localStorage.removeItem('charlotte_active_orders');
         localStorage.removeItem('user_client');
         localStorage.removeItem('my_service_requests');
         localStorage.removeItem('restaurant_service_requests');
-        localStorage.removeItem('access_token');
+        localStorage.removeItem('access_token'); // Borramos el token visual
 
         const storedQrUuid = localStorage.getItem('current_qr_uuid');
-
-        window.location.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
+        
+        // Redirigir al scan con el UUID si existe
+        if (storedQrUuid) {
+            window.location.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
+        } else {
+            window.location.href = `/mod-3-atencion-cliente/pages/login/scan.html`;
+        }
     };
 
     // 1. Detectar página actual

@@ -76,10 +76,10 @@
         </div>
         
         <div class="p-4 border-t border-gray-100">
-            <button onclick="logout()" class="flex items-center gap-3 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg w-full transition-colors">
+            <a href="/seguridad/login" onclick="return logout()" class="flex items-center gap-3 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg w-full transition-colors">
                 <span class="material-icons-outlined">logout</span>
                 <span class="text-sm font-medium">Cerrar Sesión</span>
-            </button>
+            </a>
         </div>
     </aside>
 
@@ -145,7 +145,7 @@
                     <p class="text-sm mt-1">Aquí puedes ver quién está conectado en cada mesa.</p>
                     <div class="mt-2 text-sm bg-white p-2 rounded border border-blue-100 inline-block">
                         <span class="inline-block w-3 h-3 bg-red-100 border border-red-500 rounded-full mr-2"></span>
-                        <span class="font-bold text-red-700">Alerta Fantasma:</span> +30 min sin consumo.
+                        <span class="font-bold text-red-700">Alerta Fantasma:</span> +50 min sin consumo.
                     </div>
                 </div>
             </div>
@@ -226,6 +226,40 @@
         </div>
     </div>
 
+    <div id="restore-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm">
+                    
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <span class="material-icons-outlined text-orange-600">restore_from_trash</span>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900">Restaurar Mesa</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        Ingresa el número para la mesa restaurada. Si el original ya está ocupado, debes elegir uno nuevo.
+                                    </p>
+                                    <input type="hidden" id="restore_table_id">
+                                    <label class="block text-sm font-medium text-gray-700 text-left">Número de Mesa</label>
+                                    <input type="number" id="restore_table_number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2" placeholder="Ej: 5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" onclick="submitRestore()" class="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto">Confirmar</button>
+                        <button type="button" onclick="closeRestoreModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="qr-modal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
         <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -291,6 +325,9 @@
         const modal = document.getElementById('create-modal');
         const form = document.getElementById('create-table-form');
         const qrModalEl = document.getElementById('qr-modal');
+        const restoreModal = document.getElementById('restore-modal');
+        const restoreInputId = document.getElementById('restore_table_id');
+        const restoreInputNumber = document.getElementById('restore_table_number');
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -350,11 +387,28 @@
             overlay.classList.toggle('hidden');
         };
 
-        window.logout = () => {
-            if(confirm("¿Cerrar sesión de administrador?")) {
-                localStorage.removeItem('access_token');
-                window.location.href = '/';
+        window.logout = async () => {
+            // A. Preguntamos confirmación
+            const quiereSalir = confirm("¿Cerrar sesión de administrador?");
+            
+            // B. Si dice que NO, devolvemos false para cancelar el link
+            if (!quiereSalir) {
+                return false; 
             }
+
+            // C. Si dice que SÍ, borramos el storage AQUI
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('administrative_user');
+
+            await fetch('/seguridad/logout', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            // D. Devolvemos true para que el navegador siga al href="/seguridad/logout"
+            return true;
         };
 
         // ==========================================
@@ -428,7 +482,7 @@
 
             let buttons = '';
             if(isArchivedMode) {
-                buttons = `<button onclick="window.handleRestore(${table.id})" class="text-green-600 hover:bg-green-50 px-2 py-1 rounded text-xs font-bold border border-green-200">RESTAURAR</button>`;
+                buttons = `<button onclick="window.openRestoreModal(${table.id}, '${table.table_number}')" class="text-green-600 hover:bg-green-50 px-2 py-1 rounded text-xs font-bold border border-green-200">RESTAURAR</button>`;
             } else {
                 buttons = `
                     <button onclick="window.openQrModal('${table.table_number}', '${table.qr_uuid}')" class="text-gray-400 hover:text-blue-600 p-1"><span class="material-icons-outlined">qr_code_2</span></button>
@@ -481,28 +535,88 @@
             const capacity = document.getElementById('capacity').value;
             const status = document.getElementById('modal_status').value;
 
+            if (!number) {
+                alert("Por favor ingresa un número de mesa.");
+                return;
+            }
+
+            if (isNaN(number) || parseInt(number) <= 0) {
+                alert("El número de mesa debe ser un entero positivo.");
+                return;
+            }
+
+            if (!capacity) {
+                alert("Por favor ingresa la capacidad de la mesa.");
+                return;
+            }
+
+            if (isNaN(capacity) || parseInt(capacity) <= 0) {
+                alert("La capacidad debe ser un entero positivo.");
+                return;
+            }
+
             try {
                 if (id) {
-                    const updatedTable = await window.TablesApi.updateTable(id, { currentStatus: status });
+                    const updatedTable = await window.TablesApi.updateTable(id, { currentStatus: status, capacity: parseInt(capacity) });
 
-                    if (updatedTable.success) {
-                        alert(`Mesa #${updatedTable.data.table_number} actualizada con éxito.`);
-                    }
+                    if (updatedTable.id && !updatedTable.error) {
+                        alert(`Mesa #${updatedTable.table_number} actualizada con éxito.`);
+                        closeModal();
+                        loadTablesData();
+                    } 
+                    else {
+                        let msg = `Error (${updatedTable.status || 'Desconocido'}):\n`;
 
-                    if (!updatedTable.success) {
-                        alert(`Error: ${updatedTable.error} ${updatedTable.status ? `(Código: ${updatedTable.status})` : ''}`);
+                        // 1. Si hay un mensaje explicativo (Lógica de negocio)
+                        if (updatedTable.message) {
+                            msg += `${updatedTable.error}: ${updatedTable.message}`;
+                        } 
+                        // 2. Si hay errores de validación (Zod)
+                        else if (updatedTable.validationErrors) {
+                            msg += "Verifique los datos:\n";
+                            // Recorremos los errores de Zod para mostrarlos
+                            const issues = updatedTable.validationErrors; 
+                            Object.keys(issues).forEach(key => {
+                                const errText = issues[key]._errors ? issues[key]._errors.join(', ') : 'Inválido';
+                                msg += `- ${key}: ${errText}\n`;
+                            });
+                        } 
+                        // 3. Fallback (Error genérico)
+                        else {
+                            msg += updatedTable.error || "Ocurrió un error inesperado.";
+                        }
+
+                        alert(msg);
                     }
 
                 } else {
                     const newTable = await window.TablesApi.createTable({ table_number: parseInt(number), capacity: parseInt(capacity) });
 
-                    console.log(newTable);
-                    if (newTable.success) {
-                        alert(`Mesa #${newTable.data.table_number} creada con éxito.`);
-                    }
+                    if (newTable.id && !newTable.error) {
+                        alert(`Mesa #${newTable.table_number} creada con éxito.`);
+                    } else {
+                        let msg = `Error (${newTable.status || 'Desconocido'}):\n`;
 
-                    if (!newTable.success) {
-                        alert(`Error: ${newTable.error} ${newTable.status ? `(Código: ${newTable.status})` : ''}`);
+                        // 1. Si hay un mensaje explicativo (Lógica de negocio)
+                        if (newTable.message) {
+                            msg += `${newTable.error}: ${newTable.message}`;
+                        } 
+                        // 2. Si hay errores de validación (Zod)
+                        else if (newTable.validationErrors) {
+                            msg += "Verifique los datos:\n";
+                            // Recorremos los errores de Zod para mostrarlos
+                            const issues = newTable.validationErrors; 
+                            Object.keys(issues).forEach(key => {
+                                const errText = issues[key]._errors ? issues[key]._errors.join(', ') : 'Inválido';
+                                msg += `- ${key}: ${errText}\n`;
+                            });
+                        } 
+                        // 3. Fallback (Error genérico)
+                        else {
+                            msg += newTable.error || "Ocurrió un error inesperado.";
+                        }
+
+                        alert(msg);
                     }
                 }
                 closeModal();
@@ -516,6 +630,53 @@
             if(confirm("¿Enviar a papelera?")) {
                 await window.TablesApi.deleteTable(id);
                 loadTablesData();
+            }
+        };
+
+        window.openRestoreModal = (id, oldNumber) => {
+            // Guardamos el ID en el input oculto
+            restoreInputId.value = id;
+            // Sugerimos el número viejo en el input visible
+            restoreInputNumber.value = oldNumber;
+            // Mostramos la modal
+            restoreModal.classList.remove('hidden');
+            // Ponemos el foco en el input para escribir rápido
+            restoreInputNumber.focus();
+        };
+
+        window.closeRestoreModal = () => {
+            restoreModal.classList.add('hidden');
+        };
+
+        window.submitRestore = async () => {
+            const id = restoreInputId.value;
+            const newNumber = restoreInputNumber.value;
+
+            if (!newNumber) {
+                alert("Por favor ingresa un número de mesa.");
+                return;
+            }
+
+            if (isNaN(newNumber) || parseInt(newNumber) <= 0) {
+                alert("El número de mesa debe ser un entero positivo.");
+                return;
+            }
+
+            try {
+                // Llamamos a la API con el ID y el NUEVO NÚMERO digitado por el usuario
+                const result = await window.TablesApi.restoreTable(id, parseInt(newNumber));
+
+                if (result && !result.error) {
+                    alert(`Mesa #${newNumber} restaurada correctamente.`);
+                    closeRestoreModal();
+                    loadTablesData(); // Recarga la tabla para ver cambios
+                } else {
+                    // Aquí saldrá el error si el número ya existe (ej: "Table number already exists")
+                    alert("Error: " + (result.message || result.error || "No se pudo restaurar"));
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error de conexión.");
             }
         };
 
@@ -539,7 +700,7 @@
         };
 
         window.openQrModal = (num, uuid) => {
-            const url = `${window.location.origin}/mod-3-atencion-cliente/pages/login/scan.html?uuid=${uuid}`; 
+            const url = `${window.location.origin}/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${uuid}`; 
             document.getElementById('qr-table-num').textContent = `#${num}`;
             document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
             document.getElementById('qr-test-link').href = url;
@@ -600,6 +761,7 @@
             if(confirm("¿Estás seguro de cerrar forzosamente esta sesión?")) {
                 try {
                    await window.ClientApi.updateClient(clientId, { status: "CLOSED" });
+                   alert("Sesión cerrada correctamente.");
                    loadSessionsData();
                 } catch(e) { alert(e.message); }
             }
@@ -721,6 +883,7 @@
             try {
                 // Optimistic UI: lo marcamos como atendido visualmente
                 await window.ServiceRequestApi.markAsAttended(id);
+                alert("Solicitud marcada como atendida.");
                 loadRequestsData(); // Recargar datos frescos
             } catch (e) {
                 alert("Error al actualizar: " + e.message);
