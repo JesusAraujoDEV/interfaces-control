@@ -57,7 +57,7 @@ window.TablesApi = {
             throw new Error(response.error);
         }
 
-        return { success: true, data: response };
+        return response;
     },
     
     updateTable: async (id, data) => {
