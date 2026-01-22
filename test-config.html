@@ -15,60 +15,67 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const configDiv = document.getElementById('config');
-            const token = localStorage.getItem('jwt_token') || localStorage.getItem('auth_token');
-
             configDiv.innerHTML = `
                 <p><strong>APP_CONFIG:</strong> ${JSON.stringify(window.__APP_CONFIG)}</p>
                 <p><strong>API_BASE_URL:</strong> ${window.API_BASE_URL}</p>
                 <p><strong>KITCHEN_URL:</strong> ${window.KITCHEN_URL}</p>
                 <p><strong>Location:</strong> ${window.location.hostname}:${window.location.port}</p>
-                <p><strong>Token presente:</strong> ${token ? '✅ Sí' : '❌ No'}</p>
             `;
 
-            if (!token) {
-                document.getElementById('test').innerHTML = `
-                    <p><strong>❌ No hay token de autenticación</strong></p>
-                    <p>Necesitas hacer login primero en: <a href="/mod-4-seguridad/Inicio%20sesión/Inicio-sesion.html" target="_blank">Login</a></p>
-                `;
-                return;
-            }
-
-            // Test multiple API endpoints
-            const testUrls = [
-                `${window.KITCHEN_URL}/inventory/items`,
-                `${window.API_BASE_URL}/api/kitchen/inventory/items`,
-                `${window.KITCHEN_URL}/assets`
-            ];
-
+            // Test API calls
             let results = '';
 
-            for (const testUrl of testUrls) {
-                try {
-                    results += `<h3>Testing: ${testUrl}</h3>`;
+            // Test inventory
+            try {
+                results += '<h3>📦 Probando Inventario:</h3>';
+                const invResponse = await fetch(`${window.KITCHEN_URL}/inventory/items`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
 
-                    const response = await fetch(testUrl, {
-                        method: 'GET',
-                        headers: getCommonHeaders()
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        results += `
-                            <p><strong>✅ Success (${response.status}):</strong></p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        `;
+                if (invResponse.ok) {
+                    const invData = await invResponse.json();
+                    results += `<p><strong>✅ Inventario (${invResponse.status}):</strong></p>`;
+                    if (Array.isArray(invData) && invData.length > 0) {
+                        results += `<p><strong>Campos del primer item:</strong> ${Object.keys(invData[0]).join(', ')}</p>`;
+                        results += `<details><summary>Primer item completo</summary><pre>${JSON.stringify(invData[0], null, 2)}</pre></details>`;
                     } else {
-                        const errorText = await response.text();
-                        results += `
-                            <p><strong>❌ Error ${response.status}:</strong> ${response.statusText}</p>
-                            <p><strong>Response:</strong> ${errorText}</p>
-                        `;
+                        results += `<p>No hay datos de inventario</p>`;
                     }
-                } catch (error) {
-                    results += `<p><strong>❌ Network Error:</strong> ${error.message}</p>`;
+                } else {
+                    results += `<p><strong>❌ Error Inventario ${invResponse.status}:</strong> ${invResponse.statusText}</p>`;
                 }
-                results += '<hr>';
+            } catch (error) {
+                results += `<p><strong>❌ Error Inventario:</strong> ${error.message}</p>`;
             }
+
+            results += '<hr>';
+
+            // Test assets
+            try {
+                results += '<h3>🔧 Probando Activos:</h3>';
+                const assetResponse = await fetch(`${window.KITCHEN_URL}/assets`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+
+                if (assetResponse.ok) {
+                    const assetData = await assetResponse.json();
+                    results += `<p><strong>✅ Activos (${assetResponse.status}):</strong></p>`;
+                    if (Array.isArray(assetData) && assetData.length > 0) {
+                        results += `<p><strong>Campos del primer activo:</strong> ${Object.keys(assetData[0]).join(', ')}</p>`;
+                        results += `<details><summary>Primer activo completo</summary><pre>${JSON.stringify(assetData[0], null, 2)}</pre></details>`;
+                    } else {
+                        results += `<p>No hay datos de activos</p>`;
+                    }
+                } else {
+                    results += `<p><strong>❌ Error Activos ${assetResponse.status}:</strong> ${assetResponse.statusText}</p>`;
+                }
+            } catch (error) {
+                results += `<p><strong>❌ Error Activos:</strong> ${error.message}</p>`;
+            }
+
+            document.getElementById('test').innerHTML = results;
 
             document.getElementById('test').innerHTML = results;
         });

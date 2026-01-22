@@ -169,7 +169,7 @@
 
                     const img = a.image_url || a.photo || 'https://via.placeholder.com/400x300?text=Activo';
                     const title = a.name || a.title || 'Activo';
-                    const total = a.total != null ? a.total : (a.quantity || 0);
+                    const total = a.total != null ? a.total : (a.totalQuantity || 0);
 
                     const article = document.createElement('article');
                     article.className = 'asset-card';

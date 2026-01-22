@@ -243,17 +243,17 @@
 
                 row.innerHTML = `
                     <td><strong>${item.name}</strong></td>
-                    <td>${item.category}</td>
-                    <td>${item.unit}</td>
+                    <td>${item.type}</td>
+                    <td>${item.unitMeasure}</td>
                     <td>
                         <div class="stock-indicator">
-                            <span class="stock-indicator__text ${isLowStock ? 'stock-indicator__text--danger' : ''}">${item.stock} / ${item.max_stock}</span>
+                            <span class="stock-indicator__text ${isLowStock ? 'stock-indicator__text--danger' : ''}">${item.currentStock} / ${item.currentStock}</span>
                             <div class="progress-bar">
                                 <div class="progress-bar__fill ${progressClass}" style="width: ${progressWidth}%"></div>
                             </div>
                         </div>
                     </td>
-                    <td>${formatCurrency(item.cost_per_unit)}</td>
+                    <td>${formatCurrency(item.averageCost)}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                         <td>
                             <button class="btn btn--small edit-btn" data-id="${item.id}">Editar</button>
