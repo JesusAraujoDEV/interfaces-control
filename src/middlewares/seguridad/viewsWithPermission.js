@@ -75,7 +75,7 @@ const viewsWithPermission = async (req, res, next) => {
   if (response.success && response.data.hasPermission) {
     return next();
   } else {
-    return res.status(403).render("seguridad/accesoDenegado", {
+    return res.status(403).render("seguridad/sinAcceso", {
       messagesError: ["No tienes permiso para acceder a esta vista."],
       resource
     });
