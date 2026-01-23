@@ -224,6 +224,23 @@ export async function init() {
     setHidden(errorEl, !message);
   }
 
+  let pageSuccessTimer = null;
+  function setPageSuccess(message, timeout = 3000) {
+    if (!errorEl) return;
+    if (pageSuccessTimer) {
+      clearTimeout(pageSuccessTimer);
+      pageSuccessTimer = null;
+    }
+    setText(errorEl, message ? `✅ ${message}` : '');
+    setHidden(errorEl, !message);
+    if (message && timeout > 0) {
+      pageSuccessTimer = setTimeout(() => {
+        setHidden(errorEl, true);
+        pageSuccessTimer = null;
+      }, timeout);
+    }
+  }
+
   function setFormError(message) {
     setText(formErrorEl, message ? `⚠️ ${message}` : '');
     setHidden(formErrorEl, !message);
@@ -376,6 +393,7 @@ export async function init() {
 
       clearForm();
       await loadThresholds();
+      setPageSuccess('Threshold actualizado correctamente');
     } catch (e) {
       setFormError(normalizeErrorMessage(e));
     } finally {
