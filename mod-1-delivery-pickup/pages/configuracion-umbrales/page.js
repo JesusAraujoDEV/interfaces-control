@@ -166,15 +166,15 @@ function renderThresholdRow(rule, handlers) {
   toggleWrap.appendChild(toggleInput);
   toggleWrap.appendChild(toggle);
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.className = 'dp-icon-btn dp-row-delete';
-  deleteBtn.title = 'Eliminar';
-  deleteBtn.textContent = '🗑️';
-  deleteBtn.disabled = !rule.id;
-  deleteBtn.addEventListener('click', () => handlers.onDelete(rule));
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'dp-icon-btn dp-row-edit';
+  editBtn.title = 'Editar';
+  editBtn.textContent = '✏️';
+  editBtn.disabled = !rule.id;
+  editBtn.addEventListener('click', () => handlers.onEdit(rule));
   actions.appendChild(toggleWrap);
-  actions.appendChild(deleteBtn);
+  actions.appendChild(editBtn);
 
   right.appendChild(valueWrap);
   right.appendChild(actions);
@@ -212,6 +212,7 @@ export async function init() {
     loading: false,
     thresholds: [],
     onlyActive: false,
+    editingId: null,
   };
 
   function setPageError(message) {
@@ -231,6 +232,9 @@ export async function init() {
     setHidden(cancelBtn, true);
     setFormError('');
     setButtonLoading(submitBtn, false, 'Crear threshold');
+    state.editingId = null;
+    const title = byId('dpThresholdsFormTitle');
+    if (title) title.textContent = 'Agregar threshold';
   }
 
   function renderEmpty(listEl, message) {
@@ -264,20 +268,17 @@ export async function init() {
           await loadThresholds();
         }
       },
-      onDelete: async rule => {
-        if (!rule.id) return;
-        const ok = window.confirm(`¿Eliminar el threshold "${rule.metricAffected}"? Esta acción no se puede deshacer.`);
-        if (!ok) return;
-        try {
-          setPageError('');
-          const url = dpBase
-            ? `${dpBase}/api/dp/v1/thresholds/${encodeURIComponent(rule.id)}`
-            : `/api/dp/v1/thresholds/${encodeURIComponent(rule.id)}`;
-          await fetchJson(url, { method: 'DELETE' });
-          await loadThresholds();
-        } catch (e) {
-          setPageError(normalizeErrorMessage(e));
-        }
+      onEdit: (rule) => {
+        if (!rule) return;
+        state.editingId = rule.id || null;
+        if (metricEl) metricEl.value = rule.metricAffected || '';
+        valueEl.value = rule.valueCritical != null ? String(rule.valueCritical) : '';
+        if (isActiveEl) isActiveEl.checked = rule.isActive === true;
+        setHidden(cancelBtn, false);
+        const title = byId('dpThresholdsFormTitle');
+        if (title) title.textContent = 'Editar threshold';
+        setButtonLoading(submitBtn, false, 'Guardar cambios');
+        metricEl?.focus?.();
       },
     };
 
@@ -348,19 +349,26 @@ export async function init() {
 
     try {
       setButtonLoading(submitBtn, true);
-      const url = dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds';
       const body = {
         metric_affected: payload.metricAffected,
         value_critical: payload.valueCritical,
         is_active: payload.isActive,
       };
-      await fetchJson(url, { method: 'POST', body: JSON.stringify(body) });
+      if (state.editingId) {
+        const url = dpBase
+          ? `${dpBase}/api/dp/v1/thresholds/${encodeURIComponent(state.editingId)}`
+          : `/api/dp/v1/thresholds/${encodeURIComponent(state.editingId)}`;
+        await fetchJson(url, { method: 'PATCH', body: JSON.stringify(body) });
+      } else {
+        const url = dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds';
+        await fetchJson(url, { method: 'POST', body: JSON.stringify(body) });
+      }
       clearForm();
       await loadThresholds();
     } catch (e) {
       setFormError(normalizeErrorMessage(e));
     } finally {
-      setButtonLoading(submitBtn, false, 'Crear threshold');
+      setButtonLoading(submitBtn, false, state.editingId ? 'Guardar cambios' : 'Crear threshold');
     }
   });
 

@@ -223,7 +223,7 @@ function renderLogs(order) {
     .slice()
     .sort((a, b) => new Date(b.timestamp_transition).getTime() - new Date(a.timestamp_transition).getTime())
     .map((l) => {
-      const actor = l?.manager?.name || l?.manager?.manager_name || (l?.manager_id ? `Manager ${l.manager_id}` : 'System');
+      const actor = l?.actor_name ?? l?.user?.name ?? 'System';
       const from = l?.status_from ?? '—';
       const to = l?.status_to ?? '—';
       return `<li class="dp-log">

@@ -321,6 +321,7 @@ export async function init() {
       tdOrder.className = 'dp-mono';
       tdOrder.textContent = log.readableId || log.orderId || '—';
 
+
       const tdManager = document.createElement('td');
       tdManager.textContent = log.managerName || log.managerId || 'System';
 
