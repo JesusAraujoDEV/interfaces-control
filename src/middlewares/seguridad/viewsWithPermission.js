@@ -11,34 +11,34 @@ const viewsWithPermission = async (req, res, next) => {
     // Vistas de Seguridad
 
     case rutaSolicitada === "/seguridad/usuarios":
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case rutaSolicitada === "/seguridad/usuarios/crear":
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case /^\/seguridad\/usuarios\/editar\/[^/]+$/.test(rutaSolicitada):
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case rutaSolicitada === "/seguridad/roles":
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case rutaSolicitada === "/seguridad/roles/crear":
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case /^\/seguridad\/roles\/editar\/[^/]+$/.test(rutaSolicitada):
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case rutaSolicitada === "/seguridad/permisos":
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case rutaSolicitada === "/seguridad/permisos/crear":
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case /^\/seguridad\/permisos\/[^/]+$/.test(rutaSolicitada):
-      resource = "UserManagement_view";
+      resource = "Security_view";
       break;
     case rutaSolicitada === "/seguridad/restaurante/coordenadas":
-      resource = "RestaurantCoordinates_view";
+      resource = "Security_view";
       break;
 
     // Vistas de Delivery & Pickup
@@ -61,7 +61,22 @@ const viewsWithPermission = async (req, res, next) => {
 
     // Vistas de atc
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/tables.html":
-        resource = "TableManagement_view";
+        resource = "Atc_view";
+        break;
+    
+    // Vistas de kpi 
+    case rutaSolicitada === "/mod-2-kpis/src/public/dashboard.html":
+        resource = "KpiDashboard_view";
+        break;
+    case rutaSolicitada === "/mod-2-kpis/src/public/bussines-intelligence.html":
+        resource = "KpiDashboard_view";
+        break;
+    case rutaSolicitada === "/mod-2-kpis/src/public/eficiencia-operacional.html":
+        resource = "KpiDashboard_view";
+        break;
+    
+    case rutaSolicitada === "/mod-2-kpis/src/public/inventario.html":
+        resource = "KpiDashboard_view";
         break;
 
     default:
