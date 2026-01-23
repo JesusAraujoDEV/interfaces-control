@@ -345,6 +345,7 @@
                 renderTableStatus(tableInfo);
 
                 // --- PASO B: Verificar Ubicación ---
+                /*
                 updateProgress(60, "Verificando ubicación...");
                 const coords = await getUserLocation();
                 console.log("Coordenadas obtenidas:", coords);
@@ -363,12 +364,21 @@
                 setTimeout(() => {
                     transitionToLogin();
                 }, 800);
+                */
+
+                updateProgress(100, "¡Verificación exitosa!");
+
+                setTimeout(() => {
+                    transitionToLogin();
+                }, 800);
+                
 
             } catch (error) {
                 console.error("❌ Error detectado:", error);
                 
                 let msg = "Ocurrió un error inesperado.";
                 
+                /*
                 // Error Code 1 = PERMISSION_DENIED
                 if (error.code === 1) {
                     msg = "⚠️ Acceso a ubicación denegado.\n\nPara verificar que estás en el restaurante, necesitamos saber tu ubicación. Por favor, habilita los permisos en tu navegador (ícono del candado en la barra superior) y recarga la página.";
@@ -385,6 +395,11 @@
                 else if (error.message) {
                     msg = error.message;
                 }
+                */
+
+                if (error.message) {
+                    msg = error.message;
+                }   
                 
                 showError(msg);
             }

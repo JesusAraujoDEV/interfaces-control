@@ -1,4 +1,5 @@
 
+/*
 window.AuthApi = {
     // Getter para la URL base de AUTENTICACIÓN
     getBaseUrl: () => {
@@ -76,3 +77,4 @@ window.AuthApi = {
         });
     }
 };
+*/
