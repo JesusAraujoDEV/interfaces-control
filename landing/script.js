@@ -282,12 +282,14 @@ function renderMenuItems(activeKey) {
       aura.loading = "lazy"
       media.appendChild(aura)
     } else {
-      const placeholder = document.createElement("div")
-      placeholder.style.padding = "24px"
-      placeholder.style.textAlign = "center"
-      placeholder.style.color = "rgba(244, 240, 230, 0.65)"
-      placeholder.textContent = "Imagen próximamente"
-      media.appendChild(placeholder)
+      // show fallback image instead of placeholder text so cards keep consistent layout
+      const img = document.createElement("img")
+      img.className = "menu-item__img"
+      img.src = "/assets/hamburguesa_menu.png"
+      img.alt = item.name || "Imagen"
+      img.loading = "lazy"
+      img.dataset._fallbackApplied = "1"
+      media.appendChild(img)
 
       const price = document.createElement("div")
       price.className = "menu-item__price"
