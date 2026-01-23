@@ -4,3 +4,43 @@
 main {
 	padding-bottom: 96px;
 }
+
+/* Layout 70/30 para el menú y el carrito */
+.menu-layout {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 24px;
+}
+
+/* Sidebar como columna flexible con botón fijo al fondo */
+.menu-sidebar {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Limitar el alto del carrito para mostrar ~2 items y scroll */
+#cartScroll {
+	max-height: 320px;
+	overflow: auto;
+}
+
+@media (min-width: 1024px) {
+	.menu-layout {
+		grid-template-columns: 7fr 3fr; /* 70% / 30% */
+	}
+	.menu-sidebar {
+		position: sticky;
+		top: 24px;
+		max-height: calc(100vh - 24px);
+	}
+	#cartPanel {
+		flex: 1;
+	}
+}
+
+/* Ocultar barra inferior en escritorio */
+@media (min-width: 1024px) {
+	#payBar {
+		display: none;
+	}
+}

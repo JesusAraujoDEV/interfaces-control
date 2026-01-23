@@ -25,23 +25,56 @@
         </p>
       </section>
 
-      <section>
-        <div id="status" class="text-sm text-gray-600">Cargando menú…</div>
+      <div class="menu-layout">
+        <!-- Columna izquierda: menú y productos (70%) -->
+        <section>
+          <div id="status" class="text-sm text-gray-600">Cargando menú…</div>
 
-        <div id="categoriesSection" class="mt-6 hidden">
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="text-sm font-semibold text-gray-800">Categorías</h2>
-            <div id="activeCategoryLabel" class="text-xs text-gray-500"></div>
+          <div id="categoriesSection" class="mt-6 hidden">
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="text-sm font-semibold text-gray-800">Categorías</h2>
+              <div id="activeCategoryLabel" class="text-xs text-gray-500"></div>
+            </div>
+            <div id="categories" class="mt-3 flex flex-wrap gap-2"></div>
           </div>
-          <div id="categories" class="mt-3 flex flex-wrap gap-2"></div>
-        </div>
 
-        <div
-          id="grid"
-          class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          aria-live="polite"
-        ></div>
-      </section>
+          <div
+            id="grid"
+            class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            aria-live="polite"
+          ></div>
+        </section>
+
+        <!-- Columna derecha: carrito (30%) y botón de pagar -->
+        <aside class="menu-sidebar">
+          <div
+            id="cartPanel"
+            class="flex flex-col h-full bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] rounded-2xl border border-gray-100"
+          >
+            <div class="p-4 border-b border-gray-100 flex-none">
+              <div class="font-bold text-gray-900">Tu carrito</div>
+            </div>
+
+            <div id="cartScroll" class="flex-1 overflow-y-auto no-scrollbar">
+              <div id="cartItems" class="divide-y divide-gray-100 p-2"></div>
+            </div>
+
+            <div class="p-4 border-t border-gray-100 bg-gray-50 flex-none rounded-b-2xl">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-sm text-gray-600">Total</div>
+                <div id="cartTotal" class="text-lg font-extrabold text-gray-900">$0.00</div>
+              </div>
+              <button
+                id="payBtnSidebar"
+                type="button"
+                class="js-pay-btn w-full bg-brand-800 text-white px-5 py-3 rounded-xl font-semibold shadow hover:bg-brand-700"
+              >
+                Ir a Pagar
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
 
     <!-- Modal: elección de tipo de consumo -->
@@ -69,48 +102,7 @@
       </div>
     </div>
 
-    <!-- Botón visible/flotante: aparece solo si hay items -->
-    <div
-      id="payBar"
-      class="fixed left-0 right-0 bottom-0 px-6 pb-6 pointer-events-none"
-      style="padding-bottom: calc(24px + env(safe-area-inset-bottom));"
-    >
-      <div class="max-w-6xl mx-auto">
-        <div id="bottomBar" class="pointer-events-auto hidden">
-          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-end gap-3">
-            <button
-              id="cartBtn"
-              type="button"
-              class="w-full sm:w-auto bg-white text-gray-800 px-5 py-3 rounded-full font-semibold shadow-lg border border-gray-200"
-            >
-              Carrito
-            </button>
-            <button
-              id="payBtn"
-              type="button"
-              class="w-full sm:w-auto bg-brand-800 text-white px-5 py-3 rounded-full font-semibold shadow-lg"
-            >
-              Ir a Pagar
-            </button>
-          </div>
-
-          <div
-            id="cartPanel"
-            class="hidden mt-3 bg-white rounded-2xl border border-gray-100 shadow-[0_1px_0_rgba(0,0,0,0.03)] overflow-hidden"
-          >
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div class="font-bold text-gray-900">Tu carrito</div>
-              <button id="cartCloseBtn" type="button" class="text-sm text-gray-600 hover:text-gray-900">Cerrar</button>
-            </div>
-            <div id="cartItems" class="divide-y divide-gray-100"></div>
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div class="text-sm text-gray-600">Total</div>
-              <div id="cartTotal" class="text-sm font-extrabold text-gray-900">$0.00</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    
 
     <script>
       // --- Config de URLs (no se puede leer .env directo desde el navegador) ---
@@ -180,16 +172,19 @@
         const count = cartCount(cart);
 
         const bottomBar = document.getElementById('bottomBar');
-        const payBtn = document.getElementById('payBtn');
-        const cartBtn = document.getElementById('cartBtn');
-
+        const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
         if (bottomBar) {
-          if (count > 0) bottomBar.classList.remove('hidden');
+          // En móvil, mostrar siempre la barra inferior
+          if (!isDesktop) bottomBar.classList.remove('hidden');
           else bottomBar.classList.add('hidden');
         }
 
-        if (payBtn) payBtn.textContent = `Ir a Pagar (${count})`;
-        if (cartBtn) cartBtn.textContent = `Carrito (${count})`;
+        document.querySelectorAll('.js-pay-btn').forEach(btn => {
+          btn.textContent = `Ir a Pagar (${count})`;
+        });
+        document.querySelectorAll('.js-cart-btn').forEach(btn => {
+          btn.textContent = `Carrito (${count})`;
+        });
 
         renderCartPanel();
       }
@@ -288,7 +283,7 @@
                       data-action="note"
                       data-id="${it.id}"
                       rows="2"
-                      class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                      class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-200 resize-none overflow-hidden"
                       placeholder="Ej: sin cebolla, mucha aura…"
                     >${escapeHtml(it.notes || '')}</textarea>
                   </div>
@@ -667,8 +662,14 @@
         }
       }
 
-      document.getElementById('payBtn')?.addEventListener('click', () => {
-        openCheckoutModal();
+      function goToCheckout() {
+        localStorage.setItem('dp_service_type', 'delivery_or_pickup');
+        window.location.href = '/checkout';
+      }
+
+      // Bind pay buttons (mobile bar + sidebar)
+      document.querySelectorAll('.js-pay-btn').forEach(btn => {
+        btn.addEventListener('click', goToCheckout);
       });
 
       function openCheckoutModal() {
@@ -712,15 +713,23 @@
       function toggleCart(open) {
         const panel = document.getElementById('cartPanel');
         if (!panel) return;
+        const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+        if (isDesktop) {
+          panel.classList.remove('hidden');
+          return;
+        }
         if (open) panel.classList.remove('hidden');
         else panel.classList.add('hidden');
       }
 
-      document.getElementById('cartBtn')?.addEventListener('click', () => {
-        const panel = document.getElementById('cartPanel');
-        if (!panel) return;
-        const isOpen = !panel.classList.contains('hidden');
-        toggleCart(!isOpen);
+      // Mobile: toggle cart from bottom bar
+      document.querySelectorAll('.js-cart-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const panel = document.getElementById('cartPanel');
+          if (!panel) return;
+          const isOpen = !panel.classList.contains('hidden');
+          toggleCart(!isOpen);
+        });
       });
 
       document.getElementById('cartCloseBtn')?.addEventListener('click', () => toggleCart(false));
@@ -744,6 +753,10 @@
         if (el.getAttribute('data-action') !== 'note') return;
         const id = el.getAttribute('data-id');
         if (!id) return;
+        // Auto-grow del textarea de notas, con altura máxima razonable
+        el.style.height = 'auto';
+        const maxH = 160; // px
+        el.style.height = Math.min(el.scrollHeight, maxH) + 'px';
         updateItemNotes(id, el.value);
       });
 
@@ -777,5 +790,32 @@
     </script>
 
     <script type="module" src="/shared/components/app-header.js"></script>
+    <!-- Barra inferior fija solo para móvil: Ver Carrito / Ir a Pagar -->
+    <div
+      id="payBar"
+      class="fixed left-0 right-0 bottom-0 px-6 pb-6 pointer-events-none"
+      style="padding-bottom: calc(24px + env(safe-area-inset-bottom));"
+    >
+      <div class="max-w-6xl mx-auto">
+        <div id="bottomBar" class="pointer-events-auto">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-end gap-3">
+            <button
+              id="cartBtnMobile"
+              type="button"
+              class="js-cart-btn w-full sm:w-auto bg-white text-gray-800 px-5 py-3 rounded-full font-semibold shadow-lg border border-gray-200"
+            >
+              Carrito
+            </button>
+            <button
+              id="payBtnMobile"
+              type="button"
+              class="js-pay-btn w-full sm:w-auto bg-brand-800 text-white px-5 py-3 rounded-full font-semibold shadow-lg"
+            >
+              Ir a Pagar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
