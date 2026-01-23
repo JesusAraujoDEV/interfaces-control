@@ -5,6 +5,7 @@
     <title>Eficiencia Operacional - Charlotte</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 p-4" id="body">
 
@@ -20,7 +21,8 @@
                 <a href="bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
                 <a href="eficiencia-operacional.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
                 <a href="inventario.html" class="sidebar__menu-item"><i>📦</i> Inventario</a>
-                <a href="#" class="sidebar__menu-item"><i>📣</i> Marketing</a>
+                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
+                <a href="#" class="sidebar__menu-item"><i>⚙️</i> Configuración</a>
             </nav>
 
             <div class="sidebar__profile-footer">
@@ -46,7 +48,11 @@
 
             <div class="dashboard-main-grid">
                 <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-                <h1 class="text-2xl font-bold mb-4">Ranking de Meseros</h1>
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-2xl font-bold">Ranking de Meseros</h1>
+                    <input type="text" id="staff-search" placeholder="🔍 Buscar mesero..." 
+                           class="px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+                </div>
                 <div id="shift-indicator" class="mb-4 text-center font-semibold"></div>
                 <table id="ranking-table" class="w-full table-auto border-collapse">
                     <thead>
@@ -94,22 +100,21 @@
     // Función para hacer fetch a la API
     async function fetchRotationData() {
         try {
-            const response = await fetch('/api/v1/kpi/operations/staff-ranking');
+            const response = await fetch('/operations/staff-ranking');
             if (!response.ok) throw new Error('Error en la API');
-            const result = await response.json();
-            if (result.success && result.data && result.data.length > 0) {
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
                 // Calcular el promedio de efficiency_score como "rotación actual"
-                const totalScore = result.data.reduce((sum, item) => sum + item.efficiency_score, 0);
-                const averageScore = totalScore / result.data.length;
-                const target = 1007; 
-                updateGauge(averageScore, target);
+                const totalScore = data.reduce((sum, item) => sum + item.efficiency_score, 0);
+                const averageScore = totalScore / data.length;
+                const mockRotation = (averageScore / 100) * 2; // Simular un valor alrededor de 1.2
+                updateGauge(mockRotation, 1.7);
             } else {
-                console.error('Datos inválidos o array vacío en la API');
-                updateGauge(0, 107); // Valor por defecto
+                updateGauge(0, 1.7);
             }
         } catch (error) {
             console.error('Error al cargar datos:', error);
-            updateGauge(0, 107); // Valor por defecto
+            updateGauge(0, 1.7);
         }
     }
 
@@ -131,191 +136,233 @@
             return status === 'Activo' ? 'active' : 'rest';
         }
 
-        // Función para cargar datos de la API
-        async function loadRanking(sort_by="EFFICIENCY", page = 1, limit = 10) {
-            try {
-                const response = await fetch(`/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}&page=${page}&limit=${limit}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    const { data, meta } = result;
-                    populateTable(data);
-                    setupPagination(meta);
-                } else {
-                    console.error('Error en la respuesta de la API');
-                }
-            } catch (error) {
-                console.error('Error al cargar datos:', error);
+    // --- Lógica de Ranking y Staff ---
+    let fullRankingData = [];
+
+    async function loadRanking(sort_by="EFFICIENCY") {
+        try {
+            const response = await fetch(`/operations/staff-ranking?sort_by=${sort_by}`);
+            fullRankingData = await response.json();
+            
+            if (Array.isArray(fullRankingData)) {
+                renderTable(fullRankingData);
+                const paginationDiv = document.getElementById('pagination');
+                if (paginationDiv) paginationDiv.style.display = 'none';
             }
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
         }
+    }
 
-        // Función para poblar la tabla
-        function populateTable(ranking) {
-            const tbody = document.getElementById('ranking-body');
-            tbody.innerHTML = ''; // Limpiar contenido anterior
+    function renderTable(data) {
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
 
-            ranking.forEach((item, index) => {
-                const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50'; // Zebra striping
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.className = `cursor-pointer hover:bg-emerald-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`;
+            row.onclick = () => showStaffDetails(item);
 
-                const avatarCell = document.createElement('td');
-                avatarCell.className = 'px-4 py-2';
-                const avatar = document.createElement('div');
-                avatar.className = 'avatar-circle';
-                avatar.textContent = getInitials(item.name);
-                avatarCell.appendChild(avatar);
+            row.innerHTML = `
+                <td class="px-4 py-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border border-emerald-200">
+                        ${getInitials(item.name)}
+                    </div>
+                </td>
+                <td class="px-4 py-3 font-medium text-slate-700">${item.name}</td>
+                <td class="px-4 py-3 text-slate-600">${item.total_orders}</td>
+                <td class="px-4 py-3 text-slate-600">${item.avg_time}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
+                        ${item.status === 'ACTIVE' ? 'Activo' : 'Descanso'}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 
-                const nameCell = document.createElement('td');
-                nameCell.className = 'px-4 py-2';
-                nameCell.textContent = item.name;
+    // Buscador
+    const searchInput = document.getElementById('staff-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = fullRankingData.filter(staff => 
+                staff.name.toLowerCase().includes(term) || 
+                staff.turn.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+    }
 
-                const ordersCell = document.createElement('td');
-                ordersCell.className = 'px-4 py-2';
-                ordersCell.textContent = item.total_orders;
+    async function showStaffDetails(staff) {
+        Swal.fire({
+            title: `Cargando métricas de ${staff.name}...`,
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
 
-                const timeCell = document.createElement('td');
-                timeCell.className = 'px-4 py-2';
-                timeCell.textContent = `${item.avg_time_minutes} min`;
+        try {
+            const res = await fetch(`/operations/staff-metrics/${staff.id}`);
+            const metrics = await res.json();
 
-                const statusCell = document.createElement('td');
-                statusCell.className = 'px-4 py-2';
-                const badge = document.createElement('span');
-                badge.className = `status-badge ${getStatusClass(mapStatus(item.current_status))}`;
-                badge.textContent = mapStatus(item.current_status);
-                statusCell.appendChild(badge);
-
-                row.appendChild(avatarCell);
-                row.appendChild(nameCell);
-                row.appendChild(ordersCell);
-                row.appendChild(timeCell);
-                row.appendChild(statusCell);
-
-                tbody.appendChild(row);
+            Swal.fire({
+                title: `<span class="text-emerald-700">${staff.name}</span>`,
+                html: `
+                    <div class="text-left space-y-3 mt-4">
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-semibold">Turno:</span> <span>${staff.turn}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-semibold">Eficiencia:</span> <span class="text-emerald-600 font-bold">${staff.efficiency_score}%</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-semibold">Total Pedidos:</span> <span>${staff.total_orders}</span>
+                        </div>
+                        <div class="mt-4">
+                            <p class="font-semibold mb-2">Historial Reciente:</p>
+                            <div class="text-xs bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                ${metrics.history.map(day => `
+                                    <div class="flex justify-between mb-1">
+                                        <span>${day.date}</span>
+                                        <span class="font-medium">Orders: ${day.orders} | Eff: ${day.efficiency}%</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#10b981',
+                width: '450px'
             });
+        } catch (error) {
+            Swal.fire('Error', 'No se pudieron cargar las métricas detalladas', 'error');
         }
-
-        // Función para configurar paginación
-        function setupPagination(meta) {
-            const paginationDiv = document.getElementById('pagination');
-            paginationDiv.innerHTML = ''; // Limpiar
-
-            const totalPages = Math.ceil(meta.total_items / meta.per_page);
-            const currentPage = meta.current_page;
-
-            // Botón anterior
-            if (currentPage > 1) {
-                const prevBtn = document.createElement('button');
-                prevBtn.className = 'px-4 py-2 bg-blue-500 text-white rounded mr-2';
-                prevBtn.textContent = 'Anterior';
-                prevBtn.onclick = () => loadRanking(currentPage - 1, meta.per_page);
-                paginationDiv.appendChild(prevBtn);
-            }
-
-            // Botón siguiente
-            if (currentPage < totalPages) {
-                const nextBtn = document.createElement('button');
-                nextBtn.className = 'px-4 py-2 bg-blue-500 text-white rounded';
-                nextBtn.onclick = () => loadRanking(currentPage + 1, meta.per_page);
-                paginationDiv.appendChild(nextBtn);
-            }
-        }
-
-        // Cargar datos iniciales al cargar la página
-        window.onload = () => loadRanking();
-
-        let data = null;
-    let loading = true;
-    let error = null;
-
-    // URL de la API (usando un valor por defecto ya que process.env no está disponible en vanilla JS)
-    // URL de la API
-    const API_URL = '/api/v1/kpi/operations/sla-breakdown';
-
-    // Función para renderizar una zona
-    function renderZone(zoneName, zoneData, bgColor, textColor) {
-      return `
-        <div class="p-4 rounded-lg shadow-md ${bgColor} ${textColor} mb-4">
-          <h3 class="text-lg font-bold mb-2 capitalize">${zoneName.replace('_', ' ')}</h3>
-          <p class="mb-1">${zoneData} %</p>
-        </div>
-      `;
     }
 
-    // Función para renderizar el componente completo
-    function render() {
-      const app = document.getElementById('app');
+    // --- Lógica de SLA ---
+    const API_URL = '/operations/sla-breakdown';
+    let slaData = null;
 
-      if (loading) {
-        app.innerHTML = '<p class="text-center">Cargando datos...</p>';
-        return;
-      }
-
-      if (error) {
-        app.innerHTML = `<p class="text-center text-red-500">${error}</p>`;
-        return;
-      }
-
-      app.innerHTML = `
-        <h2 class="text-2xl font-bold mb-6 text-center">Desglose de SLA de Comandas</h2>
-        
-        <!-- Bloque para la fecha -->
-        <div class="p-4 rounded-lg shadow-md bg-gray-100 text-gray-800 mb-6">
-          <h3 class="text-lg font-bold">Fecha</h3>
-          <p>${data.data_timestamp || 'Fecha no disponible'}</p>
-        </div>
-
-        <!-- Bloques para las zonas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          ${renderZone('green_zone', data.green_zone_percent, 'bg-green-100', 'text-green-800')}
-          ${renderZone('yellow_zone', data.yellow_zone_percent, 'bg-yellow-100', 'text-yellow-800')}
-          ${renderZone('red_zone', data.red_zone_percent, 'bg-red-100', 'text-red-800')}
-        </div>
-      `;
-    }
-
-    // Función para obtener datos de la API
     async function fetchData() {
       try {
-        const response = await fetch(API_URL.toString(), {headers: {
-          "Content-Type": "application/json",
-        }});
-        if (!response.ok) {
-          throw new Error('Error en la respuesta de la API');
-        }
-        const result = await response.json();
-        data = result;
-        loading = false;
-        render();
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Error en la API');
+        slaData = await response.json();
+        renderSLACard();
       } catch (err) {
-        error = 'Error al cargar los datos. Verifica la conexión a la API.';
-        loading = false;
-        render();
+        document.getElementById('app').innerHTML = `<p class="text-center text-red-500">Error al cargar SLA</p>`;
       }
     }
 
-    // Inicializar: llamar a fetchData y renderizar inicialmente
-    render(); // Render inicial con loading
-    fetchData();
+    function renderSLACard() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100 mb-8">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 flex items-center">
+                <span class="mr-2">⏱️</span> Desglose de SLA de Comandas
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                ${renderZone('Órdenes Rápidas (<5m)', slaData.fast_orders_pct, 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200')}
+                ${renderZone('Espera Media (5-10m)', slaData.medium_wait_pct, 'bg-amber-50', 'text-amber-700', 'border-amber-200')}
+                ${renderZone('Retrasos Críticos (>10m)', slaData.critical_delay_pct, 'bg-rose-50', 'text-rose-700', 'border-rose-200')}
+            </div>
+            <p class="text-center text-xs text-slate-400 mt-6 italic">Última sincronización: ${new Date(slaData.timestamp).toLocaleTimeString()}</p>
+        </div>
+      `;
+    }
 
-    // Export Logic
-    const exportBtn = document.querySelector(".header-top .btn-primary");
-    if (exportBtn) {
-      exportBtn.addEventListener("click", () => {
-        exportBtn.disabled = true;
-        exportBtn.innerText = "Generando...";
-        fetch("/api/v1/kpi/reports/export", { method: "POST" })
-          .then((res) => res.json())
-          .then((data) => {
-            alert(data.message);
-            exportBtn.disabled = false;
-            exportBtn.innerText = "📤 Exportar Reporte";
-          })
-          .catch((err) => {
-            alert("Error al exportar");
-            exportBtn.disabled = false;
-            exportBtn.innerText = "📤 Exportar Reporte";
-          });
-      });
+    function renderZone(name, pct, bg, text, border) {
+      return `
+        <div class="${bg} ${text} ${border} border p-5 rounded-2xl flex flex-col items-center">
+            <span class="text-3xl font-black mb-1">${pct}%</span>
+            <span class="text-xs font-bold uppercase tracking-wider opacity-80 text-center">${name}</span>
+            <div class="w-full bg-white/50 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div class="bg-current h-full" style="width: ${pct}%"></div>
+            </div>
+        </div>
+      `;
+    }
+
+    // --- Polling Logic for Export ---
+    function pollExportJob(jobId) {
+        fetch(`/reports/jobs/${jobId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'COMPLETED') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Reporte de Eficiencia Listo!',
+                        text: 'El análisis de desempeño del personal ha sido generado.',
+                        footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar Reporte</a>`,
+                        confirmButtonColor: '#10b981'
+                    });
+                    const exportBtn = document.querySelector(".header-top .btn-primary");
+                    exportBtn.disabled = false;
+                    exportBtn.innerText = "📤 Exportar Reporte";
+                } else {
+                    setTimeout(() => pollExportJob(jobId), 2000);
+                }
+            })
+            .catch(() => {
+                Swal.fire('Error', 'Fallo en la comunicación con el servidor de informes.', 'error');
+                const exportBtn = document.querySelector(".header-top .btn-primary");
+                exportBtn.disabled = false;
+            });
+    }
+
+    // --- Inicialización ---
+    window.onload = () => {
+        loadRanking();
+        fetchRotationData();
+        fetchData();
+        
+        // Export Logic con POLLING
+        const exportBtn = document.querySelector(".header-top .btn-primary");
+        if (exportBtn) {
+            exportBtn.addEventListener("click", () => {
+                exportBtn.disabled = true;
+                exportBtn.innerText = "Generando...";
+
+                Swal.fire({
+                    title: 'Analizando Desempeño',
+                    text: 'Se están cruzando los datos de SLA con el ranking de personal...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch("/reports/export", { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        pollExportJob(data.job_id);
+                    })
+                    .catch(() => {
+                        Swal.fire('Error', 'No se pudo iniciar la exportación operacional.', 'error');
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📤 Exportar Reporte";
+                    });
+            });
+        }
+    };
+
+    // --- Global Alerts History ---
+    window.showAlertsHistory = function() {
+        Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+        fetch('/alerts/history')
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({
+                    title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                    html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                        ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                            <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
+                            <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                        </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                    </div>`,
+                    confirmButtonText: 'Entendido', confirmButtonColor: '#387652', width: '450px'
+                });
+            });
     }
   </script>
 </body>

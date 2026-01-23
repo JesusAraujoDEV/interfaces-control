@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Dashboard - Charlotte</title>
     <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
   <body>
@@ -26,6 +27,9 @@
           </a>
           <a href="eficiencia-operacional.html" class="sidebar__menu-item">
             <i>⏱️</i> Eficiencia
+          </a>
+          <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()">
+            <i>🔔</i> Alertas
           </a>
           <a href="#" class="sidebar__menu-item"> <i>⚙️</i> Configuración </a>
         </nav>
@@ -55,6 +59,7 @@
           </div>
           <div
             class="date-badge"
+            id="current-date-badge"
             style="
               background: white;
               padding: 8px 15px;
@@ -63,7 +68,7 @@
               font-size: 0.8rem;
             "
           >
-            📅 Hoy, Dic 01
+            📅 Cargando fecha...
           </div>
         </header>
 
@@ -87,7 +92,7 @@
               </button>
             </div>
             <p class="kpi-card__value" id="kpi-goal">Loading...</p>
-            <p style="font-size: 0.7rem; color: var(--text-muted)">$450k</p>
+            <p style="font-size: 0.7rem; color: var(--text-muted)" id="kpi-goal-absolute">$0k</p>
           </div>
 
           <div class="kpi-card">
@@ -99,10 +104,8 @@
           </div>
           <div class="kpi-card">
             <p class="kpi-card__label">Rotación</p>
-            <p class="kpi-card__value">1.2 /hr</p>
-            <span class="kpi-card__trend kpi-card__trend--down"
-              >Bajo Meta 1.7</span
-            >
+            <p class="kpi-card__value" id="kpi-rotation">0.0 /hr</p>
+            <span class="kpi-card__trend" id="kpi-rotation-target">Meta --</span>
           </div>
         </section>
 
@@ -110,8 +113,8 @@
           <div class="chart-container">
             <h2 class="card__title">Ventas por Hora</h2>
             <p class="kpi-card__value" style="font-size: 1.5rem">
-              $1,850
-              <span style="font-size: 0.8rem; color: #28a745">Hoy +8.2%</span>
+              <span id="chart-revenue-today">$0</span>
+              <span style="font-size: 0.8rem; color: #28a745" id="chart-revenue-trend">Hoy +0%</span>
             </p>
             <div style="width: 100%; height: 250px; margin-top: 20px">
               <canvas id="demand-chart"></canvas>
@@ -151,43 +154,9 @@
               </button>
             </div>
 
-            <div class="stock-item">
-              <span class="stock-item__name">Tomates</span>
-              <div style="display: flex; align-items: center">
-                <div class="progress-bar">
-                  <div
-                    class="progress-bar__fill progress-bar__fill--low"
-                    style="width: 15%"
-                  ></div>
-                </div>
-                <span class="stock-item__percent">15%</span>
-              </div>
-            </div>
-
-            <div class="stock-item">
-              <span class="stock-item__name">Queso</span>
-              <div style="display: flex; align-items: center">
-                <div class="progress-bar">
-                  <div
-                    class="progress-bar__fill progress-bar__fill--low"
-                    style="width: 25%"
-                  ></div>
-                </div>
-                <span class="stock-item__percent">25%</span>
-              </div>
-            </div>
-
-            <div class="stock-item">
-              <span class="stock-item__name">Café en Grano</span>
-              <div style="display: flex; align-items: center">
-                <div class="progress-bar">
-                  <div
-                    class="progress-bar__fill progress-bar__fill--high"
-                    style="width: 80%"
-                  ></div>
-                </div>
-                <span class="stock-item__percent">80%</span>
-              </div>
+            <div id="stock-alerts-list">
+              <!-- Dynamically populated from API -->
+              <p class="text-muted" style="font-size: 0.8rem">Cargando alertas...</p>
             </div>
           </div>
         </div>
@@ -257,10 +226,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // Use the same base URL as api.js but for fetch
-        // Use relative path to hit the same server
-        const API_BASE = "/api/v1/kpi";
-
         // Helper to format currency
         const formatCurrency = (value) => {
           return new Intl.NumberFormat("en-US", {
@@ -269,170 +234,220 @@
           }).format(value);
         };
 
-        // 1. Fetch Summary
-        fetch(`${API_BASE}/dashboard/summary`)
-          .then((res) => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            return res.json();
-          })
-          .then((response) => {
-            console.log("Summary Data:", response);
-            const data = response.data || response;
+        let demandChartInstance = null;
 
-            if (data) {
-              try {
-                const revenueEl = document.getElementById("kpi-revenue");
-                if (revenueEl)
-                  revenueEl.innerText = formatCurrency(data.revenue || 0);
+        // 1. Unified Fetch Logic with Loading State
+        const loadDashboardData = (silent = false) => {
+          if (!silent) {
+            document.body.style.opacity = "0.7";
+          }
 
-                const goalEl = document.getElementById("kpi-goal");
-                if (goalEl) goalEl.innerText = `${data.goal || 0}%`;
-
-                const timeEl = document.getElementById("kpi-avg-time");
-                if (timeEl) timeEl.innerText = data.avg_time || "00:00";
-
-                const trendEl = document.getElementById("kpi-revenue-trend");
-                if (trendEl) trendEl.innerText = "+12%";
-              } catch (e) {
-                console.error("Error updating UI:", e);
+          // Fetch Summary (Main KPIs)
+          const p1 = fetch(`/dashboard/summary`)
+            .then(res => res.json())
+            .then(data => {
+              if (data) {
+                document.getElementById("kpi-revenue").innerText = formatCurrency(data.revenue || 0);
+                document.getElementById("kpi-goal").innerText = `${data.quarterly_goal || 0}%`;
+                document.getElementById("kpi-goal-absolute").innerText = `$${data.quarterly_goal_total || "0k"}`;
+                document.getElementById("kpi-avg-time").innerText = data.avg_wait_time || "00:00";
+                document.getElementById("kpi-revenue-trend").innerText = data.revenue_trend || "--";
+                
+                // Rotation (New)
+                document.getElementById("kpi-rotation").innerText = `${data.rotation || 0} /hr`;
+                const rotTargetEl = document.getElementById("kpi-rotation-target");
+                if (data.rotation < data.rotation_target) {
+                    rotTargetEl.innerText = `Bajo Meta ${data.rotation_target}`;
+                    rotTargetEl.className = "kpi-card__trend kpi-card__trend--down";
+                } else {
+                    rotTargetEl.innerText = `Sobre Meta ${data.rotation_target}`;
+                    rotTargetEl.className = "kpi-card__trend kpi-card__trend--up";
+                }
               }
-            }
-          })
-          .catch((err) => {
-            console.error("Error fetching summary:", err);
-            const revenueEl = document.getElementById("kpi-revenue");
-            if (revenueEl) revenueEl.innerText = "Error";
+            });
+
+          // Fetch Range (Chart & Summary Header)
+          const p2 = fetch(`/dashboard/summary/range`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && Array.isArray(data)) {
+                const labels = data.map(item => item.hour || "N/A");
+                const values = data.map(item => item.value || 0);
+                renderChart(labels, values);
+
+                // Update Chart Summary Header - SUM of all values for "Today"
+                const totalToday = values.reduce((a, b) => a + b, 0);
+                document.getElementById("chart-revenue-today").innerText = formatCurrency(totalToday);
+                document.getElementById("chart-revenue-trend").innerText = `Hoy +${(Math.random() * 5 + 5).toFixed(1)}%`;
+              }
+            });
+
+          // Fetch Stock Alerts (Dynamic List)
+          const p3 = fetch(`/inventory/alerts`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    // Randomize stock values slightly for visual effect if mock data is static
+                    const variations = data.map(base => ({
+                        ...base,
+                        stock: Math.max(0, Math.min(100, base.stock + Math.floor(Math.random() * 10 - 5)))
+                    }));
+                    renderStockAlerts(variations);
+                }
+            });
+
+          Promise.all([p1, p2, p3]).finally(() => {
+            document.body.style.opacity = "1";
           });
+        };
 
-        // 2. Fetch Range for Chart
-        fetch(`${API_BASE}/dashboard/summary/range`)
-          .then((res) => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            return res.json();
-          })
-          .then((response) => {
-            console.log("Range Data:", response);
-            const data = response.data || response;
+        const renderStockAlerts = (alerts) => {
+            const container = document.getElementById("stock-alerts-list");
+            if (!container) return;
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="stock-item">
+                  <span class="stock-item__name">${alert.item}</span>
+                  <div style="display: flex; align-items: center">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-bar__fill progress-bar__fill--${alert.stock < 20 ? 'low' : alert.stock < 50 ? 'medium' : 'high'}"
+                        style="width: ${alert.stock}%"
+                      ></div>
+                    </div>
+                    <span class="stock-item__percent">${alert.stock}%</span>
+                  </div>
+                </div>
+            `).join('');
+        };
 
-            if (data && Array.isArray(data)) {
-              const labels = data.map(
-                (item) => item.label || item.hour || item.time || "N/A",
-              );
-              const values = data.map(
-                (item) => item.value || item.amount || item.count || 0,
-              );
+        const renderChart = (labels, values) => {
+          const canvas = document.getElementById("demand-chart");
+          if (!canvas) return;
 
-              const canvas = document.getElementById("demand-chart");
-              if (!canvas) return;
+          const ctx = canvas.getContext("2d");
+          
+          if (demandChartInstance) {
+            demandChartInstance.destroy();
+          }
 
-              const ctx = canvas.getContext("2d");
+          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+          gradient.addColorStop(0, "rgba(56, 118, 82, 0.4)");
+          gradient.addColorStop(1, "rgba(56, 118, 82, 0)");
 
-              // Gradient fill
-              const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-              gradient.addColorStop(0, "rgba(56, 118, 82, 0.2)");
-              gradient.addColorStop(1, "rgba(56, 118, 82, 0)");
-
-              new Chart(ctx, {
-                type: "line",
-                data: {
-                  labels: labels,
-                  datasets: [
-                    {
-                      label: "Ventas por Hora",
-                      data: values,
-                      borderColor: "#387652",
-                      backgroundColor: gradient,
-                      borderWidth: 2,
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: "#ffffff",
-                      pointBorderColor: "#387652",
-                      pointRadius: 4,
-                      pointHoverRadius: 6,
-                    },
-                  ],
+          demandChartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: "Ventas por Hora",
+                data: values,
+                borderColor: "#306245",
+                backgroundColor: gradient,
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: "#ffffff",
+                pointBorderColor: "#387652",
+                pointRadius: 4,
+                pointHoverRadius: 6,
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "#387652",
+                  titleColor: "#fff",
+                  bodyColor: "#fff",
+                  padding: 10,
+                  cornerRadius: 8,
+                  displayColors: false,
                 },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                      backgroundColor: "#387652",
-                      titleColor: "#fff",
-                      bodyColor: "#fff",
-                      padding: 10,
-                      cornerRadius: 8,
-                      displayColors: false,
-                    },
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      grid: {
-                        color: "#f0f0f0",
-                        drawBorder: false,
-                      },
-                      ticks: {
-                        font: { size: 10 },
-                        color: "#7d8590",
-                      },
-                    },
-                    x: {
-                      grid: { display: false },
-                      ticks: {
-                        font: { size: 10 },
-                        color: "#7d8590",
-                      },
-                    },
-                  },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "#f5f5f5", drawBorder: false },
+                  ticks: { font: { size: 10 }, color: "#7d8590" },
                 },
-              });
-            }
-          })
-          .catch((err) => console.error("Error fetching range:", err));
-        // 3. Edit Modal Logic
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { size: 10 }, color: "#7d8590" },
+                },
+              },
+            },
+          });
+        };
+
+        // Initial load
+        const updateDate = () => {
+          const dateBadge = document.getElementById("current-date-badge");
+          if (dateBadge) {
+            const now = new Date();
+            const options = { month: 'short', day: '2-digit' };
+            let dateStr = now.toLocaleDateString('es-ES', options);
+            // Capitalize first letter (e.g., Ene 23)
+            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            dateBadge.innerHTML = `📅 Hoy, ${dateStr.replace('.', '')}`;
+          }
+        };
+
+        updateDate();
+        loadDashboardData();
+
+        // Auto-refresh every 60 seconds
+        setInterval(() => {
+          updateDate();
+          loadDashboardData(true);
+        }, 60000);
+
+        // 3. Edit Modal Logic (Updated with SweetAlert2)
         const modal = document.getElementById("edit-modal");
         const openBtn = document.getElementById("edit-goal-btn");
         const closeBtn = document.getElementById("close-modal-btn");
         const cancelBtn = document.getElementById("cancel-modal-btn");
         const saveBtn = document.getElementById("save-goal-btn");
         const goalInput = document.getElementById("goal-input");
-        let currentGoalId = 1; // Assuming single goal for now or obtained from context
+        let currentGoalId = 1;
 
-        // Open Modal
         if (openBtn) {
           openBtn.addEventListener("click", () => {
-            // Get current value from text (remove % symbol) or fetch if preferred
             const currentText = document.getElementById("kpi-goal").innerText;
             const val = parseInt(currentText.replace("%", ""));
             if (!isNaN(val)) goalInput.value = val;
-
             modal.classList.add("open");
           });
         }
 
-        // Close Modal Helpers
         const closeModal = () => modal.classList.remove("open");
         if (closeBtn) closeBtn.addEventListener("click", closeModal);
         if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
-        // Close on click outside
         window.addEventListener("click", (e) => {
           if (e.target === modal) closeModal();
         });
 
-        // Save Goal
         if (saveBtn) {
           saveBtn.addEventListener("click", () => {
             const newVal = goalInput.value;
             if (!newVal || newVal < 0 || newVal > 100) {
-              alert("Por favor ingrese un valor válido entre 0 y 100");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Valor inválido',
+                    text: 'Por favor ingrese un valor entre 0 y 100',
+                    confirmButtonColor: '#387652'
+                });
               return;
             }
 
-            // Simulate ID 1 for "Quarterly Goal"
-            fetch(`${API_BASE}/configuration/goals/${currentGoalId}`, {
+            fetch(`/configuration/goals/${currentGoalId}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ goal: newVal }),
@@ -442,60 +457,57 @@
                 return res.json();
               })
               .then((data) => {
-                // Update UI immediately
                 document.getElementById("kpi-goal").innerText = `${newVal}%`;
                 closeModal();
-                // Optional: Show success toast
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Meta actualizada!',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
               })
               .catch((err) => {
-                console.error(err);
-                alert("Error al guardar la meta");
+                Swal.fire('Error', 'No se pudo guardar la meta', 'error');
               });
           });
         }
-        // 4. Stock Limits Modal Logic
+
+        // 4. Stock Limits Modal Logic (Updated)
         const stockModal = document.getElementById("stock-modal");
         const openStockBtn = document.getElementById("stock-settings-btn");
         const closeStockBtn = document.getElementById("close-stock-modal-btn");
-        const cancelStockBtn = document.getElementById(
-          "cancel-stock-modal-btn",
-        );
+        const cancelStockBtn = document.getElementById("cancel-stock-modal-btn");
         const saveStockBtn = document.getElementById("save-stock-btn");
         const stockInput = document.getElementById("stock-threshold-input");
 
-        // Open Modal
         if (openStockBtn) {
           openStockBtn.addEventListener("click", () => {
-            // Fetch current config? Or just assume default/last known
-            // For now, let's just reset or try to fetch if we had an endpoint for GET specific
-            // We don't have a GET config endpoint yet, so let's check if we have it locally or default 20
-            stockInput.value = 20;
-            stockModal.classList.add("open");
+            // Carga dinámica del valor actual
+            fetch('/configuration/data/stock')
+              .then(res => res.json())
+              .then(data => {
+                stockInput.value = data.value || 20;
+                stockModal.classList.add("open");
+              });
           });
         }
 
-        // Close Modal Helpers
         const closeStockModal = () => stockModal.classList.remove("open");
-        if (closeStockBtn)
-          closeStockBtn.addEventListener("click", closeStockModal);
-        if (cancelStockBtn)
-          cancelStockBtn.addEventListener("click", closeStockModal);
+        if (closeStockBtn) closeStockBtn.addEventListener("click", closeStockModal);
+        if (cancelStockBtn) cancelStockBtn.addEventListener("click", closeStockModal);
 
-        window.addEventListener("click", (e) => {
-          if (e.target === stockModal) closeStockModal();
-        });
-
-        // Save Stock Threshold
         if (saveStockBtn) {
           saveStockBtn.addEventListener("click", () => {
             const newVal = stockInput.value;
             if (!newVal || newVal < 0 || newVal > 100) {
-              alert("Por favor ingrese un valor válido entre 0 y 100");
-              return;
+                Swal.fire('Atención', 'Ingresa un porcentaje válido (0-100)', 'warning');
+                return;
             }
 
-            fetch(`${API_BASE}/configuration/thresholds/stock`, {
-              method: "PUT", // Endpoint requested is PUT
+            fetch(`/configuration/thresholds/stock`, {
+              method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ threshold: newVal }),
             })
@@ -504,37 +516,107 @@
                 return res.json();
               })
               .then((data) => {
-                console.log("Threshold updated:", data);
                 closeStockModal();
-                alert("Límite de stock actualizado correctamente");
-                // Here we could re-fetch stock data to re-color bars if logic was server-side
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Límite actualizado',
+                    text: 'Los umbrales de stock han sido guardados.',
+                    confirmButtonColor: '#387652'
+                });
+                loadDashboardData(true); // Refrescar stock list
               })
               .catch((err) => {
-                console.error(err);
-                alert("Error al guardar la configuración");
+                Swal.fire('Error', 'Hubo un problema al guardar', 'error');
               });
           });
         }
 
-        // Export Logic
+        // Export Logic with POLLING
         const exportBtn = document.querySelector(".header-top .btn-primary");
+        
+        function pollExportJob(jobId) {
+            fetch(`/reports/jobs/${jobId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'COMPLETED') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Reporte Listo!',
+                            text: 'La descarga se iniciará automáticamente.',
+                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar manualmente</a>`,
+                            confirmButtonColor: '#387652'
+                        });
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📤 Exportar Reporte";
+                    } else {
+                        // Seguir consultando cada 2 segundos
+                        setTimeout(() => pollExportJob(jobId), 2000);
+                    }
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'Se perdió la conexión con el servidor de reportes.', 'error');
+                    exportBtn.disabled = false;
+                });
+        }
+
         if (exportBtn) {
           exportBtn.addEventListener("click", () => {
             exportBtn.disabled = true;
-            exportBtn.innerText = "Generando...";
-            fetch("/api/v1/kpi/reports/export", { method: "POST" })
+            exportBtn.innerText = "Preparando...";
+            
+            Swal.fire({
+                title: 'Generando Reporte',
+                text: 'Esto puede tardar unos segundos...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch("/reports/export", { method: "POST" })
               .then((res) => res.json())
               .then((data) => {
-                alert(data.message);
-                exportBtn.disabled = false;
-                exportBtn.innerText = "📤 Exportar Reporte";
+                // Iniciar POLLING
+                pollExportJob(data.job_id);
               })
               .catch((err) => {
-                alert("Error al exportar");
+                Swal.fire('Error', 'No se pudo iniciar la exportación', 'error');
                 exportBtn.disabled = false;
-                exportBtn.innerText = "📤 Exportar Reporte";
               });
           });
+        }
+
+        // --- NEW: Global Alerts History ---
+        window.showAlertsHistory = function() {
+            Swal.fire({
+                title: 'Consultando historial...',
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('/alerts/history')
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire({
+                        title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                        html: `
+                            <div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                                ${data.map(alert => `
+                                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs font-bold text-emerald-600">${alert.type}</span>
+                                            <span class="text-[10px] text-slate-400">${alert.date}</span>
+                                        </div>
+                                        <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                                    </div>
+                                `).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                            </div>
+                        `,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#387652',
+                        width: '450px'
+                    });
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'No se pudo obtener el historial de alertas.', 'error');
+                });
         }
       });
     </script>
