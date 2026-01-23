@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlotte - Menú</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#205638', 
+                        secondary: '#E8F5E9',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Ocultar scrollbar pero permitir funcionalidad */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Estilo para la pestaña activa */
+        .tab-btn.active {
+            color: #1B5E20;
+            border-bottom-color: #1B5E20;
+            font-weight: 700;
+        }
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        /* Skeleton loading */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- ============ HEADER ============ -->
+    <header class="bg-white sticky top-0 z-30 shadow-sm">
+        <div class="container mx-auto max-w-6xl px-4 pt-4">
+            
+            <!-- Logo y Navegación Desktop -->
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Charlotte's Restaurant</h1>
+                
+                <!-- Navegación Desktop -->
+                <div id="desktop-nav-container" class="hidden md:flex gap-6 items-center"></div>
+            </div>
+            
+            <!-- Barra de búsqueda -->
+            <div class="relative max-w-2xl mx-auto mb-6 group">
+                <span class="material-icons-outlined absolute left-4 top-3 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+                <input type="text" 
+                       id="search-input"
+                       placeholder="Buscar platos o bebidas..." 
+                       class="w-full bg-gray-100 rounded-xl py-3 pl-11 pr-4 text-sm font-medium text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white border border-transparent focus:border-gray-200 transition-all">
+            </div>
+
+            <!-- Tabs de Categorías -->
+            <nav id="category-tabs" class="flex gap-8 overflow-x-auto no-scrollbar justify-start md:justify-center border-b border-gray-100">
+                <!-- Se cargan dinámicamente -->
+                <div class="skeleton h-8 w-20 rounded mb-3"></div>
+                <div class="skeleton h-8 w-24 rounded mb-3"></div>
+                <div class="skeleton h-8 w-28 rounded mb-3"></div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="flex-grow container mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-8">
+        
+        <!-- Grid de Productos -->
+        <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Skeleton inicial -->
+            <div class="skeleton h-36 rounded-2xl"></div>
+            <div class="skeleton h-36 rounded-2xl"></div>
+            <div class="skeleton h-36 rounded-2xl"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-16">
+            <span class="material-icons-outlined text-6xl text-gray-300 mb-4">search_off</span>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">No se encontraron resultados</h3>
+            <p class="text-sm text-gray-500">Intenta con otra búsqueda o categoría</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden text-center py-16">
+            <span class="material-icons-outlined text-6xl text-red-300 mb-4">error_outline</span>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Error al cargar el menú</h3>
+            <p id="error-message" class="text-sm text-gray-500 mb-4">No pudimos conectar con el servidor</p>
+            <button onclick="loadMenuData()" class="bg-primary text-white px-6 py-2 rounded-xl font-medium hover:bg-green-800 transition-colors">
+                Reintentar
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ============ TOAST NOTIFICATION ============ -->
+    <div id="toast" class="pointer-events-none fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl z-40 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <span class="material-icons-outlined text-green-400">check_circle</span>
+        <span id="toast-message" class="flex-1 text-sm font-medium">Producto agregado al carrito</span>
+    </div>
+
+    <!-- ============ BOTTOM NAVIGATION (Mobile) ============ -->
+    <nav id="mobile-nav-container"></nav>
+
+    <!-- ============ SCRIPTS ============ -->
+    <script src="/config.js"></script>
+    <script src="/mod-3-atencion-cliente/components/navbar.js"></script>
+    <script src="/mod-3-atencion-cliente/api/base.js"></script>
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
+
+    <script>
+        // ============ ESTADO GLOBAL ============
+        let allProducts = [];
+        let allCategories = [];
+        let selectedCategory = 'all';
+        let cart = [];
+
+        // ============ ELEMENTOS DOM ============
+        const categoryTabs = document.getElementById('category-tabs');
+        const menuGrid = document.getElementById('menu-grid');
+        const emptyState = document.getElementById('empty-state');
+        const errorState = document.getElementById('error-state');
+        const searchInput = document.getElementById('search-input');
+
+        // ============ INICIALIZACIÓN ============
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadCart();
+            await loadMenuData();
+            setupSearch();
+        });
+
+        // ============ CARRITO ============
+        function loadCart() {
+            try {
+                const savedCart = localStorage.getItem('charlotte_cart');
+                if (savedCart) {
+                    cart = JSON.parse(savedCart);
+                    updateCartBadge();
+                }
+            } catch (e) {
+                cart = [];
+            }
+        }
+
+        function saveCart() {
+            localStorage.setItem('charlotte_cart', JSON.stringify(cart));
+            updateCartBadge();
+        }
+
+        function updateCartBadge() {
+            // El badge se maneja en la página del carrito
+            // Aquí solo mantenemos el carrito sincronizado en localStorage
+        }
+
+        function addToCart(productId) {
+            const product = allProducts.find(p => getProductId(p) === productId);
+            if (!product) return;
+
+            const price = parseFloat(product.price || product.precio || product.basePrice || 0);
+            const name = product.name || product.nombre || 'Producto';
+            const image = product.imageUrl || product.image_url || product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';
+
+            // Verificar si ya existe en el carrito
+            const existingIndex = cart.findIndex(item => item.productId === productId);
+
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity += 1;
+            } else {
+                cart.push({
+                    id: Date.now(),
+                    productId: productId,
+                    name: name,
+                    price: price,
+                    quantity: 1,
+                    image: image
+                });
+            }
+
+            saveCart();
+            showToast(`${name} agregado al carrito`);
+        }
+
+        // ============ CARGA DE DATOS ============
+        async function loadMenuData() {
+            showLoading();
+            hideError();
+            
+            try {
+                // Cargar categorías y productos en paralelo
+                const [categoriesRes, productsRes] = await Promise.all([
+                    window.KitchenApi.getCategories(),
+                    window.KitchenApi.getProducts()
+                ]);
+
+                console.log('📦 Categorías:', categoriesRes);
+                console.log('📦 Productos:', productsRes);
+
+                // Procesar respuestas (ajustar según estructura real del backend)
+                allCategories = extractData(categoriesRes);
+                allProducts = extractData(productsRes);
+
+                renderCategories();
+                renderProducts();
+
+            } catch (error) {
+                console.error('❌ Error cargando menú:', error);
+                showError(error.message || 'No pudimos cargar el menú');
+            }
+        }
+
+        function extractData(response) {
+            if (Array.isArray(response)) return response;
+            if (response.data) return Array.isArray(response.data) ? response.data : [];
+            if (response.products) return response.products;
+            if (response.categories) return response.categories;
+            return [];
+        }
+
+        function showLoading() {
+            menuGrid.innerHTML = `
+                <div class="skeleton h-36 rounded-2xl"></div>
+                <div class="skeleton h-36 rounded-2xl"></div>
+                <div class="skeleton h-36 rounded-2xl"></div>
+                <div class="skeleton h-36 rounded-2xl"></div>
+                <div class="skeleton h-36 rounded-2xl"></div>
+                <div class="skeleton h-36 rounded-2xl"></div>
+            `;
+            categoryTabs.innerHTML = `
+                <div class="skeleton h-8 w-20 rounded mb-3"></div>
+                <div class="skeleton h-8 w-24 rounded mb-3"></div>
+                <div class="skeleton h-8 w-28 rounded mb-3"></div>
+            `;
+            menuGrid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+        }
+
+        function showError(message) {
+            menuGrid.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            errorState.classList.remove('hidden');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function hideError() {
+            errorState.classList.add('hidden');
+            menuGrid.classList.remove('hidden');
+        }
+
+        // ============ UTILIDADES PARA DATOS ============
+        function getProductId(product) {
+            return product.id || product._id || product.productId;
+        }
+
+        function getCategoryId(cat) {
+            return cat.id || cat._id || cat.categoryId || cat.category_id;
+        }
+
+        function getCategoryName(cat) {
+            return cat.name || cat.nombre || 'Categoría';
+        }
+
+        function getProductCategoryId(product) {
+            // Manejar diferentes estructuras posibles
+            if (product.categoryId) return product.categoryId;
+            if (product.category_id) return product.category_id;
+            if (product.category && typeof product.category === 'object') {
+                return product.category.id || product.category._id;
+            }
+            if (product.category && typeof product.category === 'number') {
+                return product.category;
+            }
+            return null;
+        }
+
+        function getProductCategoryName(product) {
+            // Si tiene categoría embebida
+            if (product.category && typeof product.category === 'object') {
+                return product.category.name || product.category.nombre || '';
+            }
+            // Buscar por ID
+            const catId = getProductCategoryId(product);
+            if (catId) {
+                const cat = allCategories.find(c => 
+                    getCategoryId(c) === catId || String(getCategoryId(c)) === String(catId)
+                );
+                if (cat) return getCategoryName(cat);
+            }
+            return '';
+        }
+
+        // ============ RENDERIZADO ============
+        function renderCategories() {
+            let html = `
+                <button onclick="filterMenu('all')" 
+                        class="tab-btn ${selectedCategory === 'all' ? 'active' : ''} whitespace-nowrap pb-3 text-sm font-medium text-gray-500 hover:text-primary">
+                    Todos
+                </button>
+            `;
+
+            allCategories.forEach(cat => {
+                const catId = getCategoryId(cat);
+                const catName = getCategoryName(cat);
+                const isActive = String(selectedCategory) === String(catId);
+                
+                html += `
+                    <button onclick="filterMenu('${catId}')" 
+                            class="tab-btn ${isActive ? 'active' : ''} whitespace-nowrap pb-3 text-sm font-medium text-gray-500 hover:text-primary">
+                        ${escapeHtml(catName)}
+                    </button>
+                `;
+            });
+
+            categoryTabs.innerHTML = html;
+        }
+
+        function renderProducts() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            // Filtrar productos
+            let filtered = allProducts.filter(product => {
+                // Filtro por categoría
+                let matchesCategory = selectedCategory === 'all';
+                if (!matchesCategory) {
+                    const productCatId = getProductCategoryId(product);
+                    matchesCategory = String(productCatId) === String(selectedCategory);
+                }
+
+                // Filtro por búsqueda
+                const name = (product.name || product.nombre || '').toLowerCase();
+                const desc = (product.description || product.descripcion || '').toLowerCase();
+                const matchesSearch = searchTerm === '' || 
+                    name.includes(searchTerm) || 
+                    desc.includes(searchTerm);
+
+                // Solo productos activos
+                const isActive = product.isActive !== false && product.is_active !== false && product.active !== false;
+
+                return matchesCategory && matchesSearch && isActive;
+            });
+
+            if (filtered.length === 0) {
+                menuGrid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            menuGrid.classList.remove('hidden');
+            menuGrid.innerHTML = filtered.map(product => renderProductCard(product)).join('');
+        }
+
+        function renderProductCard(product) {
+            const id = getProductId(product);
+            const name = product.name || product.nombre || 'Producto';
+            const description = product.description || product.descripcion || '';
+            const price = parseFloat(product.price || product.precio || product.basePrice || 0).toFixed(2);
+            const image = product.imageUrl || product.image_url || product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';
+            const categoryName = getProductCategoryName(product);
+            
+            // Determinar si es popular o del chef (basado en algún campo si existe)
+            const isPopular = product.isPopular || product.is_popular || product.popular;
+            const isChefChoice = product.isChefChoice || product.is_chef_choice || product.chefChoice;
+            
+            let tagHtml = '';
+            if (isPopular) {
+                tagHtml = `<span class="inline-block bg-orange-50 text-orange-600 text-[10px] font-bold px-2 py-1 rounded-md tracking-wide uppercase">Popular</span>`;
+            } else if (isChefChoice) {
+                tagHtml = `<span class="inline-block bg-green-50 text-primary text-[10px] font-bold px-2 py-1 rounded-md tracking-wide uppercase">Chef's Choice</span>`;
+            } else if (categoryName) {
+                tagHtml = `<span class="inline-block bg-gray-50 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-md tracking-wide uppercase">${escapeHtml(categoryName)}</span>`;
+            }
+
+            return `
+                <article class="menu-item bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex gap-4 cursor-pointer" 
+                         onclick="addToCart('${id}')">
+                    <div class="flex-1 flex flex-col">
+                        ${tagHtml ? `<div class="mb-2">${tagHtml}</div>` : '<div class="mb-2 h-6"></div>'}
+                        <h3 class="font-bold text-gray-900 text-lg mb-1 line-clamp-1">${escapeHtml(name)}</h3>
+                        <p class="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">${escapeHtml(description)}</p>
+                        <div class="mt-auto">
+                            <button class="inline-flex items-center gap-1 bg-gray-50 hover:bg-gray-100 text-gray-900 text-sm font-bold px-3 py-1.5 rounded-lg border border-gray-200 transition-colors">
+                                $${price} <span class="material-icons-outlined text-[14px] text-primary">add</span>
+                            </button>
+                        </div>
+                    </div>
+                    <img src="${escapeHtml(image)}" 
+                         alt="${escapeHtml(name)}"
+                         class="w-32 h-32 object-cover rounded-xl bg-gray-100"
+                         onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80'">
+                </article>
+            `;
+        }
+
+        // ============ FILTRADO ============
+        function filterMenu(category) {
+            selectedCategory = category;
+            renderCategories();
+            renderProducts();
+        }
+
+        function setupSearch() {
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    renderProducts();
+                }, 300);
+            });
+        }
+
+        // ============ TOAST ============
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // ============ UTILIDADES ============
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Exponer funciones globales
+        window.filterMenu = filterMenu;
+        window.addToCart = addToCart;
+        window.loadMenuData = loadMenuData;
+    </script>
+</body>
+</html>

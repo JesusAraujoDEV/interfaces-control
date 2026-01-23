@@ -45,3 +45,12 @@ body {
 	border-radius: 8px;
 	box-shadow: 0 1px 0 rgba(16, 24, 40, 0.03);
 }
+
+/* Utilidad: ocultar scrollbar manteniendo el scroll funcional */
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+.no-scrollbar {
+	-ms-overflow-style: none; /* IE y Edge */
+	scrollbar-width: none; /* Firefox */
+}
