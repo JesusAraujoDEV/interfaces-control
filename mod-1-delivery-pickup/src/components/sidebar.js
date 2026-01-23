@@ -340,6 +340,14 @@ export function mountDpSidebar() {
     <div class="mt-auto p-4 text-[11px] text-slate-400">
       <div class="rounded-xl border border-slate-200 bg-white p-3">
         <div id="dp-sidebar-toggle-slot" class="mb-2"></div>
+        <div class="mt-2">
+          <a href="/seguridad/logout" aria-label="Cerrar sesión" class="flex items-center justify-center gap-2 w-full py-2 text-red-500 font-medium rounded-xl hover:bg-red-50 transition-colors group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-500 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="text-sm">Cerrar Sesión</span>
+          </a>
+        </div>
       </div>
     </div>
   `);
