@@ -6,6 +6,9 @@ const seguridadRouterModule = require("./src/routes/seguridad/seguridad");
 const apiSeguridadRouterModule = require("./src/routes/seguridad/apiSeguridad");
 const apiAtencionClienteRouterModule = require("./mod-3-atencion-cliente/router/auth_cliente.js");
 
+// Import KPIs routes
+const KpisRoutes = require('./mod-2-kpis/src/index');
+
 // Load .env from repo root
 dotenv.config({ path: path.join(__dirname, ".env") });
 
@@ -143,6 +146,9 @@ app.get("/order-tracking/:id", (req, res) => {
     )
   );
 });
+
+// Mount KPIs routes
+app.use(KpisRoutes);
 
 function startServer(port, remainingAttempts) {
   const server = app.listen(port, () => {

@@ -92,14 +92,9 @@
 
         const email = (emailEl.value || '').trim();
         const password = passwordEl.value || '';
+        
         if (!email || !password) {
             setError('Ingresa tu correo y contraseña.');
-            return;
-        }
-
-        const AUTH_URL = getAuthUrl();
-        if (!AUTH_URL) {
-            setError('AUTH_URL no está configurado. Inicia el proyecto con el server y .env.');
             return;
         }
 
@@ -108,7 +103,7 @@
         loginBtn.textContent = 'Ingresando…';
 
         try {
-            const res = await fetch(`${AUTH_URL}/api/seguridad/auth/login`, {
+            const res = await fetch(`/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,7 +115,7 @@
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
                 const msg = data && (data.message || data.error) ? (data.message || data.error) : 'Credenciales inválidas.';
-                setError(msg);
+                setError(msg);https://github.com/JesusAraujoDEV/interfaces-control/pull/37/conflict?name=package-lock.json&ancestor_oid=db3e9f49c1101c55062340c2359b25c5516ea010&base_oid=5c753e2399e1990375ba3034d24847b312d70b4d&head_oid=65cbdc5ede620d30c9cc575ba96a9867d6b5368d
                 return;
             }
 
