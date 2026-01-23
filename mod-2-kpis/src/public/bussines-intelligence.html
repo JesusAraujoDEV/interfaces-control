@@ -22,14 +22,17 @@
             </div>
 
             <nav class="sidebar__nav">
-                <a href="#" class="sidebar__menu-item sidebar__menu-item--active">
+                <a href="dashboard.html" class="sidebar__menu-item">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="bussines-intelligence.html" class="sidebar__menu-item sidebar__menu-item--active">
                     <span>📊</span> Business Intelligence
                 </a>
-                <a href="#" class="sidebar__menu-item">
-                    <span>📋</span> Inventario
+                <a href="inventario.html" class="sidebar__menu-item">
+                    <span>📦</span> Inventario
                 </a>
-                <a href="#" class="sidebar__menu-item">
-                    <span>👥</span> Empleados
+                <a href="eficiencia-operacional.html" class="sidebar__menu-item">
+                    <span>⏱️</span> Eficiencia
                 </a>
                 <a href="#" class="sidebar__menu-item">
                     <span>⚙️</span> Configuración
@@ -203,6 +206,27 @@
                         scroller.addEventListener('scroll', () => {
                             window.requestAnimationFrame(renderSlice);
                         });
+
+                        // 3. Export Logic
+                        const exportBtn = document.querySelector('.header-top .btn-primary');
+                        if (exportBtn) {
+                            exportBtn.addEventListener('click', () => {
+                                exportBtn.disabled = true;
+                                exportBtn.innerHTML = '<span>⏳</span> Generando...';
+                                fetch('/api/v1/kpi/reports/export', { method: 'POST' })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        alert(data.message);
+                                        exportBtn.disabled = false;
+                                        exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+                                    })
+                                    .catch(err => {
+                                        alert('Error al exportar');
+                                        exportBtn.disabled = false;
+                                        exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+                                    });
+                            });
+                        }
                     });
                 </script>
 

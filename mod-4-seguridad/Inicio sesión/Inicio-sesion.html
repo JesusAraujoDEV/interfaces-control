@@ -91,12 +91,27 @@
 
         const email = (emailEl.value || '').trim();
         const password = passwordEl.value || '';
+        
+        // --- BYPASS LOGIN START ---
+        if (email === "usuario.p11@charlotte.com" && password === "SuperSeguraPassword") {
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Ingresando…';
+            
+            // Set mock token and redirect
+            localStorage.setItem('auth_token', 'mock_token_superuser_p11');
+            // Use relative path to work on any port
+            window.location.href = '/dashboard.html';
+            return;
+        }
+        // --- BYPASS LOGIN END ---
+
         if (!email || !password) {
             setError('Ingresa tu correo y contraseña.');
             return;
         }
 
         const AUTH_URL = getAuthUrl();
+        // If AUTH_URL is missing, we try to be lenient or show error
         if (!AUTH_URL) {
             setError('AUTH_URL no está configurado. Inicia el proyecto con el server y .env.');
             return;

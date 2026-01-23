@@ -1,431 +1,542 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Dashboard - Charlotte</title>
-    <link rel="stylesheet" href="/styles.css">
-</head>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
 
-<body>
-
+  <body>
     <div class="main-layout">
-        <aside class="sidebar">
-            <div class="sidebar__logo">
-                <span class="icon">☕</span> CHARLOTTE
+      <aside class="sidebar">
+        <div class="sidebar__logo"><span class="icon">☕</span> CHARLOTTE</div>
+
+        <nav class="sidebar__nav">
+          <a
+            href="dashboard.html"
+            class="sidebar__menu-item sidebar__menu-item--active"
+          >
+            <i>🏠</i> Dashboard
+          </a>
+          <a href="bussines-intelligence.html" class="sidebar__menu-item">
+            <i>📊</i> Reportes
+          </a>
+          <a href="inventario.html" class="sidebar__menu-item">
+            <i>📦</i> Inventario
+          </a>
+          <a href="eficiencia-operacional.html" class="sidebar__menu-item">
+            <i>⏱️</i> Eficiencia
+          </a>
+          <a href="#" class="sidebar__menu-item"> <i>⚙️</i> Configuración </a>
+        </nav>
+
+        <div class="sidebar__profile-footer">
+          <div
+            class="sidebar__avatar"
+            style="
+              background-image: url(&quot;user.jpg&quot;);
+              background-size: cover;
+            "
+          ></div>
+          <div>
+            <p class="sidebar__user-name">Juan Pérez</p>
+            <p class="sidebar__user-role">Administrador</p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="header-top">
+          <div>
+            <h1 class="header-top__title">HOLA, JUAN</h1>
+            <p class="header-top__subtitle">
+              Este es el resumen de tu negocio.
+            </p>
+          </div>
+          <div
+            class="date-badge"
+            style="
+              background: white;
+              padding: 8px 15px;
+              border-radius: 8px;
+              border: 1px solid var(--border-color);
+              font-size: 0.8rem;
+            "
+          >
+            📅 Hoy, Dic 01
+          </div>
+        </header>
+
+        <section class="stats-grid">
+          <div class="kpi-card">
+            <p class="kpi-card__label">Ingresos</p>
+            <p class="kpi-card__value" id="kpi-revenue">Loading...</p>
+            <span class="kpi-card__trend" id="kpi-revenue-trend">--</span>
+          </div>
+          <div class="kpi-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <p class="kpi-card__label">Meta Trimestral</p>
+              <button id="edit-goal-btn" class="icon-btn" title="Editar Meta">
+                ✏️
+              </button>
+            </div>
+            <p class="kpi-card__value" id="kpi-goal">Loading...</p>
+            <p style="font-size: 0.7rem; color: var(--text-muted)">$450k</p>
+          </div>
+
+          <div class="kpi-card">
+            <p class="kpi-card__label">Tiempo Atención</p>
+            <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted)"
+              >Óptimo ⏱️</span
+            >
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-card__label">Rotación</p>
+            <p class="kpi-card__value">1.2 /hr</p>
+            <span class="kpi-card__trend kpi-card__trend--down"
+              >Bajo Meta 1.7</span
+            >
+          </div>
+        </section>
+
+        <div class="dashboard-main-grid">
+          <div class="chart-container">
+            <h2 class="card__title">Ventas por Hora</h2>
+            <p class="kpi-card__value" style="font-size: 1.5rem">
+              $1,850
+              <span style="font-size: 0.8rem; color: #28a745">Hoy +8.2%</span>
+            </p>
+            <div style="width: 100%; height: 250px; margin-top: 20px">
+              <canvas id="demand-chart"></canvas>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 10px;
+                color: var(--text-muted);
+                font-size: 0.7rem;
+              "
+            >
+              <span>8 AM</span><span>12 PM</span><span>4 PM</span
+              ><span>8 PM</span>
+            </div>
+          </div>
+
+          <div class="stock-alerts">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <h2 class="card__title" style="margin-bottom: 0">
+                Alertas de Stock
+              </h2>
+              <button
+                id="stock-settings-btn"
+                class="icon-btn"
+                title="Configurar Límites"
+              >
+                ⚙️
+              </button>
             </div>
 
-            <nav class="sidebar__nav">
-                <a href="dashboard.html" class="sidebar__menu-item sidebar__menu-item--active">
-                    <i>🏠</i> Dashboard
-                </a>
-                <a href="index.html" class="sidebar__menu-item">
-                    <i>📊</i> Reportes
-                </a>
-                <a href="#" class="sidebar__menu-item">
-                    <i>📦</i> Inventario
-                </a>
-                <a href="#" class="sidebar__menu-item">
-                    <i>⚙️</i> Configuración
-                </a>
-            </nav>
-
-            <div class="sidebar__profile-footer">
-                <div class="sidebar__avatar" style="background-image: url('user.jpg'); background-size: cover;"></div>
-                <div>
-                    <p class="sidebar__user-name">Juan Pérez</p>
-                    <p class="sidebar__user-role">Administrador</p>
+            <div class="stock-item">
+              <span class="stock-item__name">Tomates</span>
+              <div style="display: flex; align-items: center">
+                <div class="progress-bar">
+                  <div
+                    class="progress-bar__fill progress-bar__fill--low"
+                    style="width: 15%"
+                  ></div>
                 </div>
+                <span class="stock-item__percent">15%</span>
+              </div>
             </div>
-        </aside>
 
-        <main class="content">
-            <header class="header-top">
-                <div>
-                    <h1 class="header-top__title">HOLA, JUAN</h1>
-                    <p class="header-top__subtitle">Este es el resumen de tu negocio.</p>
+            <div class="stock-item">
+              <span class="stock-item__name">Queso</span>
+              <div style="display: flex; align-items: center">
+                <div class="progress-bar">
+                  <div
+                    class="progress-bar__fill progress-bar__fill--low"
+                    style="width: 25%"
+                  ></div>
                 </div>
-                <div class="date-badge"
-                    style="background: white; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
-                    📅 Hoy, Dic 01
-                </div>
-            </header>
-
-            <section class="stats-grid">
-                <div class="kpi-card">
-                    <p class="kpi-card__label">Ingresos</p>
-                    <p class="kpi-card__value" id="kpi-revenue">Loading...</p>
-                    <span class="kpi-card__trend" id="kpi-revenue-trend">--</span>
-                </div>
-                <div class="kpi-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <p class="kpi-card__label">Meta Trimestral</p>
-                        <button id="edit-goal-btn" class="icon-btn" title="Editar Meta">✏️</button>
-                    </div>
-                    <p class="kpi-card__value" id="kpi-goal">Loading...</p>
-                    <p style="font-size: 0.7rem; color: var(--text-muted);">$450k</p>
-                </div>
-
-                <div class="kpi-card">
-                    <p class="kpi-card__label">Tiempo Atención</p>
-                    <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">Óptimo ⏱️</span>
-                </div>
-                <div class="kpi-card">
-                    <p class="kpi-card__label">Rotación</p>
-                    <p class="kpi-card__value">1.2 /hr</p>
-                    <span class="kpi-card__trend kpi-card__trend--down">Bajo Meta 1.7</span>
-                </div>
-            </section>
-
-            <div class="dashboard-main-grid">
-                <div class="chart-container">
-                    <h2 class="card__title">Ventas por Hora</h2>
-                    <p class="kpi-card__value" style="font-size: 1.5rem;">$1,850 <span
-                            style="font-size: 0.8rem; color: #28a745;">Hoy +8.2%</span></p>
-                    <div style="width: 100%; height: 250px; margin-top: 20px;">
-                        <canvas id="demand-chart"></canvas>
-                    </div>
-                    <div
-                        style="display: flex; justify-content: space-between; margin-top: 10px; color: var(--text-muted); font-size: 0.7rem;">
-                        <span>8 AM</span><span>12 PM</span><span>4 PM</span><span>8 PM</span>
-                    </div>
-                </div>
-
-                <div class="stock-alerts">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h2 class="card__title" style="margin-bottom: 0;">Alertas de Stock</h2>
-                        <button id="stock-settings-btn" class="icon-btn" title="Configurar Límites">⚙️</button>
-                    </div>
-
-                    <div class="stock-item">
-                        <span class="stock-item__name">Tomates</span>
-                        <div style="display: flex; align-items: center;">
-                            <div class="progress-bar">
-                                <div class="progress-bar__fill progress-bar__fill--low" style="width: 15%;"></div>
-                            </div>
-                            <span class="stock-item__percent">15%</span>
-                        </div>
-                    </div>
-
-                    <div class="stock-item">
-                        <span class="stock-item__name">Queso</span>
-                        <div style="display: flex; align-items: center;">
-                            <div class="progress-bar">
-                                <div class="progress-bar__fill progress-bar__fill--low" style="width: 25%;"></div>
-                            </div>
-                            <span class="stock-item__percent">25%</span>
-                        </div>
-                    </div>
-
-                    <div class="stock-item">
-                        <span class="stock-item__name">Café en Grano</span>
-                        <div style="display: flex; align-items: center;">
-                            <div class="progress-bar">
-                                <div class="progress-bar__fill progress-bar__fill--high" style="width: 80%;"></div>
-                            </div>
-                            <span class="stock-item__percent">80%</span>
-                        </div>
-                    </div>
-                </div>
+                <span class="stock-item__percent">25%</span>
+              </div>
             </div>
-        </main>
+
+            <div class="stock-item">
+              <span class="stock-item__name">Café en Grano</span>
+              <div style="display: flex; align-items: center">
+                <div class="progress-bar">
+                  <div
+                    class="progress-bar__fill progress-bar__fill--high"
+                    style="width: 80%"
+                  ></div>
+                </div>
+                <span class="stock-item__percent">80%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
-
 
     <!-- EDIT GOAL MODAL -->
     <div class="modal-overlay" id="edit-modal">
-        <div class="modal">
-            <div class="modal__header">
-                <h3 class="modal__title">Editar Meta Trimestral</h3>
-                <button class="modal__close" id="close-modal-btn">&times;</button>
-            </div>
-            <div class="modal__body">
-                <div class="form-group">
-                    <label for="goal-input" class="form-label">Nueva Meta (%)</label>
-                    <input type="number" id="goal-input" class="form-input" min="0" max="100" placeholder="Ej. 75">
-                </div>
-            </div>
-            <div class="modal__footer">
-                <button class="btn-secondary" id="cancel-modal-btn">Cancelar</button>
-                <button class="btn-primary" id="save-goal-btn">Guardar</button>
-            </div>
+      <div class="modal">
+        <div class="modal__header">
+          <h3 class="modal__title">Editar Meta Trimestral</h3>
+          <button class="modal__close" id="close-modal-btn">&times;</button>
         </div>
+        <div class="modal__body">
+          <div class="form-group">
+            <label for="goal-input" class="form-label">Nueva Meta (%)</label>
+            <input
+              type="number"
+              id="goal-input"
+              class="form-input"
+              min="0"
+              max="100"
+              placeholder="Ej. 75"
+            />
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn-secondary" id="cancel-modal-btn">Cancelar</button>
+          <button class="btn-primary" id="save-goal-btn">Guardar</button>
+        </div>
+      </div>
     </div>
 
     <!-- STOCK CONFIG MODAL -->
     <div class="modal-overlay" id="stock-modal">
-        <div class="modal">
-            <div class="modal__header">
-                <h3 class="modal__title">Límites de Stock</h3>
-                <button class="modal__close" id="close-stock-modal-btn">&times;</button>
-            </div>
-            <div class="modal__body">
-                <div class="form-group">
-                    <label for="stock-threshold-input" class="form-label">Alertar cuando el stock sea menor a
-                        (%):</label>
-                    <input type="number" id="stock-threshold-input" class="form-input" min="0" max="100"
-                        placeholder="Ej. 20">
-                </div>
-            </div>
-            <div class="modal__footer">
-                <button class="btn-secondary" id="cancel-stock-modal-btn">Cancelar</button>
-                <button class="btn-primary" id="save-stock-btn">Guardar</button>
-            </div>
+      <div class="modal">
+        <div class="modal__header">
+          <h3 class="modal__title">Límites de Stock</h3>
+          <button class="modal__close" id="close-stock-modal-btn">
+            &times;
+          </button>
         </div>
+        <div class="modal__body">
+          <div class="form-group">
+            <label for="stock-threshold-input" class="form-label"
+              >Alertar cuando el stock sea menor a (%):</label
+            >
+            <input
+              type="number"
+              id="stock-threshold-input"
+              class="form-input"
+              min="0"
+              max="100"
+              placeholder="Ej. 20"
+            />
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn-secondary" id="cancel-stock-modal-btn">
+            Cancelar
+          </button>
+          <button class="btn-primary" id="save-stock-btn">Guardar</button>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Use the same base URL as api.js but for fetch
+        // Use relative path to hit the same server
+        const API_BASE = "/api/v1/kpi";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Use the same base URL as api.js but for fetch
-            // Use relative path to hit the same server
-            const API_BASE = '/api/v1/kpi';
+        // Helper to format currency
+        const formatCurrency = (value) => {
+          return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(value);
+        };
 
-            // Helper to format currency
-            const formatCurrency = (value) => {
-                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-            };
+        // 1. Fetch Summary
+        fetch(`${API_BASE}/dashboard/summary`)
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+          })
+          .then((response) => {
+            console.log("Summary Data:", response);
+            const data = response.data || response;
 
-            // 1. Fetch Summary
-            fetch(`${API_BASE}/dashboard/summary`)
-                .then(res => {
-                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                    return res.json();
-                })
-                .then(response => {
-                    console.log('Summary Data:', response);
-                    const data = response.data || response;
+            if (data) {
+              try {
+                const revenueEl = document.getElementById("kpi-revenue");
+                if (revenueEl)
+                  revenueEl.innerText = formatCurrency(data.revenue || 0);
 
-                    if (data) {
-                        try {
-                            const revenueEl = document.getElementById('kpi-revenue');
-                            if (revenueEl) revenueEl.innerText = formatCurrency(data.revenue || 0);
+                const goalEl = document.getElementById("kpi-goal");
+                if (goalEl) goalEl.innerText = `${data.goal || 0}%`;
 
-                            const goalEl = document.getElementById('kpi-goal');
-                            if (goalEl) goalEl.innerText = `${data.goal || 0}%`;
+                const timeEl = document.getElementById("kpi-avg-time");
+                if (timeEl) timeEl.innerText = data.avg_time || "00:00";
 
-                            const timeEl = document.getElementById('kpi-avg-time');
-                            if (timeEl) timeEl.innerText = data.avg_time || '00:00';
-
-                            const trendEl = document.getElementById('kpi-revenue-trend');
-                            if (trendEl) trendEl.innerText = '+12%';
-                        } catch (e) {
-                            console.error('Error updating UI:', e);
-                        }
-                    }
-                })
-                .catch(err => {
-                    console.error('Error fetching summary:', err);
-                    const revenueEl = document.getElementById('kpi-revenue');
-                    if (revenueEl) revenueEl.innerText = 'Error';
-                });
-
-            // 2. Fetch Range for Chart
-            fetch(`${API_BASE}/dashboard/summary/range`)
-                .then(res => {
-                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                    return res.json();
-                })
-                .then(response => {
-                    console.log('Range Data:', response);
-                    const data = response.data || response;
-
-                    if (data && Array.isArray(data)) {
-                        const labels = data.map(item => item.label || item.hour || item.time || 'N/A');
-                        const values = data.map(item => item.value || item.amount || item.count || 0);
-
-                        const canvas = document.getElementById('demand-chart');
-                        if (!canvas) return;
-
-                        const ctx = canvas.getContext('2d');
-
-                        // Gradient fill
-                        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                        gradient.addColorStop(0, 'rgba(56, 118, 82, 0.2)');
-                        gradient.addColorStop(1, 'rgba(56, 118, 82, 0)');
-
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    label: 'Ventas por Hora',
-                                    data: values,
-                                    borderColor: '#387652',
-                                    backgroundColor: gradient,
-                                    borderWidth: 2,
-                                    tension: 0.4,
-                                    fill: true,
-                                    pointBackgroundColor: '#ffffff',
-                                    pointBorderColor: '#387652',
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: '#387652',
-                                        titleColor: '#fff',
-                                        bodyColor: '#fff',
-                                        padding: 10,
-                                        cornerRadius: 8,
-                                        displayColors: false
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: {
-                                            color: '#f0f0f0',
-                                            drawBorder: false
-                                        },
-                                        ticks: {
-                                            font: { size: 10 },
-                                            color: '#7d8590'
-                                        }
-                                    },
-                                    x: {
-                                        grid: { display: false },
-                                        ticks: {
-                                            font: { size: 10 },
-                                            color: '#7d8590'
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                })
-                .catch(err => console.error('Error fetching range:', err));
-            // 3. Edit Modal Logic
-            const modal = document.getElementById('edit-modal');
-            const openBtn = document.getElementById('edit-goal-btn');
-            const closeBtn = document.getElementById('close-modal-btn');
-            const cancelBtn = document.getElementById('cancel-modal-btn');
-            const saveBtn = document.getElementById('save-goal-btn');
-            const goalInput = document.getElementById('goal-input');
-            let currentGoalId = 1; // Assuming single goal for now or obtained from context
-
-            // Open Modal
-            if (openBtn) {
-                openBtn.addEventListener('click', () => {
-                    // Get current value from text (remove % symbol) or fetch if preferred
-                    const currentText = document.getElementById('kpi-goal').innerText;
-                    const val = parseInt(currentText.replace('%', ''));
-                    if (!isNaN(val)) goalInput.value = val;
-
-                    modal.classList.add('open');
-                });
+                const trendEl = document.getElementById("kpi-revenue-trend");
+                if (trendEl) trendEl.innerText = "+12%";
+              } catch (e) {
+                console.error("Error updating UI:", e);
+              }
             }
+          })
+          .catch((err) => {
+            console.error("Error fetching summary:", err);
+            const revenueEl = document.getElementById("kpi-revenue");
+            if (revenueEl) revenueEl.innerText = "Error";
+          });
 
-            // Close Modal Helpers
-            const closeModal = () => modal.classList.remove('open');
-            if (closeBtn) closeBtn.addEventListener('click', closeModal);
-            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        // 2. Fetch Range for Chart
+        fetch(`${API_BASE}/dashboard/summary/range`)
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+          })
+          .then((response) => {
+            console.log("Range Data:", response);
+            const data = response.data || response;
 
-            // Close on click outside
-            window.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal();
-            });
+            if (data && Array.isArray(data)) {
+              const labels = data.map(
+                (item) => item.label || item.hour || item.time || "N/A",
+              );
+              const values = data.map(
+                (item) => item.value || item.amount || item.count || 0,
+              );
 
-            // Save Goal
-            if (saveBtn) {
-                saveBtn.addEventListener('click', () => {
-                    const newVal = goalInput.value;
-                    if (!newVal || newVal < 0 || newVal > 100) {
-                        alert('Por favor ingrese un valor válido entre 0 y 100');
-                        return;
-                    }
+              const canvas = document.getElementById("demand-chart");
+              if (!canvas) return;
 
-                    // Simulate ID 1 for "Quarterly Goal"
-                    fetch(`${API_BASE}/configuration/goals/${currentGoalId}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ goal: newVal })
-                    })
-                        .then(res => {
-                            if (!res.ok) throw new Error('Error updating goal');
-                            return res.json();
-                        })
-                        .then(data => {
-                            // Update UI immediately
-                            document.getElementById('kpi-goal').innerText = `${newVal}%`;
-                            closeModal();
-                            // Optional: Show success toast
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert('Error al guardar la meta');
-                        });
-                });
+              const ctx = canvas.getContext("2d");
+
+              // Gradient fill
+              const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+              gradient.addColorStop(0, "rgba(56, 118, 82, 0.2)");
+              gradient.addColorStop(1, "rgba(56, 118, 82, 0)");
+
+              new Chart(ctx, {
+                type: "line",
+                data: {
+                  labels: labels,
+                  datasets: [
+                    {
+                      label: "Ventas por Hora",
+                      data: values,
+                      borderColor: "#387652",
+                      backgroundColor: gradient,
+                      borderWidth: 2,
+                      tension: 0.4,
+                      fill: true,
+                      pointBackgroundColor: "#ffffff",
+                      pointBorderColor: "#387652",
+                      pointRadius: 4,
+                      pointHoverRadius: 6,
+                    },
+                  ],
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      backgroundColor: "#387652",
+                      titleColor: "#fff",
+                      bodyColor: "#fff",
+                      padding: 10,
+                      cornerRadius: 8,
+                      displayColors: false,
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        color: "#f0f0f0",
+                        drawBorder: false,
+                      },
+                      ticks: {
+                        font: { size: 10 },
+                        color: "#7d8590",
+                      },
+                    },
+                    x: {
+                      grid: { display: false },
+                      ticks: {
+                        font: { size: 10 },
+                        color: "#7d8590",
+                      },
+                    },
+                  },
+                },
+              });
             }
-            // 4. Stock Limits Modal Logic
-            const stockModal = document.getElementById('stock-modal');
-            const openStockBtn = document.getElementById('stock-settings-btn');
-            const closeStockBtn = document.getElementById('close-stock-modal-btn');
-            const cancelStockBtn = document.getElementById('cancel-stock-modal-btn');
-            const saveStockBtn = document.getElementById('save-stock-btn');
-            const stockInput = document.getElementById('stock-threshold-input');
+          })
+          .catch((err) => console.error("Error fetching range:", err));
+        // 3. Edit Modal Logic
+        const modal = document.getElementById("edit-modal");
+        const openBtn = document.getElementById("edit-goal-btn");
+        const closeBtn = document.getElementById("close-modal-btn");
+        const cancelBtn = document.getElementById("cancel-modal-btn");
+        const saveBtn = document.getElementById("save-goal-btn");
+        const goalInput = document.getElementById("goal-input");
+        let currentGoalId = 1; // Assuming single goal for now or obtained from context
 
-            // Open Modal
-            if (openStockBtn) {
-                openStockBtn.addEventListener('click', () => {
-                    // Fetch current config? Or just assume default/last known
-                    // For now, let's just reset or try to fetch if we had an endpoint for GET specific
-                    // We don't have a GET config endpoint yet, so let's check if we have it locally or default 20
-                    stockInput.value = 20;
-                    stockModal.classList.add('open');
-                });
-            }
+        // Open Modal
+        if (openBtn) {
+          openBtn.addEventListener("click", () => {
+            // Get current value from text (remove % symbol) or fetch if preferred
+            const currentText = document.getElementById("kpi-goal").innerText;
+            const val = parseInt(currentText.replace("%", ""));
+            if (!isNaN(val)) goalInput.value = val;
 
-            // Close Modal Helpers
-            const closeStockModal = () => stockModal.classList.remove('open');
-            if (closeStockBtn) closeStockBtn.addEventListener('click', closeStockModal);
-            if (cancelStockBtn) cancelStockBtn.addEventListener('click', closeStockModal);
+            modal.classList.add("open");
+          });
+        }
 
-            window.addEventListener('click', (e) => {
-                if (e.target === stockModal) closeStockModal();
-            });
+        // Close Modal Helpers
+        const closeModal = () => modal.classList.remove("open");
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
-            // Save Stock Threshold
-            if (saveStockBtn) {
-                saveStockBtn.addEventListener('click', () => {
-                    const newVal = stockInput.value;
-                    if (!newVal || newVal < 0 || newVal > 100) {
-                        alert('Por favor ingrese un valor válido entre 0 y 100');
-                        return;
-                    }
-
-                    fetch(`${API_BASE}/configuration/thresholds/stock`, {
-                        method: 'PUT', // Endpoint requested is PUT
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ threshold: newVal })
-                    })
-                        .then(res => {
-                            if (!res.ok) throw new Error('Error updating threshold');
-                            return res.json();
-                        })
-                        .then(data => {
-                            console.log('Threshold updated:', data);
-                            closeStockModal();
-                            alert('Límite de stock actualizado correctamente');
-                            // Here we could re-fetch stock data to re-color bars if logic was server-side
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert('Error al guardar la configuración');
-                        });
-                });
-            }
+        // Close on click outside
+        window.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
         });
-    </script>
-</body>
 
+        // Save Goal
+        if (saveBtn) {
+          saveBtn.addEventListener("click", () => {
+            const newVal = goalInput.value;
+            if (!newVal || newVal < 0 || newVal > 100) {
+              alert("Por favor ingrese un valor válido entre 0 y 100");
+              return;
+            }
+
+            // Simulate ID 1 for "Quarterly Goal"
+            fetch(`${API_BASE}/configuration/goals/${currentGoalId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ goal: newVal }),
+            })
+              .then((res) => {
+                if (!res.ok) throw new Error("Error updating goal");
+                return res.json();
+              })
+              .then((data) => {
+                // Update UI immediately
+                document.getElementById("kpi-goal").innerText = `${newVal}%`;
+                closeModal();
+                // Optional: Show success toast
+              })
+              .catch((err) => {
+                console.error(err);
+                alert("Error al guardar la meta");
+              });
+          });
+        }
+        // 4. Stock Limits Modal Logic
+        const stockModal = document.getElementById("stock-modal");
+        const openStockBtn = document.getElementById("stock-settings-btn");
+        const closeStockBtn = document.getElementById("close-stock-modal-btn");
+        const cancelStockBtn = document.getElementById(
+          "cancel-stock-modal-btn",
+        );
+        const saveStockBtn = document.getElementById("save-stock-btn");
+        const stockInput = document.getElementById("stock-threshold-input");
+
+        // Open Modal
+        if (openStockBtn) {
+          openStockBtn.addEventListener("click", () => {
+            // Fetch current config? Or just assume default/last known
+            // For now, let's just reset or try to fetch if we had an endpoint for GET specific
+            // We don't have a GET config endpoint yet, so let's check if we have it locally or default 20
+            stockInput.value = 20;
+            stockModal.classList.add("open");
+          });
+        }
+
+        // Close Modal Helpers
+        const closeStockModal = () => stockModal.classList.remove("open");
+        if (closeStockBtn)
+          closeStockBtn.addEventListener("click", closeStockModal);
+        if (cancelStockBtn)
+          cancelStockBtn.addEventListener("click", closeStockModal);
+
+        window.addEventListener("click", (e) => {
+          if (e.target === stockModal) closeStockModal();
+        });
+
+        // Save Stock Threshold
+        if (saveStockBtn) {
+          saveStockBtn.addEventListener("click", () => {
+            const newVal = stockInput.value;
+            if (!newVal || newVal < 0 || newVal > 100) {
+              alert("Por favor ingrese un valor válido entre 0 y 100");
+              return;
+            }
+
+            fetch(`${API_BASE}/configuration/thresholds/stock`, {
+              method: "PUT", // Endpoint requested is PUT
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ threshold: newVal }),
+            })
+              .then((res) => {
+                if (!res.ok) throw new Error("Error updating threshold");
+                return res.json();
+              })
+              .then((data) => {
+                console.log("Threshold updated:", data);
+                closeStockModal();
+                alert("Límite de stock actualizado correctamente");
+                // Here we could re-fetch stock data to re-color bars if logic was server-side
+              })
+              .catch((err) => {
+                console.error(err);
+                alert("Error al guardar la configuración");
+              });
+          });
+        }
+
+        // Export Logic
+        const exportBtn = document.querySelector(".header-top .btn-primary");
+        if (exportBtn) {
+          exportBtn.addEventListener("click", () => {
+            exportBtn.disabled = true;
+            exportBtn.innerText = "Generando...";
+            fetch("/api/v1/kpi/reports/export", { method: "POST" })
+              .then((res) => res.json())
+              .then((data) => {
+                alert(data.message);
+                exportBtn.disabled = false;
+                exportBtn.innerText = "📤 Exportar Reporte";
+              })
+              .catch((err) => {
+                alert("Error al exportar");
+                exportBtn.disabled = false;
+                exportBtn.innerText = "📤 Exportar Reporte";
+              });
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

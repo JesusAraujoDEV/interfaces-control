@@ -17,9 +17,9 @@
 
             <nav class="sidebar__nav">
                 <a href="dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
-                <a href="index.html" class="sidebar__menu-item"><i>📊</i> Análisis de Ventas</a>
-                <a href="eficiencia.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
-                <a href="#" class="sidebar__menu-item"><i>📦</i> Inventario</a>
+                <a href="bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
+                <a href="eficiencia-operacional.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
+                <a href="inventario.html" class="sidebar__menu-item"><i>📦</i> Inventario</a>
                 <a href="#" class="sidebar__menu-item"><i>📣</i> Marketing</a>
             </nav>
 
@@ -94,7 +94,7 @@
     // Función para hacer fetch a la API
     async function fetchRotationData() {
         try {
-            const response = await fetch('http://localhost:3000/api/v1/kpi/operations/staff-ranking');
+            const response = await fetch('/api/v1/kpi/operations/staff-ranking');
             if (!response.ok) throw new Error('Error en la API');
             const result = await response.json();
             if (result.success && result.data && result.data.length > 0) {
@@ -134,8 +134,7 @@
         // Función para cargar datos de la API
         async function loadRanking(sort_by="EFFICIENCY", page = 1, limit = 10) {
             try {
-                // Reemplaza con la URL real de tu API
-                const response = await fetch(`http://localhost:3000/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}&page=${page}&limit=${limit}`);
+                const response = await fetch(`/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}&page=${page}&limit=${limit}`);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -229,7 +228,8 @@
     let error = null;
 
     // URL de la API (usando un valor por defecto ya que process.env no está disponible en vanilla JS)
-    const API_URL = 'http://localhost:3000/api/v1/kpi/operations/sla-breakdown'; // Ajusta si es necesario
+    // URL de la API
+    const API_URL = '/api/v1/kpi/operations/sla-breakdown';
 
     // Función para renderizar una zona
     function renderZone(zoneName, zoneData, bgColor, textColor) {
@@ -296,6 +296,27 @@
     // Inicializar: llamar a fetchData y renderizar inicialmente
     render(); // Render inicial con loading
     fetchData();
-    </script>
+
+    // Export Logic
+    const exportBtn = document.querySelector(".header-top .btn-primary");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", () => {
+        exportBtn.disabled = true;
+        exportBtn.innerText = "Generando...";
+        fetch("/api/v1/kpi/reports/export", { method: "POST" })
+          .then((res) => res.json())
+          .then((data) => {
+            alert(data.message);
+            exportBtn.disabled = false;
+            exportBtn.innerText = "📤 Exportar Reporte";
+          })
+          .catch((err) => {
+            alert("Error al exportar");
+            exportBtn.disabled = false;
+            exportBtn.innerText = "📤 Exportar Reporte";
+          });
+      });
+    }
+  </script>
 </body>
 </html>

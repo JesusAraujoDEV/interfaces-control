@@ -139,6 +139,139 @@ router.get('/api/v1/kpi/dashboard/summary/range', (req, res) => {
     });
 });
 
+// --- OPERATIONS ENDPOINTS ---
+router.get('/api/v1/kpi/operations/staff-ranking', (req, res) => {
+    const { sort_by = "EFFICIENCY", page = 1, limit = 10 } = req.query;
+    // Mock data
+    const rankingData = [
+        { id: 1, name: "Sofia Vergara", total_orders: 145, avg_time_minutes: 12, current_status: "ACTIVE", efficiency_score: 95 },
+        { id: 2, name: "Pedro Pascal", total_orders: 132, avg_time_minutes: 14, current_status: "ACTIVE", efficiency_score: 92 },
+        { id: 3, name: "Oscar Isaac", total_orders: 120, avg_time_minutes: 15, current_status: "REST", efficiency_score: 88 },
+        { id: 4, name: "Ana de Armas", total_orders: 110, avg_time_minutes: 11, current_status: "ACTIVE", efficiency_score: 98 },
+        { id: 5, name: "Gael Garcia", total_orders: 95, avg_time_minutes: 18, current_status: "ACTIVE", efficiency_score: 80 }
+    ];
+    
+    // Simple pagination mock
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedData = rankingData.slice(startIndex, endIndex);
+
+    res.json({
+        success: true,
+        data: paginatedData,
+        meta: {
+            total_items: rankingData.length,
+            current_page: parseInt(page),
+            per_page: parseInt(limit)
+        }
+    });
+});
+
+router.get('/api/v1/kpi/operations/sla-breakdown', (req, res) => {
+    res.json({
+        success: true,
+        data_timestamp: new Date().toLocaleDateString('es-ES'),
+        green_zone_percent: 75,
+        yellow_zone_percent: 20,
+        red_zone_percent: 5
+    });
+});
+
+// --- INVENTORY ENDPOINTS ---
+router.get('/api/v1/kpi/inventory/pareto', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            data: [
+                { name: "Café Latte", revenue_generated: 4500, quantity_sold: 1200 },
+                { name: "Cappuccino", revenue_generated: 3200, quantity_sold: 800 },
+                { name: "Espresso", revenue_generated: 2800, quantity_sold: 1400 },
+                { name: "Muffin Arándanos", revenue_generated: 1500, quantity_sold: 500 },
+                { name: "Té Chai", revenue_generated: 1200, quantity_sold: 300 },
+                { name: "Croissant", revenue_generated: 900, quantity_sold: 400 }
+            ]
+        }
+    });
+});
+
+router.get('/api/v1/kpi/inventory/alerts', (req, res) => {
+    res.json({
+        critical_count: 2,
+        alerts: [
+            { item_name: "Leche Entera", current_level_pct: 5, severity: "CRITICAL" },
+            { item_name: "Azúcar Morena", current_level_pct: 8, severity: "CRITICAL" },
+            { item_name: "Vasos 8oz", current_level_pct: 15, severity: "WARNING" }
+        ]
+    });
+});
+
+// --- CONFIGURATION ENDPOINTS ---
+router.get('/api/v1/kpi/configuration/data/:metric_key', (req, res) => {
+    const { metric_key } = req.params;
+    res.json({
+        success: true,
+        metric: metric_key,
+        value: 20
+    });
+});
+
+router.post('/api/v1/kpi/configuration/data/:metric_key', (req, res) => {
+    const { metric_key } = req.params;
+    res.json({
+        success: true,
+        message: `Configuración para ${metric_key} actualizada.`
+    });
+});
+
+// --- REPORTS ENDPOINTS ---
+router.post('/api/v1/kpi/reports/export', (req, res) => {
+    res.json({
+        success: true,
+        job_id: "JOB-" + Math.random().toString(36).substr(2, 9),
+        message: "Proceso de exportación iniciado."
+    });
+});
+
+router.get('/api/v1/kpi/reports/jobs/:job_id', (req, res) => {
+    res.json({
+        success: true,
+        job_id: req.params.job_id,
+        status: "COMPLETED",
+        download_url: "/api/v1/kpi/reports/download/file.csv"
+    });
+});
+
+// --- ALERTS ENDPOINTS ---
+router.post('/api/v1/kpi/alerts', (req, res) => {
+    res.json({
+        success: true,
+        message: "Alerta creada manualmente."
+    });
+});
+
+router.get('/api/v1/kpi/alerts/history', (req, res) => {
+    res.json({
+        success: true,
+        data: [
+            { id: 1, type: "STOCK_LOW", message: "Café en grano por debajo del 10%", timestamp: new Date().toISOString() },
+            { id: 2, type: "SLA_BREACH", message: "Tiempo de espera excedido en Mesa 4", timestamp: new Date().toISOString() }
+        ]
+    });
+});
+
+// --- EVENTS ENDPOINTS ---
+router.post('/api/v1/kpi/events', (req, res) => {
+    res.json({
+        success: true,
+        message: "Evento registrado."
+    });
+});
+
+router.get('/api/v1/kpi/health', (req, res) => {
+    res.json({ status: "ok", version: "1.0.0" });
+});
+
+
 router.get('/test-connection', async (req, res) => {
     try {
         // Now pointing to itself internally or just mocking response

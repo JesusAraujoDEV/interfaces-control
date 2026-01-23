@@ -17,8 +17,8 @@
             <nav class="sidebar__nav">
                 <a href="dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
                 <a href="inventario.html" class="sidebar__menu-item sidebar__menu-item--active"><i>📦</i> Inventario</a>
-                <a href="index.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
-                <a href="eficiencia.html" class="sidebar__menu-item"><i>⏱️</i> Eficiencia</a>
+                <a href="bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
+                <a href="eficiencia-operacional.html" class="sidebar__menu-item"><i>⏱️</i> Eficiencia</a>
                 <a href="#" class="sidebar__menu-item"><i>⚙️</i> Configuración</a>
             </nav>
 
@@ -70,7 +70,7 @@
     <script>
         async function fetchParetoData() {
             try {
-                const response = await fetch('http://localhost:3000/api/v1/kpi/inventory/pareto');
+                const response = await fetch('/api/v1/kpi/inventory/pareto');
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
                 if (data.success) {
@@ -87,7 +87,8 @@
         // Función para obtener datos de alertas
         async function fetchAlertsData() {
             try {
-                const response = await fetch('http://localhost:3000/api/v1/kpi/inventory/alerts');
+                // Using relative path to match server origin or hardcoded localhost if needed
+                const response = await fetch('/api/v1/kpi/inventory/alerts'); 
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
                 renderAlertsPanel(data);
@@ -286,10 +287,29 @@
             // CAMBIO 4: Auto-refresco cada 5 minutos (300,000 ms)
             setInterval(() => {
                 console.log("♻️ Actualizando inventario...");
-                fetchParetoData();
                 fetchAlertsData();
              }, 300000);
 
+            // Export Logic
+            const exportBtn = document.querySelector('.header-top .btn-primary');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    exportBtn.disabled = true;
+                    exportBtn.innerText = 'Generando...';
+                    fetch('/api/v1/kpi/reports/export', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            alert(data.message);
+                            exportBtn.disabled = false;
+                            exportBtn.innerText = '📤 Exportar Reporte';
+                        })
+                        .catch(err => {
+                            alert('Error al exportar');
+                            exportBtn.disabled = false;
+                            exportBtn.innerText = '📤 Exportar Reporte';
+                        });
+                });
+            }
          };
     </script>
 </body>
