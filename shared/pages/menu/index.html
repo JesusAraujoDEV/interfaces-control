@@ -49,7 +49,7 @@
         <aside class="menu-sidebar">
           <div
             id="cartPanel"
-            class="flex flex-col h-full bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] rounded-2xl border border-gray-100"
+            class="flex flex-col bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] rounded-2xl border border-gray-100"
           >
             <div class="p-4 border-b border-gray-100 flex-none">
               <div class="font-bold text-gray-900">Tu carrito</div>
@@ -119,6 +119,8 @@
         (window.__APP_CONFIG__ && window.__APP_CONFIG__.KITCHEN_URL) ||
         localStorage.getItem('KITCHEN_URL') ||
         'https://charlotte-cocina.onrender.com';
+
+      const FALLBACK_PRODUCT_IMAGE = 'https://easyways.cl/storage/20210610095707masa-de-pizza-2.0.jpg';
 
       const CART_KEY = 'dp_cart_v1';
 
@@ -559,7 +561,13 @@
 
           card.innerHTML = `
             <div class="aspect-[4/3] bg-gray-100 overflow-hidden">
-              <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-full object-cover" loading="lazy" />
+              <img
+                src="${product.imageUrl || FALLBACK_PRODUCT_IMAGE}"
+                alt="${product.name}"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='${FALLBACK_PRODUCT_IMAGE}'"
+              />
             </div>
             <div class="p-5">
               <div class="flex items-start justify-between gap-3">

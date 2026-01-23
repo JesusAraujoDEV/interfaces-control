@@ -10,12 +10,14 @@ main {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 24px;
+	align-items: start;
 }
 
 /* Sidebar como columna flexible con botón fijo al fondo */
 .menu-sidebar {
 	display: flex;
 	flex-direction: column;
+	align-self: start;
 }
 
 /* Limitar el alto del carrito para mostrar ~2 items y scroll */
