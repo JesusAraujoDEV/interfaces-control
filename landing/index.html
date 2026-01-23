@@ -541,6 +541,41 @@
       </div>
     </div>
 
+    <script>
+      (function(){
+        const fallback = '/assets/hamburguesa_menu.png';
+        function applyFallback(img){
+          if(img.dataset._fallbackApplied) return;
+          img.dataset._fallbackApplied = '1';
+          try{ img.src = fallback; }catch(e){}
+        }
+
+        document.querySelectorAll('img').forEach(img=>{
+          img.addEventListener('error', ()=> applyFallback(img));
+          if(img.complete && img.naturalWidth === 0){
+            applyFallback(img);
+          }
+        });
+
+        const obs = new MutationObserver(muts=>{
+          muts.forEach(m=>{
+            m.addedNodes.forEach(node=>{
+              if(node && node.tagName === 'IMG'){
+                node.addEventListener('error', ()=> applyFallback(node));
+                if(node.complete && node.naturalWidth === 0) applyFallback(node);
+              } else if(node && node.querySelectorAll){
+                node.querySelectorAll('img').forEach(img=>{
+                  img.addEventListener('error', ()=> applyFallback(img));
+                  if(img.complete && img.naturalWidth === 0) applyFallback(img);
+                });
+              }
+            });
+          });
+        });
+        obs.observe(document.body,{childList:true,subtree:true});
+      })();
+    </script>
+
     <script type="module" src="/landing/script.js"></script>
   </body>
 </html>
