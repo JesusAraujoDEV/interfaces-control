@@ -4,11 +4,32 @@ const { verifyToken } = require("../../utils/seguridad/jwt");
 const URL_BASE_API_SEGURIDAD = SEGURIDAD_CONFIG.URL_BASE_API_SEGURIDAD;
 
 const requireLocation = async (req, res, next) => {
+    let requireLocation = false;
+    const respLocation = await fetch(`${URL_BASE_API_SEGURIDAD}/api/seguridad/restaurants`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    if (!respLocation.ok) {
+        return next();
+    }
+    if (respLocation.status === 404) {
+        requireLocation = false;
+    } else if (respLocation.status === 200) {
+        const dataLocation = await respLocation.json();
+        requireLocation = dataLocation.required || false;
+    }
+
+    if (!requireLocation) {
+        return next();
+    }
     const location_token = req.cookies.location_token || 'sin-valor';
     const location_refresh_token = req.cookies.location_refresh_token || 'sin-valor';
     let viewRequireLocation = false;
 
-    const rutaSolicitada = req.path;
+    // Si ruta path termina con / lo eliminamos
+  const rutaSolicitada = req.path.replace(/\/$/, "");
 
     switch (true) {
         case rutaSolicitada === "/seguridad/vista/require-location":
@@ -21,6 +42,9 @@ const requireLocation = async (req, res, next) => {
             viewRequireLocation = true;
             break;
         case rutaSolicitada === "/mod-3-atencion-cliente/pages/pedidos/support.html":
+            viewRequireLocation = true;
+            break;
+        case rutaSolicitada === "/mod-3-atencion-cliente/pages/login/scan.html":
             viewRequireLocation = true;
             break;
         default:

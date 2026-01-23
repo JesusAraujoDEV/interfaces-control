@@ -3,7 +3,8 @@ const hasPermission = require("../../utils/seguridad/hasPermission");
 
 const viewsWithPermission = async (req, res, next) => {
   let resource = null;
-  const rutaSolicitada = req.path;
+  // Si ruta path termina con / lo eliminamos
+  const rutaSolicitada = req.path.replace(/\/$/, "");
   req
 
   switch (true) {
