@@ -6,11 +6,13 @@ const apiSeguridadRouterModule = require("../src/routes/seguridad/apiSeguridad")
 const apiAtencionClienteRouterModule = require("../mod-3-atencion-cliente/router/auth_cliente.js");
 const { viewsWithPermission } = require("../src/middlewares/seguridad/viewsWithPermission");
 const { viewsWithAuth } = require("../src/middlewares/seguridad/viewsWithAuth");
+const { viewsWithAuthClient } = require("../src/middlewares/seguridad/viewWithAuthClient");
 const { requireLocation } = require("../src/middlewares/seguridad/locationRequired");
 
 const app = express();
 
 app.use(cookieParser());
+app.use(viewsWithAuthClient);
 app.use(viewsWithAuth);
 app.use(viewsWithPermission);
 app.use(requireLocation);

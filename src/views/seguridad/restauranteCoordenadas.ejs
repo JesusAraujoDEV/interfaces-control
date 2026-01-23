@@ -66,6 +66,11 @@
                             <input type="number" id="radio" step="0.1" value="2">
                         </div>
 
+                        <div class="grupo">
+                            <label style="display: inline;">Verificacion de ubicacion requerida</label>
+                            <input type="checkbox" id="required" style="display: inline; width: auto;">
+                        </div>
+
                         <div class="acciones-geo">
                             <button type="submit" class="btn-guardar" id="btnGuardar">Guardar Cambios</button>
                             <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
@@ -274,6 +279,10 @@
                 if (data.latitude && data.longitud) {
                     latInicial = parseFloat(data.latitude);
                     lngInicial = parseFloat(data.longitud);
+                    const requiredCheckbox = document.getElementById('required');
+                    if (data.required !== undefined) {
+                        requiredCheckbox.checked = data.required;
+                    }
                     inputLat.value = latInicial.toFixed(6);
                     inputLng.value = lngInicial.toFixed(6);
                     
@@ -317,7 +326,8 @@
             const body = {
                 latitude: lat,
                 longitud: lng,
-                radius: radio
+                radius: radio,
+                required: document.getElementById('required').checked
             };
 
             try {

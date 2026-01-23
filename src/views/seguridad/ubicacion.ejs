@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Charlotte - Guest Login</title>
-    <link rel="stylesheet" href="/public/css/seguridad/ubicacion.css"> 
+    <link rel="stylesheet" href="/public/css/seguridad/ubicacion.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <%- include('../partials/inyectarHelpersCss.ejs') %>
 </head>
+
 <body>
 
     <main class="splash">
         <div class="splash__hero">
-            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800" 
-                 alt="Restaurant ambiance" 
-                 class="splash__img">
+            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800"
+                alt="Restaurant ambiance" class="splash__img">
         </div>
 
         <div class="table-indicator">
@@ -25,7 +26,7 @@
 
         <div class="splash__content">
             <h1 class="splash__status">Necesitamos comprobar tu ubicación</h1>
-            
+
             <button type="button" class="btn--login" id="btnGeo">
                 Comprobar Ubicación
             </button>
@@ -33,110 +34,138 @@
     </main>
 
     <%- include('../partials/inyectarHelpersJs.ejs') %>
-    <!-- Todos los demas scripts despues de estos que se inyectan -->
-    <script>
-        // 1. Seleccionamos el botón
-        const botonGeo = document.getElementById('btnGeo');
-        const originalBtnText = botonGeo.innerText;
+        <!-- Todos los demas scripts despues de estos que se inyectan -->
+        <script>
 
-        // Función auxiliar para restaurar el botón en caso de error
-        const resetBtn = () => {
-            botonGeo.disabled = false;
-            botonGeo.innerText = originalBtnText;
-        };
+            // 1. Seleccionamos el botón
+            const botonGeo = document.getElementById('btnGeo');
+            const originalBtnText = botonGeo.innerText;
 
-        // 2. Agregamos el evento click
-        botonGeo.addEventListener('click', () => {
-            
-            // UI: Feedback visual de carga
-            botonGeo.disabled = true;
-            botonGeo.innerText = "Verificando...";
+            // Función auxiliar para restaurar el botón en caso de error
+            const resetBtn = () => {
+                botonGeo.disabled = false;
+                botonGeo.innerText = originalBtnText;
+            };
 
-            // Verificamos si el navegador soporta geolocalización
-            if ("geolocation" in navigator) {
-                
-                navigator.geolocation.getCurrentPosition(
-                    // --- A. ÉXITO AL OBTENER COORDENADAS ---
-                    async (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
+            // 2. Agregamos el evento click
+            botonGeo.addEventListener('click', async () => {
 
-                        try {
-                            // Hacemos la petición a tu endpoint intermedio
-                            const response = await fetch('/api/seguridad/verify-location', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ 
-                                    latitude: lat, 
-                                    longitude: lng 
-                                })
-                            });
-
-                            const data = await response.json();
-
-                            if (data.success) {
-                                // 1. Notificar éxito
-                                window.seguridad_notyf.success(data.message);
-                                
-                                // 2. Redirigir al módulo de ATC (Ordenes)
-                                // NOTA: Ajusta esta URL a la ruta real de tu vista de ordenar
-                                setTimeout(() => {
-                                    
-                                    const urlParams = new URLSearchParams(window.location.search);
-                                    const redirectUrl = urlParams.get("redirect");
-                                    if (redirectUrl) {
-                                        window.location.href = redirectUrl;
-                                    } else {
-                                        window.location.href = '/atc/ordenar';
-                                    }
-                                     
-                                }, 1000); // Pequeño delay para que se lea la notificación
-
-                            } else {
-                                // El usuario está fuera del rango o hubo un error de lógica
-                                window.seguridad_notyf.error(data.message);
-                                resetBtn();
-                            }
-
-                        } catch (error) {
-                            console.error("Error de red:", error);
-                            window.seguridad_notyf.error("Error de conexión con el servidor.");
-                            resetBtn();
-                        }
-                    },
-                    // --- B. ERROR AL OBTENER COORDENADAS (Navegador) ---
-                    (error) => {
-                        console.warn("❌ Error geolocalización:", error.message);
-                        
-                        let mensajeError = "No se pudo obtener tu ubicación.";
-                        
-                        if(error.code === 1) {
-                            mensajeError = "Debes permitir el acceso a tu ubicación para continuar.";
-                        } else if (error.code === 2) {
-                            mensajeError = "La ubicación no está disponible.";
-                        } else if (error.code === 3) {
-                            mensajeError = "Se agotó el tiempo para obtener la ubicación.";
-                        }
-
-                        window.seguridad_notyf.error(mensajeError);
-                        resetBtn();
-                    },
-                    // Opciones de geolocalización para mayor precisión
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
+                // UI: Feedback visual de carga
+                botonGeo.disabled = true;
+                botonGeo.innerText = "Verificando...";
+                let requiredVerification = false;
+                const httpClient = window.httpSeguridadClient;
+                const respLocation = await httpClient(`/api/seguridad/restaurants`);
+                if (respLocation.ok) {
+                    const dataLocation = await respLocation.json();
+                    if (dataLocation.required) {
+                        requiredVerification = true;
                     }
-                );
+                }
+                if (respLocation.status === 404) {
+                    requiredVerification = false;
+                }
+                if (!respLocation.ok) {
+                    return window.seguridad_notyf.error("Error al comunicarse con el servidor. refresca la página.");
+                }
 
-            } else {
-                window.seguridad_notyf.error("Tu navegador no soporta geolocalización.");
-                resetBtn();
-            }
-        });
-    </script>
+                if (requiredVerification) {
+                    // Verificamos si el navegador soporta geolocalización
+                    if ("geolocation" in navigator) {
+
+                        navigator.geolocation.getCurrentPosition(
+                            // --- A. ÉXITO AL OBTENER COORDENADAS ---
+                            async (position) => {
+                                const lat = position.coords.latitude;
+                                const lng = position.coords.longitude;
+
+                                try {
+                                    // Hacemos la petición a tu endpoint intermedio
+                                    const response = await fetch('/api/seguridad/verify-location', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            latitude: lat,
+                                            longitude: lng
+                                        })
+                                    });
+
+                                    const data = await response.json();
+
+                                    if (data.success) {
+                                        // 1. Notificar éxito
+                                        window.seguridad_notyf.success(data.message);
+
+                                        // 2. Redirigir al módulo de ATC (Ordenes)
+                                        // NOTA: Ajusta esta URL a la ruta real de tu vista de ordenar
+                                        setTimeout(() => {
+
+                                            const urlParams = new URLSearchParams(window.location.search);
+                                            const redirectUrl = urlParams.get("redirect");
+                                            if (redirectUrl) {
+                                                window.location.href = redirectUrl;
+                                            } else {
+                                                window.location.href = '/mod-3-atencion-cliente/pages/login/scan.html';
+                                            }
+
+                                        }, 1000); // Pequeño delay para que se lea la notificación
+
+                                    } else {
+                                        // El usuario está fuera del rango o hubo un error de lógica
+                                        window.seguridad_notyf.error(data.message);
+                                        resetBtn();
+                                    }
+
+                                } catch (error) {
+                                    console.error("Error de red:", error);
+                                    window.seguridad_notyf.error("Error de conexión con el servidor.");
+                                    resetBtn();
+                                }
+                            },
+                            // --- B. ERROR AL OBTENER COORDENADAS (Navegador) ---
+                            (error) => {
+                                console.warn("❌ Error geolocalización:", error.message);
+
+                                let mensajeError = "No se pudo obtener tu ubicación.";
+
+                                if (error.code === 1) {
+                                    mensajeError = "Debes permitir el acceso a tu ubicación para continuar.";
+                                } else if (error.code === 2) {
+                                    mensajeError = "La ubicación no está disponible.";
+                                } else if (error.code === 3) {
+                                    mensajeError = "Se agotó el tiempo para obtener la ubicación.";
+                                }
+
+                                window.seguridad_notyf.error(mensajeError);
+                                resetBtn();
+                            },
+                            // Opciones de geolocalización para mayor precisión
+                            {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 0
+                            }
+                        );
+
+                    } else {
+                        window.seguridad_notyf.error("Tu navegador no soporta geolocalización.");
+                        resetBtn();
+                    }
+                } else {
+                    // Si no se requiere verificación, redirigimos directamente
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectUrl = urlParams.get("redirect");
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    } else {
+                        window.location.href = '/mod-3-atencion-cliente/pages/login/scan.html';
+                    }
+                }
+            });
+        </script>
 
 </body>
+
 </html>
