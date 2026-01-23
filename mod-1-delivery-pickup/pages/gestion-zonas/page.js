@@ -1,4 +1,5 @@
 import { initDpLayout, mountDpSidebar } from '/mod-1-delivery-pickup/src/components/sidebar.js';
+import { mergeHeaders, withBearerToken } from '/mod-1-delivery-pickup/src/services/auth-token.js';
 
 function byId(id) {
   return document.getElementById(id);
@@ -77,11 +78,15 @@ function formatMoneyCOP(value) {
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
     ...options,
+    headers: withBearerToken(
+      mergeHeaders(
+        {
+          'Content-Type': 'application/json',
+        },
+        options.headers
+      )
+    ),
   });
 
   const contentType = response.headers.get('content-type') || '';
