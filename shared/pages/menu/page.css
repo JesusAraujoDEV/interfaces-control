@@ -45,6 +45,13 @@ main {
 	}
 }
 
+/* Mobile/tablet: leave room for the fixed bottom bar (#payBar) */
+@media (max-width: 1023px) {
+	#cartPanel {
+		margin-bottom: calc(110px + env(safe-area-inset-bottom));
+	}
+}
+
 /* Ocultar barra inferior en escritorio */
 @media (min-width: 1024px) {
 	#payBar {
