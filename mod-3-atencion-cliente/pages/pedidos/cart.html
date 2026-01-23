@@ -104,6 +104,14 @@
                         <p class="text-center text-gray-400 text-sm py-4">No órdenes enviadas aún.</p>
                     </div>
 
+                    <div class="flex justify-between items-end mb-4 p-6 border-b border-gray-200 pb-4">
+                        <div>
+                            <span class="text-gray-600 text-sm font-medium">Total Consumido:</span>
+                            <p class="text-xs text-gray-400 mt-1">No incluye impuestos</p>
+                        </div>
+                        <span class="text-2xl font-bold text-gray-900" id="history-total">$0.00</span>
+                    </div>
+
                     <div class="p-4 border-t border-gray-100 bg-gray-50">
                         <button id="btn-request-bill" onclick="requestBill()" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl shadow-md flex justify-center items-center gap-2 hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <span class="material-icons-outlined text-sm">payments</span>
@@ -282,6 +290,25 @@
             const container = document.getElementById('orders-history-container');
             const btnRequestBill = document.getElementById('btn-request-bill');
             const billHint = document.getElementById('bill-hint');
+            const historyTotalEl = document.getElementById('history-total');
+
+            // --- CÁLCULO DEL TOTAL DEL HISTORIAL ---
+            // Sumamos todas las órdenes que NO estén canceladas
+            const totalHistory = activeOrders.reduce((acc, order) => {
+                if (order.status === 'CANCELLED') return acc; // Ignorar canceladas
+                
+                // Sumar items de esta orden
+                const orderSum = order.items.reduce((sum, item) => {
+                    return sum + (item.unitPrice * item.quantity);
+                }, 0);
+                
+                return acc + orderSum;
+            }, 0);
+
+            // Actualizar el texto en pantalla
+            if(historyTotalEl) {
+                historyTotalEl.textContent = `$${totalHistory.toFixed(2)}`;
+            }
             
             // --- VALIDACIÓN DE BOTÓN BILL ---
             // 1. Debe haber al menos una orden.
@@ -359,7 +386,7 @@
                         ${order.items.map(item => `
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-700"><span class="font-bold text-gray-900">${item.quantity}x</span> ${item.name}</span>
-                                <span class="text-gray-500 text-xs">$${item.unitPrice}</span>
+                                <span class="text-gray-500 text-xs">$${(item.unitPrice * item.quantity).toFixed(2)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -442,8 +469,8 @@
                     console.log(`Mesa cerrada en servidor. Esperando ${waitTime/1000}s de simulación visual...`);
 
                     // 7. Esperar el tiempo visual y redirigir
-                    setTimeout(() => {
-                        finishPaymentSession();
+                    setTimeout(async () => {
+                        await finishPaymentSession();
                     }, waitTime);
 
                 } else {
@@ -463,8 +490,16 @@
         }
 
         // Función auxiliar de limpieza y redirección
-        function finishPaymentSession() {
-            // Limpiar carritos y sesión
+        async function finishPaymentSession() {
+
+            try {
+                await fetch('/api/atencion-cliente/logout', { method: 'POST' });
+                console.log("Cookie de sesión eliminada.");
+            } catch (e) { 
+                console.error("Error contactando endpoint de logout", e); 
+            }
+
+            // Limpiar LocalStorage y Redirigir ---
             localStorage.removeItem('charlotte_cart');
             localStorage.removeItem('charlotte_active_orders');
             localStorage.removeItem('user_client');
