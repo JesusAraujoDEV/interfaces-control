@@ -309,9 +309,15 @@
                 fetch('/api/seguridad/enums/Permission/method').then(r => r.json())
             ]).then(([typesData, resourcesData, methodsData]) => {
                 // Populate types
+                console.log('Epale');
+                console.log(typesData);
+                console.log(resourcesData);
+                console.log(methodsData);
                 if (typesData.success) {
                     const selectTipo = document.getElementById('tipoPermiso');
                     selectTipo.innerHTML = '<option selected disabled>Selecciona un tipo</option>';
+                    // Quita el ultimo elemento de typesData.types
+                    typesData = { ...typesData, types: typesData.types.slice(0, -1) };
                     typesData.types.forEach(type => {
                         const option = document.createElement('option');
                         option.value = type;
