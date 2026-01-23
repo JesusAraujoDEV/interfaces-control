@@ -245,15 +245,29 @@
                 fetchEnum('/api/seguridad/enums/Permission/method')
             ]);
 
+            console.log(t,r,m);
+
             
 
             const populate = (id, list, current) => {
-                    // determina si current termina con _view
-                    const isView = current?.endsWith('_view') || current === 'View';
+                    // // determina si current termina con _view
+                    // const isView = current?.endsWith('_view') || current === 'View';
+                    // const s = document.getElementById(id);
+                    // s.innerHTML = '<option disabled>Selecciona...</option>';
+                    // // inverte list.types
+                    // const items = list.types?.reverse() || ( isView ? list.resources?.DefinitiveViews : list.resources?.Resources ) || ( isView ? list.methods?.View : list.methods?.Methods ) || [];
+                    // items.forEach(i => {
+                    //     const opt = document.createElement('option');
+                    //     opt.value = i; opt.textContent = i;
+                    //     if(i === current) opt.selected = true;
+                    //     s.appendChild(opt);
+                    // });
                     const s = document.getElementById(id);
                     s.innerHTML = '<option disabled>Selecciona...</option>';
                     // inverte list.types
-                    const items = list.types?.reverse() || ( isView ? list.resources?.Views : list.resources?.Resources ) || ( isView ? list.methods?.View : list.methods?.Methods ) || [];
+                    let items = list.types?.[0] || ( list.resources?.DefinitiveViews ) || ( list.methods?.DefinitiveMethod ) || [];
+                    // si items es un valor lo convierte en un array de un valor
+                    if(!Array.isArray(items)) items = [items];
                     items.forEach(i => {
                         const opt = document.createElement('option');
                         opt.value = i; opt.textContent = i;
