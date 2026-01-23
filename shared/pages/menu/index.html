@@ -675,11 +675,6 @@
         window.location.href = '/checkout';
       }
 
-      // Bind pay buttons (mobile bar + sidebar)
-      document.querySelectorAll('.js-pay-btn').forEach(btn => {
-        btn.addEventListener('click', goToCheckout);
-      });
-
       function openCheckoutModal() {
         const modal = document.getElementById('checkoutModal');
         if (!modal) return;
@@ -730,14 +725,32 @@
         else panel.classList.add('hidden');
       }
 
-      // Mobile: toggle cart from bottom bar
-      document.querySelectorAll('.js-cart-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+      // Event delegation: works for buttons rendered after this <script>
+      document.addEventListener('click', e => {
+        const payBtn = e.target.closest('.js-pay-btn');
+        if (payBtn) {
+          e.preventDefault();
+          goToCheckout();
+          return;
+        }
+
+        const cartBtn = e.target.closest('.js-cart-btn');
+        if (cartBtn) {
+          e.preventDefault();
           const panel = document.getElementById('cartPanel');
           if (!panel) return;
           const isOpen = !panel.classList.contains('hidden');
-          toggleCart(!isOpen);
-        });
+          const nextOpen = !isOpen;
+          toggleCart(nextOpen);
+
+          // On mobile the cart lives below the products; bring it into view.
+          const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+          if (!isDesktop && nextOpen) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            panel.classList.add('ring-2', 'ring-brand-200');
+            window.setTimeout(() => panel.classList.remove('ring-2', 'ring-brand-200'), 900);
+          }
+        }
       });
 
       document.getElementById('cartCloseBtn')?.addEventListener('click', () => toggleCart(false));
@@ -801,7 +814,7 @@
     <!-- Barra inferior fija solo para móvil: Ver Carrito / Ir a Pagar -->
     <div
       id="payBar"
-      class="fixed left-0 right-0 bottom-0 px-6 pb-6 pointer-events-none"
+      class="fixed left-0 right-0 bottom-0 z-40 px-6 pb-6 lg:hidden"
       style="padding-bottom: calc(24px + env(safe-area-inset-bottom));"
     >
       <div class="max-w-6xl mx-auto">

@@ -3513,6 +3513,10 @@ video {
     display: block;
   }
 
+  .lg\:hidden {
+    display: none;
+  }
+
   .lg\:w-2\/5 {
     width: 40%;
   }

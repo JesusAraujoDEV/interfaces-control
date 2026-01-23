@@ -26,6 +26,11 @@ main {
 	overflow: auto;
 }
 
+/* When opening cart from the mobile bottom bar, we scroll to this panel. */
+#cartPanel {
+	scroll-margin-top: 88px;
+}
+
 @media (min-width: 1024px) {
 	.menu-layout {
 		grid-template-columns: 7fr 3fr; /* 70% / 30% */
