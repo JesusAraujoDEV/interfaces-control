@@ -171,15 +171,15 @@ function renderThresholdRow(rule, handlers) {
   toggleWrap.appendChild(toggleInput);
   toggleWrap.appendChild(toggle);
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.className = 'dp-icon-btn dp-row-delete';
-  deleteBtn.title = 'Eliminar';
-  deleteBtn.textContent = '🗑️';
-  deleteBtn.disabled = !rule.id;
-  deleteBtn.addEventListener('click', () => handlers.onDelete(rule));
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'dp-icon-btn dp-row-edit';
+  editBtn.title = 'Editar';
+  editBtn.textContent = '✏️';
+  editBtn.disabled = !rule.id;
+  editBtn.addEventListener('click', () => handlers.onEdit(rule));
   actions.appendChild(toggleWrap);
-  actions.appendChild(deleteBtn);
+  actions.appendChild(editBtn);
 
   right.appendChild(valueWrap);
   right.appendChild(actions);
@@ -235,7 +235,13 @@ export async function init() {
     if (isActiveEl) isActiveEl.checked = true;
     setHidden(cancelBtn, true);
     setFormError('');
-    setButtonLoading(submitBtn, false, 'Crear threshold');
+    // In edit-only mode the submit button should be disabled until a
+    // threshold is selected. Label accordingly.
+    setButtonLoading(submitBtn, false, 'Editar threshold');
+    if (submitBtn) submitBtn.disabled = true;
+    state.editingId = null;
+    const titleEl = document.getElementById('dpThresholdsFormTitle');
+    if (titleEl) titleEl.textContent = 'Editar threshold (selecciona una regla)';
   }
 
   function renderEmpty(listEl, message) {
@@ -269,20 +275,22 @@ export async function init() {
           await loadThresholds();
         }
       },
-      onDelete: async rule => {
-        if (!rule.id) return;
-        const ok = window.confirm(`¿Eliminar el threshold "${rule.metricAffected}"? Esta acción no se puede deshacer.`);
-        if (!ok) return;
-        try {
-          setPageError('');
-          const url = dpBase
-            ? `${dpBase}/api/dp/v1/thresholds/${encodeURIComponent(rule.id)}`
-            : `/api/dp/v1/thresholds/${encodeURIComponent(rule.id)}`;
-          await fetchJson(url, { method: 'DELETE' });
-          await loadThresholds();
-        } catch (e) {
-          setPageError(normalizeErrorMessage(e));
-        }
+      onEdit: async rule => {
+        // Populate form for editing and switch form mode to PATCH
+        if (!rule) return;
+        state.editingId = rule.id || null;
+        if (metricEl) metricEl.value = rule.metricAffected || '';
+        valueEl.value = Number.isFinite(Number(rule.valueCritical)) ? String(Number(rule.valueCritical)) : '';
+        if (isActiveEl) isActiveEl.checked = rule.isActive === true;
+        setHidden(cancelBtn, false);
+        setFormError('');
+        // Update form title and submit label
+        const titleEl = document.getElementById('dpThresholdsFormTitle');
+        if (titleEl) titleEl.textContent = 'Editar threshold';
+        // Enable submit now that an existing threshold is selected.
+        if (submitBtn) submitBtn.disabled = false;
+        setButtonLoading(submitBtn, false, 'Editar threshold');
+        metricEl?.focus?.();
       },
     };
 
@@ -323,10 +331,8 @@ export async function init() {
     state.onlyActive = Boolean(onlyActiveEl.checked);
     loadThresholds();
   });
-  addBtn?.addEventListener('click', () => {
-    setHidden(cancelBtn, false);
-    metricEl?.focus?.();
-  });
+  // Hide the "Crear" button — this UI is edit-only now.
+  if (addBtn) addBtn.classList.add('hidden');
   cancelBtn?.addEventListener('click', () => clearForm());
 
   form?.addEventListener('submit', async ev => {
@@ -353,19 +359,27 @@ export async function init() {
 
     try {
       setButtonLoading(submitBtn, true);
-      const url = dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds';
+      if (!state.editingId) {
+        setFormError('Selecciona un threshold existente para editar.');
+        return;
+      }
+
+      const url = dpBase
+        ? `${dpBase}/api/dp/v1/thresholds/${encodeURIComponent(state.editingId)}`
+        : `/api/dp/v1/thresholds/${encodeURIComponent(state.editingId)}`;
       const body = {
         metric_affected: payload.metricAffected,
         value_critical: payload.valueCritical,
         is_active: payload.isActive,
       };
-      await fetchJson(url, { method: 'POST', body: JSON.stringify(body) });
+      await fetchJson(url, { method: 'PATCH', body: JSON.stringify(body) });
+
       clearForm();
       await loadThresholds();
     } catch (e) {
       setFormError(normalizeErrorMessage(e));
     } finally {
-      setButtonLoading(submitBtn, false, 'Crear threshold');
+      setButtonLoading(submitBtn, false, 'Editar threshold');
     }
   });
 
