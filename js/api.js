@@ -19,7 +19,10 @@ window.KITCHEN_URL = API_BASE_URL + API_PREFIX;
 
 // Función para obtener headers comunes
 function getCommonHeaders() {
-    const token = localStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+    const token = localStorage.getItem('access_token') || 
+                  localStorage.getItem('auth_token') || 
+                  localStorage.getItem('token') || 
+                  localStorage.getItem('jwt_token');
     const headers = {
         'Content-Type': 'application/json'
     };

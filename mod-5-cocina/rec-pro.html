@@ -1,81 +1,394 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitchen OS - Maestro de Productos</title>
-    
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; }
-        .main-content { max-width: 1200px; margin: 0 auto; }
-        
-        h1 { font-size: 1.8rem; font-weight: 800; color: #111827; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         /* Controles Superiores */
-        .controls { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; align-items: center; }
-        .search-box { flex: 1; position: relative; min-width: 200px; }
-        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
-        .search-box input { width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; box-sizing: border-box; }
-        
-        select { padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer; }
-        
-        .btn-primary { background-color: #2563eb; color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
-        .btn-primary:hover { background-color: #1d4ed8; }
-        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+            min-width: 200px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 10px 10px 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
         /* Grid de Productos */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        
-        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
-        .card:hover { transform: translateY(-4px); }
-        .card-img { height: 180px; width: 100%; object-fit: cover; background-color: #f3f4f6; }
-        .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        
-        .card-badge { position: absolute; top: 15px; right: 15px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-        .status-active { background: #dcfce7; color: #166534; }
-        .status-inactive { background: #fee2e2; color: #991b1b; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
 
-        .card-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px 0; }
-        .card-desc { color: #6b7280; font-size: 0.9rem; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-        .price { font-size: 1.25rem; font-weight: 800; color: #2563eb; }
-        .category-tag { background: #f3f4f6; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; }
+        .card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
 
-        .card-actions { padding: 10px 20px; background: #f9fafb; display: flex; gap: 10px; border-top: 1px solid #f3f4f6; }
-        .action-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; cursor: pointer; display: flex; justify-content: center; align-items: center; }
-        .action-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
-        .btn-delete:hover { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card-img {
+            height: 180px;
+            width: 100%;
+            object-fit: cover;
+            background-color: #f3f4f6;
+        }
+
+        .card-body {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .card-desc {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .price {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        .category-tag {
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            padding: 10px 20px;
+            background: #f9fafb;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .btn-delete:hover {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
 
         /* Modales */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
-        .modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 16px; width: 90%; max-width: 600px; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideDown 0.3s ease-out; }
-        
-        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
 
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .close { font-size: 28px; font-weight: bold; color: #9ca3af; cursor: pointer; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
-        .form-input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; }
-        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
         /* Toast */
-        .toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1001; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 0.9rem; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
-        .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-        .toast.success { background-color: #059669; }
-        .toast.error { background-color: #dc2626; }
-        
-        .empty-state { grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af; }
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 1001;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        .toast.success {
+            background-color: #059669;
+        }
+
+        .toast.error {
+            background-color: #dc2626;
+        }
+
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
     </style>
 </head>
-<body>
 
-    <div class="main-content">
+<body class="app-container">
+
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link sidebar__link--active">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_nomina.html" class="sidebar__link">
+                <i data-lucide="banknote"></i> Nómina
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
+            <a href="auditoria.html" class="sidebar__link">
+                <i data-lucide="clipboard-check"></i> Auditoría
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a href="#" class="sidebar__link">
+                <i data-lucide="log-out"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+    <main class="main-content">
         <h1><i class="fas fa-utensils"></i> Maestro de Productos</h1>
-        
+
         <div class="dashboard-grid" id="dashboard-stats"></div>
 
         <div class="controls">
@@ -83,99 +396,103 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="Buscar productos..." onkeyup="filterProducts()">
             </div>
-            
+
             <select id="categoryFilter" onchange="filterByCategory()">
                 <option value="all">Todas las Categorías</option>
             </select>
-            
+
             <button class="btn-primary" onclick="openCreateProductModal()">
                 <i class="fas fa-plus"></i> Nuevo Producto
             </button>
-            
+
             <button class="btn-primary" style="background-color: #4b5563;" onclick="openCategoryModal()">
                 <i class="fas fa-tags"></i> Categorías
             </button>
         </div>
 
         <div class="grid-container" id="productsGrid"></div>
-    </div>
+        </div>
 
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Nuevo Producto</h2>
-                <span class="close" onclick="closeModal('productModal')">&times;</span>
-            </div>
-            <form id="productForm" onsubmit="saveProduct(event)">
-                <input type="hidden" id="prodId">
-                
-                <div class="form-group">
-                    <label>Nombre del Producto</label>
-                    <input type="text" id="prodName" class="form-input" required>
+        <div id="productModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Nuevo Producto</h2>
+                    <span class="close" onclick="closeModal('productModal')">&times;</span>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <form id="productForm" onsubmit="saveProduct(event)">
+                    <input type="hidden" id="prodId">
+
                     <div class="form-group">
-                        <label>Precio Base ($)</label>
-                        <input type="number" step="0.01" id="prodPrice" class="form-input" required>
+                        <label>Nombre del Producto</label>
+                        <input type="text" id="prodName" class="form-input" required>
                     </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Precio Base ($)</label>
+                            <input type="number" step="0.01" id="prodPrice" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select id="prodCategory" class="form-input" required></select>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label>Categoría</label>
-                        <select id="prodCategory" class="form-input" required></select>
+                        <label>Descripción</label>
+                        <textarea id="prodDesc" class="form-input" rows="3"></textarea>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea id="prodDesc" class="form-input" rows="3"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label>Imagen</label>
+                        <input type="file" id="prodImage" accept="image/*" class="form-input">
+                    </div>
 
-                <div class="form-group">
-                    <label>Imagen</label>
-                    <input type="file" id="prodImage" accept="image/*" class="form-input">
-                </div>
-
-                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Guardar</button>
-            </form>
+                    <button type="submit" class="btn-primary"
+                        style="width: 100%; justify-content: center;">Guardar</button>
+                </form>
+            </div>
         </div>
-    </div>
 
-    <div id="recipeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Configurar Receta</h2>
-                <span class="close" onclick="closeModal('recipeModal')">&times;</span>
+        <div id="recipeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Configurar Receta</h2>
+                    <span class="close" onclick="closeModal('recipeModal')">&times;</span>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <select id="ingredientSelect" class="form-input" style="flex:2"></select>
+                    <input type="number" id="ingredientQty" class="form-input" placeholder="Cant." style="flex:1">
+                    <button onclick="addIngredientToRecipe()" class="btn-primary"><i class="fas fa-plus"></i></button>
+                </div>
+                <table style="width:100%; border-collapse: collapse;">
+                    <tbody id="recipeListBody"></tbody>
+                </table>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <select id="ingredientSelect" class="form-input" style="flex:2"></select>
-                <input type="number" id="ingredientQty" class="form-input" placeholder="Cant." style="flex:1">
-                <button onclick="addIngredientToRecipe()" class="btn-primary"><i class="fas fa-plus"></i></button>
-            </div>
-            <table style="width:100%; border-collapse: collapse;">
-                <tbody id="recipeListBody"></tbody>
-            </table>
         </div>
-    </div>
 
-    <div id="categoryModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header">
-                <h2>Categorías</h2>
-                <span class="close" onclick="closeCategoryModal()">&times;</span>
+        <div id="categoryModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h2>Categorías</h2>
+                    <span class="close" onclick="closeCategoryModal()">&times;</span>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="catNameInput" class="form-input" placeholder="Nombre...">
+                    <button onclick="saveCategory()" class="btn-primary">Guardar</button>
+                    <button id="cancelCatEdit" onclick="resetCategoryForm()"
+                        style="display:none; padding:10px;">X</button>
+                </div>
+                <table style="width:100%">
+                    <tbody id="categoryListBody"></tbody>
+                </table>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="catNameInput" class="form-input" placeholder="Nombre...">
-                <button onclick="saveCategory()" class="btn-primary">Guardar</button>
-                <button id="cancelCatEdit" onclick="resetCategoryForm()" style="display:none; padding:10px;">X</button>
-            </div>
-            <table style="width:100%">
-                <tbody id="categoryListBody"></tbody>
-            </table>
         </div>
-    </div>
 
-    <div id="toast" class="toast"></div>
+        <div id="toast" class="toast"></div>
 
-    <script src="js/rec-pro.js"></script>
+        <script src="js/rec-pro.js"></script>
+        <script>lucide.createIcons();</script>
 </body>
+
 </html>

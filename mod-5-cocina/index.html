@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo Cocina - Dashboard</title>
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .dashboard-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .dashboard-card__icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-card__title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-card__description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body class="app-container">
+
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <a href="index.html" class="sidebar__link sidebar__link--active">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_nomina.html" class="sidebar__link">
+                <i data-lucide="banknote"></i> Nómina
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
+            <a href="auditoria.html" class="sidebar__link">
+                <i data-lucide="clipboard-check"></i> Auditoría
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a href="#" class="sidebar__link">
+                <i data-lucide="log-out"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div>
+                <h1 class="header__title">Panel General - Cocina</h1>
+                <p style="color: var(--text-muted);">Gestiona todas las operaciones del área de producción.</p>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- KDS Card -->
+            <a href="kds.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="monitor" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">KDS (Monitor de Cocina)</h3>
+                    <p class="dashboard-card__description">Visualiza y gestiona las comandas en tiempo real.</p>
+                </div>
+            </a>
+
+            <!-- Despacho Card -->
+            <a href="Despacho.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="truck" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Despacho</h3>
+                    <p class="dashboard-card__description">Control de salida y entrega de pedidos.</p>
+                </div>
+            </a>
+
+            <!-- Recetas Card -->
+            <a href="rec-pro.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="chef-hat" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Recetas y Producción</h3>
+                    <p class="dashboard-card__description">Estándares de preparación y gestión de producción.</p>
+                </div>
+            </a>
+
+            <!-- Inventario Card -->
+            <a href="inv.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="package" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Inventario</h3>
+                    <p class="dashboard-card__description">Control de stock de insumos y materia prima.</p>
+                </div>
+            </a>
+
+            <!-- Personal Card -->
+            <a href="personal.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="users" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Personal</h3>
+                    <p class="dashboard-card__description">Gestión del equipo de cocina y turnos.</p>
+                </div>
+            </a>
+
+            <!-- Activos Card -->
+            <a href="activos.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="box" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Control de Activos</h3>
+                    <p class="dashboard-card__description">Gestión de maquinaria y utensilios.</p>
+                </div>
+            </a>
+
+            <!-- Historial Pedidos Card -->
+            <a href="historial_pedidos.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="history" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Historial de Pedidos</h3>
+                    <p class="dashboard-card__description">Consulta pedidos anteriores y reportes.</p>
+                </div>
+            </a>
+
+            <!-- Historial Nomina Card -->
+            <a href="historial_nomina.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="banknote" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Historial de Nómina</h3>
+                    <p class="dashboard-card__description">Registro de pagos y horas del personal.</p>
+                </div>
+            </a>
+
+            <!-- Auditoria Card -->
+            <a href="auditoria.html" class="dashboard-card">
+                <div class="dashboard-card__icon">
+                    <i data-lucide="clipboard-check" size="24"></i>
+                </div>
+                <div>
+                    <h3 class="dashboard-card__title">Auditoría</h3>
+                    <p class="dashboard-card__description">Registros de cambios y seguridad.</p>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
-const API_BASE = 'http://localhost:3000/api/kitchen';
-const INVENTORY_URL = 'http://localhost:3000/api/inventory';
+// Usar configuraciones globales de /js/api.js
+const API_BASE = window.KITCHEN_URL || 'https://charlotte-cocina.onrender.com/api/kitchen';
+const INVENTORY_URL = `${window.KITCHEN_URL}/inventory/items`;
 
 let allProducts = [];
 let allCategories = [];
@@ -84,13 +85,6 @@ function updateDashboard() {
     document.getElementById('total-products').textContent = activeProds.length;
     document.getElementById('active-products').textContent = activeProds.length;
     document.getElementById('total-categories').textContent = allCategories.length;
-}
-
-function getCommonHeaders() {
-    const token = localStorage.getItem('token'); 
-    const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return headers;
 }
 
 async function loadProducts() {
