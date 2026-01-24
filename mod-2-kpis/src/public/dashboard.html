@@ -243,7 +243,7 @@
           }
 
           // Fetch Summary (Main KPIs)
-          const p1 = fetch(`https://charlotte-indicadores-kpi.onrender.com/dashboard/summary`)
+          const p1 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary`)
             .then(res => res.json())
             .then(data => {
               if (data) {
@@ -267,7 +267,7 @@
             });
 
           // Fetch Range (Chart & Summary Header)
-          const p2 = fetch(`https://charlotte-indicadores-kpi.onrender.com/dashboard/summary/range`)
+          const p2 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary/range`)
             .then(res => res.json())
             .then(data => {
               if (data && Array.isArray(data)) {
@@ -283,7 +283,7 @@
             });
 
           // Fetch Stock Alerts (Dynamic List)
-          const p3 = fetch(`https://charlotte-indicadores-kpi.onrender.com/inventory/alerts`)
+          const p3 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -447,7 +447,7 @@
               return;
             }
 
-            fetch(`https://charlotte-indicadores-kpi.onrender.com/configuration/goals/${currentGoalId}`, {
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/${currentGoalId}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ goal: newVal }),
@@ -485,7 +485,7 @@
         if (openStockBtn) {
           openStockBtn.addEventListener("click", () => {
             // Carga dinámica del valor actual
-            fetch('https://charlotte-indicadores-kpi.onrender.com/configuration/data/stock')
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/data/stock')
               .then(res => res.json())
               .then(data => {
                 stockInput.value = data.value || 20;
@@ -506,7 +506,7 @@
                 return;
             }
 
-            fetch(`https://charlotte-indicadores-kpi.onrender.com/configuration/thresholds/stock`, {
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/thresholds/stock`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ threshold: newVal }),
@@ -535,7 +535,7 @@
         const exportBtn = document.querySelector(".header-top .btn-primary");
         
         function pollExportJob(jobId) {
-            fetch(`https://charlotte-indicadores-kpi.onrender.com/reports/jobs/${jobId}`)
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'COMPLETED') {
@@ -571,7 +571,7 @@
                 didOpen: () => Swal.showLoading()
             });
 
-            fetch("https://charlotte-indicadores-kpi.onrender.com/reports/export", { method: "POST" })
+            fetch("https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export", { method: "POST" })
               .then((res) => res.json())
               .then((data) => {
                 // Iniciar POLLING
@@ -591,7 +591,7 @@
                 didOpen: () => Swal.showLoading()
             });
 
-            fetch('https://charlotte-indicadores-kpi.onrender.com/alerts/history')
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
                 .then(res => res.json())
                 .then(data => {
                     Swal.fire({

@@ -324,7 +324,7 @@
                         const exportBtn = document.querySelector('.header-top .btn-primary');
                         
                         function pollExportJob(jobId) {
-                            fetch(`https://charlotte-indicadores-kpi.onrender.com/reports/jobs/${jobId}`)
+                            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
                                 .then(res => res.json())
                                 .then(data => {
                                     if (data.status === 'COMPLETED') {
@@ -359,7 +359,7 @@
                                     didOpen: () => Swal.showLoading()
                                 });
 
-                                fetch('https://charlotte-indicadores-kpi.onrender.com/reports/export', { 
+                                fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { 
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
@@ -380,7 +380,7 @@
                     // --- Global Alerts History ---
                     window.showAlertsHistory = function() {
                         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-                        fetch('https://charlotte-indicadores-kpi.onrender.com/alerts/history')
+                        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
                             .then(res => res.json())
                             .then(data => {
                                 Swal.fire({
