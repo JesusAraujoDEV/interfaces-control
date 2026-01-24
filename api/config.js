@@ -9,11 +9,13 @@ module.exports = (req, res) => {
   const dpUrl = process.env.DP_URL || '';
   const authUrl = process.env.AUTH_URL || '';
   const kitchenUrl = process.env.KITCHEN_URL || '';
+  const atcUrl = process.env.ATC_URL || '';
 
   res.status(200).send(
     `window.__APP_CONFIG__ = window.__APP_CONFIG__ || {};\n` +
       `window.__APP_CONFIG__.DP_URL = \`${jsString(dpUrl)}\`;\n` +
       `window.__APP_CONFIG__.AUTH_URL = \`${jsString(authUrl)}\`;\n` +
-      `window.__APP_CONFIG__.KITCHEN_URL = \`${jsString(kitchenUrl)}\`;\n`
+      `window.__APP_CONFIG__.KITCHEN_URL = \`${jsString(kitchenUrl)}\`;\n` +
+      `window.__APP_CONFIG__.ATC_URL = \`${jsString(atcUrl)}\`;\n`
   );
 };

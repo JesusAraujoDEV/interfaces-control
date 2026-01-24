@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eficiencia Operacional - Charlotte</title>
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 p-4" id="body">
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar__logo">
+                <span class="icon">☕</span> CHARLOTTE
+                <p style="font-size: 0.6rem; font-weight: normal; margin-top: -5px;">Sweet & Coffee</p>
+            </div>
+
+            <nav class="sidebar__nav">
+                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
+                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
+                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
+                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item"><i>📦</i> Inventario</a>
+                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
+                <a href="#" class="sidebar__menu-item"><i>⚙️</i> Configuración</a>
+            </nav>
+
+            <div class="sidebar__profile-footer">
+                <div class="sidebar__avatar" style="background-color: #ccc;"></div>
+                <div class="sidebar__logout" style="border:none; padding:0;">
+                    <a href="#" class="sidebar__menu-item" style="margin:0; padding:0; font-size: 0.8rem;">⚙️ Configuración</a>
+                    <a href="#" class="sidebar__menu-item" style="margin:0; padding:0; font-size: 0.8rem;">❓ Ayuda</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="header-top">
+                <div>
+                    <h1 class="header-top__title" style="color: var(--primary-color);">Eficiencia Operacional</h1>
+                    <p class="header-top__subtitle">Tiempo y Personal</p>
+                </div>
+            </header>
+
+            <div id="app" class="container mx-auto p-4">
+                <!-- El contenido se renderizará aquí con JavaScript -->
+            </div>
+
+            <div class="dashboard-main-grid">
+                <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-2xl font-bold">Ranking de Meseros</h1>
+                    <input type="text" id="staff-search" placeholder="🔍 Buscar mesero..." 
+                           class="px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+                </div>
+                <div id="shift-indicator" class="mb-4 text-center font-semibold"></div>
+                <table id="ranking-table" class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-4 py-2 text-left">Avatar</th>
+                            <th class="px-4 py-2 text-left">Nombre</th>
+                            <th class="px-4 py-2 text-left">Pedidos Totales</th>
+                            <th class="px-4 py-2 text-left">Tiempo Promedio</th>
+                            <th class="px-4 py-2 text-left">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body">
+                        <!-- Las filas se agregarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+                <div id="pagination" class="mt-4 flex justify-center">
+                    <!-- Botones de paginación se agregarán aquí -->
+                </div>
+            </div>
+
+                <section class="meta-section">
+                    <h2 class="card__title text-xl font-bold" style="color: var(--primary-color);">Meta de Rotación</h2>
+                    <div class="card gauge-container bg-white p-4 rounded-lg shadow-md">
+                        <div class="gauge-placeholder">
+                            <div class="gauge-placeholder__fill"></div>
+                        </div>
+                        <p class="gauge-container__value text-2xl font-bold mt-2" id="current-value">Cargando...</p>
+                        <p class="gauge-container__label text-sm text-gray-600">Rotación Actual</p>
+                        <p style="font-size: 0.7rem; margin-top: 15px; color: var(--text-muted);">
+                            <span class="dot dot--danger" style="width: 6px; height: 6px;"></span> Meta: <span id="target-value">Cargando...</span>
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script>
+        function updateGauge(current, target) {
+            const percentage = Math.min((current / target) * 100, 100); // Máximo 100%
+            document.documentElement.style.setProperty('--percentage', percentage);
+            document.getElementById('current-value').textContent = current.toFixed(1);
+            document.getElementById('target-value').textContent = target.toFixed(1);
+        }
+
+    // Función para hacer fetch a la API
+    async function fetchRotationData() {
+        try {
+            const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking');
+            if (!response.ok) throw new Error('Error en la API');
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                // Calcular el promedio de efficiency_score como "rotación actual"
+                const totalScore = data.reduce((sum, item) => sum + item.efficiency_score, 0);
+                const averageScore = totalScore / data.length;
+                const mockRotation = (averageScore / 100) * 2; // Simular un valor alrededor de 1.2
+                updateGauge(mockRotation, 1.7);
+            } else {
+                updateGauge(0, 1.7);
+            }
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+            updateGauge(0, 1.7);
+        }
+    }
+
+    // Llamar a la función al cargar la página
+    window.addEventListener('load', fetchRotationData);
+
+        // Función para obtener iniciales del nombre
+        function getInitials(name) {
+            return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
+        }
+
+        // Función para mapear estado
+        function mapStatus(status) {
+            return status === 'ACTIVE' ? 'Activo' : 'Descanso';
+        }
+
+        // Función para obtener clase del badge
+        function getStatusClass(status) {
+            return status === 'Activo' ? 'active' : 'rest';
+        }
+
+    // --- Lógica de Ranking y Staff ---
+    let fullRankingData = [];
+
+    async function loadRanking(sort_by="EFFICIENCY") {
+        try {
+            const response = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}`);
+            fullRankingData = await response.json();
+            
+            if (Array.isArray(fullRankingData)) {
+                renderTable(fullRankingData);
+                const paginationDiv = document.getElementById('pagination');
+                if (paginationDiv) paginationDiv.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+        }
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.className = `cursor-pointer hover:bg-emerald-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`;
+            row.onclick = () => showStaffDetails(item);
+
+            row.innerHTML = `
+                <td class="px-4 py-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border border-emerald-200">
+                        ${getInitials(item.name)}
+                    </div>
+                </td>
+                <td class="px-4 py-3 font-medium text-slate-700">${item.name}</td>
+                <td class="px-4 py-3 text-slate-600">${item.total_orders}</td>
+                <td class="px-4 py-3 text-slate-600">${item.avg_time}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
+                        ${item.status === 'ACTIVE' ? 'Activo' : 'Descanso'}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Buscador
+    const searchInput = document.getElementById('staff-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = fullRankingData.filter(staff => 
+                staff.name.toLowerCase().includes(term) || 
+                staff.turn.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+    }
+
+    async function showStaffDetails(staff) {
+        Swal.fire({
+            title: `Cargando métricas de ${staff.name}...`,
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
+
+        try {
+            const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-metrics/${staff.id}`);
+            const metrics = await res.json();
+
+            Swal.fire({
+                title: `<span class="text-emerald-700">${staff.name}</span>`,
+                html: `
+                    <div class="text-left space-y-3 mt-4">
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-semibold">Turno:</span> <span>${staff.turn}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-semibold">Eficiencia:</span> <span class="text-emerald-600 font-bold">${staff.efficiency_score}%</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-semibold">Total Pedidos:</span> <span>${staff.total_orders}</span>
+                        </div>
+                        <div class="mt-4">
+                            <p class="font-semibold mb-2">Historial Reciente:</p>
+                            <div class="text-xs bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                ${metrics.history.map(day => `
+                                    <div class="flex justify-between mb-1">
+                                        <span>${day.date}</span>
+                                        <span class="font-medium">Orders: ${day.orders} | Eff: ${day.efficiency}%</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#10b981',
+                width: '450px'
+            });
+        } catch (error) {
+            Swal.fire('Error', 'No se pudieron cargar las métricas detalladas', 'error');
+        }
+    }
+
+    // --- Lógica de SLA ---
+    const API_URL = 'https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/sla-breakdown';
+    let slaData = null;
+
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Error en la API');
+        slaData = await response.json();
+        renderSLACard();
+      } catch (err) {
+        document.getElementById('app').innerHTML = `<p class="text-center text-red-500">Error al cargar SLA</p>`;
+      }
+    }
+
+    function renderSLACard() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100 mb-8">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 flex items-center">
+                <span class="mr-2">⏱️</span> Desglose de SLA de Comandas
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                ${renderZone('Órdenes Rápidas (<5m)', slaData.fast_orders_pct, 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200')}
+                ${renderZone('Espera Media (5-10m)', slaData.medium_wait_pct, 'bg-amber-50', 'text-amber-700', 'border-amber-200')}
+                ${renderZone('Retrasos Críticos (>10m)', slaData.critical_delay_pct, 'bg-rose-50', 'text-rose-700', 'border-rose-200')}
+            </div>
+            <p class="text-center text-xs text-slate-400 mt-6 italic">Última sincronización: ${new Date(slaData.timestamp).toLocaleTimeString()}</p>
+        </div>
+      `;
+    }
+
+    function renderZone(name, pct, bg, text, border) {
+      return `
+        <div class="${bg} ${text} ${border} border p-5 rounded-2xl flex flex-col items-center">
+            <span class="text-3xl font-black mb-1">${pct}%</span>
+            <span class="text-xs font-bold uppercase tracking-wider opacity-80 text-center">${name}</span>
+            <div class="w-full bg-white/50 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div class="bg-current h-full" style="width: ${pct}%"></div>
+            </div>
+        </div>
+      `;
+    }
+
+    // --- Polling Logic for Export ---
+    function pollExportJob(jobId) {
+        fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'COMPLETED') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Reporte de Eficiencia Listo!',
+                        text: 'El análisis de desempeño del personal ha sido generado.',
+                        footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar Reporte</a>`,
+                        confirmButtonColor: '#10b981'
+                    });
+                    const exportBtn = document.querySelector(".header-top .btn-primary");
+                    exportBtn.disabled = false;
+                    exportBtn.innerText = "📤 Exportar Reporte";
+                } else {
+                    setTimeout(() => pollExportJob(jobId), 2000);
+                }
+            })
+            .catch(() => {
+                Swal.fire('Error', 'Fallo en la comunicación con el servidor de informes.', 'error');
+                const exportBtn = document.querySelector(".header-top .btn-primary");
+                exportBtn.disabled = false;
+            });
+    }
+
+    // --- Inicialización ---
+    window.onload = () => {
+        loadRanking();
+        fetchRotationData();
+        fetchData();
+        
+        // Export Logic con POLLING
+        const exportBtn = document.querySelector(".header-top .btn-primary");
+        if (exportBtn) {
+            exportBtn.addEventListener("click", () => {
+                exportBtn.disabled = true;
+                exportBtn.innerText = "Generando...";
+
+                Swal.fire({
+                    title: 'Analizando Desempeño',
+                    text: 'Se están cruzando los datos de SLA con el ranking de personal...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch("https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export", { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        pollExportJob(data.job_id);
+                    })
+                    .catch(() => {
+                        Swal.fire('Error', 'No se pudo iniciar la exportación operacional.', 'error');
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📤 Exportar Reporte";
+                    });
+            });
+        }
+    };
+
+    // --- Global Alerts History ---
+    window.showAlertsHistory = function() {
+        Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({
+                    title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                    html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                        ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                            <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
+                            <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                        </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                    </div>`,
+                    confirmButtonText: 'Entendido', confirmButtonColor: '#387652', width: '450px'
+                });
+            });
+    }
+  </script>
+</body>
+</html>

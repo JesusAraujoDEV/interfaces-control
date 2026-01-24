@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/seguridad/editarPerfil.css">
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="contenido-principal">
+            
+            <header class="cabecera-crear">
+                <div class="info-titulo">
+                    <h1>Editar perfil</h1>
+                </div>
+                <div class="botones-cabecera">
+                    <button class="btn-cancelar">Cancelar</button>
+                    <button class="btn-guardar">Guardar Cambios</button>
+                </div>
+            </header>
+
+            <div class="contenedor-centrado">
+                <section class="tarjeta-blanca">
+                    
+                    <form id="formEditarPerfil" class="formulario-usuario">
+                        <div class="grupo">
+                            <label>Nombre</label>
+                            <input id="inputNombre" type="text" required>
+                            <span class="error-message" id="errorNombre"></span>
+                        </div>
+
+                        <div class="grupo">
+                            <label>Apellido</label>
+                            <input id="inputApellido" type="text" required>
+                            <span class="error-message" id="errorApellido"></span>
+                        </div>
+
+                        <div class="grupo">
+                            <label>Fecha de Nacimiento</label>
+                            <input id="inputFechaNacimiento" type="date">
+                            <span class="error-message" id="errorFechaNacimiento"></span>
+                        </div>
+
+                        <div class="grupo">
+                            <label>DNI / Cédula</label>
+                            <input id="inputDni" type="text" required>
+                            <span class="error-message" id="errorDni"></span>
+                        </div>
+
+                        <div class="fila-input">
+                            <div class="grupo">
+                                <label>Correo Electrónico</label>
+                                <input id="inputEmail" type="email" required>
+                                <span class="error-message" id="errorEmail"></span>
+                            </div>
+                            <div class="grupo">
+                                <label>Teléfono</label>
+                                <input id="inputTelefono" type="text">
+                                <span class="error-message" id="errorTelefono"></span>
+                            </div>
+                        </div>
+                        <button id="btnCambiarContraseña" class="btn-guardar" type="button">Cambiar Contraseña</button>
+                    </form>
+                </section>
+
+                <section class="tarjeta-blanca mt-6">
+                    <div class="cabecera-tarjeta">
+                        <h3>Roles</h3>
+                    </div>
+
+                    <div class="contenedor-tags" id="contenedorTagsRoles">
+                        <!-- Los roles se mostrarán aquí dinámicamente -->
+                    </div>
+                    
+                </section>
+            </div>
+
+        </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    <script>
+        (function() {
+            const notyf = window.seguridad_notyf || new Notyf();
+            
+            // Referencias a elementos del DOM
+            const form = document.getElementById('formEditarPerfil');
+            const btnGuardar = document.querySelector('.btn-guardar');
+            const btnCancelar = document.querySelector('.btn-cancelar');
+            const btnCambiarContraseña = document.getElementById('btnCambiarContraseña');
+            const contenedorTagsRoles = document.getElementById('contenedorTagsRoles');
+
+            // Cargar datos del usuario desde localStorage
+            function cargarDatosUsuario() {
+                try {
+                    const userStr = localStorage.getItem('administrative_user');
+                    if (!userStr) {
+                        notyf.error('No se encontraron datos del usuario. Por favor, inicia sesión nuevamente.');
+                        return;
+                    }
+
+                    const user = JSON.parse(userStr);
+
+                    // Llenar formulario con los datos del usuario
+                    document.getElementById('inputNombre').value = user.name || '';
+                    document.getElementById('inputApellido').value = user.lastName || '';
+                    document.getElementById('inputDni').value = user.dni || '';
+                    document.getElementById('inputEmail').value = user.email || '';
+                    document.getElementById('inputTelefono').value = user.phone || '';
+
+                    // Fecha de nacimiento
+                    if (user.birthDate) {
+                        const fecha = new Date(user.birthDate);
+                        const fechaFormateada = fecha.toISOString().split('T')[0];
+                        document.getElementById('inputFechaNacimiento').value = fechaFormateada;
+                    }
+
+                    // Mostrar roles (solo lectura)
+                    if (user.roles && Array.isArray(user.roles)) {
+                        renderizarRoles(user.roles);
+                    } else if (user.roleNames && Array.isArray(user.roleNames)) {
+                        // Si los roles vienen como nombres
+                        renderizarRolesPorNombres(user.roleNames);
+                    }
+
+                } catch (error) {
+                    console.error('Error cargando datos del usuario:', error);
+                    notyf.error('Error al cargar los datos del usuario');
+                }
+            }
+
+            // Renderizar roles
+            async function renderizarRoles(roles) {
+                contenedorTagsRoles.innerHTML = '';
+                
+                if (roles.length === 0) {
+                    contenedorTagsRoles.innerHTML = '<p class="text-gray-500">No tiene roles asignados</p>';
+                    return;
+                }
+
+                // Colores para los tags de roles
+                const colores = ['azul', 'naranja', 'morado', 'verde', 'rojo'];
+                let colorIndex = 0;
+                // Cliente HTTP para realizar peticiones
+                const httpClient = window.httpSeguridadClient;
+                const body = { roles: roles.map(rol => rol.id || rol) };
+                const res = await httpClient('/api/seguridad/auth/rol', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                const datosRoles = await res.json();
+                // retorna una array de objetoos y mapea los nombres
+                const nombres = datosRoles.map(rol => rol.name); 
+
+                nombres.forEach(nombreRol => {
+                    const color = colores[colorIndex % colores.length];
+                    const tag = document.createElement('span');
+                    tag.className = `tag tag-${color}`;
+                    tag.textContent = nombreRol;
+                    contenedorTagsRoles.appendChild(tag);
+                    colorIndex++;
+                });
+            }
+
+            // Renderizar roles por nombres
+            function renderizarRolesPorNombres(roleNames) {
+                contenedorTagsRoles.innerHTML = '';
+                
+                if (roleNames.length === 0) {
+                    contenedorTagsRoles.innerHTML = '<p class="text-gray-500">No tiene roles asignados</p>';
+                    return;
+                }
+
+                const colores = ['azul', 'naranja', 'morado', 'verde', 'rojo'];
+                let colorIndex = 0;
+
+                roleNames.forEach(nombreRol => {
+                    const color = colores[colorIndex % colores.length];
+                    const tag = document.createElement('span');
+                    tag.className = `tag tag-${color}`;
+                    tag.textContent = nombreRol;
+                    contenedorTagsRoles.appendChild(tag);
+                    colorIndex++;
+                });
+            }
+
+            // Limpiar errores
+            function limpiarErrores() {
+                const errorMessages = document.querySelectorAll('.error-message');
+                errorMessages.forEach(error => {
+                    error.textContent = '';
+                    error.style.display = 'none';
+                });
+
+                const inputs = form.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.classList.remove('error');
+                });
+            }
+
+            // Mostrar error en un campo
+            function mostrarError(inputId, mensaje) {
+                const input = document.getElementById(inputId);
+                const errorSpan = document.getElementById(`error${inputId.replace('input', '')}`);
+                
+                if (input) {
+                    input.classList.add('error');
+                }
+                
+                if (errorSpan) {
+                    errorSpan.textContent = mensaje;
+                    errorSpan.style.display = 'block';
+                }
+            }
+
+            // Validar formulario
+            function validarFormulario() {
+                limpiarErrores();
+                let esValido = true;
+
+                const nombre = document.getElementById('inputNombre').value.trim();
+                const apellido = document.getElementById('inputApellido').value.trim();
+                const dni = document.getElementById('inputDni').value.trim();
+                const email = document.getElementById('inputEmail').value.trim();
+
+                if (!nombre) {
+                    mostrarError('inputNombre', 'El nombre es requerido');
+                    esValido = false;
+                }
+
+                if (!apellido) {
+                    mostrarError('inputApellido', 'El apellido es requerido');
+                    esValido = false;
+                }
+
+                if (!dni) {
+                    mostrarError('inputDni', 'El DNI/Cédula es requerido');
+                    esValido = false;
+                }
+
+                if (!email) {
+                    mostrarError('inputEmail', 'El correo electrónico es requerido');
+                    esValido = false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    mostrarError('inputEmail', 'El correo electrónico no es válido');
+                    esValido = false;
+                }
+
+                return esValido;
+            }
+
+            // Actualizar perfil
+            async function actualizarPerfil() {
+                if (!validarFormulario()) {
+                    notyf.error('Por favor, corrige los errores en el formulario');
+                    return;
+                }
+
+                const nombre = document.getElementById('inputNombre').value.trim();
+                const apellido = document.getElementById('inputApellido').value.trim();
+                const fechaNacimiento = document.getElementById('inputFechaNacimiento').value;
+                const dni = document.getElementById('inputDni').value.trim();
+                const email = document.getElementById('inputEmail').value.trim();
+                const telefono = document.getElementById('inputTelefono').value.trim();
+
+                const body = {
+                    name: nombre,
+                    lastName: apellido,
+                    dni: dni,
+                    email: email
+                };
+
+                if (fechaNacimiento) {
+                    body.birthDate = fechaNacimiento;
+                }
+                if (telefono) {
+                    body.phone = telefono;
+                }
+
+                try {
+                    btnGuardar.disabled = true;
+                    btnGuardar.textContent = 'Guardando...';
+
+                    const response = await fetch('/api/seguridad/perfil/editar', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        // Manejar errores de validación
+                        limpiarErrores();
+                        
+                        if (data.errors && Array.isArray(data.errors)) {
+                            data.errors.forEach(error => {
+                                const fieldName = error.path || error.field;
+                                if (fieldName) {
+                                    const inputId = `input${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`;
+                                    mostrarError(inputId, error.message);
+                                }
+                            });
+                        }
+                        
+                        const errorMsg = data.message || response.statusText || 'Error al actualizar el perfil';
+                        notyf.error(errorMsg);
+                        return;
+                    }
+
+                    // Éxito - actualizar localStorage con los nuevos datos
+                    if (data.access_token) {
+                        localStorage.setItem('access_token', data.access_token);
+                    }
+                    if (data.user) {
+                        localStorage.setItem('administrative_user', JSON.stringify(data.user));
+                    }
+
+                    notyf.success(data.message || 'Perfil actualizado exitosamente');
+                    
+                    // Recargar los datos del usuario para reflejar cambios
+                    setTimeout(() => {
+                        cargarDatosUsuario();
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('Error actualizando perfil:', error);
+                    const errorMsg = error.message || 'Error al actualizar el perfil. Por favor, intenta nuevamente.';
+                    notyf.error(errorMsg);
+                } finally {
+                    btnGuardar.disabled = false;
+                    btnGuardar.textContent = 'Guardar Cambios';
+                }
+            }
+
+            // Event listeners
+            btnGuardar.addEventListener('click', (e) => {
+                e.preventDefault();
+                actualizarPerfil();
+            });
+
+            btnCancelar.addEventListener('click', () => {
+                window.location.href = '/seguridad/usuarios';
+            });
+
+            btnCambiarContraseña.addEventListener('click', () => {
+                window.location.href = '/seguridad/perfil/cambioPassword';
+            });
+
+            // Inicializar
+            document.addEventListener('DOMContentLoaded', () => {
+                cargarDatosUsuario();
+            });
+        })();
+    </script>
+    <style>
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        input.error {
+            border-color: #ef4444;
+        }
+    </style>
+</body>
+</html>

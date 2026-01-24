@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario - Charlotte</title>
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar__logo">
+                <span class="icon">☕</span> CHARLOTTE
+            </div>
+
+            <nav class="sidebar__nav">
+                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
+                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item sidebar__menu-item--active"><i>📦</i> Inventario</a>
+                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
+                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item"><i>⏱️</i> Eficiencia</a>
+                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
+                <a href="#" class="sidebar__menu-item"><i>⚙️</i> Configuración</a>
+            </nav>
+
+            <div class="sidebar__profile-footer">
+                <a href="#" class="sidebar__menu-item"><i>❓</i> Ayuda</a>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="header-top">
+                <div>
+                    <h1 class="header-top__title">Inteligencia de Inventario</h1>
+                    <p class="header-top__subtitle">Análisis de stock y rendimiento del menú.</p>
+                </div>
+                <button class="btn-primary">📤 Exportar Reporte</button>
+            </header>
+
+            <div class="tabs-container">
+                <button class="tab tab--active">Últimos 30 días ▾</button>
+                <button class="tab">Semana Actual</button>
+                <button class="tab">Mes Actual</button>
+                <button class="tab">Año Actual</button>
+            </div>
+
+            <h1 class="text-2xl font-bold mb-4 text-center ">Gráfico de Pareto y Alertas - Inventario de Cafetería</h1>
+            <div class="dashboard-main-grid">
+                
+                <div class="flex flex-col md:flex-row gap-6">
+                <!-- Gráfico de Pareto -->
+                <div class="flex-1">
+                    <h2 class="text-lg font-semibold mb-2">Gráfico de Pareto</h2>
+                    <div id="pareto-chart" class="w-full h-96 bg-gray-50 rounded-lg flex items-end justify-center relative">
+                    <!-- Aquí se renderizará el gráfico SVG -->
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2">Datos obtenidos de la API. El producto campeón está resaltado en rojo.</p>
+                </div>
+                </div>
+                
+                <!-- Panel de Alertas -->
+                <div class="w-full md:w-1/3">
+                    <h2 class="text-lg font-semibold mb-2">Alertas de Inventario</h2>
+                    <div id="alerts-panel" class="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto inline-block">
+                        <!-- Aquí se renderizarán las alertas -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        async function fetchParetoData() {
+            try {
+                const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/pareto');
+                if (!response.ok) throw new Error('Error en la API');
+                const data = await response.json();
+                if (data.top_products) {
+                    renderParetoChart(data.top_products);
+                }
+            } catch (error) {
+                console.error('Error al obtener datos del Pareto:', error);
+                document.getElementById('pareto-chart').innerHTML = '<p class="text-red-500">Error al cargar datos del gráfico.</p>';
+            }
+        }
+
+        // Función para obtener datos de alertas
+        async function fetchAlertsData() {
+            try {
+                const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts'); 
+                if (!response.ok) throw new Error('Error en la API');
+                const data = await response.json();
+                renderAlertsPanel(data);
+            } catch (error) {
+                console.error('Error al obtener datos de alertas:', error);
+                document.getElementById('alerts-panel').innerHTML = '<p class="text-red-500">Error al cargar alertas.</p>';
+            }
+        }
+
+        // Función para renderizar el gráfico de Pareto (sin cambios en la lógica SVG, solo en el acceso a revenue)
+        // Función para renderizar el gráfico de Pareto (Mejorado con interactividad)
+        function renderParetoChart(products) {
+            const chartContainer = document.getElementById('pareto-chart');
+            chartContainer.innerHTML = '';
+
+            products.sort((a, b) => b.revenue - a.revenue);
+            const totalRevenue = products.reduce((sum, p) => sum + p.revenue, 0);
+
+            const width = chartContainer.clientWidth;
+            const height = chartContainer.clientHeight;
+            const margin = { top: 40, right: 60, bottom: 60, left: 60 };
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            chartContainer.appendChild(svg);
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${margin.left}, ${margin.top})`);
+            svg.appendChild(g);
+
+            const maxRevenue = Math.max(...products.map(p => p.revenue));
+            const barWidth = innerWidth / products.length * 0.8;
+            const barSpacing = innerWidth / products.length * 0.2;
+
+            let cumulativePercent = 0;
+            const points = [];
+
+            products.forEach((product, index) => {
+                const barHeight = (product.revenue / maxRevenue) * innerHeight;
+                const x = index * (barWidth + barSpacing);
+                const y = innerHeight - barHeight;
+
+                // Barra Interactiva
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', barWidth);
+                rect.setAttribute('height', barHeight);
+                rect.setAttribute('fill', index < 3 ? '#b45309' : '#10b981'); // Amber-700 para top 3, Emerald-500 resto
+                rect.setAttribute('class', 'cursor-pointer hover:opacity-80 transition-opacity');
+                
+                // Click para ver detalles
+                rect.addEventListener('click', () => {
+                    Swal.fire({
+                        title: product.name,
+                        html: `
+                            <div class="text-left space-y-2">
+                                <p><strong>Ingresos Generados:</strong> $${product.revenue}</p>
+                                <p><strong>Participación en Ventas:</strong> ${((product.revenue/totalRevenue)*100).toFixed(1)}%</p>
+                                <p class="text-xs text-slate-500 mt-4 italic">Este producto es fundamental para el Pareto 80/20 de tu cafetería.</p>
+                            </div>
+                        `,
+                        icon: 'info',
+                        confirmButtonColor: '#b45309'
+                    });
+                });
+                
+                g.appendChild(rect);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x + barWidth / 2);
+                text.setAttribute('y', innerHeight + 20);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'text-[10px] fill-slate-500 font-medium');
+                text.textContent = product.name.split(' ')[0]; // Solo primera palabra para espacio
+                g.appendChild(text);
+
+                cumulativePercent += (product.revenue / totalRevenue) * 100;
+                points.push({ x: x + barWidth / 2, y: innerHeight - (cumulativePercent / 100) * innerHeight });
+            });
+
+            // Línea de Pareto
+            if (points.length > 1) {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                let d = `M ${points[0].x} ${points[0].y}`;
+                points.forEach(point => { d += ` L ${point.x} ${point.y}`; });
+                path.setAttribute('d', d);
+                path.setAttribute('stroke', '#d97706');
+                path.setAttribute('stroke-width', 2);
+                path.setAttribute('fill', 'none');
+                g.appendChild(path);
+            }
+        }
+
+        // Función para renderizar el panel de alertas
+        function renderAlertsPanel(alerts) {
+            const panel = document.getElementById('alerts-panel');
+            panel.innerHTML = '';
+
+            const criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
+            const criticalHeader = document.createElement('div');
+            criticalHeader.className = `mb-4 p-3 rounded-xl border flex items-center justify-between ${criticalCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`;
+            criticalHeader.innerHTML = `
+                <span class="font-bold">Alertas Críticas</span>
+                <span class="bg-current text-white px-2 py-0.5 rounded-full text-xs">${criticalCount}</span>
+            `;
+            panel.appendChild(criticalHeader);
+
+            if (alerts && alerts.length > 0) {
+                alerts.forEach(alert => {
+                    const item = document.createElement('div');
+                    item.className = `p-4 border rounded-xl mb-3 shadow-sm transition-all hover:shadow-md ${
+                        alert.severity === 'CRITICAL' ? 'bg-white border-l-4 border-l-red-500' :
+                        alert.severity === 'WARNING' ? 'bg-white border-l-4 border-l-amber-500' :
+                        'bg-white border-l-4 border-l-emerald-500'
+                    }`;
+                    item.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-bold text-slate-800">${alert.item}</span>
+                            <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-600' : 'text-amber-600 bg-amber-100'
+                            }">${alert.severity}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full mb-3">
+                            <div class="h-full rounded-full ${alert.stock < 15 ? 'bg-red-500' : 'bg-amber-500'}" style="width: ${alert.stock}%"></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-500 cursor-help underline decoration-dotted" 
+                                  onclick="showItemDetails('${alert.id}')">Stock: ${alert.stock}%</span>
+                            <button onclick="handleRestockRequest('${alert.item}', this)" 
+                                class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
+                                <span class="mr-1">➕</span> Reponer
+                            </button>
+                        </div>
+                    `;
+                    panel.appendChild(item);
+                });
+            }
+        }
+
+        async function showItemDetails(itemId) {
+            Swal.fire({
+                title: 'Cargando detalles...',
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/items/${itemId}`);
+                const data = await res.json();
+                
+                Swal.fire({
+                    title: `<span class="text-emerald-700">${data.name}</span>`,
+                    html: `
+                        <div class="text-left py-2">
+                            <p class="mb-2"><strong>Stock Actual:</strong> ${data.current_stock} ${data.unit}</p>
+                            <p class="mb-2"><strong>Última Reposición:</strong> ${data.last_restock || 'Sin datos'}</p>
+                            <p class="text-xs text-slate-400 italic">ID de Almacén: INV-${itemId}</p>
+                        </div>
+                    `,
+                    icon: 'info',
+                    confirmButtonColor: '#10b981'
+                });
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo cargar el detalle del ítem', 'error');
+            }
+        }
+
+        async function handleRestockRequest(itemName, btn) {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Solicitar reposición?',
+                text: `Se enviará una orden de compra para: ${itemName}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, solicitar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (isConfirmed) {
+                const originalContent = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⌛...';
+                
+                setTimeout(() => {
+                    Swal.fire({
+                        title: '¡Solicitud enviada!',
+                        text: `La reposición de ${itemName} ha sido procesada.`,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                    btn.innerHTML = '✅ OK';
+                }, 1000);
+            }
+        }
+
+        // --- Polling Logic for Export ---
+        const exportBtn = document.querySelector('.header-top .btn-primary');
+
+        function pollExportJob(jobId) {
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'COMPLETED') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Reporte PDF Generado!',
+                            text: 'El análisis de rendimiento está listo para descargar.',
+                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Bajar Reporte</a>`,
+                            confirmButtonColor: '#10b981'
+                        });
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📤 Exportar Reporte";
+                    } else {
+                        setTimeout(() => pollExportJob(jobId), 2000);
+                    }
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'Error en el seguimiento del reporte.', 'error');
+                    exportBtn.disabled = false;
+                });
+        }
+
+        window.onload = () => {
+            fetchParetoData();
+            fetchAlertsData();
+
+            setInterval(fetchAlertsData, 60000);
+
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    exportBtn.disabled = true;
+                    exportBtn.innerText = "Generando...";
+
+                    Swal.fire({
+                        title: 'Analizando Inventario',
+                        text: 'Preparando métricas de Pareto y stock crítico...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            pollExportJob(data.job_id);
+                        })
+                        .catch(() => {
+                            Swal.fire('Error', 'No se pudo iniciar la exportación del inventario.', 'error');
+                            exportBtn.disabled = false;
+                        });
+                });
+            }
+         };
+
+         // --- Global Alerts History ---
+         window.showAlertsHistory = function() {
+            Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire({
+                        title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                        html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                            ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
+                                <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                            </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                        </div>`,
+                        confirmButtonText: 'Entendido', confirmButtonColor: '#10b981', width: '450px'
+                    });
+                });
+         }
+    </script>
+</body>
+</html>

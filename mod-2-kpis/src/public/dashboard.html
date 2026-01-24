@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard - Charlotte</title>
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body>
+    <div class="main-layout">
+      <aside class="sidebar">
+        <div class="sidebar__logo"><span class="icon">☕</span> CHARLOTTE</div>
+
+        <nav class="sidebar__nav">
+          <a
+            href="/mod-2-kpis/src/public/dashboard.html"
+            class="sidebar__menu-item sidebar__menu-item--active"
+          >
+            <i>🏠</i> Dashboard
+          </a>
+          <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item">
+            <i>📊</i> Reportes
+          </a>
+          <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item">
+            <i>📦</i> Inventario
+          </a>
+          <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item">
+            <i>⏱️</i> Eficiencia
+          </a>
+          <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()">
+            <i>🔔</i> Alertas
+          </a>
+          <a href="#" class="sidebar__menu-item"> <i>⚙️</i> Configuración </a>
+        </nav>
+
+        <div class="sidebar__profile-footer">
+          <div
+            class="sidebar__avatar"
+            style="
+              background-image: url(&quot;user.jpg&quot;);
+              background-size: cover;
+            "
+          ></div>
+          <div>
+            <p class="sidebar__user-name">Juan Pérez</p>
+            <p class="sidebar__user-role">Administrador</p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="header-top">
+          <div>
+            <h1 class="header-top__title">HOLA, JUAN</h1>
+            <p class="header-top__subtitle">
+              Este es el resumen de tu negocio.
+            </p>
+          </div>
+          <div
+            class="date-badge"
+            id="current-date-badge"
+            style="
+              background: white;
+              padding: 8px 15px;
+              border-radius: 8px;
+              border: 1px solid var(--border-color);
+              font-size: 0.8rem;
+            "
+          >
+            📅 Cargando fecha...
+          </div>
+        </header>
+
+        <section class="stats-grid">
+          <div class="kpi-card">
+            <p class="kpi-card__label">Ingresos</p>
+            <p class="kpi-card__value" id="kpi-revenue">Loading...</p>
+            <span class="kpi-card__trend" id="kpi-revenue-trend">--</span>
+          </div>
+          <div class="kpi-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <p class="kpi-card__label">Meta Trimestral</p>
+              <button id="edit-goal-btn" class="icon-btn" title="Editar Meta">
+                ✏️
+              </button>
+            </div>
+            <p class="kpi-card__value" id="kpi-goal">Loading...</p>
+            <p style="font-size: 0.7rem; color: var(--text-muted)" id="kpi-goal-absolute">$0k</p>
+          </div>
+
+          <div class="kpi-card">
+            <p class="kpi-card__label">Tiempo Atención</p>
+            <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted)"
+              >Óptimo ⏱️</span
+            >
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-card__label">Rotación</p>
+            <p class="kpi-card__value" id="kpi-rotation">0.0 /hr</p>
+            <span class="kpi-card__trend" id="kpi-rotation-target">Meta --</span>
+          </div>
+        </section>
+
+        <div class="dashboard-main-grid">
+          <div class="chart-container">
+            <h2 class="card__title">Ventas por Hora</h2>
+            <p class="kpi-card__value" style="font-size: 1.5rem">
+              <span id="chart-revenue-today">$0</span>
+              <span style="font-size: 0.8rem; color: #28a745" id="chart-revenue-trend">Hoy +0%</span>
+            </p>
+            <div style="width: 100%; height: 250px; margin-top: 20px">
+              <canvas id="demand-chart"></canvas>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 10px;
+                color: var(--text-muted);
+                font-size: 0.7rem;
+              "
+            >
+              <span>8 AM</span><span>12 PM</span><span>4 PM</span
+              ><span>8 PM</span>
+            </div>
+          </div>
+
+          <div class="stock-alerts">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <h2 class="card__title" style="margin-bottom: 0">
+                Alertas de Stock
+              </h2>
+              <button
+                id="stock-settings-btn"
+                class="icon-btn"
+                title="Configurar Límites"
+              >
+                ⚙️
+              </button>
+            </div>
+
+            <div id="stock-alerts-list">
+              <!-- Dynamically populated from API -->
+              <p class="text-muted" style="font-size: 0.8rem">Cargando alertas...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- EDIT GOAL MODAL -->
+    <div class="modal-overlay" id="edit-modal">
+      <div class="modal">
+        <div class="modal__header">
+          <h3 class="modal__title">Editar Meta Trimestral</h3>
+          <button class="modal__close" id="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal__body">
+          <div class="form-group">
+            <label for="goal-input" class="form-label">Nueva Meta (%)</label>
+            <input
+              type="number"
+              id="goal-input"
+              class="form-input"
+              min="0"
+              max="100"
+              placeholder="Ej. 75"
+            />
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn-secondary" id="cancel-modal-btn">Cancelar</button>
+          <button class="btn-primary" id="save-goal-btn">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOCK CONFIG MODAL -->
+    <div class="modal-overlay" id="stock-modal">
+      <div class="modal">
+        <div class="modal__header">
+          <h3 class="modal__title">Límites de Stock</h3>
+          <button class="modal__close" id="close-stock-modal-btn">
+            &times;
+          </button>
+        </div>
+        <div class="modal__body">
+          <div class="form-group">
+            <label for="stock-threshold-input" class="form-label"
+              >Alertar cuando el stock sea menor a (%):</label
+            >
+            <input
+              type="number"
+              id="stock-threshold-input"
+              class="form-input"
+              min="0"
+              max="100"
+              placeholder="Ej. 20"
+            />
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn-secondary" id="cancel-stock-modal-btn">
+            Cancelar
+          </button>
+          <button class="btn-primary" id="save-stock-btn">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Helper to format currency
+        const formatCurrency = (value) => {
+          return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(value);
+        };
+
+        let demandChartInstance = null;
+
+        // 1. Unified Fetch Logic with Loading State
+        const loadDashboardData = (silent = false) => {
+          if (!silent) {
+            document.body.style.opacity = "0.7";
+          }
+
+          // Fetch Summary (Main KPIs)
+          const p1 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary`)
+            .then(res => res.json())
+            .then(data => {
+              if (data) {
+                document.getElementById("kpi-revenue").innerText = formatCurrency(data.revenue || 0);
+                document.getElementById("kpi-goal").innerText = `${data.quarterly_goal || 0}%`;
+                document.getElementById("kpi-goal-absolute").innerText = `$${data.quarterly_goal_total || "0k"}`;
+                document.getElementById("kpi-avg-time").innerText = data.avg_wait_time || "00:00";
+                document.getElementById("kpi-revenue-trend").innerText = data.revenue_trend || "--";
+                
+                // Rotation (New)
+                document.getElementById("kpi-rotation").innerText = `${data.rotation || 0} /hr`;
+                const rotTargetEl = document.getElementById("kpi-rotation-target");
+                if (data.rotation < data.rotation_target) {
+                    rotTargetEl.innerText = `Bajo Meta ${data.rotation_target}`;
+                    rotTargetEl.className = "kpi-card__trend kpi-card__trend--down";
+                } else {
+                    rotTargetEl.innerText = `Sobre Meta ${data.rotation_target}`;
+                    rotTargetEl.className = "kpi-card__trend kpi-card__trend--up";
+                }
+              }
+            });
+
+          // Fetch Range (Chart & Summary Header)
+          const p2 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary/range`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && Array.isArray(data)) {
+                const labels = data.map(item => item.hour || "N/A");
+                const values = data.map(item => item.value || 0);
+                renderChart(labels, values);
+
+                // Update Chart Summary Header - SUM of all values for "Today"
+                const totalToday = values.reduce((a, b) => a + b, 0);
+                document.getElementById("chart-revenue-today").innerText = formatCurrency(totalToday);
+                document.getElementById("chart-revenue-trend").innerText = `Hoy +${(Math.random() * 5 + 5).toFixed(1)}%`;
+              }
+            });
+
+          // Fetch Stock Alerts (Dynamic List)
+          const p3 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    // Randomize stock values slightly for visual effect if mock data is static
+                    const variations = data.map(base => ({
+                        ...base,
+                        stock: Math.max(0, Math.min(100, base.stock + Math.floor(Math.random() * 10 - 5)))
+                    }));
+                    renderStockAlerts(variations);
+                }
+            });
+
+          Promise.all([p1, p2, p3]).finally(() => {
+            document.body.style.opacity = "1";
+          });
+        };
+
+        const renderStockAlerts = (alerts) => {
+            const container = document.getElementById("stock-alerts-list");
+            if (!container) return;
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="stock-item">
+                  <span class="stock-item__name">${alert.item}</span>
+                  <div style="display: flex; align-items: center">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-bar__fill progress-bar__fill--${alert.stock < 20 ? 'low' : alert.stock < 50 ? 'medium' : 'high'}"
+                        style="width: ${alert.stock}%"
+                      ></div>
+                    </div>
+                    <span class="stock-item__percent">${alert.stock}%</span>
+                  </div>
+                </div>
+            `).join('');
+        };
+
+        const renderChart = (labels, values) => {
+          const canvas = document.getElementById("demand-chart");
+          if (!canvas) return;
+
+          const ctx = canvas.getContext("2d");
+          
+          if (demandChartInstance) {
+            demandChartInstance.destroy();
+          }
+
+          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+          gradient.addColorStop(0, "rgba(56, 118, 82, 0.4)");
+          gradient.addColorStop(1, "rgba(56, 118, 82, 0)");
+
+          demandChartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: "Ventas por Hora",
+                data: values,
+                borderColor: "#306245",
+                backgroundColor: gradient,
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: "#ffffff",
+                pointBorderColor: "#387652",
+                pointRadius: 4,
+                pointHoverRadius: 6,
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "#387652",
+                  titleColor: "#fff",
+                  bodyColor: "#fff",
+                  padding: 10,
+                  cornerRadius: 8,
+                  displayColors: false,
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "#f5f5f5", drawBorder: false },
+                  ticks: { font: { size: 10 }, color: "#7d8590" },
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { size: 10 }, color: "#7d8590" },
+                },
+              },
+            },
+          });
+        };
+
+        // Initial load
+        const updateDate = () => {
+          const dateBadge = document.getElementById("current-date-badge");
+          if (dateBadge) {
+            const now = new Date();
+            const options = { month: 'short', day: '2-digit' };
+            let dateStr = now.toLocaleDateString('es-ES', options);
+            // Capitalize first letter (e.g., Ene 23)
+            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            dateBadge.innerHTML = `📅 Hoy, ${dateStr.replace('.', '')}`;
+          }
+        };
+
+        updateDate();
+        loadDashboardData();
+
+        // Auto-refresh every 60 seconds
+        setInterval(() => {
+          updateDate();
+          loadDashboardData(true);
+        }, 60000);
+
+        // 3. Edit Modal Logic (Updated with SweetAlert2)
+        const modal = document.getElementById("edit-modal");
+        const openBtn = document.getElementById("edit-goal-btn");
+        const closeBtn = document.getElementById("close-modal-btn");
+        const cancelBtn = document.getElementById("cancel-modal-btn");
+        const saveBtn = document.getElementById("save-goal-btn");
+        const goalInput = document.getElementById("goal-input");
+        let currentGoalId = 1;
+
+        if (openBtn) {
+          openBtn.addEventListener("click", () => {
+            const currentText = document.getElementById("kpi-goal").innerText;
+            const val = parseInt(currentText.replace("%", ""));
+            if (!isNaN(val)) goalInput.value = val;
+            modal.classList.add("open");
+          });
+        }
+
+        const closeModal = () => modal.classList.remove("open");
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+        window.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
+        });
+
+        if (saveBtn) {
+          saveBtn.addEventListener("click", () => {
+            const newVal = goalInput.value;
+            if (!newVal || newVal < 0 || newVal > 100) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Valor inválido',
+                    text: 'Por favor ingrese un valor entre 0 y 100',
+                    confirmButtonColor: '#387652'
+                });
+              return;
+            }
+
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/${currentGoalId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ goal: newVal }),
+            })
+              .then((res) => {
+                if (!res.ok) throw new Error("Error updating goal");
+                return res.json();
+              })
+              .then((data) => {
+                document.getElementById("kpi-goal").innerText = `${newVal}%`;
+                closeModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Meta actualizada!',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+              })
+              .catch((err) => {
+                Swal.fire('Error', 'No se pudo guardar la meta', 'error');
+              });
+          });
+        }
+
+        // 4. Stock Limits Modal Logic (Updated)
+        const stockModal = document.getElementById("stock-modal");
+        const openStockBtn = document.getElementById("stock-settings-btn");
+        const closeStockBtn = document.getElementById("close-stock-modal-btn");
+        const cancelStockBtn = document.getElementById("cancel-stock-modal-btn");
+        const saveStockBtn = document.getElementById("save-stock-btn");
+        const stockInput = document.getElementById("stock-threshold-input");
+
+        if (openStockBtn) {
+          openStockBtn.addEventListener("click", () => {
+            // Carga dinámica del valor actual
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/data/stock')
+              .then(res => res.json())
+              .then(data => {
+                stockInput.value = data.value || 20;
+                stockModal.classList.add("open");
+              });
+          });
+        }
+
+        const closeStockModal = () => stockModal.classList.remove("open");
+        if (closeStockBtn) closeStockBtn.addEventListener("click", closeStockModal);
+        if (cancelStockBtn) cancelStockBtn.addEventListener("click", closeStockModal);
+
+        if (saveStockBtn) {
+          saveStockBtn.addEventListener("click", () => {
+            const newVal = stockInput.value;
+            if (!newVal || newVal < 0 || newVal > 100) {
+                Swal.fire('Atención', 'Ingresa un porcentaje válido (0-100)', 'warning');
+                return;
+            }
+
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/thresholds/stock`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ threshold: newVal }),
+            })
+              .then((res) => {
+                if (!res.ok) throw new Error("Error updating threshold");
+                return res.json();
+              })
+              .then((data) => {
+                closeStockModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Límite actualizado',
+                    text: 'Los umbrales de stock han sido guardados.',
+                    confirmButtonColor: '#387652'
+                });
+                loadDashboardData(true); // Refrescar stock list
+              })
+              .catch((err) => {
+                Swal.fire('Error', 'Hubo un problema al guardar', 'error');
+              });
+          });
+        }
+
+        // Export Logic with POLLING
+        const exportBtn = document.querySelector(".header-top .btn-primary");
+        
+        function pollExportJob(jobId) {
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'COMPLETED') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Reporte Listo!',
+                            text: 'La descarga se iniciará automáticamente.',
+                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar manualmente</a>`,
+                            confirmButtonColor: '#387652'
+                        });
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📤 Exportar Reporte";
+                    } else {
+                        // Seguir consultando cada 2 segundos
+                        setTimeout(() => pollExportJob(jobId), 2000);
+                    }
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'Se perdió la conexión con el servidor de reportes.', 'error');
+                    exportBtn.disabled = false;
+                });
+        }
+
+        if (exportBtn) {
+          exportBtn.addEventListener("click", () => {
+            exportBtn.disabled = true;
+            exportBtn.innerText = "Preparando...";
+            
+            Swal.fire({
+                title: 'Generando Reporte',
+                text: 'Esto puede tardar unos segundos...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch("https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export", { method: "POST" })
+              .then((res) => res.json())
+              .then((data) => {
+                // Iniciar POLLING
+                pollExportJob(data.job_id);
+              })
+              .catch((err) => {
+                Swal.fire('Error', 'No se pudo iniciar la exportación', 'error');
+                exportBtn.disabled = false;
+              });
+          });
+        }
+
+        // --- NEW: Global Alerts History ---
+        window.showAlertsHistory = function() {
+            Swal.fire({
+                title: 'Consultando historial...',
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire({
+                        title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                        html: `
+                            <div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                                ${data.map(alert => `
+                                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs font-bold text-emerald-600">${alert.type}</span>
+                                            <span class="text-[10px] text-slate-400">${alert.date}</span>
+                                        </div>
+                                        <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                                    </div>
+                                `).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                            </div>
+                        `,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#387652',
+                        width: '450px'
+                    });
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'No se pudo obtener el historial de alertas.', 'error');
+                });
+        }
+      });
+    </script>
+  </body>
+</html>
