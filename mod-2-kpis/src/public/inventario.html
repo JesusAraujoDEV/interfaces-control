@@ -72,7 +72,7 @@
     <script>
         async function fetchParetoData() {
             try {
-                const response = await fetch('/inventory/pareto');
+                const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/inventory/pareto');
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
                 if (data.top_products) {
@@ -87,7 +87,7 @@
         // Función para obtener datos de alertas
         async function fetchAlertsData() {
             try {
-                const response = await fetch('/inventory/alerts'); 
+                const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/inventory/alerts'); 
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
                 renderAlertsPanel(data);
@@ -238,7 +238,7 @@
             });
 
             try {
-                const res = await fetch(`/inventory/items/${itemId}`);
+                const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/inventory/items/${itemId}`);
                 const data = await res.json();
                 
                 Swal.fire({
@@ -294,7 +294,7 @@
         const exportBtn = document.querySelector('.header-top .btn-primary');
 
         function pollExportJob(jobId) {
-            fetch(`/reports/jobs/${jobId}`)
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/reports/jobs/${jobId}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'COMPLETED') {
@@ -335,7 +335,7 @@
                         didOpen: () => Swal.showLoading()
                     });
 
-                    fetch('/reports/export', { method: 'POST' })
+                    fetch('https://charlotte-indicadores-kpi.onrender.com/reports/export', { method: 'POST' })
                         .then(res => res.json())
                         .then(data => {
                             pollExportJob(data.job_id);
@@ -351,7 +351,7 @@
          // --- Global Alerts History ---
          window.showAlertsHistory = function() {
             Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-            fetch('/alerts/history')
+            fetch('https://charlotte-indicadores-kpi.onrender.com/alerts/history')
                 .then(res => res.json())
                 .then(data => {
                     Swal.fire({
