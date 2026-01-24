@@ -18,26 +18,6 @@ function sendKpiView(res, fileName) {
 }
 
 // --- VISTAS DEL MÓDULO KPI ---
-router.get(['/kpis', '/kpis/'], (req, res) => {
-    sendKpiView(res, 'dashboard.html');
-});
-
-router.get(['/kpis/dashboard', '/kpis/dashboard/'], (req, res) => {
-    sendKpiView(res, 'dashboard.html');
-});
-
-router.get(['/kpis/business-intelligence', '/kpis/business-intelligence/'], (req, res) => {
-    sendKpiView(res, 'bussines-intelligence.html');
-});
-
-router.get(['/kpis/eficiencia-operacional', '/kpis/eficiencia-operacional/'], (req, res) => {
-    sendKpiView(res, 'eficiencia-operacional.html');
-});
-
-router.get(['/kpis/inventario', '/kpis/inventario/'], (req, res) => {
-    sendKpiView(res, 'inventario.html');
-});
-
 router.get('/mod-2-kpis/src/public/dashboard.html', (req, res) => {
     sendKpiView(res, 'dashboard.html');
 });
