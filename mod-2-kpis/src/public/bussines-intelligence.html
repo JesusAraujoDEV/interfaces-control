@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informes Históricos - Charlotte</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -34,16 +34,16 @@
             </div>
 
             <nav class="sidebar__nav">
-                <a href="dashboard.html" class="sidebar__menu-item">
+                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item">
                     <span>🏠</span> Dashboard
                 </a>
-                <a href="bussines-intelligence.html" class="sidebar__menu-item sidebar__menu-item--active">
+                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item sidebar__menu-item--active">
                     <span>📊</span> Business Intelligence
                 </a>
-                <a href="inventario.html" class="sidebar__menu-item">
+                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item">
                     <span>📦</span> Inventario
                 </a>
-                <a href="eficiencia-operacional.html" class="sidebar__menu-item">
+                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item">
                     <span>⏱️</span> Eficiencia
                 </a>
                 <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()">
@@ -166,7 +166,7 @@
 
                         // 1. Unified Fetch Logic
                         const fetchTransactions = (search = "", startDate = null, endDate = null) => {
-                            let url = `/api/v1/kpi/business/transactions?search=${search}`;
+                            let url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/business/transactions?search=${search}`;
                             if (startDate) url += `&start_date=${startDate}`;
                             if (endDate) url += `&end_date=${endDate}`;
 
@@ -324,7 +324,7 @@
                         const exportBtn = document.querySelector('.header-top .btn-primary');
                         
                         function pollExportJob(jobId) {
-                            fetch(`/reports/jobs/${jobId}`)
+                            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
                                 .then(res => res.json())
                                 .then(data => {
                                     if (data.status === 'COMPLETED') {
@@ -359,7 +359,7 @@
                                     didOpen: () => Swal.showLoading()
                                 });
 
-                                fetch('/reports/export', { 
+                                fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { 
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
@@ -380,7 +380,7 @@
                     // --- Global Alerts History ---
                     window.showAlertsHistory = function() {
                         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-                        fetch('/alerts/history')
+                        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
                             .then(res => res.json())
                             .then(data => {
                                 Swal.fire({

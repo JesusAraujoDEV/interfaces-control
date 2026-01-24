@@ -12,6 +12,28 @@ const router = Router()
 router.use(json()); // Support JSON bodies
 router.use(static(join(__dirname, 'public')));
 
+function sendKpiView(res, fileName) {
+    res.setHeader('Cache-Control', 'no-store');
+    res.sendFile(join(__dirname, 'public', fileName));
+}
+
+// --- VISTAS DEL MÓDULO KPI ---
+router.get('/mod-2-kpis/src/public/dashboard.html', (req, res) => {
+    sendKpiView(res, 'dashboard.html');
+});
+
+router.get('/mod-2-kpis/src/public/bussines-intelligence.html', (req, res) => {
+    sendKpiView(res, 'bussines-intelligence.html');
+});
+
+router.get('/mod-2-kpis/src/public/eficiencia-operacional.html', (req, res) => {
+    sendKpiView(res, 'eficiencia-operacional.html');
+});
+
+router.get('/mod-2-kpis/src/public/inventario.html', (req, res) => {
+    sendKpiView(res, 'inventario.html');
+});
+
 
 // --- 1. AUTENTICACIÓN ---
 router.post('/auth/login', (req, res) => {

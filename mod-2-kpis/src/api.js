@@ -1,7 +1,7 @@
 const { create } = require("axios");
 
 const api = create({
-    baseURL: "http://localhost:3000/api/v1/kpi",
+    baseURL: "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi",
     headers: {
         "Content-Type": "application/json",
     },
