@@ -35,47 +35,9 @@
 </head>
 
 <body class="bg-brand-50 min-h-screen text-gray-800 font-sans">
-  <header class="site-header" data-header>
-    <div class="container header__row">
-      <a class="brand" href="./" aria-label="Charlotte Bistró">
-        <img class="brand__logo" src="/assets/charlotte_logo.png" alt="Charlotte Bistró" width="64" height="64"
-          loading="eager" />
-        <span class="brand__text">
-          <span class="brand__name">Charlotte Bistró</span>
-          <span class="brand__tagline">DONDE EL SABOR TOMA LA RUTA</span>
-        </span>
-      </a>
+  <charlotte-header></charlotte-header>
 
-      <nav class="nav nav--desktop" aria-label="Navegación principal">
-        <a href="/menu">Menú</a>
-        <a href="#location">Ubicación</a>
-        <a href="#contact">Contacto</a>
-        <span class="nav__pill" title="Standort">Carne Smash</span>
-      </nav>
-
-      <!-- header badge removed -->
-
-      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav">
-        <span class="menu-toggle__label">Menú</span>
-        <span class="menu-toggle__icon" aria-hidden="true"></span>
-      </button>
-    </div>
-
-    <nav id="mobile-nav" class="nav nav--mobile" data-mobile-nav hidden aria-label="Navegación móvil">
-      <div class="container nav__mobile-inner">
-        <a href="#menu" data-close-menu>Menú</a>
-        <a href="#location" data-close-menu>Ubicación</a>
-        <a href="#contact" data-close-menu>Contacto</a>
-        <div class="nav__mobile-footer">
-          <span class="nav__pill" title="Ubicación">Quinta CHARLOTTE</span>
-          <img src="https://foodiewagon.de/graphics/aura%20logo.svg" alt="100% aura" width="48" height="48"
-            loading="lazy" />
-        </div>
-      </div>
-    </nav>
-  </header>
-
-  <div class="max-w-4xl mx-auto px-6">
+  <div class="max-w-4xl mx-auto px-6" style="padding-top: 88px;">
     <div class="flex justify-end">
       <button id="viewCartBtn" type="button"
         class="bg-white border border-gray-200 text-gray-900 px-4 py-2 rounded-full font-semibold shadow-sm">
@@ -192,6 +154,7 @@
     </div>
   </div>
 
+  <script type="module" src="/shared/components/charlotte-header.js"></script>
   <script type="module" src="/landing/script.js"></script>
   <script type="module" src="/shared/components/app-header.js"></script>
   <script type="module" src="/mod-1-delivery-pickup/pages/checkout/page.js"></script>
