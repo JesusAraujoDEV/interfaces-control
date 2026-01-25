@@ -5,6 +5,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Seguimiento de Pedido — Charlotte</title>
+
+  <!-- Fonts (Oswald + Playfair Display) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+
   <link rel="stylesheet" href="/shared/styles/global.css">
   <link rel="stylesheet" href="/landing/styles.css" />
   <link rel="stylesheet" href="/mod-1-delivery-pickup/pages/order-tracking/page.css">
@@ -37,7 +45,7 @@
 <body class="bg-brand-50 min-h-screen text-gray-800 font-sans">
   <charlotte-header></charlotte-header>
 
-  <main class="max-w-6xl mx-auto px-6 py-12" style="padding-top: 88px;">
+  <main class="max-w-6xl mx-auto px-6 py-6" style="padding-top: 88px;">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <section class="lg:col-span-2">
         <h1 id="orderTitle" class="text-4xl font-extrabold text-gray-900">Seguimiento de Pedido</h1>
@@ -116,7 +124,7 @@
       </aside>
     </div>
   </main>
-  <script type="module" src="/shared/components/charlotte-header.js"></script>
+  <script type="module" src="/shared/components/charlotte-header.js?v=2.0"></script>
   <script type="module" src="/landing/script.js"></script>
   <script type="module" src="/shared/components/app-header.js"></script>
   <script src="/mod-1-delivery-pickup/pages/order-tracking/page.js"></script>

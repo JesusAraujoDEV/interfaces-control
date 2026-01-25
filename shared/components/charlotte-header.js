@@ -1,11 +1,13 @@
 /**
- * Charlotte Header Web Component
+ * Charlotte Header Web Component v2.0
  * Componente reutilizable del header con navegación y menú móvil
+ * IMPORTANTE: El header usa la clase 'container' para centrarse y tener ancho máximo
  */
 class CharlotteHeader extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <header class="site-header" data-header>
+    connectedCallback() {
+        // Renderizar el header con container centrado
+        this.innerHTML = `
+      <header class="site-header" data-header style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
         <div class="container header__row">
           <a class="brand" href="/" aria-label="Charlotte Bistró">
             <img
@@ -56,7 +58,7 @@ class CharlotteHeader extends HTMLElement {
         </nav>
       </header>
     `;
-  }
+    }
 }
 
 // Registrar el componente
