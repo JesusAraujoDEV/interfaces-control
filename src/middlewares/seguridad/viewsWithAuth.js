@@ -21,7 +21,7 @@ const viewsWithAuth = async (req, res, next) => {
 
   if (rutaSolicitada === "/seguridad/login") {
     if (req.user) {
-      return res.redirect("/shared/admin-home/index.html");
+      return res.redirect("/admin");
     }
   }
 
