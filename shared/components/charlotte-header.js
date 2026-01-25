@@ -8,7 +8,7 @@ class CharlotteHeader extends HTMLElement {
         // Renderizar el header con container centrado
         this.innerHTML = `
       <header class="site-header" data-header style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
-        <div class="container header__row">
+        <div class="header__inner header__row" style="width: min(var(--container,1120px), calc(100% - 32px)); margin-inline: auto; padding-inline: 16px;">
           <a class="brand" href="/" aria-label="Charlotte Bistró">
             <img
               class="brand__logo"
@@ -40,7 +40,7 @@ class CharlotteHeader extends HTMLElement {
         </div>
 
         <nav id="mobile-nav" class="nav nav--mobile" data-mobile-nav hidden aria-label="Navegación móvil">
-          <div class="container nav__mobile-inner">
+          <div class="nav__mobile-inner header__inner" style="width: min(var(--container,1120px), calc(100% - 32px)); margin-inline: auto; padding-inline: 16px;">
             <a href="/menu" data-close-menu>Menú</a>
             <a href="#location" data-close-menu>Ubicación</a>
             <a href="#contact" data-close-menu>Contacto</a>
