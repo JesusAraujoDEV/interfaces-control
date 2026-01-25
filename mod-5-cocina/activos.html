@@ -58,9 +58,17 @@
         </nav>
 
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link">
-                <i data-lucide="log-out"></i> Cerrar Sesión
-            </a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
 
@@ -68,8 +76,7 @@
         <header class="header">
             <h1 class="header__title">Gestión de Activos Fijos</h1>
             <div class="header__actions">
-                <button class="btn btn--secondary" id="addAssetBtn">Añadir Nuevo Activo</button>
-                <button class="btn btn--primary"><i data-lucide="clipboard-check"></i> Auditar Activos</button>
+                <button class="btn btn--primary" id="addAssetBtn">Añadir Nuevo Activo</button>
             </div>
         </header>
 
@@ -102,23 +109,24 @@
             <form id="newAssetForm" class="modal__form">
                 <div class="form-group">
                     <label for="assetName">Nombre del Activo</label>
-                    <input type="text" id="assetName" name="name" required>
+                    <input type="text" id="assetName" name="name" required minlength="1">
                 </div>
                 <div class="form-group">
                     <label for="assetTotal">Total</label>
-                    <input type="number" id="assetTotal" name="total" min="1" required>
+                    <input type="number" id="assetTotal" name="totalQuantity" min="0" required>
                 </div>
                 <div class="form-group">
                     <label for="assetStatus">Estado</label>
                     <select id="assetStatus" name="status" required>
                         <option value="OPERATIONAL">Operativo</option>
+                        <option value="UNDER_MAINTENANCE">En Mantenimiento</option>
                         <option value="DAMAGED">Dañado</option>
                         <option value="LOST">Perdido</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="assetImage">URL de Imagen (opcional)</label>
-                    <input type="url" id="assetImage" name="image_url" placeholder="https://...">
+                    <label for="assetNotes">Notas (Opcional)</label>
+                    <textarea id="assetNotes" name="notes" rows="3"></textarea>
                 </div>
                 <div class="modal__actions">
                     <button type="button" class="btn btn--secondary" id="cancelNewAssetBtn">Cancelar</button>
@@ -163,136 +171,67 @@
         </div>
     </div>
 
-    </script>
-
     <script>
-        // Cargar activos y renderizar cards
+        // --- Modals Logic with Animation ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+                // Small timeout to allow display block to apply before adding class for opacity transition
+                setTimeout(() => {
+                    modal.classList.add('modal--active');
+                }, 10);
+            }
+        }
+
+        function closeModalFn(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('modal--active');
+                setTimeout(() => {
+                    if (!modal.classList.contains('modal--active')) {
+                        modal.style.display = 'none';
+                    }
+                }, 300); // Wait for transition
+            }
+        }
+
+        // --- Assets Logic ---
+
         async function loadAssets() {
             const container = document.getElementById('assetsGrid');
-            container.innerHTML = ''; // limpiar
+            container.innerHTML = '';
             try {
                 const resp = await fetch(`${KITCHEN_URL}/assets`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
                 if (!resp.ok) throw new Error(`Error: ${resp.status}`);
-                const assets = await resp.json();
-                if (!Array.isArray(assets) || assets.length === 0) {
-                    container.innerHTML = '<p>No hay activos registrados.</p>';
+                const data = await resp.json();
+                const assets = Array.isArray(data) ? data : (data.data || []);
+
+                if (assets.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">No hay activos registrados.</p>';
                     return;
                 }
 
-                assets.forEach(a => {
-                    const status = (a.status || '').toUpperCase();
-                    let badgeClass = 'badge--warning';
-                    let badgeText = status;
-                    if (status === 'OPERATIONAL') {
-                        badgeClass = 'badge--success';
-                        badgeText = 'Operativo';
-                    } else if (status === 'DAMAGED') {
-                        badgeClass = 'badge--danger';
-                        badgeText = 'Dañado';
-                    } else if (status === 'LOST' || status === 'MISSING') {
-                        badgeClass = 'badge--danger';
-                        badgeText = 'Perdido';
-                    }
-
-                    const img = a.image_url || a.photo || 'https://via.placeholder.com/400x300?text=Activo';
-                    const title = a.name || a.title || 'Activo';
-                    const total = a.total != null ? a.total : (a.totalQuantity || 0);
-
-                    const article = document.createElement('article');
-                    article.className = 'asset-card';
-                    article.innerHTML = `
-                        <div class="asset-card__image-wrapper">
-                            <img src="${img}" alt="${title}" class="asset-card__img">
-                        </div>
-                        <div class="asset-card__content">
-                            <h3 class="asset-card__title">${title}</h3>
-                            <p class="asset-card__total">Total: <span class="total-count">${total}</span></p>
-                            <span class="badge ${badgeClass}">${badgeText}</span>
-                            <button class="btn btn--small report-incident-btn" data-id="${a.id}">Reportar Incidente</button>
-                            <button class="btn btn--small view-history-btn" data-id="${a.id}">Ver Historial</button>
-                        </div>
-                    `;
-                    container.appendChild(article);
-                });
+                assets.forEach(a => addAssetCard(a));
             } catch (err) {
                 console.error('Error cargando activos:', err);
-                container.innerHTML = '<p>Error cargando activos. Revisa la consola.</p>';
+                container.innerHTML = '<p style="color:red;">Error cargando activos. Revisa la conexión.</p>';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadAssets);
-
-        // Modal para nuevo activo
-        const newAssetModal = document.getElementById('newAssetModal');
-        const newAssetForm = document.getElementById('newAssetForm');
-        const closeNewAssetModal = document.getElementById('closeNewAssetModal');
-        const cancelNewAssetBtn = document.getElementById('cancelNewAssetBtn');
-        const addAssetBtn = document.getElementById('addAssetBtn');
-
-        // Abrir modal
-        addAssetBtn.addEventListener('click', () => {
-            newAssetModal.style.display = 'block';
-        });
-
-        // Cerrar modal
-        closeNewAssetModal.addEventListener('click', () => {
-            newAssetModal.style.display = 'none';
-        });
-
-        cancelNewAssetBtn.addEventListener('click', () => {
-            newAssetModal.style.display = 'none';
-        });
-
-        // Enviar formulario
-        newAssetForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const formData = new FormData(newAssetForm);
-            const payload = {
-                name: formData.get('name'),
-                total: parseInt(formData.get('total')),
-                status: formData.get('status'),
-                image_url: formData.get('image_url') || null
-            };
-
-            try {
-                const response = await fetch(`${KITCHEN_URL}/assets`, {
-                    method: 'POST',
-                    headers: getCommonHeaders(),
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
-
-                const newAsset = await response.json();
-                // Agregar la nueva tarjeta al grid
-                addAssetCard(newAsset);
-
-                // Cerrar modal y resetear
-                newAssetModal.style.display = 'none';
-                newAssetForm.reset();
-            } catch (error) {
-                console.error('Error creando activo:', error);
-                // Opcional: mostrar mensaje de error
-            }
-        });
-
-        // Función para agregar una tarjeta de activo al grid
         function addAssetCard(asset) {
             const container = document.getElementById('assetsGrid');
-            // Si había mensaje vacío, limpiarlo
-            if (container.innerHTML.includes('No hay activos')) {
+            if (container.innerHTML.includes('No hay activos') || container.innerHTML.includes('Error')) {
                 container.innerHTML = '';
             }
 
             const status = (asset.status || '').toUpperCase();
             let badgeClass = 'badge--warning';
             let badgeText = status;
+
             if (status === 'OPERATIONAL') {
                 badgeClass = 'badge--success';
                 badgeText = 'Operativo';
@@ -302,90 +241,154 @@
             } else if (status === 'LOST') {
                 badgeClass = 'badge--danger';
                 badgeText = 'Perdido';
+            } else if (status === 'UNDER_MAINTENANCE') {
+                badgeClass = 'badge--warning';
+                badgeText = 'Mantenimiento';
             }
 
-            const img = asset.image_url || asset.photo || 'https://via.placeholder.com/400x300?text=Activo';
-            const title = asset.name || asset.title || 'Activo';
-            const total = asset.total != null ? asset.total : (asset.quantity || 0);
+            const title = asset.name || 'Activo sin nombre';
+            const total = asset.totalQuantity != null ? asset.totalQuantity : (asset.total || 0);
 
             const article = document.createElement('article');
             article.className = 'asset-card';
+            // Layout without image
             article.innerHTML = `
-                <div class="asset-card__image-wrapper">
-                    <img src="${img}" alt="${title}" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">${title}</h3>
-                    <p class="asset-card__total">Total: <span class="total-count">${total}</span></p>
-                    <span class="badge ${badgeClass}">${badgeText}</span>
-                    <button class="btn btn--small report-incident-btn" data-id="${asset.id}">Reportar Incidente</button>
-                    <button class="btn btn--small view-history-btn" data-id="${asset.id}">Ver Historial</button>
+                <div class="asset-card__content" style="padding: 1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 1rem;">
+                        <h3 class="asset-card__title" style="margin:0; font-size: 1.1rem; font-weight: 600;">${title}</h3>
+                        <span class="badge ${badgeClass}" style="font-size: 0.75rem;">${badgeText}</span>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                         <p class="asset-card__total" style="font-size: 0.9rem; color: var(--text-muted);">
+                            Total: <strong class="total-count" style="color: var(--text-main); font-size: 1.2rem;">${total}</strong>
+                        </p>
+                        ${asset.notes ? `<p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic;">${asset.notes}</p>` : ''}
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                        <button class="btn btn--small report-incident-btn" data-id="${asset.id}" style="flex:1;">
+                            <i data-lucide="alert-triangle" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Reportar
+                        </button>
+                        <button class="btn btn--small view-history-btn" data-id="${asset.id}" style="flex:1;">
+                             <i data-lucide="history" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Historial
+                        </button>
+                    </div>
                 </div>
             `;
             container.appendChild(article);
-        }
-    </script>
 
-    <script>
-        // Función para obtener usuario logueado
-        function getLoggedUser() {
-            // Asumir que está en localStorage o parsear JWT
-            const token = localStorage.getItem('jwt_token');
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    return payload.username || payload.email || 'Usuario';
-                } catch (e) {
-                    return 'Admin';
-                }
+            // Re-render icons for this element if needed
+            if (window.lucide) window.lucide.createIcons({ root: article });
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', loadAssets);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        // --- New Asset Modal ---
+        const newAssetModal = document.getElementById('newAssetModal');
+        const newAssetForm = document.getElementById('newAssetForm');
+        document.getElementById('addAssetBtn').addEventListener('click', () => {
+            newAssetForm.reset();
+            openModal('newAssetModal');
+        });
+        document.getElementById('closeNewAssetModal').addEventListener('click', () => closeModalFn('newAssetModal'));
+        document.getElementById('cancelNewAssetBtn').addEventListener('click', () => closeModalFn('newAssetModal'));
+
+        newAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(newAssetForm);
+
+            const payload = {
+                name: formData.get('name'),
+                totalQuantity: parseInt(formData.get('totalQuantity')),
+                status: formData.get('status'),
+                notes: formData.get('notes') || undefined
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/assets`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(response.status);
+
+                const newAsset = await response.json();
+                addAssetCard(newAsset);
+                closeModalFn('newAssetModal');
+                // Could show toast success here
+            } catch (error) {
+                console.error('Error creando activo:', error);
+                alert('No se pudo crear el activo.');
             }
-            return 'Admin';
-        }
+        });
 
-        // Modal para reportar incidente
+        // --- Report Incident Modal ---
         const reportIncidentModal = document.getElementById('reportIncidentModal');
         const reportIncidentForm = document.getElementById('reportIncidentForm');
-        const closeReportModal = document.getElementById('closeReportModal');
-        const cancelReportBtn = document.getElementById('cancelReportBtn');
 
-        // Event listener para botones reportar incidente
+        // Delegation for dynamic buttons
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('report-incident-btn')) {
-                const assetId = e.target.dataset.id;
+            const btn = e.target.closest('.report-incident-btn');
+            if (btn) {
+                const assetId = btn.dataset.id;
                 openReportModal(assetId);
             }
-            if (e.target.classList.contains('view-history-btn')) {
-                const assetId = e.target.dataset.id;
+
+            const histBtn = e.target.closest('.view-history-btn');
+            if (histBtn) {
+                const assetId = histBtn.dataset.id;
                 window.location.href = `auditoria.html?assetId=${assetId}`;
             }
         });
 
-        function openReportModal(assetId) {
-            document.getElementById('incidentAssetId').value = assetId;
-            document.getElementById('reportedBy').value = getLoggedUser();
-            reportIncidentModal.style.display = 'block';
+        function getLoggedUser() {
+            // Placeholder logic
+            const token = localStorage.getItem('jwt_token');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    // Prefer ID for backend compatibility (UUID expected)
+                    return payload.id || payload.sub || payload.username || '00000000-0000-0000-0000-000000000000';
+                } catch (e) { return '00000000-0000-0000-0000-000000000000'; }
+            }
+            return '00000000-0000-0000-0000-000000000000';
         }
 
-        // Cerrar modal
-        closeReportModal.addEventListener('click', () => {
-            reportIncidentModal.style.display = 'none';
-        });
+        function openReportModal(assetId) {
+            document.getElementById('incidentAssetId').value = assetId;
+            // reportedBy field in form will be populated, but it might be hidden or readonly
+            const user = getLoggedUser();
+            const reportedByInput = document.getElementById('reportedBy');
+            if (reportedByInput) reportedByInput.value = user;
 
-        cancelReportBtn.addEventListener('click', () => {
-            reportIncidentModal.style.display = 'none';
-        });
+            openModal('reportIncidentModal');
+        }
 
-        // Enviar formulario de reporte
+        document.getElementById('closeReportModal').addEventListener('click', () => closeModalFn('reportIncidentModal'));
+        document.getElementById('cancelReportBtn').addEventListener('click', () => closeModalFn('reportIncidentModal'));
+
         reportIncidentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const formData = new FormData(reportIncidentForm);
             const assetId = formData.get('asset_id');
             const quantity = parseInt(formData.get('quantity'));
+            let reportedByUser = formData.get('reported_by');
+
+            // Fallback if form field is missing or empty
+            if (!reportedByUser) {
+                reportedByUser = getLoggedUser();
+            }
+
             const payload = {
-                quantity: -quantity, // Negativo para baja
+                quantityChange: -quantity,
                 reason: formData.get('reason'),
-                reported_by: formData.get('reported_by')
+                reportedBy: reportedByUser
             };
 
             try {
@@ -395,27 +398,22 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(response.status);
 
-                // Actualizar el total en la tarjeta
+                // Update UI without reload
                 const card = document.querySelector(`.report-incident-btn[data-id="${assetId}"]`).closest('.asset-card');
                 const totalSpan = card.querySelector('.total-count');
                 const currentTotal = parseInt(totalSpan.textContent);
-                totalSpan.textContent = currentTotal - quantity;
+                totalSpan.textContent = Math.max(0, currentTotal - quantity);
 
-                // Cerrar modal y resetear
-                reportIncidentModal.style.display = 'none';
+                closeModalFn('reportIncidentModal');
                 reportIncidentForm.reset();
             } catch (error) {
                 console.error('Error reportando incidente:', error);
-                // Opcional: mostrar mensaje de error
+                alert('Error al reportar incidente.');
             }
         });
     </script>
-
-    <script>lucide.createIcons();</script>
 </body>
 
 </html>

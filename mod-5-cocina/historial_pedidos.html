@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Historial de Pedidos - Kitchen OS</title>
@@ -8,8 +9,9 @@
     <script src="/js/api.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar__profile">
             <!-- Placeholder logo or avatar -->
             <div class="sidebar__avatar"></div>
@@ -53,28 +55,36 @@
         </nav>
 
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link">
-                <i data-lucide="log-out"></i> Cerrar Sesión
-            </a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
     <main class="main-content">
         <header class="header">
-        <h1 class="header__title">Historial de Pedidos</h1>
-        <div class="filters">
-            <label>Desde: <input type="date" id="startDate"></label>
-            <label>Hasta: <input type="date" id="endDate"></label>
-            <label>Estado:
-                <select id="status">
-                    <option value="">Todos</option>
-                    <option value="READY">READY</option>
-                    <option value="SERVED">SERVED</option>
-                    <option value="CANCELLED">CANCELLED</option>
-            </select>
-            </label>
-            <button class="btn btn--primary" id="btnBuscar">Buscar</button>
-        </div>
-    </header>
+            <h1 class="header__title">Historial de Pedidos</h1>
+            <div class="filters">
+                <label>Desde: <input type="date" id="startDate"></label>
+                <label>Hasta: <input type="date" id="endDate"></label>
+                <label>Estado:
+                    <select id="status">
+                        <option value="">Todos</option>
+                        <option value="READY">READY</option>
+                        <option value="SERVED">SERVED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                </label>
+                <button class="btn btn--primary" id="btnBuscar">Buscar</button>
+            </div>
+        </header>
 
         <section class="table-wrapper">
             <table class="table">
@@ -87,13 +97,14 @@
                         <th>Servido</th>
                         <th>Chef</th>
                     </tr>
-            </thead>
-            <tbody id="pedidosBody"></tbody>
-        </table>
+                </thead>
+                <tbody id="pedidosBody"></tbody>
+            </table>
         </section>
     </main>
 
     <script type="module" src="./js/historial_pedidos.js"></script>
     <script>lucide.createIcons();</script>
 </body>
+
 </html>

@@ -48,5 +48,5 @@ function formatUnits(quantity, unit) {
 
 // Exportar para uso en otros archivos (si es necesario)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { API_BASE_URL, getCommonHeaders, formatCurrency, formatUnits };
+    module.exports = { API_BASE_URL, getCommonHeaders, formatCurrency, formatUnits, KITCHEN_URL };
 }

@@ -14,7 +14,7 @@
 
 <body class="app-container">
 
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar__profile">
             <!-- Placeholder logo or avatar -->
             <div class="sidebar__avatar"></div>
@@ -58,9 +58,17 @@
         </nav>
 
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link">
-                <i data-lucide="log-out"></i> Cerrar Sesión
-            </a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
 
@@ -180,23 +188,70 @@
         function renderLogs(logs) {
             const tbody = document.getElementById('auditTableBody');
             tbody.innerHTML = '';
+
+            // Detectar modo
+            const params = new URLSearchParams(window.location.search);
+            const isAssetMode = !!params.get('assetId');
+
             logs.forEach(log => {
                 const tr = document.createElement('tr');
                 tr.className = 'table__row';
-                const date = log.timestamp || log.date || '';
-                const itemName = log.item_name || log.asset_name || log.name || '';
-                const type = log.type || log.movement_type || log.reason || '';
-                const qty = (log.quantity || log.qty || 0);
-                const user = log.user || log.username || log.reported_by || '';
-                const reason = log.reason || log.note || log.detail || '';
+
+                // 1. FECHA (Handling createdAt from Prisma)
+                let dateStr = log.createdAt || log.timestamp || log.date || '';
+                if (dateStr) {
+                    try {
+                        dateStr = new Date(dateStr).toLocaleString('es-ES', {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                    } catch (e) { }
+                }
+
+                // 2. NOMBRE ÍTEM (Handling includes item/asset)
+                let itemName = '';
+                console.log(log);
+                if (log.item && log.item.name) itemName = log.item.name;
+                else if (log.asset && log.asset.name) itemName = log.asset.name;
+                else itemName = log.item_name || log.asset_name || log.name || '-';
+
+                // 3. TIPO / MOTIVO
+                let type = '';
+                if (isAssetMode) {
+                    // Para activos, no hay "MovementType" en el esquema, usamos "Reporte" o deducimos
+                    type = 'REPORTE';
+                } else {
+                    type = log.movementType || log.type || log.reason || 'MOVIMIENTO';
+                }
+
+                // 4. CANTIDAD
+                // Prisma usa quantityChange
+                const qtyVal = (log.quantityChange !== undefined ? Number(log.quantityChange) : (log.quantity || log.qty || 0));
+                const qtyClass = qtyVal < 0 ? 'text-red-500' : 'text-green-600';
+                const qtyDisplay = qtyVal > 0 ? `+${qtyVal}` : `${qtyVal}`;
+
+                // 5. USUARIO
+                let user = '';
+                if (log.reporter) {
+                    // Si viene populado el objeto reporter
+                    user = log.reporter.workerCode || log.reporter.name || 'Staff';
+                } else if (log.reportedBy) {
+                    // Si solo viene el ID
+                    user = 'Staff ID: ' + log.reportedBy.substring(0, 8);
+                } else {
+                    user = log.user || log.username || 'Sistema';
+                }
+
+                // 6. RAZÓN
+                const reason = log.reason || log.note || log.detail || '-';
 
                 tr.innerHTML = `
-                    <td>${date}</td>
-                    <td><strong>${itemName}</strong></td>
-                    <td><span class="badge-pill">${type}</span></td>
-                    <td>${qty}</td>
+                    <td class="whitespace-nowrap">${dateStr}</td>
+                    <td class="font-medium">${itemName}</td>
+                    <td><span class="badge ${isAssetMode ? 'badge--warning' : 'badge--primary'}">${type}</span></td>
+                    <td class="${qtyClass} font-bold">${qtyDisplay}</td>
                     <td>${user}</td>
-                    <td>${reason}</td>
+                    <td class="max-w-xs text-sm text-gray-600 truncate" title="${reason}">${reason}</td>
                 `;
                 tbody.appendChild(tr);
             });

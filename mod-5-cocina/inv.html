@@ -14,9 +14,9 @@
 
 <body class="app-container">
 
-        <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar__profile">
-            <!-- Placeholder logo or avatar -->
+            <!-- Reuse sidebar logic -->
             <div class="sidebar__avatar"></div>
             <div class="sidebar__info">
                 <p class="sidebar__user">Admin Cocina</p>
@@ -58,9 +58,17 @@
         </nav>
 
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link">
-                <i data-lucide="log-out"></i> Cerrar Sesión
-            </a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
 
@@ -68,17 +76,16 @@
         <header class="header">
             <h1 class="header__title">Inventario de Consumibles</h1>
             <div class="header__actions">
-                <button class="btn btn--primary">Nuevo Ítem</button>
+                <button class="btn btn--primary" id="newItemBtn">Nuevo Ítem</button>
                 <button class="btn btn--secondary" id="inboundBtn">Entrada (+)</button>
                 <button class="btn btn--secondary" id="outboundBtn">Salida (-)</button>
-                <button class="btn btn--secondary">Reportar Desperdicio</button>
             </div>
         </header>
 
         <section class="inventory-controls">
             <div class="search-bar">
                 <i data-lucide="search" class="search-bar__icon"></i>
-                <input type="text" class="search-bar__input" placeholder="Buscar un ítem...">
+                <input type="text" class="search-bar__input" id="searchInput" placeholder="Buscar un ítem...">
             </div>
             <div class="inventory-controls__filters">
                 <button class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
@@ -90,515 +97,453 @@
             <table class="table">
                 <thead class="table__head">
                     <tr>
-                        <th>NOMBRE DEL ÍTEM</th>
-                        <th>CATEGORÍA</th>
+                        <th>NOMBRE</th>
+                        <th>TIPO</th>
                         <th>UNIDAD</th>
-                        <th>STOCK ACTUAL</th>
-                        <th>COSTO / UNIDAD</th>
-                        <th>ESTADO</th>
+                        <th>STOCK</th>
+                        <th>MIN ALERT</th>
+                        <th>COSTO PROM.</th>
                         <th>ACCIONES</th>
                     </tr>
                 </thead>
-                <tbody class="table__body">
+                <tbody class="table__body" id="inventoryBody">
+                    <!-- Rows will be injected here -->
                 </tbody>
             </table>
         </section>
     </main>
 
-    <!-- Modal para Nuevo Ítem -->
+    <!-- Modal: Create Item -->
     <div id="newItemModal" class="modal">
         <div class="modal__content">
             <div class="modal__header">
-                <h2>Nuevo Ítem de Inventario</h2>
-                <button class="modal__close" id="closeModal">&times;</button>
+                <h2>Nuevo Ítem</h2>
+                <button class="modal__close" data-close="newItemModal">&times;</button>
             </div>
             <form id="newItemForm" class="modal__form">
-                <input type="hidden" id="itemId" name="id">
                 <div class="form-group">
-                    <label for="itemName">Nombre del Ítem</label>
-                    <input type="text" id="itemName" name="name" required>
+                    <label for="name">Nombre</label>
+                    <input type="text" name="name" id="name" required minlength="2">
                 </div>
                 <div class="form-group">
-                    <label for="itemCategory">Categoría</label>
-                    <select id="itemCategory" name="category" required>
-                        <option value="">Seleccionar...</option>
-                        <option value="Comida">Comida</option>
-                        <option value="Bebida">Bebida</option>
-                        <option value="Empaque">Empaque</option>
-                        <option value="Limpieza">Limpieza</option>
+                    <label for="type">Tipo</label>
+                    <select name="type" id="type" required>
+                        <option value="INGREDIENT">Ingrediente</option>
+                        <option value="PACKAGING">Empaque</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="itemUnit">Unidad</label>
-                    <input type="text" id="itemUnit" name="unit" required placeholder="ej. kg, cada uno, caja">
+                    <label for="unitMeasure">Unidad de Medida</label>
+                    <select name="unitMeasure" id="unitMeasure" required>
+                        <option value="KG">Kilogramos (KG)</option>
+                        <option value="G">Gramos (G)</option>
+                        <option value="L">Litros (L)</option>
+                        <option value="ML">Mililitros (ML)</option>
+                        <option value="UNIT">Unidad (UNIT)</option>
+                    </select>
                 </div>
+                <!-- Schema: minStockAlert (number, nonnegative) -->
                 <div class="form-group">
-                    <label for="currentStock">Stock Actual / Inicial</label>
-                    <input type="number" id="currentStock" name="current_stock" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="averageCost">Costo Promedio</label>
-                    <input type="number" id="averageCost" name="average_cost" min="0" step="0.01" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="maxStock">Stock Máximo</label>
-                    <input type="number" id="maxStock" name="max_stock" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="minStock">Stock Mínimo</label>
-                    <input type="number" id="minStock" name="min_stock" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="costPerUnit">Costo por Unidad</label>
-                    <input type="number" id="costPerUnit" name="cost_per_unit" min="0" step="0.01" required>
+                    <label for="minStockAlert">Alerta Stock Mínimo</label>
+                    <input type="number" name="minStockAlert" id="minStockAlert" min="0" value="0">
                 </div>
                 <div class="modal__actions">
-                    <button type="button" class="btn btn--secondary" id="cancelBtn">Cancelar</button>
-                    <button type="submit" class="btn btn--primary">Guardar</button>
+                    <button type="button" class="btn btn--secondary" data-close="newItemModal">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Crear</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal para Entrada de Inventario -->
+    <!-- Modal: Inbound (Entrada) -->
     <div id="inboundModal" class="modal">
         <div class="modal__content">
             <div class="modal__header">
-                <h2>Movimiento de Entrada</h2>
-                <button class="modal__close" id="closeInboundModal">&times;</button>
+                <h2>Registrar Entrada</h2>
+                <button class="modal__close" data-close="inboundModal">&times;</button>
             </div>
             <form id="inboundForm" class="modal__form">
                 <div class="form-group">
-                    <label for="inboundItem">Ítem</label>
-                    <select id="inboundItem" name="item_id" required>
-                        <option value="">Seleccionar ítem...</option>
+                    <label for="inboundItemId">Ítem</label>
+                    <select name="itemId" id="inboundItemId" required class="full-width-select">
+                        <option value="">Cargando...</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="inboundQuantity">Cantidad</label>
-                    <input type="number" id="inboundQuantity" name="quantity" min="0.01" step="0.01" required>
+                    <label for="inboundQuantity">Cantidad Entrada (+)</label>
+                    <input type="number" name="quantityChange" id="inboundQuantity" min="0.01" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label for="inboundUnitCost">Costo Unitario</label>
-                    <input type="number" id="inboundUnitCost" name="unit_cost" min="0.01" step="0.01" required>
+                    <label for="inboundCost">Costo Total (o Unitario?)</label>
+                    <small>Schema expects <code>costAtTime</code> (Unit cost usually)</small>
+                    <input type="number" name="costAtTime" id="inboundCost" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="inboundReason">Motivo / Proveedor</label>
+                    <input type="text" name="reason" id="inboundReason" required placeholder="Ej: Compra semanal">
+                </div>
+                <div class="form-group">
+                    <label for="inboundType">Tipo Movimiento</label>
+                    <select name="movementType" id="inboundType" required>
+                        <option value="PURCHASE">Compra</option>
+                        <option value="RETURN_RESTOCK">Devolución / Reingreso</option>
+                        <option value="ADJUSTMENT">Ajuste (+)</option>
+                    </select>
                 </div>
                 <div class="modal__actions">
-                    <button type="button" class="btn btn--secondary" id="cancelInboundBtn">Cancelar</button>
-                    <button type="submit" class="btn btn--primary">Registrar Entrada</button>
+                    <button type="button" class="btn btn--secondary" data-close="inboundModal">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Registrar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal para Salida de Inventario -->
+    <!-- Modal: Outbound (Salida) -->
     <div id="outboundModal" class="modal">
         <div class="modal__content">
             <div class="modal__header">
-                <h2>Movimiento de Salida</h2>
-                <button class="modal__close" id="closeOutboundModal">&times;</button>
+                <h2>Registrar Salida</h2>
+                <button class="modal__close" data-close="outboundModal">&times;</button>
             </div>
             <form id="outboundForm" class="modal__form">
                 <div class="form-group">
-                    <label for="outboundItem">Ítem</label>
-                    <select id="outboundItem" name="item_id" required>
-                        <option value="">Seleccionar ítem...</option>
+                    <label for="outboundItemId">Ítem</label>
+                    <select name="itemId" id="outboundItemId" required class="full-width-select">
+                        <option value="">Cargando...</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="outboundQuantity">Cantidad a Restar</label>
-                    <input type="number" id="outboundQuantity" name="quantity" min="0.01" step="0.01" required>
-                    <span id="quantityError" class="error-message" style="display: none; color: red;">Cantidad excede el stock actual.</span>
+                    <label for="outboundQuantity">Cantidad Salida (-)</label>
+                    <input type="number" name="quantityChange" id="outboundQuantity" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="outboundReason">Razón</label>
+                    <input type="text" name="reason" id="outboundReason" required placeholder="Ej: Caducado, Merma...">
+                </div>
+                <div class="form-group">
+                    <label for="outboundType">Tipo Movimiento</label>
+                    <select name="movementType" id="outboundType" required>
+                        <option value="WASTE">Desperdicio (Merma)</option>
+                        <option value="ADJUSTMENT">Ajuste (-)</option>
+                        <option value="SALE">Venta (Manual)</option>
+                    </select>
                 </div>
                 <div class="modal__actions">
-                    <button type="button" class="btn btn--secondary" id="cancelOutboundBtn">Cancelar</button>
-                    <button type="submit" class="btn btn--primary" id="submitOutboundBtn">Registrar Salida</button>
+                    <button type="button" class="btn btn--secondary" data-close="outboundModal">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Registrar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Toast para mensajes -->
-    <div id="toast" class="toast" style="display: none;">
-        <span id="toastMessage"></span>
+    <!-- Modal: Edit Item -->
+    <div id="editItemModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Editar Ítem</h2>
+                <button class="modal__close" data-close="editItemModal">&times;</button>
+            </div>
+            <form id="editItemForm" class="modal__form">
+                <input type="hidden" name="id" id="editItemId">
+                <div class="form-group">
+                    <label>Nombre del Ítem</label>
+                    <input type="text" name="name" id="editItemName" required>
+                </div>
+                <div class="form-group">
+                    <label>Unidad de Medida</label>
+                    <select name="unitMeasure" id="editItemUnit" required>
+                        <option value="KG">Kilogramos (KG)</option>
+                        <option value="G">Gramos (G)</option>
+                        <option value="L">Litros (L)</option>
+                        <option value="ML">Mililitros (ML)</option>
+                        <option value="UNIT">Unidades (UNIT)</option>
+                    </select>
+                </div>
+                <!-- Schema: minStockAlert (number, nonnegative) -->
+                <div class="form-group">
+                    <label>Alerta de Stock Mínimo</label>
+                    <input type="number" name="minStockAlert" id="editItemMinStock" min="0" step="0.01" required>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" data-close="editItemModal">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
-        // Función para cargar el inventario
-        async function loadInventory() {
-            try {
-                const response = await fetch(`${KITCHEN_URL}/inventory/items`, {
-                    method: 'GET',
-                    headers: getCommonHeaders()
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
-
-                const items = await response.json();
-                renderInventory(items);
-            } catch (error) {
-                console.error('Error cargando inventario:', error);
-                // Opcional: mostrar mensaje de error en la UI
+        // --- Shared Modal Logic ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+                setTimeout(() => modal.classList.add('modal--active'), 10);
+            }
+        }
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('modal--active');
+                setTimeout(() => modal.style.display = 'none', 300);
             }
         }
 
-        // Función para renderizar las filas de la tabla
+        // Close buttons handler
+        document.addEventListener('click', (e) => {
+            if (e.target.dataset.close) {
+                closeModal(e.target.dataset.close);
+            }
+        });
+
+        const newItemBtn = document.getElementById('newItemBtn');
+        const inboundBtn = document.getElementById('inboundBtn');
+        const outboundBtn = document.getElementById('outboundBtn');
+
+        newItemBtn.addEventListener('click', () => { document.getElementById('newItemForm').reset(); openModal('newItemModal'); });
+        inboundBtn.addEventListener('click', () => {
+            populateItemSelect('inboundItemId');
+            document.getElementById('inboundForm').reset();
+            openModal('inboundModal');
+        });
+        outboundBtn.addEventListener('click', () => {
+            populateItemSelect('outboundItemId');
+            document.getElementById('outboundForm').reset();
+            openModal('outboundModal');
+        });
+
+        // --- Core Inventory Logic ---
+        let inventoryData = [];
+
+        async function loadInventory() {
+            const tbody = document.getElementById('inventoryBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Cargando...</td></tr>';
+
+            try {
+                // Using generic list endpoint
+                const resp = await fetch(`${KITCHEN_URL}/inventory/items`, { headers: getCommonHeaders() });
+                if (!resp.ok) throw new Error(resp.status);
+                inventoryData = await resp.json();
+                renderInventory(inventoryData);
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">Error al cargar inventario</td></tr>';
+            }
+        }
+
         function renderInventory(items) {
-            window.inventoryItems = items; // Guardar para edición
-            const tbody = document.querySelector('.table__body');
-            tbody.innerHTML = ''; // Limpiar el tbody
+            const tbody = document.getElementById('inventoryBody');
+            tbody.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay ítems registrados</td></tr>';
+                return;
+            }
 
             items.forEach(item => {
-                const row = document.createElement('tr');
-                row.className = 'table__row';
+                const tr = document.createElement('tr');
+                tr.className = 'table__row';
 
-                // Calcular si está bajo stock
-                const isLowStock = item.stock < item.min_stock;
-                const progressWidth = Math.min((item.stock / (item.min_stock * 2)) * 100, 100);
-                let progressClass = 'progress-bar__fill--success';
-                let badgeClass = 'badge--success';
-                let badgeText = 'En Stock';
+                // Fields from schema: name, type, unitMeasure, minStockAlert
+                // Computed/Backend: currentStock, averageCost
+                const stock = item.currentStock || 0;
+                const min = item.minStockAlert || 0;
+                const avgCost = item.averageCost || 0;
 
-                if (isLowStock) {
-                    progressClass = 'progress-bar__fill--danger';
-                    badgeClass = 'badge--danger';
-                    badgeText = 'Stock Bajo';
-                } else if (progressWidth < 70) {
-                    progressClass = 'progress-bar__fill--warning';
-                    badgeClass = 'badge--warning';
-                    badgeText = 'Casi Bajo';
+                // Status badge logic
+                let statusBadge = '<span class="badge badge--success">OK</span>';
+                if (stock <= min) {
+                    statusBadge = '<span class="badge badge--danger">BAJO</span>';
+                } else if (stock <= min * 1.2) {
+                    statusBadge = '<span class="badge badge--warning">WARN</span>';
                 }
 
-                row.innerHTML = `
+                tr.innerHTML = `
                     <td><strong>${item.name}</strong></td>
                     <td>${item.type}</td>
                     <td>${item.unitMeasure}</td>
                     <td>
-                        <div class="stock-indicator">
-                            <span class="stock-indicator__text ${isLowStock ? 'stock-indicator__text--danger' : ''}">${item.currentStock} / ${item.currentStock}</span>
-                            <div class="progress-bar">
-                                <div class="progress-bar__fill ${progressClass}" style="width: ${progressWidth}%"></div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <span>${stock}</span>
+                            <!-- Minimal progress visual -->
+                            <div style="flex:1; height:4px; max-width:60px; background:#eee; border-radius:2px; overflow:hidden;">
+                                <div style="height:100%; width:${Math.min((stock / (min * 2 || 10)) * 100, 100)}%; background: ${stock <= min ? 'var(--color-danger)' : 'var(--color-success)'}"></div>
                             </div>
                         </div>
                     </td>
-                    <td>${formatCurrency(item.averageCost)}</td>
-                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-                        <td>
-                            <button class="btn btn--small edit-btn" data-id="${item.id}">Editar</button>
-                            <button class="btn btn--small history-btn" data-id="${item.id}">Ver Historial</button>
-                        </td>
+                    <td>${min}</td>
+                    <td>${formatCurrency(avgCost)}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="icon-btn-sm btn-edit" data-id="${item.id}" title="Editar">
+                                <i data-lucide="edit-3"></i>
+                            </button>
+                            <a href="auditoria.html?itemId=${item.id}" class="icon-btn-sm" title="Ver Historial">
+                                <i data-lucide="history"></i>
+                            </a>
+                        </div>
+                    </td>
                 `;
+                tbody.appendChild(tr);
+            });
 
-                tbody.appendChild(row);
+            if (window.lucide) window.lucide.createIcons();
+
+            // Re-attach listeners for dynamic buttons
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const item = items.find(i => i.id === btn.dataset.id);
+                    openEditModal(item);
+                });
             });
         }
 
-        // Cargar inventario al cargar la página
-        document.addEventListener('DOMContentLoaded', loadInventory);
-
-        // Modal para nuevo ítem
-        const newItemModal = document.getElementById('newItemModal');
-        const newItemForm = document.getElementById('newItemForm');
-        const closeModal = document.getElementById('closeModal');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const addItemBtn = document.querySelector('.header__actions .btn--primary');
-        const modalTitle = document.querySelector('.modal__header h2');
-        const submitBtn = document.querySelector('.modal__actions .btn--primary');
-        let isEditing = false;
-
-        // Abrir modal para nuevo ítem
-        addItemBtn.addEventListener('click', () => {
-            isEditing = false;
-            modalTitle.textContent = 'Nuevo Ítem de Inventario';
-            submitBtn.textContent = 'Crear Ítem';
-            newItemForm.reset();
-            document.getElementById('currentStock').disabled = false;
-            document.getElementById('averageCost').disabled = false;
-            newItemModal.style.display = 'block';
-        });
-
-        // Event listener para botones editar
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('edit-btn')) {
-                const itemId = e.target.dataset.id;
-                const item = window.inventoryItems.find(i => i.id == itemId);
-                if (item) {
-                    openEditModal(item);
-                }
-            }
-            if (e.target.classList.contains('history-btn')) {
-                const itemId = e.target.dataset.id;
-                // Redirige a la página de auditoría con query param
-                window.location.href = `auditoria.html?itemId=${itemId}`;
-            }
-        });
+        // populate select for modals
+        function populateItemSelect(selectId) {
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '<option value="">Seleccione un ítem...</option>';
+            inventoryData.forEach(i => {
+                const opt = document.createElement('option');
+                opt.value = i.id;
+                opt.textContent = `${i.name} (${i.unitMeasure}) - Stock: ${i.currentStock || 0}`;
+                sel.appendChild(opt);
+            });
+        }
 
         function openEditModal(item) {
-            isEditing = true;
-            modalTitle.textContent = 'Editar Ítem de Inventario';
-            submitBtn.textContent = 'Actualizar Ítem';
-            document.getElementById('itemId').value = item.id;
-            document.getElementById('itemName').value = item.name;
-            document.getElementById('itemCategory').value = item.category;
-            document.getElementById('itemUnit').value = item.unit;
-            document.getElementById('currentStock').value = item.stock;
-            document.getElementById('currentStock').disabled = true; // Restricción
-            document.getElementById('averageCost').value = item.cost_per_unit;
-            document.getElementById('averageCost').disabled = true; // Restricción
-            document.getElementById('maxStock').value = item.max_stock;
-            document.getElementById('minStock').value = item.min_stock;
-            document.getElementById('costPerUnit').value = item.cost_per_unit;
-            newItemModal.style.display = 'block';
+            if (!item) return;
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('editItemName').value = item.name;
+            document.getElementById('editItemUnit').value = item.unitMeasure;
+            document.getElementById('editItemMinStock').value = item.minStockAlert;
+            openModal('editItemModal');
         }
 
-        // Cerrar modal
-        closeModal.addEventListener('click', () => {
-            newItemModal.style.display = 'none';
-        });
+        // --- Form Handlers ---
 
-        cancelBtn.addEventListener('click', () => {
-            newItemModal.style.display = 'none';
-        });
-
-        // Enviar formulario
-        newItemForm.addEventListener('submit', async (e) => {
+        // 0. Update
+        document.getElementById('editItemForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const formData = new FormData(newItemForm);
-            let payload = {
+            const formData = new FormData(e.target);
+            const itemId = formData.get('id');
+            const payload = {
                 name: formData.get('name'),
-                category: formData.get('category'),
-                unit: formData.get('unit'),
-                max_stock: parseFloat(formData.get('max_stock')),
-                min_stock: parseFloat(formData.get('min_stock')),
-                cost_per_unit: parseFloat(formData.get('cost_per_unit'))
+                unitMeasure: formData.get('unitMeasure'),
+                minStockAlert: parseFloat(formData.get('minStockAlert'))
             };
 
-            if (!isEditing) {
-                // Para nuevo, incluir stock
-                payload.stock = parseFloat(formData.get('current_stock'));
-            }
-
-            const url = isEditing 
-                ? `${KITCHEN_URL}/inventory/items/${formData.get('id')}`
-                : `${KITCHEN_URL}/inventory/items`;
-            const method = isEditing ? 'PATCH' : 'POST';
-
             try {
-                const response = await fetch(url, {
-                    method: method,
+                const resp = await fetch(`${KITCHEN_URL}/inventory/items/${itemId}`, {
+                    method: 'PATCH',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
+                if (!resp.ok) throw new Error(resp.status);
 
-                // Éxito: cerrar modal y recargar tabla
-                newItemModal.style.display = 'none';
-                newItemForm.reset();
-                loadInventory();
-            } catch (error) {
-                console.error('Error guardando ítem:', error);
-                // Opcional: mostrar mensaje de error
+                // Refresh list
+                await loadInventory();
+                closeModal('editItemModal');
+                alert('Ítem actualizado correctamente');
+            } catch (err) {
+                console.error('Error actualizando ítem:', err);
+                alert('Error al actualizar ítem');
             }
         });
-    </script>
 
-    <script>
-        // Función para mostrar toast
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.textContent = message;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
-        // Función para poblar select de ítems
-        function populateItemSelect() {
-            const select = document.getElementById('inboundItem');
-            select.innerHTML = '<option value="">Seleccionar ítem...</option>';
-            if (window.inventoryItems) {
-                window.inventoryItems.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = item.name;
-                    select.appendChild(option);
-                });
-            }
-        }
-
-        // Modal para entrada
-        const inboundModal = document.getElementById('inboundModal');
-        const inboundForm = document.getElementById('inboundForm');
-        const closeInboundModal = document.getElementById('closeInboundModal');
-        const cancelInboundBtn = document.getElementById('cancelInboundBtn');
-        const inboundBtn = document.getElementById('inboundBtn');
-
-        // Abrir modal de entrada
-        inboundBtn.addEventListener('click', () => {
-            populateItemSelect();
-            inboundModal.style.display = 'block';
-        });
-
-        // Cerrar modal
-        closeInboundModal.addEventListener('click', () => {
-            inboundModal.style.display = 'none';
-        });
-
-        cancelInboundBtn.addEventListener('click', () => {
-            inboundModal.style.display = 'none';
-        });
-
-        // Enviar formulario de entrada
-        inboundForm.addEventListener('submit', async (e) => {
+        // 1. Create
+        document.getElementById('newItemForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const formData = new FormData(inboundForm);
-            const quantity = parseFloat(formData.get('quantity'));
-            const unitCost = parseFloat(formData.get('unit_cost'));
-
-            // Validar positivos
-            if (quantity <= 0 || unitCost <= 0) {
-                showToast('Los valores numéricos deben ser positivos.');
-                return;
-            }
-
+            const fd = new FormData(e.target);
             const payload = {
-                item_id: formData.get('item_id'),
-                quantity: quantity,
-                unit_cost: unitCost
+                name: fd.get('name'),
+                type: fd.get('type'),
+                unitMeasure: fd.get('unitMeasure'),
+                minStockAlert: parseFloat(fd.get('minStockAlert')) || 0
             };
 
             try {
-                const response = await fetch(`${KITCHEN_URL}/inventory/inbound`, {
+                const res = await fetch(`${KITCHEN_URL}/inventory/items`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
                 });
+                if (!res.ok) throw new Error(res.status);
 
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const newAverageCost = data.new_average_cost;
-                showToast(`Entrada registrada. Nuevo costo promedio: ${formatCurrency(newAverageCost)}`);
-
-                // Cerrar modal y recargar
-                inboundModal.style.display = 'none';
-                inboundForm.reset();
-                loadInventory();
-            } catch (error) {
-                console.error('Error registrando entrada:', error);
-                showToast('Error al registrar la entrada.');
-            }
-        });
-    </script>
-
-    <script>
-        // Función para poblar select de ítems para salida
-        function populateOutboundItemSelect() {
-            const select = document.getElementById('outboundItem');
-            select.innerHTML = '<option value="">Seleccionar ítem...</option>';
-            if (window.inventoryItems) {
-                window.inventoryItems.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = `${item.name} (Stock: ${item.stock})`;
-                    select.appendChild(option);
-                });
-            }
-        }
-
-        // Modal para salida
-        const outboundModal = document.getElementById('outboundModal');
-        const outboundForm = document.getElementById('outboundForm');
-        const closeOutboundModal = document.getElementById('closeOutboundModal');
-        const cancelOutboundBtn = document.getElementById('cancelOutboundBtn');
-        const outboundBtn = document.getElementById('outboundBtn');
-        const outboundQuantity = document.getElementById('outboundQuantity');
-        const quantityError = document.getElementById('quantityError');
-        const submitOutboundBtn = document.getElementById('submitOutboundBtn');
-
-        // Abrir modal de salida
-        outboundBtn.addEventListener('click', () => {
-            populateOutboundItemSelect();
-            outboundModal.style.display = 'block';
-        });
-
-        // Cerrar modal
-        closeOutboundModal.addEventListener('click', () => {
-            outboundModal.style.display = 'none';
-        });
-
-        cancelOutboundBtn.addEventListener('click', () => {
-            outboundModal.style.display = 'none';
-        });
-
-        // Validación en tiempo real
-        outboundQuantity.addEventListener('input', () => {
-            const selectedItemId = document.getElementById('outboundItem').value;
-            const item = window.inventoryItems.find(i => i.id == selectedItemId);
-            const quantity = parseFloat(outboundQuantity.value);
-            if (item && quantity > item.stock) {
-                quantityError.style.display = 'block';
-                submitOutboundBtn.disabled = true;
-            } else {
-                quantityError.style.display = 'none';
-                submitOutboundBtn.disabled = false;
+                closeModal('newItemModal');
+                loadInventory(); // Reload table
+                alert('Ítem creado correctamente');
+            } catch (err) {
+                console.error(err);
+                alert('Error al crear ítem');
             }
         });
 
-        // Cambiar ítem también valida
-        document.getElementById('outboundItem').addEventListener('change', () => {
-            outboundQuantity.dispatchEvent(new Event('input'));
-        });
-
-        // Enviar formulario de salida
-        outboundForm.addEventListener('submit', async (e) => {
+        // 2. Inbound
+        document.getElementById('inboundForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (submitOutboundBtn.disabled) {
-                return; // No enviar si inválido
-            }
-
-            const formData = new FormData(outboundForm);
+            const fd = new FormData(e.target);
+            // Payload matches inboundSchema
             const payload = {
-                item_id: formData.get('item_id'),
-                quantity: parseFloat(formData.get('quantity'))
+                itemId: fd.get('itemId'),
+                quantityChange: parseFloat(fd.get('quantityChange')),
+                costAtTime: parseFloat(fd.get('costAtTime')),
+                movementType: fd.get('movementType'),
+                reason: fd.get('reason')
             };
 
             try {
-                const response = await fetch(`${KITCHEN_URL}/inventory/outbound`, {
+                // Post to /inventory/inbound or /inventory/movements/inbound ?
+                // Trying generic convention based on schema name "inboundSchema" -> likely /inbound resource or action
+                const res = await fetch(`${KITCHEN_URL}/inventory/inbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
                 });
+                if (!res.ok) throw new Error(res.status);
 
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
-
-                showToast('Salida registrada exitosamente.');
-
-                // Cerrar modal y recargar tabla
-                outboundModal.style.display = 'none';
-                outboundForm.reset();
+                closeModal('inboundModal');
                 loadInventory();
-            } catch (error) {
-                console.error('Error registrando salida:', error);
-                showToast('Error al registrar la salida.');
+                alert('Entrada registrada');
+            } catch (err) {
+                console.error(err);
+                alert('Error al registrar entrada');
             }
         });
-    </script>
 
-    <script>lucide.createIcons();</script>
+        // 3. Outbound
+        document.getElementById('outboundForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            // Payload matches outboundSchema
+            const payload = {
+                itemId: fd.get('itemId'),
+                quantityChange: parseFloat(fd.get('quantityChange')),
+                movementType: fd.get('movementType'),
+                reason: fd.get('reason')
+            };
+
+            try {
+                const res = await fetch(`${KITCHEN_URL}/inventory/outbound`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(res.status);
+
+                closeModal('outboundModal');
+                loadInventory();
+                alert('Salida registrada');
+            } catch (err) {
+                console.error(err);
+                alert('Error al registrar salida');
+            }
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', loadInventory);
+        document.addEventListener('DOMContentLoaded', () => { if (window.lucide) window.lucide.createIcons(); });
+    </script>
 </body>
 
 </html>
