@@ -21,7 +21,7 @@ const viewsWithAuth = async (req, res, next) => {
 
   if (rutaSolicitada === "/seguridad/login") {
     if (req.user) {
-      return res.redirect("/shared/admin-home/index.html");
+      return res.redirect("/admin");
     }
   }
 
@@ -29,7 +29,7 @@ const viewsWithAuth = async (req, res, next) => {
     "/seguridad/perfil/editar",
     "/seguridad/perfil/cambioPassword",
     "/seguridad",
-    "/shared/admin-home/index.html",
+    "/admin",
   ];
 
   if (!rutasProtegidas.includes(rutaSolicitada)) {
