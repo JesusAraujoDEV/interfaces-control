@@ -1,280 +1,315 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Menú — Charlotte</title>
 
-    <link rel="stylesheet" href="/styles/tailwind.css" />
-    <link rel="stylesheet" href="/shared/styles/global.css" />
-    <link rel="stylesheet" href="/shared/pages/menu/page.css" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menú — Charlotte</title>
 
-    <script src="/config.js"></script>
-  </head>
+  <link rel="stylesheet" href="/styles/tailwind.css" />
+  <link rel="stylesheet" href="/shared/styles/global.css" />
+  <link rel="stylesheet" href="/landing/styles.css" />
+  <link rel="stylesheet" href="/shared/pages/menu/page.css" />
 
-  <body class="bg-brand-50 min-h-screen text-gray-800 font-sans">
-    <!-- Header: CLONADO de checkout/order-tracking (debe mantenerse idéntico) -->
-    <app-header></app-header>
+  <script src="/config.js"></script>
+</head>
 
-    <main class="max-w-6xl mx-auto px-6 py-6">
-      <!-- Browse-First: mostramos el catálogo primero, sin pedir ubicación/login -->
-      <section class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-extrabold">Explora el menú</h1>
-        <p class="mt-2 text-sm text-gray-600">
-          Elige lo que se te antoje. La ubicación la pedimos en el checkout.
-        </p>
+<body class="bg-brand-50 min-h-screen text-gray-800 font-sans">
+  <header class="site-header" data-header>
+    <div class="container header__row">
+      <a class="brand" href="./" aria-label="Charlotte Bistró">
+        <img class="brand__logo" src="/assets/charlotte_logo.png" alt="Charlotte Bistró" width="64" height="64"
+          loading="eager" />
+        <span class="brand__text">
+          <span class="brand__name">Charlotte Bistró</span>
+          <span class="brand__tagline">DONDE EL SABOR TOMA LA RUTA</span>
+        </span>
+      </a>
+
+      <nav class="nav nav--desktop" aria-label="Navegación principal">
+        <a href="/menu">Menú</a>
+        <a href="#location">Ubicación</a>
+        <a href="#contact">Contacto</a>
+        <span class="nav__pill" title="Standort">Carne Smash</span>
+      </nav>
+
+      <!-- header badge removed -->
+
+      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav">
+        <span class="menu-toggle__label">Menú</span>
+        <span class="menu-toggle__icon" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <nav id="mobile-nav" class="nav nav--mobile" data-mobile-nav hidden aria-label="Navegación móvil">
+      <div class="container nav__mobile-inner">
+        <a href="#menu" data-close-menu>Menú</a>
+        <a href="#location" data-close-menu>Ubicación</a>
+        <a href="#contact" data-close-menu>Contacto</a>
+        <div class="nav__mobile-footer">
+          <span class="nav__pill" title="Ubicación">Quinta CHARLOTTE</span>
+          <img src="https://foodiewagon.de/graphics/aura%20logo.svg" alt="100% aura" width="48" height="48"
+            loading="lazy" />
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-6">
+    <!-- Browse-First: mostramos el catálogo primero, sin pedir ubicación/login -->
+    <section class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold">Explora el menú</h1>
+      <p class="mt-2 text-sm text-gray-600">
+        Elige lo que se te antoje. La ubicación la pedimos en el checkout.
+      </p>
+    </section>
+
+    <div class="menu-layout">
+      <!-- Columna izquierda: menú y productos (70%) -->
+      <section>
+        <div id="status" class="text-sm text-gray-600">Cargando menú…</div>
+
+        <div id="categoriesSection" class="mt-6 hidden">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold text-gray-800">Categorías</h2>
+            <div id="activeCategoryLabel" class="text-xs text-gray-500"></div>
+          </div>
+          <div id="categories" class="mt-3 flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="grid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite"></div>
       </section>
 
-      <div class="menu-layout">
-        <!-- Columna izquierda: menú y productos (70%) -->
-        <section>
-          <div id="status" class="text-sm text-gray-600">Cargando menú…</div>
-
-          <div id="categoriesSection" class="mt-6 hidden">
-            <div class="flex items-center justify-between gap-3">
-              <h2 class="text-sm font-semibold text-gray-800">Categorías</h2>
-              <div id="activeCategoryLabel" class="text-xs text-gray-500"></div>
-            </div>
-            <div id="categories" class="mt-3 flex flex-wrap gap-2"></div>
+      <!-- Columna derecha: carrito (30%) y botón de pagar -->
+      <aside class="menu-sidebar">
+        <div id="cartPanel"
+          class="flex flex-col bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] rounded-2xl border border-gray-100">
+          <div class="p-4 border-b border-gray-100 flex-none">
+            <div class="font-bold text-gray-900">Tu carrito</div>
           </div>
 
-          <div
-            id="grid"
-            class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            aria-live="polite"
-          ></div>
-        </section>
-
-        <!-- Columna derecha: carrito (30%) y botón de pagar -->
-        <aside class="menu-sidebar">
-          <div
-            id="cartPanel"
-            class="flex flex-col bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] rounded-2xl border border-gray-100"
-          >
-            <div class="p-4 border-b border-gray-100 flex-none">
-              <div class="font-bold text-gray-900">Tu carrito</div>
-            </div>
-
-            <div id="cartScroll" class="flex-1 overflow-y-auto no-scrollbar">
-              <div id="cartItems" class="divide-y divide-gray-100 p-2"></div>
-            </div>
-
-            <div class="p-4 border-t border-gray-100 bg-gray-50 flex-none rounded-b-2xl">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-sm text-gray-600">Total</div>
-                <div id="cartTotal" class="text-lg font-extrabold text-gray-900">$0.00</div>
-              </div>
-              <button
-                id="payBtnSidebar"
-                type="button"
-                class="js-pay-btn w-full bg-brand-800 text-white px-5 py-3 rounded-xl font-semibold shadow hover:bg-brand-700"
-              >
-                Ir a Pagar
-              </button>
-            </div>
+          <div id="cartScroll" class="flex-1 overflow-y-auto no-scrollbar">
+            <div id="cartItems" class="divide-y divide-gray-100 p-2"></div>
           </div>
-        </aside>
-      </div>
-    </main>
 
-    <!-- Modal: elección de tipo de consumo -->
-    <div id="checkoutModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="checkoutModalTitle">
-      <div id="checkoutModalOverlay" class="absolute inset-0 bg-black/40"></div>
-      <div class="relative min-h-full flex items-end sm:items-center justify-center p-4" style="padding-bottom: calc(16px + env(safe-area-inset-bottom));">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div class="p-5">
-            <div class="flex items-start justify-between gap-3">
-              <h2 id="checkoutModalTitle" class="text-lg font-extrabold text-gray-900">¿Cómo quieres consumir?</h2>
-              <button id="checkoutModalClose" type="button" class="text-sm text-gray-600 hover:text-gray-900">Cerrar</button>
+          <div class="p-4 border-t border-gray-100 bg-gray-50 flex-none rounded-b-2xl">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-sm text-gray-600">Total</div>
+              <div id="cartTotal" class="text-lg font-extrabold text-gray-900">$0.00</div>
             </div>
-            <p class="mt-2 text-sm text-gray-600">Elige una opción para continuar.</p>
+            <button id="payBtnSidebar" type="button"
+              class="js-pay-btn w-full bg-brand-800 text-white px-5 py-3 rounded-xl font-semibold shadow hover:bg-brand-700">
+              Ir a Pagar
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
 
-            <div class="mt-5 grid grid-cols-1 gap-3">
-              <button id="onsiteBtn" type="button" class="w-full bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-xl font-semibold">
-                Consumo en el local
-              </button>
-              <button id="deliveryPickupBtn" type="button" class="w-full bg-brand-800 text-white px-4 py-3 rounded-xl font-semibold shadow">
-                Delivery o Pickup
-              </button>
-            </div>
+  <!-- Modal: elección de tipo de consumo -->
+  <div id="checkoutModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true"
+    aria-labelledby="checkoutModalTitle">
+    <div id="checkoutModalOverlay" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative min-h-full flex items-end sm:items-center justify-center p-4"
+      style="padding-bottom: calc(16px + env(safe-area-inset-bottom));">
+      <div class="w-full max-w-md bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-3">
+            <h2 id="checkoutModalTitle" class="text-lg font-extrabold text-gray-900">¿Cómo quieres consumir?</h2>
+            <button id="checkoutModalClose" type="button"
+              class="text-sm text-gray-600 hover:text-gray-900">Cerrar</button>
+          </div>
+          <p class="mt-2 text-sm text-gray-600">Elige una opción para continuar.</p>
+
+          <div class="mt-5 grid grid-cols-1 gap-3">
+            <button id="onsiteBtn" type="button"
+              class="w-full bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-xl font-semibold">
+              Consumo en el local
+            </button>
+            <button id="deliveryPickupBtn" type="button"
+              class="w-full bg-brand-800 text-white px-4 py-3 rounded-xl font-semibold shadow">
+              Delivery o Pickup
+            </button>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    
 
-    <script>
-      // --- Config de URLs (no se puede leer .env directo desde el navegador) ---
-      // Formas recomendadas de inyectar en frontend:
-      // 1) Vite: import.meta.env.VITE_DP_URL / import.meta.env.VITE_KITCHEN_URL
-      // 2) Archivo `config.js`: window.__APP_CONFIG__ = { DP_URL: '...', KITCHEN_URL: '...' }
-      // 3) Prototipo local: localStorage.setItem('KITCHEN_URL', 'https://...')
-      const DP_URL =
-        (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
-        localStorage.getItem('DP_URL') ||
-        'http://localhost:3000';
 
-      const KITCHEN_URL =
-        (window.__APP_CONFIG__ && window.__APP_CONFIG__.KITCHEN_URL) ||
-        localStorage.getItem('KITCHEN_URL') ||
-        'https://charlotte-cocina.onrender.com';
+  <script>
+    // --- Config de URLs (no se puede leer .env directo desde el navegador) ---
+    // Formas recomendadas de inyectar en frontend:
+    // 1) Vite: import.meta.env.VITE_DP_URL / import.meta.env.VITE_KITCHEN_URL
+    // 2) Archivo `config.js`: window.__APP_CONFIG__ = { DP_URL: '...', KITCHEN_URL: '...' }
+    // 3) Prototipo local: localStorage.setItem('KITCHEN_URL', 'https://...')
+    const DP_URL =
+      (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
+      localStorage.getItem('DP_URL') ||
+      'http://localhost:3000';
 
-      const FALLBACK_PRODUCT_IMAGE = 'https://easyways.cl/storage/20210610095707masa-de-pizza-2.0.jpg';
+    const KITCHEN_URL =
+      (window.__APP_CONFIG__ && window.__APP_CONFIG__.KITCHEN_URL) ||
+      localStorage.getItem('KITCHEN_URL') ||
+      'https://charlotte-cocina.onrender.com';
 
-      const CART_KEY = 'dp_cart_v1';
+    const FALLBACK_PRODUCT_IMAGE = 'https://easyways.cl/storage/20210610095707masa-de-pizza-2.0.jpg';
 
-      const state = {
-        categories: [],
-        products: [],
-        selectedCategoryId: 'all'
-      };
+    const CART_KEY = 'dp_cart_v1';
 
-      function formatPrice(value) {
-        const num = parsePrice(value);
-        if (Number.isFinite(num)) return '$' + num.toFixed(2);
-        return String(value);
+    const state = {
+      categories: [],
+      products: [],
+      selectedCategoryId: 'all'
+    };
+
+    function formatPrice(value) {
+      const num = parsePrice(value);
+      if (Number.isFinite(num)) return '$' + num.toFixed(2);
+      return String(value);
+    }
+
+    function normalizeText(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase();
+    }
+
+    function readCart() {
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        return raw ? JSON.parse(raw) : { items: [] };
+      } catch {
+        return { items: [] };
+      }
+    }
+
+    function writeCart(cart) {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function cartCount(cart) {
+      return (cart.items || []).reduce((acc, it) => acc + (it.qty || 0), 0);
+    }
+
+    function setCartUI() {
+      const cart = readCart();
+      const count = cartCount(cart);
+
+      const bottomBar = document.getElementById('bottomBar');
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+      if (bottomBar) {
+        // En móvil, mostrar siempre la barra inferior
+        if (!isDesktop) bottomBar.classList.remove('hidden');
+        else bottomBar.classList.add('hidden');
       }
 
-      function normalizeText(value) {
-        return String(value || '')
-          .normalize('NFD')
-          .replace(/\p{Diacritic}/gu, '')
-          .toLowerCase();
+      document.querySelectorAll('.js-pay-btn').forEach(btn => {
+        btn.textContent = `Ir a Pagar (${count})`;
+      });
+      document.querySelectorAll('.js-cart-btn').forEach(btn => {
+        btn.textContent = `Carrito (${count})`;
+      });
+
+      renderCartPanel();
+    }
+
+    function parsePrice(value) {
+      if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+      if (value && typeof value === 'object') {
+        // Soporta variantes comunes: { value: '25' }, { amount: '25' }
+        const candidate = value.value ?? value.amount ?? value.price;
+        return parsePrice(candidate);
       }
 
-      function readCart() {
-        try {
-          const raw = localStorage.getItem(CART_KEY);
-          return raw ? JSON.parse(raw) : { items: [] };
-        } catch {
-          return { items: [] };
-        }
+      const raw = String(value ?? '').trim();
+      if (!raw) return 0;
+
+      // Quitar moneda/espacios: deja dígitos, ',' '.' y '-'
+      const cleaned = raw.replace(/[^0-9,.-]/g, '');
+      if (!cleaned) return 0;
+
+      // Si viene con coma decimal (ej: 25,50) y sin punto, convertimos a punto.
+      // Si viene con ambos (ej: 1.234,56) asumimos formato ES y normalizamos.
+      let normalized = cleaned;
+      const hasComma = normalized.includes(',');
+      const hasDot = normalized.includes('.');
+      if (hasComma && hasDot) {
+        // 1.234,56 -> 1234.56
+        normalized = normalized.replace(/\./g, '').replace(',', '.');
+      } else if (hasComma && !hasDot) {
+        normalized = normalized.replace(',', '.');
       }
 
-      function writeCart(cart) {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      const num = Number(normalized);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function money(value) {
+      return parsePrice(value);
+    }
+
+    function cartTotal(cart) {
+      return (cart.items || []).reduce((acc, it) => acc + money(it.price) * (it.qty || 0), 0);
+    }
+
+    function updateQty(productId, delta) {
+      const cart = readCart();
+      const items = cart.items || [];
+      const item = items.find(it => it.id === productId);
+      if (!item) return;
+
+      item.qty = (item.qty || 0) + delta;
+      cart.items = items.filter(it => (it.qty || 0) > 0);
+      writeCart(cart);
+      setCartUI();
+    }
+
+    function removeItem(productId) {
+      const cart = readCart();
+      cart.items = (cart.items || []).filter(it => it.id !== productId);
+      writeCart(cart);
+      setCartUI();
+    }
+
+    function updateItemNotes(productId, notes) {
+      const cart = readCart();
+      const items = cart.items || [];
+      const item = items.find(it => it.id === productId);
+      if (!item) return;
+      item.notes = String(notes ?? '');
+      writeCart(cart);
+    }
+
+    function renderCartPanel() {
+      const cart = readCart();
+      const itemsEl = document.getElementById('cartItems');
+      const totalEl = document.getElementById('cartTotal');
+      if (!itemsEl || !totalEl) return;
+
+      const items = cart.items || [];
+      totalEl.textContent = formatPrice(cartTotal(cart));
+
+      if (!items.length) {
+        itemsEl.innerHTML = '<div class="p-4 text-sm text-gray-600">Tu carrito está vacío.</div>';
+        return;
       }
 
-      function escapeHtml(str) {
-        return String(str ?? '')
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;');
-      }
-
-      function cartCount(cart) {
-        return (cart.items || []).reduce((acc, it) => acc + (it.qty || 0), 0);
-      }
-
-      function setCartUI() {
-        const cart = readCart();
-        const count = cartCount(cart);
-
-        const bottomBar = document.getElementById('bottomBar');
-        const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-        if (bottomBar) {
-          // En móvil, mostrar siempre la barra inferior
-          if (!isDesktop) bottomBar.classList.remove('hidden');
-          else bottomBar.classList.add('hidden');
-        }
-
-        document.querySelectorAll('.js-pay-btn').forEach(btn => {
-          btn.textContent = `Ir a Pagar (${count})`;
-        });
-        document.querySelectorAll('.js-cart-btn').forEach(btn => {
-          btn.textContent = `Carrito (${count})`;
-        });
-
-        renderCartPanel();
-      }
-
-      function parsePrice(value) {
-        if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-        if (value && typeof value === 'object') {
-          // Soporta variantes comunes: { value: '25' }, { amount: '25' }
-          const candidate = value.value ?? value.amount ?? value.price;
-          return parsePrice(candidate);
-        }
-
-        const raw = String(value ?? '').trim();
-        if (!raw) return 0;
-
-        // Quitar moneda/espacios: deja dígitos, ',' '.' y '-'
-        const cleaned = raw.replace(/[^0-9,.-]/g, '');
-        if (!cleaned) return 0;
-
-        // Si viene con coma decimal (ej: 25,50) y sin punto, convertimos a punto.
-        // Si viene con ambos (ej: 1.234,56) asumimos formato ES y normalizamos.
-        let normalized = cleaned;
-        const hasComma = normalized.includes(',');
-        const hasDot = normalized.includes('.');
-        if (hasComma && hasDot) {
-          // 1.234,56 -> 1234.56
-          normalized = normalized.replace(/\./g, '').replace(',', '.');
-        } else if (hasComma && !hasDot) {
-          normalized = normalized.replace(',', '.');
-        }
-
-        const num = Number(normalized);
-        return Number.isFinite(num) ? num : 0;
-      }
-
-      function money(value) {
-        return parsePrice(value);
-      }
-
-      function cartTotal(cart) {
-        return (cart.items || []).reduce((acc, it) => acc + money(it.price) * (it.qty || 0), 0);
-      }
-
-      function updateQty(productId, delta) {
-        const cart = readCart();
-        const items = cart.items || [];
-        const item = items.find(it => it.id === productId);
-        if (!item) return;
-
-        item.qty = (item.qty || 0) + delta;
-        cart.items = items.filter(it => (it.qty || 0) > 0);
-        writeCart(cart);
-        setCartUI();
-      }
-
-      function removeItem(productId) {
-        const cart = readCart();
-        cart.items = (cart.items || []).filter(it => it.id !== productId);
-        writeCart(cart);
-        setCartUI();
-      }
-
-      function updateItemNotes(productId, notes) {
-        const cart = readCart();
-        const items = cart.items || [];
-        const item = items.find(it => it.id === productId);
-        if (!item) return;
-        item.notes = String(notes ?? '');
-        writeCart(cart);
-      }
-
-      function renderCartPanel() {
-        const cart = readCart();
-        const itemsEl = document.getElementById('cartItems');
-        const totalEl = document.getElementById('cartTotal');
-        if (!itemsEl || !totalEl) return;
-
-        const items = cart.items || [];
-        totalEl.textContent = formatPrice(cartTotal(cart));
-
-        if (!items.length) {
-          itemsEl.innerHTML = '<div class="p-4 text-sm text-gray-600">Tu carrito está vacío.</div>';
-          return;
-        }
-
-        itemsEl.innerHTML = items
-          .map(
-            it => `
+      itemsEl.innerHTML = items
+        .map(
+          it => `
               <div class="p-4 flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <div class="font-semibold text-gray-900 truncate">${escapeHtml(it.name)}</div>
@@ -298,60 +333,60 @@
                 </div>
               </div>
             `
-          )
-          .join('');
+        )
+        .join('');
+    }
+
+    function addToCart(product) {
+      if (product && product.available === false) return;
+      const cart = readCart();
+      const prevCount = cartCount(cart);
+      const items = cart.items || [];
+
+      const existing = items.find(it => it.id === product.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        items.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          imageUrl: product.imageUrl,
+          qty: 1,
+          notes: ''
+        });
       }
 
-      function addToCart(product) {
-        if (product && product.available === false) return;
-        const cart = readCart();
-        const prevCount = cartCount(cart);
-        const items = cart.items || [];
+      cart.items = items;
+      writeCart(cart);
+      setCartUI();
 
-        const existing = items.find(it => it.id === product.id);
-        if (existing) {
-          existing.qty += 1;
-        } else {
-          items.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            imageUrl: product.imageUrl,
-            qty: 1,
-            notes: ''
-          });
-        }
+      // Si el usuario está agregando el primer item, no abrir el carrito automáticamente.
+      if (prevCount === 0) toggleCart(false);
+    }
 
-        cart.items = items;
-        writeCart(cart);
-        setCartUI();
+    function normalizeCatalog(json) {
+      // Intentamos soportar varias formas típicas de respuesta.
+      const items =
+        (json && Array.isArray(json.items) && json.items) ||
+        (json && Array.isArray(json.data) && json.data) ||
+        (Array.isArray(json) && json) ||
+        [];
 
-        // Si el usuario está agregando el primer item, no abrir el carrito automáticamente.
-        if (prevCount === 0) toggleCart(false);
-      }
+      return items
+        .map(p => {
+          const rawPrice =
+            p.price ??
+            p.basePrice ??
+            p.base_price ??
+            p.unitPrice ??
+            p.unit_price ??
+            p.amount ??
+            p.cost ??
+            (p.pricing && (p.pricing.price ?? p.pricing.amount)) ??
+            0;
 
-      function normalizeCatalog(json) {
-        // Intentamos soportar varias formas típicas de respuesta.
-        const items =
-          (json && Array.isArray(json.items) && json.items) ||
-          (json && Array.isArray(json.data) && json.data) ||
-          (Array.isArray(json) && json) ||
-          [];
-
-        return items
-          .map(p => {
-            const rawPrice =
-              p.price ??
-              p.basePrice ??
-              p.base_price ??
-              p.unitPrice ??
-              p.unit_price ??
-              p.amount ??
-              p.cost ??
-              (p.pricing && (p.pricing.price ?? p.pricing.amount)) ??
-              0;
-
-            return ({
+          return ({
             id: String(p.id ?? p.product_id ?? p.sku ?? p.code ?? ''),
             name: p.name ?? p.title ?? 'Producto',
             description: p.description ?? p.shortDescription ?? '',
@@ -363,203 +398,203 @@
               p.image ||
               (Array.isArray(p.images) ? p.images[0] : '') ||
               'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=800&auto=format&fit=crop',
-            });
-          })
-          .filter(p => p.id);
+          });
+        })
+        .filter(p => p.id);
+    }
+
+    function normalizeCategories(json) {
+      const rows = (json && Array.isArray(json.data) && json.data) || (Array.isArray(json) && json) || [];
+      return rows
+        .map(c => ({
+          id: String(c.id ?? ''),
+          name: String(c.name ?? 'Categoría'),
+          isActive: c.isActive ?? true
+        }))
+        .filter(c => c.id);
+    }
+
+    function categoryForProduct(product, categories) {
+      if (product.categoryId) {
+        const found = categories.find(c => c.id === String(product.categoryId));
+        if (found) return found;
       }
 
-      function normalizeCategories(json) {
-        const rows = (json && Array.isArray(json.data) && json.data) || (Array.isArray(json) && json) || [];
-        return rows
-          .map(c => ({
-            id: String(c.id ?? ''),
-            name: String(c.name ?? 'Categoría'),
-            isActive: c.isActive ?? true
-          }))
-          .filter(c => c.id);
+      const name = normalizeText(product.name);
+      const byName = categories.find(c => {
+        const cn = normalizeText(c.name);
+        if (cn.includes('hamburg')) return name.includes('hamburg');
+        if (cn.includes('pizza')) return name.includes('pizza');
+        if (cn.includes('acompan')) return name.includes('papas') || name.includes('frita') || name.includes('acompan');
+        if (cn.includes('bebida')) return name.includes('coca') || name.includes('cola') || name.includes('refresco') || name.includes('jugo') || name.includes('agua');
+        return false;
+      });
+
+      return byName || null;
+    }
+
+    function imageForCategory(categoryName) {
+      const n = normalizeText(categoryName);
+      if (n.includes('hamburg')) {
+        return 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=800&auto=format&fit=crop';
       }
-
-      function categoryForProduct(product, categories) {
-        if (product.categoryId) {
-          const found = categories.find(c => c.id === String(product.categoryId));
-          if (found) return found;
-        }
-
-        const name = normalizeText(product.name);
-        const byName = categories.find(c => {
-          const cn = normalizeText(c.name);
-          if (cn.includes('hamburg')) return name.includes('hamburg');
-          if (cn.includes('pizza')) return name.includes('pizza');
-          if (cn.includes('acompan')) return name.includes('papas') || name.includes('frita') || name.includes('acompan');
-          if (cn.includes('bebida')) return name.includes('coca') || name.includes('cola') || name.includes('refresco') || name.includes('jugo') || name.includes('agua');
-          return false;
-        });
-
-        return byName || null;
+      if (n.includes('pizza')) {
+        return 'https://images.unsplash.com/photo-1548365328-9bdb61d1db09?q=80&w=800&auto=format&fit=crop';
       }
-
-      function imageForCategory(categoryName) {
-        const n = normalizeText(categoryName);
-        if (n.includes('hamburg')) {
-          return 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=800&auto=format&fit=crop';
-        }
-        if (n.includes('pizza')) {
-          return 'https://images.unsplash.com/photo-1548365328-9bdb61d1db09?q=80&w=800&auto=format&fit=crop';
-        }
-        if (n.includes('acompan')) {
-          return 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=800&auto=format&fit=crop';
-        }
-        if (n.includes('bebida')) {
-          return 'https://images.unsplash.com/photo-1610873167013-2dd675d30ef4?q=80&w=800&auto=format&fit=crop';
-        }
-        return 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=800&auto=format&fit=crop';
+      if (n.includes('acompan')) {
+        return 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=800&auto=format&fit=crop';
       }
+      if (n.includes('bebida')) {
+        return 'https://images.unsplash.com/photo-1610873167013-2dd675d30ef4?q=80&w=800&auto=format&fit=crop';
+      }
+      return 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=800&auto=format&fit=crop';
+    }
 
-      function hydrateKitchenProducts(rawProducts, categories) {
-        return rawProducts.map(p => {
-          const cat = categoryForProduct(p, categories);
-          const categoryName = cat ? cat.name : '';
-          let imageUrl = p.imageUrl && String(p.imageUrl).trim() ? String(p.imageUrl).trim() : imageForCategory(categoryName);
-          // Si el backend manda ruta relativa ("/images/x.png" o "images/x.png"), resolvemos contra KITCHEN_URL.
-          if (imageUrl && !/^https?:\/\//i.test(imageUrl) && !/^data:/i.test(imageUrl)) {
-            const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-            imageUrl = `${KITCHEN_URL}${path}`;
+    function hydrateKitchenProducts(rawProducts, categories) {
+      return rawProducts.map(p => {
+        const cat = categoryForProduct(p, categories);
+        const categoryName = cat ? cat.name : '';
+        let imageUrl = p.imageUrl && String(p.imageUrl).trim() ? String(p.imageUrl).trim() : imageForCategory(categoryName);
+        // Si el backend manda ruta relativa ("/images/x.png" o "images/x.png"), resolvemos contra KITCHEN_URL.
+        if (imageUrl && !/^https?:\/\//i.test(imageUrl) && !/^data:/i.test(imageUrl)) {
+          const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+          imageUrl = `${KITCHEN_URL}${path}`;
+        }
+        return {
+          ...p,
+          price: money(p.price),
+          available: p.available !== false,
+          categoryId: cat ? cat.id : null,
+          categoryName,
+          imageUrl
+        };
+      });
+    }
+
+    function mockKitchenCategories() {
+      return {
+        success: true,
+        data: [
+          { id: 'hamburguesas', name: 'Hamburguesas', isActive: true },
+          { id: 'pizzas', name: 'Pizzas', isActive: true },
+          { id: 'acompanamientos', name: 'Acompañamientos', isActive: true },
+          { id: 'bebidas', name: 'Bebidas', isActive: true }
+        ]
+      };
+    }
+
+    function mockKitchenCatalog() {
+      return {
+        source: 'kitchen-api',
+        items: [
+          {
+            product_id: 'a5eccd9f-8b62-4ba5-ac9e-21ca43199718',
+            name: 'Hamburguesa Royal',
+            price: '25',
+            available: true
+          },
+          {
+            product_id: 'd4f1aa76-bd68-417e-bde1-67fba5d03f71',
+            name: 'Hamburguesa Clásica',
+            price: '18',
+            available: true
+          },
+          {
+            product_id: '01391bb6-03cb-4f77-b091-f073962b4d20',
+            name: 'Pizza Pepperoni',
+            price: '35',
+            available: true
+          },
+          {
+            product_id: 'f584d2e7-f103-433d-b770-f68bbeaba5e4',
+            name: 'Papas Fritas',
+            price: '12',
+            available: true
+          },
+          {
+            product_id: '20b1031a-b912-47f9-8a99-165aa1338afa',
+            name: 'Pizza Pizza',
+            price: '20',
+            available: true
+          },
+          {
+            product_id: 'fe786c35-911c-4c7e-990f-60c75aa367c1',
+            name: 'Pizza Pizza',
+            price: '20',
+            available: true
           }
-          return {
-            ...p,
-            price: money(p.price),
-            available: p.available !== false,
-            categoryId: cat ? cat.id : null,
-            categoryName,
-            imageUrl
-          };
-        });
+        ]
+      };
+    }
+
+    function renderCategories(categories) {
+      const section = document.getElementById('categoriesSection');
+      const wrap = document.getElementById('categories');
+      const label = document.getElementById('activeCategoryLabel');
+      if (!section || !wrap || !label) return;
+
+      if (!categories.length) {
+        section.classList.add('hidden');
+        return;
       }
 
-      function mockKitchenCategories() {
-        return {
-          success: true,
-          data: [
-            { id: 'hamburguesas', name: 'Hamburguesas', isActive: true },
-            { id: 'pizzas', name: 'Pizzas', isActive: true },
-            { id: 'acompanamientos', name: 'Acompañamientos', isActive: true },
-            { id: 'bebidas', name: 'Bebidas', isActive: true }
-          ]
-        };
-      }
+      section.classList.remove('hidden');
+      const selected = state.selectedCategoryId;
+      const selectedName =
+        selected === 'all'
+          ? 'Todos'
+          : categories.find(c => c.id === selected)?.name || '';
+      label.textContent = selectedName ? `Mostrando: ${selectedName}` : '';
 
-      function mockKitchenCatalog() {
-        return {
-          source: 'kitchen-api',
-          items: [
-            {
-              product_id: 'a5eccd9f-8b62-4ba5-ac9e-21ca43199718',
-              name: 'Hamburguesa Royal',
-              price: '25',
-              available: true
-            },
-            {
-              product_id: 'd4f1aa76-bd68-417e-bde1-67fba5d03f71',
-              name: 'Hamburguesa Clásica',
-              price: '18',
-              available: true
-            },
-            {
-              product_id: '01391bb6-03cb-4f77-b091-f073962b4d20',
-              name: 'Pizza Pepperoni',
-              price: '35',
-              available: true
-            },
-            {
-              product_id: 'f584d2e7-f103-433d-b770-f68bbeaba5e4',
-              name: 'Papas Fritas',
-              price: '12',
-              available: true
-            },
-            {
-              product_id: '20b1031a-b912-47f9-8a99-165aa1338afa',
-              name: 'Pizza Pizza',
-              price: '20',
-              available: true
-            },
-            {
-              product_id: 'fe786c35-911c-4c7e-990f-60c75aa367c1',
-              name: 'Pizza Pizza',
-              price: '20',
-              available: true
-            }
-          ]
-        };
-      }
+      const chips = [
+        { id: 'all', name: 'Todos' },
+        ...categories.map(c => ({ id: c.id, name: c.name }))
+      ];
 
-      function renderCategories(categories) {
-        const section = document.getElementById('categoriesSection');
-        const wrap = document.getElementById('categories');
-        const label = document.getElementById('activeCategoryLabel');
-        if (!section || !wrap || !label) return;
-
-        if (!categories.length) {
-          section.classList.add('hidden');
-          return;
-        }
-
-        section.classList.remove('hidden');
-        const selected = state.selectedCategoryId;
-        const selectedName =
-          selected === 'all'
-            ? 'Todos'
-            : categories.find(c => c.id === selected)?.name || '';
-        label.textContent = selectedName ? `Mostrando: ${selectedName}` : '';
-
-        const chips = [
-          { id: 'all', name: 'Todos' },
-          ...categories.map(c => ({ id: c.id, name: c.name }))
-        ];
-
-        wrap.innerHTML = chips
-          .map(c => {
-            const isActive = c.id === selected;
-            const base =
-              'px-3 py-1.5 rounded-full text-sm font-semibold border transition';
-            const active = 'bg-brand-800 text-white border-brand-800';
-            const idle = 'bg-white text-gray-700 border-gray-200 hover:border-gray-300';
-            return `
+      wrap.innerHTML = chips
+        .map(c => {
+          const isActive = c.id === selected;
+          const base =
+            'px-3 py-1.5 rounded-full text-sm font-semibold border transition';
+          const active = 'bg-brand-800 text-white border-brand-800';
+          const idle = 'bg-white text-gray-700 border-gray-200 hover:border-gray-300';
+          return `
               <button type="button" data-cat="${c.id}" class="${base} ${isActive ? active : idle}">
                 ${c.name}
               </button>
             `;
-          })
-          .join('');
-      }
+        })
+        .join('');
+    }
 
-      function filteredProducts() {
-        if (state.selectedCategoryId === 'all') return state.products;
-        return state.products.filter(p => p.categoryId === state.selectedCategoryId);
-      }
+    function filteredProducts() {
+      if (state.selectedCategoryId === 'all') return state.products;
+      return state.products.filter(p => p.categoryId === state.selectedCategoryId);
+    }
 
-      function renderProducts(products) {
-        const grid = document.getElementById('grid');
-        if (!grid) return;
-        grid.innerHTML = '';
+    function renderProducts(products) {
+      const grid = document.getElementById('grid');
+      if (!grid) return;
+      grid.innerHTML = '';
 
-        products.forEach(product => {
-          const card = document.createElement('article');
-          card.className =
-            'bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_1px_0_rgba(0,0,0,0.03)]';
+      products.forEach(product => {
+        const card = document.createElement('article');
+        card.className =
+          'bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_1px_0_rgba(0,0,0,0.03)]';
 
-          const unavailable = product.available === false;
-          const pill = unavailable
-            ? '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">No disponible</span>'
-            : '';
-          const category = product.categoryName
-            ? `<div class="text-xs text-gray-500 mt-1">${product.categoryName}</div>`
-            : '';
-          const addBtnClass = unavailable
-            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-            : 'bg-brand-800 text-white hover:bg-brand-700';
-          const addBtnText = unavailable ? 'No disponible' : 'Añadir';
+        const unavailable = product.available === false;
+        const pill = unavailable
+          ? '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">No disponible</span>'
+          : '';
+        const category = product.categoryName
+          ? `<div class="text-xs text-gray-500 mt-1">${product.categoryName}</div>`
+          : '';
+        const addBtnClass = unavailable
+          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+          : 'bg-brand-800 text-white hover:bg-brand-700';
+        const addBtnText = unavailable ? 'No disponible' : 'Añadir';
 
-          card.innerHTML = `
+        card.innerHTML = `
             <div class="aspect-[4/3] bg-gray-100 overflow-hidden">
               <img
                 src="${product.imageUrl || FALLBACK_PRODUCT_IMAGE}"
@@ -587,256 +622,249 @@
             </div>
           `;
 
-          grid.appendChild(card);
-        });
-      }
+        grid.appendChild(card);
+      });
+    }
 
-      async function loadKitchenCategories() {
-        const res = await fetch(`${KITCHEN_URL}/api/kitchen/categories?activeOnly=true`, {
-          method: 'GET',
-          headers: { Accept: 'application/json' }
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        return normalizeCategories(json);
-      }
+    async function loadKitchenCategories() {
+      const res = await fetch(`${KITCHEN_URL}/api/kitchen/categories?activeOnly=true`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return normalizeCategories(json);
+    }
 
-      async function loadKitchenCatalog() {
-        const res = await fetch(`${KITCHEN_URL}/api/kitchen/products`, {
-          method: 'GET',
-          headers: { Accept: 'application/json' }
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        return normalizeCatalog(json);
-      }
+    async function loadKitchenCatalog() {
+      const res = await fetch(`${KITCHEN_URL}/api/kitchen/products`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return normalizeCatalog(json);
+    }
 
-      async function loadCatalog() {
-        const status = document.getElementById('status');
+    async function loadCatalog() {
+      const status = document.getElementById('status');
+
+      try {
+        // Preferimos kitchen-api (según tu backend). Si falla, caemos a dp/v1/catalog.
+        let categories = [];
+        let products = [];
 
         try {
-          // Preferimos kitchen-api (según tu backend). Si falla, caemos a dp/v1/catalog.
-          let categories = [];
-          let products = [];
-
-          try {
-            categories = await loadKitchenCategories();
-          } catch {
-            categories = normalizeCategories(mockKitchenCategories());
-          }
-
-          try {
-            products = await loadKitchenCatalog();
-          } catch {
-            products = normalizeCatalog(mockKitchenCatalog());
-          }
-
-          // Enriquecer con categoría + imágenes por categoría
-          products = hydrateKitchenProducts(products, categories);
-
-          // Si por alguna razón no hay items kitchen, intentamos el catálogo dp
-          if (!products.length) {
-            const res = await fetch(`${DP_URL}/api/dp/v1/catalog`, {
-              method: 'GET',
-              headers: { Accept: 'application/json' }
-            });
-
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const json = await res.json();
-            products = normalizeCatalog(json);
-          }
-
-          state.categories = categories;
-          state.products = products;
-          state.selectedCategoryId = 'all';
-
-          if (status) status.textContent = '';
-          renderCategories(state.categories);
-          renderProducts(filteredProducts());
-        } catch (err) {
-          // Demo: si la API no está disponible, mostramos kitchen simulado.
-          const categories = normalizeCategories(mockKitchenCategories());
-          const products = hydrateKitchenProducts(
-            normalizeCatalog(mockKitchenCatalog()),
-            categories
-          );
-          state.categories = categories;
-          state.products = products;
-          state.selectedCategoryId = 'all';
-
-          if (status) status.textContent = 'Mostrando catálogo de ejemplo (API no disponible o sin CORS).';
-          renderCategories(state.categories);
-          renderProducts(filteredProducts());
-        }
-      }
-
-      function goToCheckout() {
-        localStorage.setItem('dp_service_type', 'delivery_or_pickup');
-        window.location.href = '/checkout';
-      }
-
-      function openCheckoutModal() {
-        const modal = document.getElementById('checkoutModal');
-        if (!modal) return;
-        modal.classList.remove('hidden');
-        // Enfocar primer CTA
-        document.getElementById('deliveryPickupBtn')?.focus();
-      }
-
-      function closeCheckoutModal() {
-        const modal = document.getElementById('checkoutModal');
-        if (!modal) return;
-        modal.classList.add('hidden');
-        document.getElementById('payBtn')?.focus();
-      }
-
-      document.getElementById('checkoutModalOverlay')?.addEventListener('click', closeCheckoutModal);
-      document.getElementById('checkoutModalClose')?.addEventListener('click', closeCheckoutModal);
-
-      document.addEventListener('keydown', e => {
-        if (e.key !== 'Escape') return;
-        const modal = document.getElementById('checkoutModal');
-        if (modal && !modal.classList.contains('hidden')) closeCheckoutModal();
-      });
-
-      document.getElementById('onsiteBtn')?.addEventListener('click', () => {
-        // No checkout por ahora: se queda en el menú.
-        // Si más adelante existe flujo de consumo en local, redirige aquí.
-        localStorage.setItem('dp_service_type', 'onsite');
-        closeCheckoutModal();
-      });
-
-      document.getElementById('deliveryPickupBtn')?.addEventListener('click', () => {
-        localStorage.setItem('dp_service_type', 'delivery_or_pickup');
-        // Navegar a la ruta "bonita" para Checkout.
-        // La API/server resuelve qué vista servir en /checkout.
-        window.location.href = '/checkout';
-      });
-
-      function toggleCart(open) {
-        const panel = document.getElementById('cartPanel');
-        if (!panel) return;
-        const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-        if (isDesktop) {
-          panel.classList.remove('hidden');
-          return;
-        }
-        if (open) panel.classList.remove('hidden');
-        else panel.classList.add('hidden');
-      }
-
-      // Event delegation: works for buttons rendered after this <script>
-      document.addEventListener('click', e => {
-        const payBtn = e.target.closest('.js-pay-btn');
-        if (payBtn) {
-          e.preventDefault();
-          goToCheckout();
-          return;
+          categories = await loadKitchenCategories();
+        } catch {
+          categories = normalizeCategories(mockKitchenCategories());
         }
 
-        const cartBtn = e.target.closest('.js-cart-btn');
-        if (cartBtn) {
-          e.preventDefault();
-          const panel = document.getElementById('cartPanel');
-          if (!panel) return;
-          const isOpen = !panel.classList.contains('hidden');
-          const nextOpen = !isOpen;
-          toggleCart(nextOpen);
-
-          // On mobile the cart lives below the products; bring it into view.
-          const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-          if (!isDesktop && nextOpen) {
-            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            panel.classList.add('ring-2', 'ring-brand-200');
-            window.setTimeout(() => panel.classList.remove('ring-2', 'ring-brand-200'), 900);
-          }
+        try {
+          products = await loadKitchenCatalog();
+        } catch {
+          products = normalizeCatalog(mockKitchenCatalog());
         }
-      });
 
-      document.getElementById('cartCloseBtn')?.addEventListener('click', () => toggleCart(false));
+        // Enriquecer con categoría + imágenes por categoría
+        products = hydrateKitchenProducts(products, categories);
 
-      document.getElementById('cartPanel')?.addEventListener('click', e => {
-        const btn = e.target.closest('button[data-action]');
-        if (!btn) return;
-        const action = btn.getAttribute('data-action');
-        const id = btn.getAttribute('data-id');
-        if (!id) return;
+        // Si por alguna razón no hay items kitchen, intentamos el catálogo dp
+        if (!products.length) {
+          const res = await fetch(`${DP_URL}/api/dp/v1/catalog`, {
+            method: 'GET',
+            headers: { Accept: 'application/json' }
+          });
 
-        if (action === 'inc') updateQty(id, 1);
-        else if (action === 'dec') updateQty(id, -1);
-        else if (action === 'remove') removeItem(id);
-      });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          products = normalizeCatalog(json);
+        }
 
-      // Notas por ítem (no re-render para no romper el cursor mientras escribe)
-      document.getElementById('cartPanel')?.addEventListener('input', e => {
-        const el = e.target;
-        if (!(el instanceof HTMLTextAreaElement)) return;
-        if (el.getAttribute('data-action') !== 'note') return;
-        const id = el.getAttribute('data-id');
-        if (!id) return;
-        // Auto-grow del textarea de notas, con altura máxima razonable
-        el.style.height = 'auto';
-        const maxH = 160; // px
-        el.style.height = Math.min(el.scrollHeight, maxH) + 'px';
-        updateItemNotes(id, el.value);
-      });
+        state.categories = categories;
+        state.products = products;
+        state.selectedCategoryId = 'all';
 
-      // Click handler único para "Añadir" (evita duplicados al re-render por categorías)
-      document.getElementById('grid')?.addEventListener(
-        'click',
-        e => {
-          const btn = e.target.closest('button[data-add]');
-          if (!btn) return;
-          if (btn.hasAttribute('disabled')) return;
-          const id = btn.getAttribute('data-add');
-          if (!id) return;
-          const product = (state.products || []).find(p => p.id === id);
-          if (product) addToCart(product);
-        },
-        { passive: true }
-      );
-
-      document.getElementById('categories')?.addEventListener('click', e => {
-        const btn = e.target.closest('button[data-cat]');
-        if (!btn) return;
-        const id = btn.getAttribute('data-cat');
-        if (!id) return;
-        state.selectedCategoryId = id;
+        if (status) status.textContent = '';
         renderCategories(state.categories);
         renderProducts(filteredProducts());
-      });
+      } catch (err) {
+        // Demo: si la API no está disponible, mostramos kitchen simulado.
+        const categories = normalizeCategories(mockKitchenCategories());
+        const products = hydrateKitchenProducts(
+          normalizeCatalog(mockKitchenCatalog()),
+          categories
+        );
+        state.categories = categories;
+        state.products = products;
+        state.selectedCategoryId = 'all';
 
-      setCartUI();
-      loadCatalog();
-    </script>
+        if (status) status.textContent = 'Mostrando catálogo de ejemplo (API no disponible o sin CORS).';
+        renderCategories(state.categories);
+        renderProducts(filteredProducts());
+      }
+    }
 
-    <script type="module" src="/shared/components/app-header.js"></script>
-    <!-- Barra inferior fija solo para móvil: Ver Carrito / Ir a Pagar -->
-    <div
-      id="payBar"
-      class="fixed left-0 right-0 bottom-0 z-40 px-6 pb-6 lg:hidden"
-      style="padding-bottom: calc(24px + env(safe-area-inset-bottom));"
-    >
-      <div class="max-w-6xl mx-auto">
-        <div id="bottomBar" class="pointer-events-auto">
-          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-end gap-3">
-            <button
-              id="cartBtnMobile"
-              type="button"
-              class="js-cart-btn w-full sm:w-auto bg-white text-gray-800 px-5 py-3 rounded-full font-semibold shadow-lg border border-gray-200"
-            >
-              Carrito
-            </button>
-            <button
-              id="payBtnMobile"
-              type="button"
-              class="js-pay-btn w-full sm:w-auto bg-brand-800 text-white px-5 py-3 rounded-full font-semibold shadow-lg"
-            >
-              Ir a Pagar
-            </button>
-          </div>
+    function goToCheckout() {
+      localStorage.setItem('dp_service_type', 'delivery_or_pickup');
+      window.location.href = '/checkout';
+    }
+
+    function openCheckoutModal() {
+      const modal = document.getElementById('checkoutModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      // Enfocar primer CTA
+      document.getElementById('deliveryPickupBtn')?.focus();
+    }
+
+    function closeCheckoutModal() {
+      const modal = document.getElementById('checkoutModal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.getElementById('payBtn')?.focus();
+    }
+
+    document.getElementById('checkoutModalOverlay')?.addEventListener('click', closeCheckoutModal);
+    document.getElementById('checkoutModalClose')?.addEventListener('click', closeCheckoutModal);
+
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      const modal = document.getElementById('checkoutModal');
+      if (modal && !modal.classList.contains('hidden')) closeCheckoutModal();
+    });
+
+    document.getElementById('onsiteBtn')?.addEventListener('click', () => {
+      // No checkout por ahora: se queda en el menú.
+      // Si más adelante existe flujo de consumo en local, redirige aquí.
+      localStorage.setItem('dp_service_type', 'onsite');
+      closeCheckoutModal();
+    });
+
+    document.getElementById('deliveryPickupBtn')?.addEventListener('click', () => {
+      localStorage.setItem('dp_service_type', 'delivery_or_pickup');
+      // Navegar a la ruta "bonita" para Checkout.
+      // La API/server resuelve qué vista servir en /checkout.
+      window.location.href = '/checkout';
+    });
+
+    function toggleCart(open) {
+      const panel = document.getElementById('cartPanel');
+      if (!panel) return;
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+      if (isDesktop) {
+        panel.classList.remove('hidden');
+        return;
+      }
+      if (open) panel.classList.remove('hidden');
+      else panel.classList.add('hidden');
+    }
+
+    // Event delegation: works for buttons rendered after this <script>
+    document.addEventListener('click', e => {
+      const payBtn = e.target.closest('.js-pay-btn');
+      if (payBtn) {
+        e.preventDefault();
+        goToCheckout();
+        return;
+      }
+
+      const cartBtn = e.target.closest('.js-cart-btn');
+      if (cartBtn) {
+        e.preventDefault();
+        const panel = document.getElementById('cartPanel');
+        if (!panel) return;
+        const isOpen = !panel.classList.contains('hidden');
+        const nextOpen = !isOpen;
+        toggleCart(nextOpen);
+
+        // On mobile the cart lives below the products; bring it into view.
+        const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+        if (!isDesktop && nextOpen) {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          panel.classList.add('ring-2', 'ring-brand-200');
+          window.setTimeout(() => panel.classList.remove('ring-2', 'ring-brand-200'), 900);
+        }
+      }
+    });
+
+    document.getElementById('cartCloseBtn')?.addEventListener('click', () => toggleCart(false));
+
+    document.getElementById('cartPanel')?.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-action');
+      const id = btn.getAttribute('data-id');
+      if (!id) return;
+
+      if (action === 'inc') updateQty(id, 1);
+      else if (action === 'dec') updateQty(id, -1);
+      else if (action === 'remove') removeItem(id);
+    });
+
+    // Notas por ítem (no re-render para no romper el cursor mientras escribe)
+    document.getElementById('cartPanel')?.addEventListener('input', e => {
+      const el = e.target;
+      if (!(el instanceof HTMLTextAreaElement)) return;
+      if (el.getAttribute('data-action') !== 'note') return;
+      const id = el.getAttribute('data-id');
+      if (!id) return;
+      // Auto-grow del textarea de notas, con altura máxima razonable
+      el.style.height = 'auto';
+      const maxH = 160; // px
+      el.style.height = Math.min(el.scrollHeight, maxH) + 'px';
+      updateItemNotes(id, el.value);
+    });
+
+    // Click handler único para "Añadir" (evita duplicados al re-render por categorías)
+    document.getElementById('grid')?.addEventListener(
+      'click',
+      e => {
+        const btn = e.target.closest('button[data-add]');
+        if (!btn) return;
+        if (btn.hasAttribute('disabled')) return;
+        const id = btn.getAttribute('data-add');
+        if (!id) return;
+        const product = (state.products || []).find(p => p.id === id);
+        if (product) addToCart(product);
+      },
+      { passive: true }
+    );
+
+    document.getElementById('categories')?.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-cat]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-cat');
+      if (!id) return;
+      state.selectedCategoryId = id;
+      renderCategories(state.categories);
+      renderProducts(filteredProducts());
+    });
+
+    setCartUI();
+    loadCatalog();
+  </script>
+
+  <script type="module" src="/shared/components/app-header.js"></script>
+  <!-- Barra inferior fija solo para móvil: Ver Carrito / Ir a Pagar -->
+  <div id="payBar" class="fixed left-0 right-0 bottom-0 z-40 px-6 pb-6 lg:hidden"
+    style="padding-bottom: calc(24px + env(safe-area-inset-bottom));">
+    <div class="max-w-6xl mx-auto">
+      <div id="bottomBar" class="pointer-events-auto">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-end gap-3">
+          <button id="cartBtnMobile" type="button"
+            class="js-cart-btn w-full sm:w-auto bg-white text-gray-800 px-5 py-3 rounded-full font-semibold shadow-lg border border-gray-200">
+            Carrito
+          </button>
+          <button id="payBtnMobile" type="button"
+            class="js-pay-btn w-full sm:w-auto bg-brand-800 text-white px-5 py-3 rounded-full font-semibold shadow-lg">
+            Ir a Pagar
+          </button>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+  <script type="module" src="/landing/script.js"></script>
+</body>
+
 </html>
