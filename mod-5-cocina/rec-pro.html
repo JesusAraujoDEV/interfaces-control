@@ -8,8 +8,6 @@
     <script src="/config.js"></script>
     <script src="/js/api.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -22,8 +20,9 @@
         }
 
         .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
+            flex: 1;
+            padding: 2rem 3rem;
+            overflow-y: auto;
         }
 
         h1 {
@@ -223,20 +222,29 @@
             border-color: #fecaca;
         }
 
-        /* Modales */
-        .modal {
-            display: none;
+        /* Modales - Forzamos para que styles.css no rompa la lógica inline */
+        body .modal {
+            display: none !important;
+            /* Ganamos al block !important de styles.css para que no se vean por defecto */
             position: fixed;
-            z-index: 1000;
+            z-index: 10000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(4px);
         }
 
-        .modal-content {
+        /* Clase para mostrar la modal */
+        body .modal.active {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+
+        body .modal-content {
             background-color: white;
             margin: 5% auto;
             padding: 30px;
@@ -246,6 +254,7 @@
             position: relative;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             animation: slideDown 0.3s ease-out;
+            transform: none !important;
         }
 
         @keyframes slideDown {
@@ -333,13 +342,14 @@
             color: #9ca3af;
         }
     </style>
+    <link rel="stylesheet" href="styles.css">
+
 </head>
 
 <body class="app-container">
 
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <!-- Placeholder logo or avatar -->
             <div class="sidebar__avatar"></div>
             <div class="sidebar__info">
                 <p class="sidebar__user">Admin Cocina</p>
@@ -381,19 +391,15 @@
         </nav>
 
         <div class="sidebar__footer">
-            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
             <div class="sidebar__footer-action">
-                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                <a href="/seguridad/logout" class="logout-link">
+                    <i data-lucide="log-out"></i>
                     <span>Cerrar Sesión</span>
                 </a>
             </div>
         </div>
     </aside>
+
     <main class="main-content">
         <h1><i class="fas fa-utensils"></i> Maestro de Productos</h1>
 
@@ -419,88 +425,85 @@
         </div>
 
         <div class="grid-container" id="productsGrid"></div>
-        </div>
+    </main>
 
-        <div id="productModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modalTitle">Nuevo Producto</h2>
-                    <span class="close" onclick="closeModal('productModal')">&times;</span>
-                </div>
-                <form id="productForm" onsubmit="saveProduct(event)">
-                    <input type="hidden" id="prodId">
-
-                    <div class="form-group">
-                        <label>Nombre del Producto</label>
-                        <input type="text" id="prodName" class="form-input" required>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-group">
-                            <label>Precio Base ($)</label>
-                            <input type="number" step="0.01" id="prodPrice" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Categoría</label>
-                            <select id="prodCategory" class="form-input" required></select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea id="prodDesc" class="form-input" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Imagen</label>
-                        <input type="file" id="prodImage" accept="image/*" class="form-input">
-                    </div>
-
-                    <button type="submit" class="btn-primary"
-                        style="width: 100%; justify-content: center;">Guardar</button>
-                </form>
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nuevo Producto</h2>
+                <span class="close" onclick="closeModal('productModal')">&times;</span>
             </div>
-        </div>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="prodId">
 
-        <div id="recipeModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Configurar Receta</h2>
-                    <span class="close" onclick="closeModal('recipeModal')">&times;</span>
+                <div class="form-group">
+                    <label>Nombre del Producto</label>
+                    <input type="text" id="prodName" class="form-input" required>
                 </div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <select id="ingredientSelect" class="form-input" style="flex:2"></select>
-                    <input type="number" id="ingredientQty" class="form-input" placeholder="Cant." style="flex:1">
-                    <button onclick="addIngredientToRecipe()" class="btn-primary"><i class="fas fa-plus"></i></button>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Precio Base ($)</label>
+                        <input type="number" step="0.01" id="prodPrice" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="prodCategory" class="form-input" required></select>
+                    </div>
                 </div>
-                <table style="width:100%; border-collapse: collapse;">
-                    <tbody id="recipeListBody"></tbody>
-                </table>
+
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="prodDesc" class="form-input" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Imagen</label>
+                    <input type="file" id="prodImage" accept="image/*" class="form-input">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="recipeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurar Receta</h2>
+                <span class="close" onclick="closeModal('recipeModal')">&times;</span>
             </div>
-        </div>
-
-        <div id="categoryModal" class="modal">
-            <div class="modal-content" style="max-width: 400px;">
-                <div class="modal-header">
-                    <h2>Categorías</h2>
-                    <span class="close" onclick="closeCategoryModal()">&times;</span>
-                </div>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <input type="text" id="catNameInput" class="form-input" placeholder="Nombre...">
-                    <button onclick="saveCategory()" class="btn-primary">Guardar</button>
-                    <button id="cancelCatEdit" onclick="resetCategoryForm()"
-                        style="display:none; padding:10px;">X</button>
-                </div>
-                <table style="width:100%">
-                    <tbody id="categoryListBody"></tbody>
-                </table>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <select id="ingredientSelect" class="form-input" style="flex:2"></select>
+                <input type="number" id="ingredientQty" class="form-input" placeholder="Cant." style="flex:1">
+                <button onclick="addIngredientToRecipe()" class="btn-primary"><i class="fas fa-plus"></i></button>
             </div>
+            <table style="width:100%; border-collapse: collapse;">
+                <tbody id="recipeListBody"></tbody>
+            </table>
         </div>
+    </div>
 
-        <div id="toast" class="toast"></div>
+    <div id="categoryModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Categorías</h2>
+                <span class="close" onclick="closeCategoryModal()">&times;</span>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="catNameInput" class="form-input" placeholder="Nombre...">
+                <button onclick="saveCategory()" class="btn-primary">Guardar</button>
+                <button id="cancelCatEdit" onclick="resetCategoryForm()" style="display:none; padding:10px;">X</button>
+            </div>
+            <table style="width:100%">
+                <tbody id="categoryListBody"></tbody>
+            </table>
+        </div>
+    </div>
 
-        <script src="js/rec-pro.js"></script>
-        <script>lucide.createIcons();</script>
+    <div id="toast" class="toast"></div>
+
+    <script src="js/rec-pro.js"></script>
 </body>
 
 </html>

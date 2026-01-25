@@ -1,6 +1,6 @@
 // Usar configuraciones globales de /js/api.js
-const API_BASE = window.KITCHEN_URL || 'https://charlotte-cocina.onrender.com/api/kitchen';
-const INVENTORY_URL = `${window.KITCHEN_URL}/inventory/items`;
+const getApiBase = () => window.KITCHEN_URL || 'https://charlotte-cocina.onrender.com/api/kitchen';
+const getInventoryUrl = () => `${getApiBase()}/inventory/items`;
 
 let allProducts = [];
 let allCategories = [];
@@ -11,6 +11,8 @@ let searchTerm = '';
 let editingCategoryId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM ready - initializing rec-pro');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     injectStyles();     
     injectDashboard();  
     loadCategories();   
@@ -57,6 +59,17 @@ function injectStyles() {
         .kpi-card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
         .kpi-value { font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 10px 0 5px 0; }
         .kpi-label { color: #6b7280; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Estilos para el toggle */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .card.inactive { opacity: 0.6; filter: grayscale(0.5); }
+        .card.inactive .card-badge { background: #9ca3af; color: white; }
     `;
     document.head.appendChild(style);
 }
@@ -82,14 +95,20 @@ function injectDashboard() {
 
 function updateDashboard() {
     const activeProds = allProducts.filter(p => p.isActive !== false);
-    document.getElementById('total-products').textContent = activeProds.length;
-    document.getElementById('active-products').textContent = activeProds.length;
-    document.getElementById('total-categories').textContent = allCategories.length;
+    const activeCats = allCategories.filter(c => c.isActive !== false);
+    
+    const totalProdEl = document.getElementById('total-products');
+    const activeProdEl = document.getElementById('active-products');
+    const totalCatEl = document.getElementById('total-categories');
+
+    if(totalProdEl) totalProdEl.textContent = allProducts.length;
+    if(activeProdEl) activeProdEl.textContent = activeProds.length;
+    if(totalCatEl) totalCatEl.textContent = activeCats.length;
 }
 
 async function loadProducts() {
     try {
-        const res = await fetch(`${API_BASE}/products`, { headers: getCommonHeaders() });
+        const res = await fetch(`${getApiBase()}/products`, { headers: getCommonHeaders() });
         const responseData = await res.json();
         const productsList = responseData.data || responseData;
 
@@ -107,24 +126,13 @@ async function loadProducts() {
 
 async function loadCategories() {
     try {
-        const res = await fetch(`${API_BASE}/categories`, { headers: getCommonHeaders() });
+        const res = await fetch(`${getApiBase()}/categories`, { headers: getCommonHeaders() });
         const responseData = await res.json();
         const categoriesList = responseData.data || responseData;
 
         if (Array.isArray(categoriesList)) {
             allCategories = categoriesList;
-            
-            const filterSelect = document.getElementById('categoryFilter');
-            const formSelect = document.getElementById('prodCategory');
-            
-            if(filterSelect) {
-                filterSelect.innerHTML = '<option value="all">Todas las Categorías</option>' + 
-                    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            }
-            if(formSelect) {
-                formSelect.innerHTML = '<option value="">Seleccione...</option>' + 
-                    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            }
+            updateSelectors();
             updateDashboard();
             renderCategoriesList();
             renderProducts(); 
@@ -134,7 +142,7 @@ async function loadCategories() {
 
 async function loadInventory() {
     try {
-        const res = await fetch(INVENTORY_URL, { headers: getCommonHeaders() });
+        const res = await fetch(getInventoryUrl(), { headers: getCommonHeaders() });
         if(res.ok) {
             const data = await res.json();
             allInventory = data.data || data;
@@ -147,7 +155,8 @@ function renderProducts() {
     if (!grid) return;
     grid.innerHTML = '';
     
-    let filtered = allProducts.filter(p => p.isActive === true);
+    // Mostramos todos para poder activarlos/desactivarlos, pero filtramos por búsqueda/categoría
+    let filtered = allProducts;
     
     if (activeCategory !== 'all') {
         filtered = filtered.filter(p => p.categoryId === activeCategory);
@@ -163,7 +172,7 @@ function renderProducts() {
             <div class="empty-state">
                 <i class="fas fa-search" style="font-size: 3rem; color: #ccc;"></i>
                 <h3>Nada por aquí</h3>
-                <p>No hay productos visibles en esta categoría.</p>
+                <p>No se encontraron productos.</p>
             </div>`;
         return;
     }
@@ -172,11 +181,14 @@ function renderProducts() {
         const categoryName = allCategories.find(c => c.id === p.categoryId)?.name || 'General';
         const fallbackImage = getCategoryImage(categoryName);
         const imageUrl = p.imageUrl || fallbackImage;
+        const isActive = p.isActive !== false;
 
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = `card ${isActive ? '' : 'inactive'}`;
         card.innerHTML = `
-            <div class="card-badge status-active">ACTIVO</div>
+            <div class="card-badge ${isActive ? 'status-active' : 'status-inactive'}">
+                ${isActive ? 'ACTIVO' : 'INACTIVO'}
+            </div>
             <img 
                 src="${imageUrl}" 
                 alt="${p.name}" 
@@ -192,9 +204,15 @@ function renderProducts() {
                 </div>
             </div>
             <div class="card-actions">
-                <button class="action-btn" onclick="openEditProduct('${p.id}')"><i class="fas fa-edit"></i></button>
-                <button class="action-btn btn-delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
-                <button class="action-btn" onclick="openRecipeModal('${p.id}')"><i class="fas fa-scroll"></i></button>
+                <button class="action-btn" title="Editar" onclick="openEditProduct('${p.id}')"><i class="fas fa-edit"></i></button>
+                <div class="action-btn" title="${isActive ? 'Desactivar' : 'Activar'}">
+                    <label class="switch">
+                        <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleProductStatus('${p.id}', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="action-btn btn-delete" title="Borrar Permanente" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
+                <button class="action-btn" title="Receta" onclick="openRecipeModal('${p.id}')"><i class="fas fa-scroll"></i></button>
             </div>
              <div style="padding: 10px; border-top: 1px solid #eee;">
                  <button class="action-btn" style="width:100%" onclick="checkAvailability('${p.id}')">
@@ -243,12 +261,17 @@ async function saveProduct(e) {
     }
 
     const method = id ? 'PATCH' : 'POST';
-    const url = id ? `${API_BASE}/products/${id}` : `${API_BASE}/products`;
+    const url = id ? `${getApiBase()}/products/${id}` : `${getApiBase()}/products`;
 
     try {
+        const headers = getCommonHeaders();
+        // IMPORTANTE: Para FormData, el navegador debe establecer el Content-Type automáticamente con el boundary.
+        // Si lo forzamos a application/json o cualquier otro, el backend fallará al parsear.
+        if(headers['Content-Type']) delete headers['Content-Type'];
+
         const res = await fetch(url, {
             method: method,
-            headers: getCommonHeaders(),
+            headers: headers,
             body: formData
         });
         const data = await res.json();
@@ -260,13 +283,17 @@ async function saveProduct(e) {
         } else {
             showToast(data.message || 'Error al guardar', 'error');
         }
-    } catch (error) { showToast('Error de conexión', 'error'); }
+    } catch (error) { 
+        console.error(error);
+        showToast('Error de conexión', 'error'); 
+    }
 }
+window.saveProduct = saveProduct;
 
 async function deleteProduct(id) {
     if(!confirm('¿Estás seguro de ELIMINAR este producto?')) return;
     try {
-        const res = await fetch(`${API_BASE}/products/${id}`, {
+        const res = await fetch(`${getApiBase()}/products/${id}`, {
             method: 'DELETE',
             headers: getCommonHeaders()
         });
@@ -275,12 +302,12 @@ async function deleteProduct(id) {
             allProducts = allProducts.filter(p => p.id !== id);
             renderProducts();
             updateDashboard();
-            loadProducts();
         } else {
             showToast('No se pudo eliminar', 'error');
         }
     } catch (e) { showToast('Error de conexión', 'error'); }
 }
+window.deleteProduct = deleteProduct;
 
 function openEditProduct(id) {
     const product = allProducts.find(p => p.id === id);
@@ -293,15 +320,16 @@ function openEditProduct(id) {
     document.getElementById('prodCategory').value = product.categoryId;
     document.getElementById('prodDesc').value = product.description || '';
     
-    document.getElementById('productModal').style.display = 'block';
+    document.getElementById('productModal').classList.add('active');
 }
+window.openEditProduct = openEditProduct;
 
 async function saveCategory() {
     const name = document.getElementById('catNameInput').value.trim();
     if(!name) return;
 
     const method = editingCategoryId ? 'PATCH' : 'POST';
-    const url = editingCategoryId ? `${API_BASE}/categories/${editingCategoryId}` : `${API_BASE}/categories`;
+    const url = editingCategoryId ? `${getApiBase()}/categories/${editingCategoryId}` : `${getApiBase()}/categories`;
 
     try {
         const res = await fetch(url, {
@@ -317,72 +345,141 @@ async function saveCategory() {
         }
     } catch(e) { showToast('Error guardando categoría', 'error'); }
 }
+window.saveCategory = saveCategory;
 
 function renderCategoriesList() {
     const tbody = document.getElementById('categoryListBody');
     if(!tbody) return;
     
-    tbody.innerHTML = allCategories.map(c => `
-        <tr>
-            <td>${c.name}</td>
-            <td style="text-align:right">
-                <button onclick="editCategory('${c.id}', '${c.name}')"><i class="fas fa-edit"></i></button>
-                <button onclick="deleteCategory('${c.id}')" style="color:red"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = allCategories.map(c => {
+        const isActive = c.isActive !== false;
+        return `
+            <tr style="${isActive ? '' : 'opacity:0.6; background:#f9fafb'}">
+                <td>${c.name} ${isActive ? '' : '<small>(Inactiva)</small>'}</td>
+                <td style="text-align:right; display:flex; gap:10px; justify-content:flex-end; align-items:center">
+                    <label class="switch" style="transform: scale(0.7)">
+                        <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleCategoryStatus('${c.id}', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                    <button class="action-btn" onclick="editCategory('${c.id}', '${c.name}')"><i class="fas fa-edit"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
+
+async function toggleCategoryStatus(id, isActive) {
+    try {
+        const res = await fetch(`${getApiBase()}/categories/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
+            body: JSON.stringify({ isActive })
+        });
+        if(res.ok) {
+            const cat = allCategories.find(c => c.id === id);
+            if(cat) cat.isActive = isActive;
+            // No llamamos a loadCategories para evitar cerrar el modal si se refresca la UI drásticamente, 
+            // pero necesitamos actualizar los selectores de la página principal.
+            renderCategoriesList();
+            updateSelectors(); 
+            showToast(isActive ? 'Categoría activada' : 'Categoría desactivada', 'success');
+        }
+    } catch (e) { showToast('Error al cambiar estado', 'error'); }
+}
+window.toggleCategoryStatus = toggleCategoryStatus;
+
+function updateSelectors() {
+    const filterSelect = document.getElementById('categoryFilter');
+    const formSelect = document.getElementById('prodCategory');
+    const activeCategories = allCategories.filter(c => c.isActive !== false);
+    
+    if(filterSelect) {
+        const currentFilter = filterSelect.value;
+        filterSelect.innerHTML = '<option value="all">Todas las Categorías</option>' + 
+            activeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        filterSelect.value = currentFilter;
+    }
+    if(formSelect) {
+        const currentVal = formSelect.value;
+        formSelect.innerHTML = '<option value="">Seleccione...</option>' + 
+            activeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        formSelect.value = currentVal;
+    }
+}
+
+async function toggleProductStatus(id, isActive) {
+    try {
+        const res = await fetch(`${getApiBase()}/products/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
+            body: JSON.stringify({ isActive })
+        });
+        if(res.ok) {
+            const prod = allProducts.find(p => p.id === id);
+            if(prod) prod.isActive = isActive;
+            renderProducts();
+            showToast(isActive ? 'Producto activado' : 'Producto desactivado', 'success');
+        }
+    } catch (error) { 
+        console.error(error);
+        showToast('Error de conexión', 'error'); 
+    }
+}
+window.toggleProductStatus = toggleProductStatus;
 
 function editCategory(id, name) {
     editingCategoryId = id;
     document.getElementById('catNameInput').value = name;
     document.getElementById('cancelCatEdit').style.display = 'block';
 }
+window.editCategory = editCategory;
 
 function resetCategoryForm() {
     editingCategoryId = null;
     document.getElementById('catNameInput').value = '';
     document.getElementById('cancelCatEdit').style.display = 'none';
 }
+window.resetCategoryForm = resetCategoryForm;
 
 async function deleteCategory(id) {
     if(!confirm('¿Borrar categoría?')) return;
     try {
-        await fetch(`${API_BASE}/categories/${id}`, { method:'DELETE', headers: getCommonHeaders() });
+        await fetch(`${getApiBase()}/categories/${id}`, { method:'DELETE', headers: getCommonHeaders() });
         loadCategories();
     } catch(e) {}
 }
+window.deleteCategory = deleteCategory;
 
 async function openRecipeModal(id) {
     currentRecipeProductId = id;
-    document.getElementById('recipeModal').style.display = 'block';
+    document.getElementById('recipeModal').classList.add('active');
     
     const select = document.getElementById('ingredientSelect');
     if(allInventory.length === 0) await loadInventory();
     
     select.innerHTML = '<option value="">Seleccione...</option>' + 
-        allInventory.map(i => `<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+        allInventory.map(i => `<option value="${i.id}">${i.name} (${i.unitMeasure})</option>`).join('');
 
     loadRecipeIngredients(id);
 }
+window.openRecipeModal = openRecipeModal;
 
 async function loadRecipeIngredients(prodId) {
     const tbody = document.getElementById('recipeListBody');
     tbody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
     
     try {
-        const res = await fetch(`${API_BASE}/recipes?productId=${prodId}`, { headers: getCommonHeaders() });
+        const res = await fetch(`${getApiBase()}/products/${prodId}/recipe`, { headers: getCommonHeaders() });
         const data = await res.json();
         const recipes = data.data || data; 
 
         tbody.innerHTML = '';
         if(Array.isArray(recipes) && recipes.length > 0) {
             recipes.forEach(r => {
-                const item = allInventory.find(i => i.id === r.inventoryItemId);
                 tbody.innerHTML += `
                     <tr>
-                        <td>${item ? item.name : 'Item Inventario'}</td>
-                        <td>${r.quantityRequired} ${item ? item.unit : ''}</td>
+                        <td>${r ? r.ingredientName : 'Item Inventario'}</td>
+                        <td>${r.qty} ${r ? r.unit : ''}</td>
                         <td><button onclick="deleteRecipeItem('${r.id}')" style="color:red">X</button></td>
                     </tr>`;
             });
@@ -391,6 +488,7 @@ async function loadRecipeIngredients(prodId) {
         }
     } catch(e) { tbody.innerHTML = ''; }
 }
+window.loadRecipeIngredients = loadRecipeIngredients;
 
 async function addIngredientToRecipe() {
     const invId = document.getElementById('ingredientSelect').value;
@@ -398,7 +496,7 @@ async function addIngredientToRecipe() {
     if(!invId || !qty) return;
 
     try {
-        await fetch(`${API_BASE}/recipes`, {
+        await fetch(`${getApiBase()}/recipes`, {
             method: 'POST',
             headers: {'Content-Type':'application/json', ...getCommonHeaders()},
             body: JSON.stringify({
@@ -411,10 +509,11 @@ async function addIngredientToRecipe() {
         loadRecipeIngredients(currentRecipeProductId);
     } catch(e) { showToast('Error agregando', 'error'); }
 }
+window.addIngredientToRecipe = addIngredientToRecipe;
 
 window.deleteRecipeItem = async function(id) {
     try {
-        await fetch(`${API_BASE}/recipes/${id}`, { method:'DELETE', headers: getCommonHeaders() });
+        await fetch(`${getApiBase()}/recipes/${id}`, { method:'DELETE', headers: getCommonHeaders() });
         loadRecipeIngredients(currentRecipeProductId);
     } catch(e) {}
 };
@@ -422,7 +521,7 @@ window.deleteRecipeItem = async function(id) {
 window.checkAvailability = async function(productId) {
     try {
         showToast('Consultando almacén...', 'info');
-        const res = await fetch(`${API_BASE}/products/${productId}/availability`, { headers: getCommonHeaders() });
+        const res = await fetch(`${getApiBase()}/products/${productId}/availability`, { headers: getCommonHeaders() });
         const data = await res.json();
 
         if (res.ok) {
@@ -436,16 +535,16 @@ window.checkAvailability = async function(productId) {
 }
 
 window.openCreateProductModal = function() {
-    document.getElementById('productModal').style.display = 'block';
+    document.getElementById('productModal').classList.add('active');
     document.getElementById('productForm').reset();
     document.getElementById('prodId').value = '';
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
 }
 window.openCategoryModal = function() {
-    document.getElementById('categoryModal').style.display = 'block';
+    document.getElementById('categoryModal').classList.add('active');
 }
-window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; }
-window.closeCategoryModal = function() { document.getElementById('categoryModal').style.display = 'none'; }
+window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
+window.closeCategoryModal = function() { document.getElementById('categoryModal').classList.remove('active'); }
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
