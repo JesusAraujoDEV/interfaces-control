@@ -77,21 +77,6 @@
                 <h1 class="header__title">Cola de Producción KDS</h1>
                 <p class="header__subtitle">Seguimiento de pedidos en vivo para la cocina.</p>
             </div>
-
-            <div class="kds-stats">
-                <div class="stat-card">
-                    <span class="stat-card__label">Pedidos Activos</span>
-                    <span class="stat-card__value">12</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Pedidos Retrasados</span>
-                    <span class="stat-card__value stat-card__value--danger">2</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Hora del Sistema</span>
-                    <span class="stat-card__value">14:32</span>
-                </div>
-            </div>
         </header>
 
         <div class="kds-grid">
@@ -178,6 +163,31 @@
 
         </div>
     </main>
+
+    <!-- Auth Modal -->
+    <div id="kdsAuthModal" class="modal">
+        <div class="modal__content" style="max-width: 400px;">
+            <div class="modal__header">
+                <h2>Identificación Cocina</h2>
+                <button class="modal__close" id="closeKdsAuthModal">&times;</button>
+            </div>
+            <form id="kdsAuthForm" class="modal__form">
+                <input type="hidden" id="kdsAuthAction">
+                <input type="hidden" id="kdsAuthData">
+
+                <div class="form-group">
+                    <label for="kdsWorkerCode">Código de Chef/Ayudante</label>
+                    <input type="password" id="kdsWorkerCode" name="workerCode" class="form-input"
+                        placeholder="Ingrese código (ej. 1234)" required autocomplete="off" inputmode="numeric">
+                </div>
+
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelKdsAuthBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>lucide.createIcons();</script>
     <script type="module" src="./js/kds.js"></script>

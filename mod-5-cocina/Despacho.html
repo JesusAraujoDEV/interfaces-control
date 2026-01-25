@@ -89,47 +89,57 @@
             </header>
 
             <nav class="dispatch-tabs">
-                <button class="dispatch-tabs__btn dispatch-tabs__btn--active">Todos</button>
-                <button class="dispatch-tabs__btn">Mesas</button>
-                <button class="dispatch-tabs__btn">Delivery</button>
+                <button class="dispatch-tabs__btn dispatch-tabs__btn--active" data-filter="ALL">Todos</button>
+                <button class="dispatch-tabs__btn" data-filter="DINE_IN">Mesas</button>
+                <button class="dispatch-tabs__btn" data-filter="DELIVERY">Delivery</button>
             </nav>
 
-            <section class="dispatch-feed">
-                <article class="dispatch-item">
-                    <div class="dispatch-item__header">
-                        <h2 class="dispatch-item__title">MESA 5</h2>
-                        <span class="dispatch-item__timer">hace 2 min</span>
-                    </div>
-                    <div class="dispatch-item__content">
-                        <span class="dispatch-item__status">Listo</span>
-                        <p class="dispatch-item__description">2x Hamburguesa Clásica, 1x Patatas Fritas</p>
-                    </div>
-                </article>
-
-                <article class="dispatch-item">
-                    <div class="dispatch-item__header">
-                        <h2 class="dispatch-item__title">DELIVERY #104</h2>
-                        <span class="dispatch-item__timer">hace 5 min</span>
-                    </div>
-                    <div class="dispatch-item__content">
-                        <span class="dispatch-item__status">Listo</span>
-                        <p class="dispatch-item__description">1x Bol Vegano, 1x Ensalada</p>
-                    </div>
-                </article>
-
-                <article class="dispatch-item">
-                    <div class="dispatch-item__header">
-                        <h2 class="dispatch-item__title">MESA 12</h2>
-                        <span class="dispatch-item__timer">hace 8 min</span>
-                    </div>
-                    <div class="dispatch-item__content">
-                        <span class="dispatch-item__status">Listo</span>
-                        <p class="dispatch-item__description">1x Filete con Patatas, 1x Sopa del Día</p>
-                    </div>
-                </article>
+            <section class="dispatch-feed" id="dispatchFeed">
+                <!-- Items populated by JS -->
+                <div style="padding: 2rem; text-align: center; color: #64748b;">Cargando pedidos listos...</div>
             </section>
+
             <div class="despacho-list"></div>
 
+            <!-- Auth Modal -->
+            <div id="authModal" class="modal">
+                <div class="modal__content" style="max-width: 400px;">
+                    <div class="modal__header">
+                        <h2>Identificación Requerida</h2>
+                        <button class="modal__close" id="closeAuthModal">&times;</button>
+                    </div>
+                    <form id="authForm" class="modal__form">
+                        <input type="hidden" id="authAction">
+                        <input type="hidden" id="authTaskId">
+
+                        <div class="form-group">
+                            <label for="workerCode">Código de Camarero</label>
+                            <input type="password" id="workerCode" name="workerCode" class="form-input"
+                                placeholder="Ingrese su código (ej. 1234)" required autocomplete="off"
+                                inputmode="numeric">
+                        </div>
+
+                        <div class="modal__actions">
+                            <button type="button" class="btn btn--secondary" id="cancelAuthBtn">Cancelar</button>
+                            <button type="submit" class="btn btn--primary">Confirmar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                // Modal Utils
+                function openModal(id) {
+                    const m = document.getElementById(id);
+                    if (m) { m.style.display = 'block'; setTimeout(() => m.classList.add('modal--active'), 10); }
+                }
+                function closeModal(id) {
+                    const m = document.getElementById(id);
+                    if (m) { m.classList.remove('modal--active'); setTimeout(() => m.style.display = 'none', 300); }
+                }
+                document.getElementById('closeAuthModal').addEventListener('click', () => closeModal('authModal'));
+                document.getElementById('cancelAuthBtn').addEventListener('click', () => closeModal('authModal'));
+            </script>
             <script>lucide.createIcons();</script>
             <script type="module" src="./js/despacho.js"></script>
     </main>

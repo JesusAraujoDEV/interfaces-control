@@ -1,24 +1,42 @@
-    async function cargarColaKDS() {
+let kdsState = {
+    pendingAction: null // { type, taskId, nextStatus }
+};
+
+const KDS_CONFIG = {
+    POLL_MS: 30000 
+};
+
+// UI REFS
+const kdsUi = {
+    modal: document.getElementById('kdsAuthModal'),
+    form: document.getElementById('kdsAuthForm'),
+    code: document.getElementById('kdsWorkerCode'),
+    closeBtn: document.getElementById('closeKdsAuthModal'),
+    cancelBtn: document.getElementById('cancelKdsAuthBtn')
+};
+
+async function cargarColaKDS() {
     try {
         const response = await fetch(`${KITCHEN_URL}/kds/queue`, {
-        headers: getCommonHeaders()
+            headers: getCommonHeaders()
         });
         const tareas = await response.json();
-        console.log(tareas);
         renderizarTareas(tareas);
     } catch (error) {
         console.error('Error al cargar la cola KDS:', error);
     }
-    }
+}
 
-    function renderizarTareas(tareas) {
+function renderizarTareas(tareas) {
     const nuevoCol = document.querySelector('.kds-column:nth-child(1) .kds-column__list');
     const cocinandoCol = document.querySelector('.kds-column:nth-child(2) .kds-column__list');
     const listoCol = document.querySelector('.kds-column:nth-child(3) .kds-column__list');
 
-    nuevoCol.innerHTML = '';
-    cocinandoCol.innerHTML = '';
-    listoCol.innerHTML = '';
+    if (nuevoCol) nuevoCol.innerHTML = '';
+    if (cocinandoCol) cocinandoCol.innerHTML = '';
+    if (listoCol) listoCol.innerHTML = '';
+
+    if (!Array.isArray(tareas)) return;
 
     tareas.forEach(tarea => {
         const card = document.createElement('article');
@@ -26,188 +44,247 @@
         card.setAttribute('data-id', tarea.id);
         card.setAttribute('data-created', tarea.createdAt);
 
+        let actionsHtml = '';
+
+        if (tarea.status === 'PENDING') {
+            actionsHtml = `
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button class="btn btn--secondary" onclick="window.kdsAuth('REJECT', '${tarea.id}')" style="flex:1; border:1px solid #ef4444; color:#ef4444;">
+                         <i data-lucide="x-circle"></i> Cancelar
+                    </button>
+                    <button class="btn btn--primary" onclick="window.kdsAuth('START', '${tarea.id}')" style="flex:2;">
+                         <i data-lucide="flame"></i> COCINAR
+                    </button>
+                </div>
+            `;
+        } else if (tarea.status === 'COOKING') {
+             actionsHtml = `
+                <button class="btn btn--primary btn--full" onclick="window.kdsAuth('FINISH', '${tarea.id}')" style="margin-top:1rem; background-color:#10b981; border-color:#059669;">
+                    <i data-lucide="check"></i> LISTO
+                </button>
+            `;
+        } else if (tarea.status === 'READY') {
+             actionsHtml = `
+                <div style="margin-top:1rem; text-align:center; padding:0.5rem; background:#f0fdf4; color:#15803d; border-radius:4px; font-weight:600;">
+                    <i data-lucide="check-circle" style="width:16px; height:16px; vertical-align:middle;"></i> Esperando despacho
+                </div>
+            `;
+        }
+
+        // Timer HTML
+        const timeDiff = Math.floor((new Date() - new Date(tarea.createdAt)) / 60000);
+        
+        const modoIcon = {
+            'DINE_IN': '<i data-lucide="utensils"></i> Mesa',
+            'DELIVERY': '<i data-lucide="truck"></i> Delivery',
+            'TAKEOUT': '<i data-lucide="shopping-bag"></i> Para Llevar'
+        }[tarea.serviceMode] || tarea.serviceMode;
+
+        const customerInfo = tarea.customerName ? `<div style="font-size:0.9rem; margin-bottom:0.4rem; color:#334155; font-weight:500; display:flex; align-items:center; gap:4px;">
+                <i data-lucide="user" style="width:14px; height:14px;"></i> ${tarea.customerName}
+            </div>` : '';
+
         card.innerHTML = `
         <div class="order-card__header">
             <div class="order-card__meta">
-            <span class="order-card__id">${tarea.displayLabel || tarea.externalOrderId}</span>
-            <span class="order-card__timer js-timer">Creado: ${new Date(tarea.createdAt).toLocaleTimeString()}</span>
+                <span class="order-card__id">${tarea.displayLabel || '#' + tarea.externalOrderId}</span>
+                <span class="order-card__timer js-timer">Hace ${timeDiff}m</span>
             </div>
-            <span class="order-type order-type--${tarea.serviceMode.toLowerCase()}">
-            ${tarea.serviceMode === 'DINE_IN' ? '<i data-lucide="utensils"></i> En Restaurante' : '<i data-lucide="shopping-bag"></i> Para Llevar'}
-            </span>
+            <span class="order-type">${modoIcon}</span>
         </div>
+        ${customerInfo}
         <ul class="order-card__items">
-            <li><strong>${tarea.quantity}x</strong> ${tarea.product?.name || 'Producto'}</li>
+            <li style="font-size:1.05rem;"><strong>${tarea.quantity}x</strong> ${tarea.product.name}</li>
+            ${tarea.preparationNotes ? `<li style="color:#b45309; background-color:#fffbeb; padding:4px 8px; border-radius:4px; margin-top:4px; font-style:italic; border:1px solid #fcd34d;">
+                <i data-lucide="clipboard-list" style="width:12px; height:12px; vertical-align:middle; margin-right:4px;"></i>${tarea.preparationNotes}
+            </li>` : ''}
         </ul>
-        ${renderBotonAccion(tarea)}
+        <div style="margin-top:0.5rem; font-size:0.85rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.5rem;">
+           ${tarea.waiter ? `<i data-lucide="user-check" style="width:14px; height:14px; vertical-align:middle;"></i> Mesero: ${tarea.waiter.name}` : ''}
+        </div>
+        ${actionsHtml}
         `;
 
-        if (tarea.status === 'PENDING') {
-        card.innerHTML += `
-            <button class="btn btn--secondary btn--full"
-            onclick="asignarTarea('${tarea.id}', localStorage.getItem('staff_id'), 'CHEF')">
-            Tomar Orden
-            </button>
-        `;
-        nuevoCol.appendChild(card);
-        } else if (tarea.status === 'COOKING') {
-        cocinandoCol.appendChild(card);
-        } else if (tarea.status === 'READY') {
-        listoCol.appendChild(card);
-        }
+        // Columna solo acepta ciertos estados por lógica UI
+        if (tarea.status === 'PENDING' && nuevoCol) nuevoCol.appendChild(card);
+        else if (tarea.status === 'COOKING' && cocinandoCol) cocinandoCol.appendChild(card);
+        else if (tarea.status === 'READY' && listoCol) listoCol.appendChild(card);
     });
 
-    lucide.createIcons();
+    if(window.lucide) window.lucide.createIcons();
     actualizarTimers();
-    }
+}
 
-    async function actualizarEstado(taskId, newStatus) {
-    try {
-        const res = await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
-        method: 'PATCH',
-        headers: getCommonHeaders(),
-        body: JSON.stringify({
-            newStatus,
-            staffId: localStorage.getItem('staff_id')
-        })
-        });
-        const json = await res.json();
-        console.log('Respuesta actualizarEstado:', res.status, json);
-        cargarColaKDS();
-    } catch (error) {
-        console.error('Error actualizando estado:', error);
-    }
-    }
+// ---------------------------
+// AUTH & LOGIC
+// ---------------------------
 
-    async function marcarServido(taskId) {
-    try {
-        const res = await fetch(`${KITCHEN_URL}/kds/${taskId}/served`, {
-        method: 'PATCH',
-        headers: getCommonHeaders(),
-        body: JSON.stringify({
-            staffId: localStorage.getItem('staff_id')
-        })
-        });
-        const json = await res.json();
-        console.log('Respuesta marcarServido:', res.status, json);
-        cargarColaKDS();
-    } catch (error) {
-        console.error('Error marcando como servido:', error);
-    }
-    }
-
-    async function asignarTarea(taskId, staffId, role = 'CHEF') {
-    if (!staffId) {
-        alert('No hay staff_id en localStorage. Debes hacer login o check-in primero.');
-        return;
-    }
-
-    try {
-        const res = await fetch(`${KITCHEN_URL}/kds/${taskId}/assign`, {
-        method: 'PATCH',
-        headers: getCommonHeaders(),
-        body: JSON.stringify({ staffId, role })
-        });
-        const result = await res.json();
-        console.log('Respuesta asignarTarea:', res.status, result);
-
-        const card = document.querySelector(`.order-card[data-id="${taskId}"]`);
-        if (card) {
-        const info = document.createElement('p');
-        info.className = 'order-card__assigned';
-        info.textContent = `Asignado a: ${result.assignedChef?.name || 'Chef'}`;
-        card.appendChild(info);
+function initKdsAuth() {
+    const closeModal = () => {
+        if(kdsUi.modal) {
+            kdsUi.modal.classList.remove('modal--active');
+            setTimeout(() => kdsUi.modal.style.display = 'none', 300);
         }
-    } catch (error) {
-        console.error('Error asignando tarea:', error);
-    }
+        kdsState.pendingAction = null;
+        if(kdsUi.form) kdsUi.form.reset();
+    };
+
+    if(kdsUi.closeBtn) kdsUi.closeBtn.addEventListener('click', closeModal);
+    if(kdsUi.cancelBtn) kdsUi.cancelBtn.addEventListener('click', closeModal);
+
+    const inputs = document.querySelectorAll('.code-input input');
+    if(inputs.length > 0) {
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1) {
+                    if (index < inputs.length - 1) inputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
     }
 
-    function renderBotonAccion(tarea) {
-    if (tarea.status === 'PENDING') {
-        return `
-        <div class="card-actions">
-            <button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'COOKING')">EMPEZAR</button>
-            <button class="btn btn--danger btn--icon" title="Rechazar" onclick="confirmarRechazo('${tarea.id}')">✕</button>
-        </div>
-        `;
-    }
-    if (tarea.status === 'COOKING') {
-        return `
-        <div class="card-actions">
-            <button class="btn btn--primary btn--full" onclick="actualizarEstado('${tarea.id}', 'READY')">LISTO</button>
-            <button class="btn btn--danger btn--icon" title="Rechazar" onclick="confirmarRechazo('${tarea.id}')">✕</button>
-        </div>
-        `;
-    }
-    if (tarea.status === 'READY') {
-        return `<button class="btn btn--success btn--full" onclick="marcarServido('${tarea.id}')"><i data-lucide="check-circle"></i> RECOGIDO</button>`;
-    }
-    return '';
+    if(kdsUi.form) {
+        kdsUi.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Handle split inputs if they exist, else simple input
+            let code = '';
+            if(inputs.length > 0) {
+                inputs.forEach(i => code += i.value);
+            } else if(kdsUi.code) {
+                code = kdsUi.code.value.trim();
+            }
+
+            if(!code) return;
+
+            try {
+                // 1. Verify Worker
+                const staff = await validateWorker(code);
+                if(!staff) {
+                    alert('Código inválido o inactivo');
+                    // Reset inputs
+                     if(inputs.length > 0) inputs.forEach(i => i.value = '');
+                     else if(kdsUi.code) kdsUi.code.value = '';
+                     if(inputs.length > 0) inputs[0].focus();
+                    return;
+                }
+
+                // 2. Execute Action
+                if(kdsState.pendingAction) {
+                    await executeKdsAction(kdsState.pendingAction, staff);
+                }
+
+                closeModal();
+                setTimeout(cargarColaKDS, 500);
+
+            } catch (error) {
+                console.error(error);
+                alert('Error: ' + error.message);
+            }
+        });
     }
 
-    async function confirmarRechazo(taskId) {
-    const ok = window.confirm('¿Seguro que deseas rechazar esta orden? Esta acción no se puede deshacer.');
-    if (!ok) return;
+    // Public Trigger
+    window.kdsAuth = (actionType, taskId) => {
+        kdsState.pendingAction = { type: actionType, taskId };
+        if(kdsUi.modal) {
+            kdsUi.modal.style.display = 'flex'; // Changed to flex for centering if CSS supports it
+            setTimeout(() => kdsUi.modal.classList.add('modal--active'), 10);
+            
+            const firstInput = kdsUi.form.querySelector('input');
+            if(firstInput) {
+                firstInput.value = '';
+                firstInput.focus();
+            }
+        }
+    }
+}
 
-    try {
-        const response = await fetch(`${KITCHEN_URL}/kds/${taskId}/reject`, {
+async function validateWorker(code) {
+    const res = await fetch(`${KITCHEN_URL}/staff/validate`, {
         method: 'POST',
-        headers: getCommonHeaders(),
-        body: JSON.stringify({ reason: 'Rejected by kitchen' })
-        });
-        const json = await response.json();
-        console.log('Respuesta confirmarRechazo:', response.status, json);
-
-        if (!response.ok) throw new Error(`Reject failed: ${response.status}`);
-        const card = document.querySelector(`.order-card[data-id="${taskId}"]`);
-        if (card) card.remove();
-    } catch (error) {
-        console.error('Error rechazando orden:', error);
-    }
-    }
-
-    const POLL_MS = 30_000;
-
-    document.addEventListener('DOMContentLoaded', () => {
-    cargarColaKDS();
-    setInterval(syncKDS, POLL_MS);
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerCode: code })
     });
+    if(!res.ok) return null;
+    return await res.json();
+}
 
-    async function syncKDS() {
-    try {
-        const response = await fetch(`${KITCHEN_URL}/kds/queue`, {
-        headers: getCommonHeaders()
+async function executeKdsAction(action, staff) {
+    const { type, taskId } = action;
+    const headers = { 
+        'Content-Type': 'application/json',
+        ...getCommonHeaders() 
+    };
+    
+    // START -> PENDING to COOKING (Assign Chef)
+    if(type === 'START') {
+        // First assign chef
+        await fetch(`${KITCHEN_URL}/kds/${taskId}/assign`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ staffId: staff.id, role: 'CHEF' })
         });
-        const serverTasks = await response.json();
-        renderizarTareas(serverTasks);
-    } catch (error) {
-        console.error('Error en sync KDS:', error);
+        // Then update status
+        await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ newStatus: 'COOKING' })
+        });
     }
+    // FINISH -> COOKING to READY
+    else if(type === 'FINISH') {
+        const newStatus = 'READY';
+        await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ newStatus })
+        });
     }
+    // REJECT -> Cancel
+    else if(type === 'REJECT') {
+        await fetch(`${KITCHEN_URL}/kds/${taskId}/reject`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ reason: 'Rechazado desde KDS pantalla' })
+        });
+    }
+}
 
-    function actualizarTimers() {
+// ---------------------------
+// TIMERS
+// ---------------------------
+function actualizarTimers() {
     const cards = document.querySelectorAll('.order-card');
     const now = Date.now();
 
     cards.forEach(card => {
-        const created = new Date(card.getAttribute('data-created')).getTime();
-        const diff = now - created;
-        const minutes = Math.floor(diff / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
+        const createdMs = new Date(card.getAttribute('data-created')).getTime();
+        if(isNaN(createdMs)) return;
 
+        const diff = now - createdMs;
+        const minutes = Math.floor(diff / 60000);
+        
         const timerEl = card.querySelector('.js-timer');
-        if (timerEl) timerEl.textContent = `${minutes}m ${seconds}s`;
+        if (timerEl) timerEl.textContent = `${minutes} min`;
 
         if (diff > 20 * 60 * 1000) {
-        card.classList.add('border-red-500');
+           card.classList.add('border-red-500'); 
+           card.style.border = '2px solid #ef4444';
         } else {
-        card.classList.remove('border-red-500');
+           card.classList.remove('border-red-500');
+           card.style.border = '1px solid #e2e8f0';
         }
     });
-    }
+}
 
-window.confirmarRechazo = confirmarRechazo;
-window.actualizarEstado = actualizarEstado;
-window.marcarServido = marcarServido;
-window.asignarTarea = asignarTarea;
+document.addEventListener('DOMContentLoaded', () => {
+    initKdsAuth();
+    cargarColaKDS();
+    setInterval(cargarColaKDS, KDS_CONFIG.POLL_MS);
+    setInterval(actualizarTimers, 60000);
+});
