@@ -5,6 +5,123 @@
     <meta charset="UTF-8">
     <title>Historial de Pedidos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Blindaje para modales en Historial */
+        body .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        body .modal.active {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            color: var(--text-main);
+        }
+
+        /* Estilos adicionales para filtros */
+        .filters {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-end;
+            background: var(--white);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .filter-input {
+            padding: 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+        }
+
+        .status-ready {
+            color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .status-served {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .status-rejected {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .status-cancelled {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+    </style>
     <script src="/config.js"></script>
     <script src="/js/api.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -43,14 +160,8 @@
             <a href="personal.html" class="sidebar__link">
                 <i data-lucide="users"></i> Personal
             </a>
-            <a href="historial_nomina.html" class="sidebar__link">
-                <i data-lucide="banknote"></i> Nómina
-            </a>
             <a href="historial_pedidos.html" class="sidebar__link sidebar__link--active">
                 <i data-lucide="history"></i> Historial
-            </a>
-            <a href="auditoria.html" class="sidebar__link">
-                <i data-lucide="clipboard-check"></i> Auditoría
             </a>
         </nav>
 
@@ -71,37 +182,69 @@
     <main class="main-content">
         <header class="header">
             <h1 class="header__title">Historial de Pedidos</h1>
-            <div class="filters">
-                <label>Desde: <input type="date" id="startDate"></label>
-                <label>Hasta: <input type="date" id="endDate"></label>
-                <label>Estado:
-                    <select id="status">
-                        <option value="">Todos</option>
-                        <option value="READY">READY</option>
-                        <option value="SERVED">SERVED</option>
-                        <option value="CANCELLED">CANCELLED</option>
-                    </select>
-                </label>
-                <button class="btn btn--primary" id="btnBuscar">Buscar</button>
-            </div>
         </header>
 
-        <section class="table-wrapper">
+        <section class="filters">
+            <div class="filter-group">
+                <label for="startDate">Desde</label>
+                <input type="date" id="startDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">Hasta</label>
+                <input type="date" id="endDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="status">Estado</label>
+                <select id="status" class="filter-input">
+                    <option value="">Todos los estados</option>
+                    <option value="READY">Listo (READY)</option>
+                    <option value="SERVED">Servido (SERVED)</option>
+                    <option value="REJECTED">Rechazado (REJECTED)</option>
+                </select>
+            </div>
+            <button class="btn btn--primary" id="btnBuscar">
+                <i data-lucide="search" style="width: 16px; vertical-align: middle;"></i> Buscar
+            </button>
+        </section>
+
+        <section class="table-container">
             <table class="table">
-                <thead>
+                <thead class="table__head">
                     <tr>
-                        <th>Pedido</th>
-                        <th>Modo</th>
-                        <th>Estado</th>
-                        <th>Creado</th>
-                        <th>Servido</th>
-                        <th>Chef</th>
+                        <th style="color: white;">ID Pedido</th>
+                        <th style="color: white;">Producto</th>
+                        <th style="color: white;">Cant.</th>
+                        <th style="color: white;">Modo</th>
+                        <th style="color: white;">Estado</th>
+                        <th style="color: white;">Fecha/Hora</th>
+                        <th style="color: white;">Chef</th>
+                        <th style="color: white;">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="pedidosBody"></tbody>
+                <tbody id="pedidosBody">
+                    <!-- Dinámico -->
+                </tbody>
             </table>
         </section>
     </main>
+
+    <!-- Modal Detalle de Pedido -->
+    <div id="modalDetalle" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle del Pedido</h2>
+                <button class="close-modal" id="closeModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div id="detalleContenido">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                <button class="btn btn--secondary" id="btnCerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="./js/historial_pedidos.js"></script>
     <script>lucide.createIcons();</script>

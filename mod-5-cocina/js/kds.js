@@ -94,7 +94,7 @@ function renderizarTareas(tareas) {
         </div>
         ${customerInfo}
         <ul class="order-card__items">
-            <li style="font-size:1.05rem;"><strong>${tarea.quantity}x</strong> ${tarea.product.name}</li>
+            <li style="font-size:1.05rem;"><strong>${tarea.quantity}x</strong> ${tarea.product?.name || 'Producto'}</li>
             ${tarea.preparationNotes ? `<li style="color:#b45309; background-color:#fffbeb; padding:4px 8px; border-radius:4px; margin-top:4px; font-style:italic; border:1px solid #fcd34d;">
                 <i data-lucide="clipboard-list" style="width:12px; height:12px; vertical-align:middle; margin-right:4px;"></i>${tarea.preparationNotes}
             </li>` : ''}
