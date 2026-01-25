@@ -29,7 +29,7 @@ const viewsWithAuth = async (req, res, next) => {
     "/seguridad/perfil/editar",
     "/seguridad/perfil/cambioPassword",
     "/seguridad",
-    "/shared/admin-home/index.html",
+    "/admin",
   ];
 
   if (!rutasProtegidas.includes(rutaSolicitada)) {
