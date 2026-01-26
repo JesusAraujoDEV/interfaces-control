@@ -389,14 +389,14 @@ document.getElementById('pcConfirm')?.addEventListener('click', () => {
   const change = val - total;
   const breakdown = calcularDesgloseVuelto(total, val);
   const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
-  // For pickup we assume payment_received true (pago en mostrador). For delivery, received=false until entrega.
+  // For cash payments we default to not-marking as received here (will be handled at POS).
   pendingPayment = {
-    payment_type: 'CASH',
+    payment_type: 'EFECTIVO',
     payment_cash_amount: val,
     payment_change: change,
     payment_change_breakdown: breakdown,
-    payment_received: mode === 'pickup',
-    payment_reference: '',
+    payment_received: false,
+    payment_reference: ' ',
     payment_bank: ''
   };
   closePaymentCashModal();
