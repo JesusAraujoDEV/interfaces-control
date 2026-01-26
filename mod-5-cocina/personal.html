@@ -9,6 +9,155 @@
     <title>Programador de Personal - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+        }
+
+        .staff-card-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .staff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .staff-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .staff-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .staff-info p {
+            margin: 0.2rem 0 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .staff-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .staff-role-badge {
+            background: var(--bg-accent);
+            color: var(--text-accent);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .staff-actions {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .staff-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        .staff-btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .staff-btn.danger {
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+
+        .staff-btn.danger:hover {
+            background: #fef2f2;
+        }
+
+        /* Modal overrides to prevent conflict with global styles.css */
+        .modal {
+            display: none !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex !important;
+        }
+
+        .modal__content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            transform: none !important;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-top: 0.25rem;
+        }
+
+        .staff-panel {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body class="app-container">
@@ -68,97 +217,74 @@
     <main class="main-content">
         <header class="header">
             <div>
-                <h1 class="header__title">Programador de Personal y Turnos</h1>
-                <p class="header__subtitle">Cocina Principal - Sucursal Centro</p>
+                <h1 class="header__title">Gestión de Personal de Cocina</h1>
+                <p class="header__subtitle">Administración de usuarios y roles</p>
             </div>
             <div class="header__actions">
-                <button class="btn btn--warning">Publicar Horario</button>
+                <button id="add-staff-btn" class="btn btn--primary">
+                    <i data-lucide="plus"></i> Nuevo Personal
+                </button>
             </div>
         </header>
 
-        <section class="scheduler-controls">
-            <div class="scheduler-controls__group">
-                <div class="date-navigator">
-                    <button class="icon-btn-sm"><i data-lucide="chevron-left"></i></button>
-                    <span class="date-navigator__label">28 Octubre - 3 Noviembre, 2024</span>
-                    <button class="icon-btn-sm"><i data-lucide="chevron-right"></i></button>
-                </div>
-                <button class="icon-btn-sm"><i data-lucide="calendar-days"></i></button>
-                <button class="icon-btn-sm"><i data-lucide="copy"></i></button>
-            </div>
-            <div class="scheduler-controls__group">
-                <div class="view-toggle">
-                    <button class="view-toggle__btn">Día</button>
-                    <button class="view-toggle__btn view-toggle__btn--active">Semana</button>
-                    <button class="view-toggle__btn">Mes</button>
-                </div>
-                <button class="btn btn--primary"><i data-lucide="plus"></i> Añadir Turno</button>
+        <section class="staff-list-container">
+            <div id="staff-loading" class="p-4 text-center">Cargando personal...</div>
+            <div id="staff-grid" class="hidden staff-grid">
+                <!-- Staff cards injected here -->
             </div>
         </section>
 
-        <section class="scheduler">
-            <div class="scheduler__header">
-                <div class="scheduler__day-label">Lun <span>28</span></div>
-                <div class="scheduler__day-label">Mar <span>29</span></div>
-                <div class="scheduler__day-label">Mié <span>30</span></div>
-                <div class="scheduler__day-label scheduler__day-label--today">Jue <span>31</span></div>
-                <div class="scheduler__day-label">Vie <span>1</span></div>
-                <div class="scheduler__day-label">Sáb <span>2</span></div>
-                <div class="scheduler__day-label">Dom <span>3</span></div>
+        <!-- Modals -->
+        <div id="add-staff-modal" class="modal">
+            <div class="modal__content">
+                <div class="modal__header">
+                    <h2>Asignar Nuevo Personal</h2>
+                    <span class="close" id="close-add-modal">&times;</span>
+                </div>
+                <div class="modal__body">
+                    <form id="add-staff-form" onsubmit="event.preventDefault();">
+                        <div class="form-group">
+                            <label>Usuario (Sistema de Seguridad)</label>
+                            <select id="user-select" class="form-control" required>
+                                <option value="">Cargando usuarios...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol en Cocina</label>
+                            <select id="role-select" class="form-control" required>
+                                <option value="CHEF">Chef</option>
+                                <option value="HEAD_CHEF">Jefe de Cocina</option>
+                                <option value="WAITER">Mesero</option>
+                                <option value="HEAD_WAITER">Jefe de Meseros</option>
+                            </select>
+                        </div>
+                        <div class="modal__footer">
+                            <button type="button" class="btn btn--secondary" id="cancel-add-modal">Cancelar</button>
+                            <button type="submit" class="btn btn--primary">Asignar</button>
+                        </div>
+                    </form>
+                </div>
             </div>
+        </div>
 
-            <div class="scheduler__body">
-                <div class="scheduler__column">
-                    <div class="shift-card">
-                        <p class="shift-card__name">John Smith</p>
-                        <p class="shift-card__time">9:00 AM - 5:00 PM</p>
-                        <p class="shift-card__role">Cocinero de Línea</p>
-                    </div>
-                    <div class="shift-card shift-card--unassigned">
-                        <p class="shift-card__name">Sin asignar</p>
-                        <p class="shift-card__time">10:00 AM - 6:00 PM</p>
-                        <p class="shift-card__role">Chef de Preparación</p>
-                    </div>
+        <div id="pin-modal" class="modal">
+            <div class="modal__content" style="text-align: center;">
+                <div class="modal__header" style="justify-content: center;">
+                    <h2>Código PIN Generado</h2>
                 </div>
-
-                <div class="scheduler__column">
-                    <div class="shift-card">
-                        <p class="shift-card__name">Maria Garcia</p>
-                        <p class="shift-card__time">8:00 AM - 4:00 PM</p>
-                        <p class="shift-card__role">Sous Chef</p>
+                <div class="modal__body">
+                    <p>El código PIN para este usuario es:</p>
+                    <div id="pin-display"
+                        style="font-size: 2rem; font-weight: bold; margin: 1rem 0; letter-spacing: 5px;">
+                        ------
                     </div>
-                    <div class="shift-card">
-                        <p class="shift-card__name">Chen Wei</p>
-                        <p class="shift-card__time">10:00 AM - 6:00 PM</p>
-                        <p class="shift-card__role">Chef de Preparación</p>
-                    </div>
+                    <p style="color: #f59e0b; font-weight: 500;">⚠ Este código solamente se mostrará una vez.</p>
                 </div>
-
-                <div class="scheduler__column">
-                    <div class="shift-card shift-card--unassigned">
-                        <p class="shift-card__name">Sin asignar</p>
-                        <p class="shift-card__time">8:00 AM - 4:00 PM</p>
-                        <p class="shift-card__role">Cocinero de Línea</p>
-                    </div>
-                    <div class="shift-card shift-card--conflict">
-                        <div class="shift-card__badge">Conflicto <i data-lucide="alert-triangle"></i></div>
-                        <p class="shift-card__name">David & John</p>
-                        <p class="shift-card__time">4:00 PM - 8:00 PM</p>
-                    </div>
+                <div class="modal__footer" style="justify-content: center;">
+                    <button type="button" class="btn btn--primary" id="close-pin-modal">Entendido</button>
                 </div>
-
-                <div class="scheduler__column"></div>
-                <div class="scheduler__column">
-                    <div class="shift-card shift-card--published">
-                        <p class="shift-card__name">Maria Garcia</p>
-                        <p class="shift-card__time">8:00 AM - 4:00 PM</p>
-                        <p class="shift-card__badge">Publicado</p>
-                    </div>
-                </div>
-                <div class="scheduler__column"></div>
-                <div class="scheduler__column"></div>
             </div>
-        </section>
+        </div>
     </main>
 
     <aside class="staff-panel">
