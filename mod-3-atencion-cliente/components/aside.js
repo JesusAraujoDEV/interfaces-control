@@ -7,59 +7,59 @@
     if (!container) return;
 
     const asideMarkup = `
-      <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-[18rem] md:w-[20rem] bg-white border-r border-gray-200 flex flex-col justify-between h-full shadow-lg md:shadow-sm transform -translate-x-full md:translate-x-0 md:relative sidebar-transition flex-shrink-0 overflow-y-auto no-scrollbar">
+      <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 md:w-72 bg-white border-r border-gray-200 flex flex-col justify-between h-full shadow-lg md:shadow-sm transform -translate-x-full md:translate-x-0 md:relative sidebar-transition flex-shrink-0 overflow-y-auto no-scrollbar">
         <div>
-          <div class="p-6 border-b border-gray-100">
+          <div class="p-5 border-b border-gray-100">
             <div class="flex items-center gap-3">
-              <div class="w-11 h-11 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-9 h-9 object-contain" loading="eager">
+              <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
               </div>
               <div class="min-w-0">
-                <div class="text-base font-extrabold text-slate-900 leading-5">Atención al Cliente</div>
+                <div class="text-sm font-extrabold text-slate-900 leading-5">Atención al Cliente</div>
                 <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
               </div>
               <button onclick="toggleSidebar && toggleSidebar()" class="md:hidden ml-auto text-gray-400 hover:text-gray-600">
                 <span class="material-icons-outlined">close</span>
               </button>
             </div>
-            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800">
+            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800">
               <span aria-hidden="true">←</span>
               <span>Volver a Admin</span>
             </a>
           </div>
 
-          <nav class="px-3 pb-4 space-y-1 mt-2">
+          <nav class="px-3 pb-4 space-y-2 mt-2">
             <a href="./index.html" id="nav-home" title="Inicio" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
               <div class="mt-0.5 nav-icon text-brand-800">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-[20px] h-[20px]"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"></path></svg>
               </div>
               <div class="min-w-0 atc-nav-text">
-                <div class="text-base font-semibold leading-6">Inicio</div>
-                <div class="text-sm text-slate-500 leading-5 truncate atc-nav-desc">Resumen</div>
+                <div class="text-sm font-semibold leading-5">Inicio</div>
+                <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Resumen</div>
               </div>
             </a>
 
             <a href="./tables.html" id="nav-tables" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
               <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[20px]">table_restaurant</span></div>
               <div class="min-w-0">
-                <div class="text-base font-semibold leading-6">Inventario Mesas</div>
-                <div class="text-sm text-gray-500 leading-5 truncate">Gestión de mesas</div>
+                <div class="text-sm font-semibold leading-5">Inventario Mesas</div>
+                <div class="text-xs text-gray-500 leading-4 truncate">Gestión de mesas</div>
               </div>
             </a>
 
             <a href="./tables-maitre.html" id="nav-tables-maitre" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
               <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[20px]">event_seat</span></div>
               <div class="min-w-0">
-                <div class="text-base font-semibold leading-6">Mesas (Maitre)</div>
-                <div class="text-sm text-gray-500 leading-5 truncate">Operación en sala</div>
+                <div class="text-sm font-semibold leading-5">Mesas (Maitre)</div>
+                <div class="text-xs text-gray-500 leading-4 truncate">Operación en sala</div>
               </div>
             </a>
 
             <a href="./sessions.html" id="nav-sessions" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
               <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[20px]">people_alt</span></div>
               <div class="min-w-0">
-                <div class="text-base font-semibold leading-6">Monitor Sesiones</div>
-                <div class="text-sm text-gray-500 leading-5 truncate">Actividad en mesas</div>
+                <div class="text-sm font-semibold leading-5">Monitor Sesiones</div>
+                <div class="text-xs text-gray-500 leading-4 truncate">Actividad en mesas</div>
               </div>
             </a>
 
@@ -72,8 +72,8 @@
                 </span>
               </div>
               <div class="min-w-0">
-                <div class="text-base font-semibold leading-6">Solicitudes</div>
-                <div class="text-sm text-gray-500 leading-5 truncate">Llamados y quejas</div>
+                <div class="text-sm font-semibold leading-5">Solicitudes</div>
+                <div class="text-xs text-gray-500 leading-4 truncate">Llamados y quejas</div>
               </div>
             </a>
           </nav>
