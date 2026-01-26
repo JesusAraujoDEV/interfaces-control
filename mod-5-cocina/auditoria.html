@@ -1,44 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/dev-auth.js"></script>
+    <script src="/js/api.js"></script>
     <title>Auditoría y Movimientos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
         <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
             <div class="sidebar__avatar"></div>
             <div class="sidebar__info">
-                <p class="sidebar__user">Charlotte KOS</p>
-                <p class="sidebar__role">Kitchen Operating System</p>
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
             </div>
         </div>
+
         <nav class="sidebar__nav">
-            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
-            <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
-            <a href="#" class="sidebar__link"><i data-lucide="clipboard-list"></i> Pedidos</a>
-            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="history"></i> Registros de Auditoría</a>
-            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
         </nav>
+
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link"><i data-lucide="help-circle"></i> Ayuda</a>
-            <a href="#" class="sidebar__link"><i data-lucide="log-out"></i> Cerrar Sesión</a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
 
     <main class="main-content">
         <header class="header">
+            <div class="header__nav">
+                <button class="btn btn--secondary btn--small" onclick="window.history.back()">
+                    <i data-lucide="arrow-left"></i> Volver
+                </button>
+            </div>
             <h1 class="header__title">Registros de Auditoría y Movimientos</h1>
         </header>
 
         <section class="audit-filters">
-            <div class="date-picker">
-                <i data-lucide="calendar" class="date-picker__icon"></i>
-                <span class="date-picker__range">5 Ene, 2024 - 7 Feb, 2024</span>
+            <div class="filter-group">
+                <label for="dateFrom">Fecha Desde:</label>
+                <input type="date" id="dateFrom">
+            </div>
+            <div class="filter-group">
+                <label for="dateTo">Fecha Hasta:</label>
+                <input type="date" id="dateTo">
+            </div>
+            <div class="filter-group">
+                <label for="typeFilter">Tipo:</label>
+                <select id="typeFilter">
+                    <option value="">Todos</option>
+                    <option value="Compra">Compra</option>
+                    <option value="Venta">Venta</option>
+                    <option value="Merma">Merma</option>
+                    <option value="Ajuste">Ajuste</option>
+                    <option value="Deterioro">Deterioro</option>
+                    <option value="Pérdida">Pérdida</option>
+                    <option value="Robo">Robo</option>
+                </select>
             </div>
             <button class="btn btn--primary btn--icon">
                 <i data-lucide="download"></i> Exportar
@@ -50,59 +108,218 @@
                 <thead class="table__head">
                     <tr>
                         <th>FECHA</th>
-                        <th>ÍTEM</th>
-                        <th>TIPO DE MOVIMIENTO</th>
-                        <th>CANTIDAD</th>
-                        <th>USUARIO</th>
-                        <th>RAZÓN</th>
+                        <th id="itemHeader">ÍTEM</th>
+                        <th id="typeHeader">TIPO DE MOVIMIENTO</th>
+                        <th id="quantityHeader">CANTIDAD</th>
+                        <th id="userHeader">USUARIO</th>
+                        <th id="reasonHeader">RAZÓN</th>
                     </tr>
                 </thead>
-                <tbody class="table__body">
-                    <tr class="table__row">
-                        <td>2024-01-31 09:15 AM</td>
-                        <td><strong>Carne de Angus</strong></td>
-                        <td><span class="badge-pill badge-pill--blue">Venta</span></td>
-                        <td>-5 unidades</td>
-                        <td>John Doe</td>
-                        <td>Pedido #1123</td>
-                    </tr>
-                    <tr class="table__row">
-                        <td>2024-01-30 11:00 PM</td>
-                        <td><strong>Pan Brioche</strong></td>
-                        <td><span class="badge-pill badge-pill--red">Merma</span></td>
-                        <td>-12 unidades</td>
-                        <td>Jane Smith</td>
-                        <td>Expirado</td>
-                    </tr>
-                    <tr class="table__row">
-                        <td>2024-01-30 08:30 AM</td>
-                        <td><strong>Queso Cheddar</strong></td>
-                        <td><span class="badge-pill badge-pill--green">Compra</span></td>
-                        <td>+10 kg</td>
-                        <td>Admin</td>
-                        <td>Pedido Proveedor #5678</td>
-                    </tr>
-                    <tr class="table__row">
-                        <td>2024-01-29 02:45 PM</td>
-                        <td><strong>Tomates</strong></td>
-                        <td><span class="badge-pill badge-pill--blue">Venta</span></td>
-                        <td>-2 kg</td>
-                        <td>John Doe</td>
-                        <td>Pedido #1121</td>
-                    </tr>
-                    <tr class="table__row">
-                        <td>2024-01-28 10:00 PM</td>
-                        <td><strong>Lechuga</strong></td>
-                        <td><span class="badge-pill badge-pill--yellow">Ajuste de Inventario</span></td>
-                        <td>-1 kg</td>
-                        <td>Jane Smith</td>
-                        <td>Deterioro</td>
-                    </tr>
+                <tbody id="auditTableBody" class="table__body">
+                    <!-- Logs serán renderizados aquí por JS cuando exista ?itemId= -->
                 </tbody>
             </table>
         </section>
     </main>
 
+    <script>
+        let allLogs = []; // Global para almacenar todos los logs
+        let staffMap = {}; // Mapa para nombres de usuarios
+
+        async function loadStaffMap() {
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/staff`, {
+                    headers: getCommonHeaders()
+                });
+                if (resp.ok) {
+                    const list = await resp.json();
+                    list.forEach(s => {
+                        staffMap[s.id] = s.externalName || s.workerCode;
+                    });
+                }
+            } catch (e) {
+                console.warn('Error cargando nombres de staff:', e);
+            }
+        } git
+
+        async function loadLogs() {
+            // Cargar nombres de staff antes de logs
+            await loadStaffMap();
+
+            const params = new URLSearchParams(window.location.search);
+            const itemId = params.get('itemId');
+            const assetId = params.get('assetId');
+            const tbody = document.getElementById('auditTableBody');
+
+            if (!itemId && !assetId) {
+                // Si no hay ninguno, mostrar mensaje
+                tbody.innerHTML = '<tr class="table__row"><td colspan="6">Seleccione un ítem desde Inventario o un activo desde Activos para ver su historial.</td></tr>';
+                return;
+            }
+
+            // Adaptar headers si es asset
+            if (assetId) {
+                document.getElementById('itemHeader').textContent = 'ACTIVO';
+                document.getElementById('typeHeader').textContent = 'MOTIVO';
+                document.getElementById('userHeader').textContent = 'REPORTADO POR';
+                document.getElementById('reasonHeader').textContent = 'DETALLE';
+                // Ocultar cantidad si no aplica, pero dejar por ahora
+            }
+
+            const endpoint = assetId ? `/assets/${assetId}/logs` : `/inventory/items/${itemId}/logs`;
+
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen${endpoint}`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+
+                if (!resp.ok) throw new Error(`Error: ${resp.status}`);
+
+                allLogs = await resp.json();
+
+                if (!Array.isArray(allLogs) || allLogs.length === 0) {
+                    // Mock data for testing
+                    allLogs = [
+                        {
+                            timestamp: '2024-01-20 10:00 AM',
+                            asset_name: assetId ? 'Activo Mock' : 'Ítem Mock',
+                            reason: 'Mock Reason',
+                            quantity: -1,
+                            reported_by: 'Admin',
+                            detail: 'Mock Detail'
+                        }
+                    ];
+                }
+
+                renderLogs(allLogs);
+            } catch (err) {
+                console.error('Error cargando logs:', err);
+                tbody.innerHTML = '<tr class="table__row"><td colspan="6">Error cargando registros. Revisa la consola.</td></tr>';
+            }
+        }
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = '';
+
+            // Detectar modo
+            const params = new URLSearchParams(window.location.search);
+            const isAssetMode = !!params.get('assetId');
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = 'table__row';
+
+                // 1. FECHA (Handling createdAt from Prisma)
+                let dateStr = log.createdAt || log.timestamp || log.date || '';
+                if (dateStr) {
+                    try {
+                        dateStr = new Date(dateStr).toLocaleString('es-ES', {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                    } catch (e) { }
+                }
+
+                // 2. NOMBRE ÍTEM (Handling includes item/asset)
+                let itemName = '';
+                console.log(log);
+                if (log.item && log.item.name) itemName = log.item.name;
+                else if (log.asset && log.asset.name) itemName = log.asset.name;
+                else itemName = log.item_name || log.asset_name || log.name || '-';
+
+                // 3. TIPO / MOTIVO
+                let type = '';
+                if (isAssetMode) {
+                    // Para activos, no hay "MovementType" en el esquema, usamos "Reporte" o deducimos
+                    type = 'REPORTE';
+                } else {
+                    type = log.movementType || log.type || log.reason || 'MOVIMIENTO';
+                }
+
+                // 4. CANTIDAD
+                // Prisma usa quantityChange
+                const qtyVal = (log.quantityChange !== undefined ? Number(log.quantityChange) : (log.quantity || log.qty || 0));
+                const qtyClass = qtyVal < 0 ? 'text-red-500' : 'text-green-600';
+                const qtyDisplay = qtyVal > 0 ? `+${qtyVal}` : `${qtyVal}`;
+
+                // 5. USUARIO
+                let user = '';
+                // Intentar resolver nombre usando el mapa cargado
+                const reporterId = (log.reporter && log.reporter.id) ? log.reporter.id : (typeof log.reportedBy === 'string' ? log.reportedBy : null);
+
+                if (reporterId && staffMap[reporterId]) {
+                    user = staffMap[reporterId];
+                } else if (log.reporter) {
+                    // Si viene populado el objeto reporter
+                    user = log.reporter.workerCode || log.reporter.name || 'Staff';
+                } else if (log.reportedBy) {
+                    // Si solo viene el ID
+                    user = 'Staff ID: ' + log.reportedBy.substring(0, 8);
+                } else {
+                    user = log.user || log.username || 'Sistema';
+                }
+
+                // 6. RAZÓN
+                const reason = log.reason || log.note || log.detail || '-';
+
+                tr.innerHTML = `
+                    <td class="whitespace-nowrap">${dateStr}</td>
+                    <td class="font-medium">${itemName}</td>
+                    <td><span class="badge ${isAssetMode ? 'badge--warning' : 'badge--primary'}">${type}</span></td>
+                    <td class="${qtyClass} font-bold">${qtyDisplay}</td>
+                    <td>${user}</td>
+                    <td class="max-w-xs text-sm text-gray-600 truncate" title="${reason}">${reason}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            let filteredLogs = allLogs;
+
+            if (dateFrom) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logDate = new Date(log.timestamp || log.date);
+                    const fromDate = new Date(dateFrom);
+                    return logDate >= fromDate;
+                });
+            }
+
+            if (dateTo) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logDate = new Date(log.timestamp || log.date);
+                    const toDate = new Date(dateTo);
+                    toDate.setHours(23, 59, 59, 999); // Fin del día
+                    return logDate <= toDate;
+                });
+            }
+
+            if (typeFilter) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const logType = log.type || log.movement_type || log.reason || '';
+                    return logType === typeFilter;
+                });
+            }
+
+            renderLogs(filteredLogs);
+        }
+
+        // Event listeners para filtros
+        document.getElementById('dateFrom').addEventListener('change', applyFilters);
+        document.getElementById('dateTo').addEventListener('change', applyFilters);
+        document.getElementById('typeFilter').addEventListener('change', applyFilters);
+
+        // Cargar logs al inicio
+        loadLogs();
+    </script>
+
     <script>lucide.createIcons();</script>
 </body>
+
 </html>

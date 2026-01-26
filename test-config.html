@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Config</title>
+    <script src="api/config.js"></script>
+    <script src="js/api.js"></script>
+</head>
+<body>
+    <h1>Configuración de API</h1>
+    <div id="config"></div>
+    <div id="test"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const configDiv = document.getElementById('config');
+            configDiv.innerHTML = `
+                <p><strong>APP_CONFIG:</strong> ${JSON.stringify(window.__APP_CONFIG)}</p>
+                <p><strong>API_BASE_URL:</strong> ${window.API_BASE_URL}</p>
+                <p><strong>KITCHEN_URL:</strong> ${window.KITCHEN_URL}</p>
+                <p><strong>Location:</strong> ${window.location.hostname}:${window.location.port}</p>
+            `;
+
+            // Test API calls
+            let results = '';
+
+            // Test inventory
+            try {
+                results += '<h3>📦 Probando Inventario:</h3>';
+                const invResponse = await fetch(`${window.KITCHEN_URL}/inventory/items`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+
+                if (invResponse.ok) {
+                    const invData = await invResponse.json();
+                    results += `<p><strong>✅ Inventario (${invResponse.status}):</strong></p>`;
+                    if (Array.isArray(invData) && invData.length > 0) {
+                        results += `<p><strong>Campos del primer item:</strong> ${Object.keys(invData[0]).join(', ')}</p>`;
+                        results += `<details><summary>Primer item completo</summary><pre>${JSON.stringify(invData[0], null, 2)}</pre></details>`;
+                    } else {
+                        results += `<p>No hay datos de inventario</p>`;
+                    }
+                } else {
+                    results += `<p><strong>❌ Error Inventario ${invResponse.status}:</strong> ${invResponse.statusText}</p>`;
+                }
+            } catch (error) {
+                results += `<p><strong>❌ Error Inventario:</strong> ${error.message}</p>`;
+            }
+
+            results += '<hr>';
+
+            // Test assets
+            try {
+                results += '<h3>🔧 Probando Activos:</h3>';
+                const assetResponse = await fetch(`${window.KITCHEN_URL}/assets`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+
+                if (assetResponse.ok) {
+                    const assetData = await assetResponse.json();
+                    results += `<p><strong>✅ Activos (${assetResponse.status}):</strong></p>`;
+                    if (Array.isArray(assetData) && assetData.length > 0) {
+                        results += `<p><strong>Campos del primer activo:</strong> ${Object.keys(assetData[0]).join(', ')}</p>`;
+                        results += `<details><summary>Primer activo completo</summary><pre>${JSON.stringify(assetData[0], null, 2)}</pre></details>`;
+                    } else {
+                        results += `<p>No hay datos de activos</p>`;
+                    }
+                } else {
+                    results += `<p><strong>❌ Error Activos ${assetResponse.status}:</strong> ${assetResponse.statusText}</p>`;
+                }
+            } catch (error) {
+                results += `<p><strong>❌ Error Activos:</strong> ${error.message}</p>`;
+            }
+
+            document.getElementById('test').innerHTML = results;
+
+            document.getElementById('test').innerHTML = results;
+        });
+    </script>
+</body>
+</html>

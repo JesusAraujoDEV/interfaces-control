@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Pedidos - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Blindaje para modales en Historial */
+        body .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        body .modal.active {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            color: var(--text-main);
+        }
+
+        /* Estilos adicionales para filtros */
+        .filters {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-end;
+            background: var(--white);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .filter-input {
+            padding: 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+        }
+
+        .status-ready {
+            color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .status-served {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .status-rejected {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .status-cancelled {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+    </style>
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link sidebar__link--active">
+                <i data-lucide="history"></i> Historial
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <header class="header">
+            <h1 class="header__title">Historial de Pedidos</h1>
+        </header>
+
+        <section class="filters">
+            <div class="filter-group">
+                <label for="startDate">Desde</label>
+                <input type="date" id="startDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">Hasta</label>
+                <input type="date" id="endDate" class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="status">Estado</label>
+                <select id="status" class="filter-input">
+                    <option value="">Todos los estados</option>
+                    <option value="READY">Listo (READY)</option>
+                    <option value="SERVED">Servido (SERVED)</option>
+                    <option value="REJECTED">Rechazado (REJECTED)</option>
+                </select>
+            </div>
+            <button class="btn btn--primary" id="btnBuscar">
+                <i data-lucide="search" style="width: 16px; vertical-align: middle;"></i> Buscar
+            </button>
+        </section>
+
+        <section class="table-container">
+            <table class="table">
+                <thead class="table__head">
+                    <tr>
+                        <th style="color: white;">ID Pedido</th>
+                        <th style="color: white;">Producto</th>
+                        <th style="color: white;">Cant.</th>
+                        <th style="color: white;">Modo</th>
+                        <th style="color: white;">Estado</th>
+                        <th style="color: white;">Fecha/Hora</th>
+                        <th style="color: white;">Chef</th>
+                        <th style="color: white;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidosBody">
+                    <!-- Dinámico -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Modal Detalle de Pedido -->
+    <div id="modalDetalle" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle del Pedido</h2>
+                <button class="close-modal" id="closeModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div id="detalleContenido">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                <button class="btn btn--secondary" id="btnCerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/historial_pedidos.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>

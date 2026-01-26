@@ -147,6 +147,10 @@ app.get("/order-tracking/:id", (req, res) => {
   );
 });
 
+// Rutas para Modulo 5 (Cocina)
+const cocinaRoutes = require('./mod-5-cocina/routes');
+app.use('/cocina', cocinaRoutes);
+
 // Mount KPIs routes
 app.use(KpisRoutes);
 
