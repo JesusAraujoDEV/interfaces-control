@@ -22,7 +22,7 @@ async function loadStaff() {
         loading.style.display = 'block';
         grid.style.display = 'none';
         
-        const response = await fetch(`${KITCHEN_URL}/staff`, {
+        const response = await fetch(`${KITCHEN_URL}/api/kitchen/staff`, {
             headers: getCommonHeaders()
         });
         
@@ -148,7 +148,7 @@ function setupEventListeners() {
             if (!userId || !role) return;
             
             try {
-                const response = await fetch(`${KITCHEN_URL}/staff`, {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/staff`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify({ userId, role })
@@ -179,7 +179,7 @@ window.regeneratePin = async (id) => {
     if (!confirm('¿Está seguro de generar un nuevo PIN?')) return;
     
     try {
-        const response = await fetch(`${KITCHEN_URL}/staff/${id}/regenerate-pin`, {
+        const response = await fetch(`${KITCHEN_URL}/api/kitchen/staff/${id}/regenerate-pin`, {
             method: 'PATCH',
             headers: getCommonHeaders()
         });
@@ -196,7 +196,7 @@ window.regeneratePin = async (id) => {
 
 window.toggleStatus = async (id, currentStatus) => {
     try {
-        const response = await fetch(`${KITCHEN_URL}/staff/${id}`, {
+        const response = await fetch(`${KITCHEN_URL}/api/kitchen/staff/${id}`, {
             method: 'PATCH',
             headers: getCommonHeaders(),
             body: JSON.stringify({ isActive: !currentStatus })

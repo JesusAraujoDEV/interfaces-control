@@ -315,7 +315,7 @@
 
             try {
                 // Using generic list endpoint
-                const resp = await fetch(`${KITCHEN_URL}/inventory/items`, { headers: getCommonHeaders() });
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/inventory/items`, { headers: getCommonHeaders() });
                 if (!resp.ok) throw new Error(resp.status);
                 inventoryData = await resp.json();
                 renderInventory(inventoryData);
@@ -427,7 +427,7 @@
             };
 
             try {
-                const resp = await fetch(`${KITCHEN_URL}/inventory/items/${itemId}`, {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/inventory/items/${itemId}`, {
                     method: 'PATCH',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -457,7 +457,7 @@
             };
 
             try {
-                const res = await fetch(`${KITCHEN_URL}/inventory/items`, {
+                const res = await fetch(`${KITCHEN_URL}/api/kitchen/inventory/items`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -489,7 +489,7 @@
             try {
                 // Post to /inventory/inbound or /inventory/movements/inbound ?
                 // Trying generic convention based on schema name "inboundSchema" -> likely /inbound resource or action
-                const res = await fetch(`${KITCHEN_URL}/inventory/inbound`, {
+                const res = await fetch(`${KITCHEN_URL}/api/kitchen/inventory/inbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -518,7 +518,7 @@
             };
 
             try {
-                const res = await fetch(`${KITCHEN_URL}/inventory/outbound`, {
+                const res = await fetch(`${KITCHEN_URL}/api/kitchen/inventory/outbound`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)

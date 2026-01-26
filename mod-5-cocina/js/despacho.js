@@ -114,7 +114,7 @@ function initModal() {
 async function fetchTasks() {
     try {
         // Fetch queue. If status=READY acts as specific filter, we use it.
-        const res = await fetch(`${CONFIG.API_URL}/kds/queue?status=READY`);
+        const res = await fetch(`${CONFIG.API_URL}/api/kitchen/kds/queue?status=READY`);
         
         if(!res.ok) throw new Error('API Error');
         const data = await res.json();
@@ -131,7 +131,7 @@ async function fetchTasks() {
 }
 
 async function validateWorker(code) {
-    const res = await fetch(`${CONFIG.API_URL}/staff/validate`, {
+    const res = await fetch(`${CONFIG.API_URL}/api/kitchen/staff/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workerCode: code })
@@ -155,13 +155,13 @@ async function executeAction(action, staff) {
         const body = { staffId: staff.id };
         if(type === 'ASSIGN') {
             body.role = 'WAITER';
-            return fetch(`${CONFIG.API_URL}/kds/${t.id}/assign`, {
+            return fetch(`${CONFIG.API_URL}/api/kitchen/kds/${t.id}/assign`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
         } else if (type === 'SERVE') {
-            return fetch(`${CONFIG.API_URL}/kds/${t.id}/served`, {
+            return fetch(`${CONFIG.API_URL}/api/kitchen/kds/${t.id}/served`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)

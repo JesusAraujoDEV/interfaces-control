@@ -154,9 +154,11 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="reportedBy">Reportado Por</label>
-                    <input type="text" id="reportedBy" name="reported_by" readonly>
+                    <label for="reporterPin">PIN del Responsable</label>
+                    <input type="password" id="reporterPin" name="reporter_pin" required
+                        placeholder="Ingrese su PIN de 6 dígitos" minlength="4" maxlength="6">
                 </div>
+                <!-- Hidden input not needed if we just use the ID from validation response -->
                 <div class="modal__actions">
                     <button type="button" class="btn btn--secondary" id="cancelReportBtn">Cancelar</button>
                     <button type="submit" class="btn btn--primary">Reportar</button>
@@ -196,7 +198,7 @@
             const container = document.getElementById('assetsGrid');
             container.innerHTML = '';
             try {
-                const resp = await fetch(`${KITCHEN_URL}/assets`, {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/assets`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
@@ -304,7 +306,7 @@
             };
 
             try {
-                const response = await fetch(`${KITCHEN_URL}/assets`, {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/assets`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)
@@ -341,26 +343,33 @@
             }
         });
 
-        function getLoggedUser() {
-            // Placeholder logic
-            const token = localStorage.getItem('jwt_token');
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    // Prefer ID for backend compatibility (UUID expected)
-                    return payload.id || payload.sub || payload.username || '00000000-0000-0000-0000-000000000000';
-                } catch (e) { return '00000000-0000-0000-0000-000000000000'; }
+        async function validateWorkerPin(pin) {
+            try {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/staff/validate`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify({ workerCode: pin })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 404) return null;
+                    throw new Error('Error de validación');
+                }
+                const data = await response.json();
+                // Ensure we return the ID you want (backend usually returns kitchenStaff object with .id)
+                // If it's returning the user ID, adjust accordingly. 
+                // Based on kds implementation, it returns { id, role, ... } which is the KitchenStaff ID usually.
+                return data;
+            } catch (error) {
+                console.error(error);
+                return null;
             }
-            return '00000000-0000-0000-0000-000000000000';
         }
 
         function openReportModal(assetId) {
             document.getElementById('incidentAssetId').value = assetId;
-            // reportedBy field in form will be populated, but it might be hidden or readonly
-            const user = getLoggedUser();
-            const reportedByInput = document.getElementById('reportedBy');
-            if (reportedByInput) reportedByInput.value = user;
-
+            const pinInput = document.getElementById('reporterPin');
+            if (pinInput) pinInput.value = ''; // Clear previous pin
             openModal('reportIncidentModal');
         }
 
@@ -372,21 +381,24 @@
             const formData = new FormData(reportIncidentForm);
             const assetId = formData.get('asset_id');
             const quantity = parseInt(formData.get('quantity'));
-            let reportedByUser = formData.get('reported_by');
+            const pin = formData.get('reporter_pin');
 
-            // Fallback if form field is missing or empty
-            if (!reportedByUser) {
-                reportedByUser = getLoggedUser();
+            // 1. Validate PIN
+            const staff = await validateWorkerPin(pin);
+            if (!staff) {
+                alert('PIN inválido o usuario no autorizado.');
+                return;
             }
 
+            // 2. Report Log using Staff ID
             const payload = {
                 quantityChange: -quantity,
                 reason: formData.get('reason'),
-                reportedBy: reportedByUser
+                reportedBy: staff.id // Sending the verified KitchenStaff ID
             };
 
             try {
-                const response = await fetch(`${KITCHEN_URL}/assets/${assetId}/logs`, {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}/logs`, {
                     method: 'POST',
                     headers: getCommonHeaders(),
                     body: JSON.stringify(payload)

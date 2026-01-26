@@ -124,8 +124,28 @@
 
     <script>
         let allLogs = []; // Global para almacenar todos los logs
+        let staffMap = {}; // Mapa para nombres de usuarios
+
+        async function loadStaffMap() {
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/staff`, {
+                    headers: getCommonHeaders()
+                });
+                if (resp.ok) {
+                    const list = await resp.json();
+                    list.forEach(s => {
+                        staffMap[s.id] = s.externalName || s.workerCode;
+                    });
+                }
+            } catch (e) {
+                console.warn('Error cargando nombres de staff:', e);
+            }
+        }
 
         async function loadLogs() {
+            // Cargar nombres de staff antes de logs
+            await loadStaffMap();
+
             const params = new URLSearchParams(window.location.search);
             const itemId = params.get('itemId');
             const assetId = params.get('assetId');
@@ -149,7 +169,7 @@
             const endpoint = assetId ? `/assets/${assetId}/logs` : `/inventory/items/${itemId}/logs`;
 
             try {
-                const resp = await fetch(`${KITCHEN_URL}${endpoint}`, {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen${endpoint}`, {
                     method: 'GET',
                     headers: getCommonHeaders()
                 });
@@ -226,7 +246,12 @@
 
                 // 5. USUARIO
                 let user = '';
-                if (log.reporter) {
+                // Intentar resolver nombre usando el mapa cargado
+                const reporterId = (log.reporter && log.reporter.id) ? log.reporter.id : (typeof log.reportedBy === 'string' ? log.reportedBy : null);
+
+                if (reporterId && staffMap[reporterId]) {
+                    user = staffMap[reporterId];
+                } else if (log.reporter) {
                     // Si viene populado el objeto reporter
                     user = log.reporter.workerCode || log.reporter.name || 'Staff';
                 } else if (log.reportedBy) {

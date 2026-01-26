@@ -7,7 +7,7 @@ async function cargarHistorialPedidos() {
         const status = document.querySelector('#status').value;
 
         // Construir la URL con parámetros dinámicos
-        let url = `${KITCHEN_URL}/kds/history?`;
+        let url = `${KITCHEN_URL}/api/kitchen/kds/history?`;
         const params = new URLSearchParams();
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);

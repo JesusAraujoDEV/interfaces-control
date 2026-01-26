@@ -1,5 +1,5 @@
 // Usar configuraciones globales de /js/api.js
-const getApiBase = () => window.KITCHEN_URL || 'https://charlotte-cocina.onrender.com/api/kitchen';
+const getApiBase = () => window.KITCHEN_URL + "/api/kitchen" || 'https://charlotte-cocina.onrender.com/api/kitchen';
 const getInventoryUrl = () => `${getApiBase()}/inventory/items`;
 
 let allProducts = [];

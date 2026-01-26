@@ -17,7 +17,7 @@ const kdsUi = {
 
 async function cargarColaKDS() {
     try {
-        const response = await fetch(`${KITCHEN_URL}/kds/queue`, {
+        const response = await fetch(`${KITCHEN_URL}/api/kitchen/kds/queue`, {
             headers: getCommonHeaders()
         });
         const tareas = await response.json();
@@ -205,7 +205,7 @@ function initKdsAuth() {
 }
 
 async function validateWorker(code) {
-    const res = await fetch(`${KITCHEN_URL}/staff/validate`, {
+    const res = await fetch(`${KITCHEN_URL}/api/kitchen/staff/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workerCode: code })
@@ -224,13 +224,13 @@ async function executeKdsAction(action, staff) {
     // START -> PENDING to COOKING (Assign Chef)
     if(type === 'START') {
         // First assign chef
-        await fetch(`${KITCHEN_URL}/kds/${taskId}/assign`, {
+        await fetch(`${KITCHEN_URL}/api/kitchen/kds/${taskId}/assign`, {
             method: 'PATCH',
             headers,
             body: JSON.stringify({ staffId: staff.id, role: 'CHEF' })
         });
         // Then update status
-        await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
+        await fetch(`${KITCHEN_URL}/api/kitchen/kds/${taskId}/status`, {
             method: 'PATCH',
             headers,
             body: JSON.stringify({ newStatus: 'COOKING' })
@@ -239,7 +239,7 @@ async function executeKdsAction(action, staff) {
     // FINISH -> COOKING to READY
     else if(type === 'FINISH') {
         const newStatus = 'READY';
-        await fetch(`${KITCHEN_URL}/kds/${taskId}/status`, {
+        await fetch(`${KITCHEN_URL}/api/kitchen/kds/${taskId}/status`, {
             method: 'PATCH',
             headers,
             body: JSON.stringify({ newStatus })
@@ -247,7 +247,7 @@ async function executeKdsAction(action, staff) {
     }
     // REJECT -> Cancel
     else if(type === 'REJECT') {
-        await fetch(`${KITCHEN_URL}/kds/${taskId}/reject`, {
+        await fetch(`${KITCHEN_URL}/api/kitchen/kds/${taskId}/reject`, {
             method: 'POST',
             headers,
             body: JSON.stringify({ reason: 'Rechazado desde KDS pantalla' })

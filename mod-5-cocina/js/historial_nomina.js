@@ -6,7 +6,7 @@
         return;
         }
 
-        const res = await fetch(`${KITCHEN_URL}/staff/${staffId}/shifts`, {
+        const res = await fetch(`${KITCHEN_URL}/api/kitchen/staff/${staffId}/shifts`, {
         headers: getCommonHeaders()
         });
         if (!res.ok) {
