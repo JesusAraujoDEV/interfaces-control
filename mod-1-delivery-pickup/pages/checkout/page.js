@@ -575,7 +575,7 @@ form.addEventListener('submit', function (e) {
     const mode = deliveryBtn.getAttribute('aria-pressed') === 'true' ? 'delivery' : 'pickup';
     localStorage.setItem('dp_service_type', mode);
     pendingOrderMode = mode;
-    openNotesModal();
+    submitOrderFlow(mode);
   } else {
     // Scroll to first error
     const firstErr = document.querySelector('p.text-red-600:not(.hidden)');
