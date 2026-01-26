@@ -145,11 +145,59 @@ function setCachedHtml(contentUrl, html) {
   contentCache.set(contentUrl, { html, at: Date.now() });
 }
 
+function checkRouteAccess(pathname) {
+  // 1. Obtener usuario del LocalStorage
+  let userPermissions = [];
+  try {
+    const storedUser = localStorage.getItem('administrative_user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      // Aseguramos que sea un array
+      if (Array.isArray(parsedUser.permissions)) {
+        userPermissions = parsedUser.permissions;
+      }
+    }
+  } catch (e) {
+    console.error("Error leyendo permisos del usuario:", e);
+    return false; // Si falla el parseo, denegamos acceso por seguridad
+  }
+
+  const p = normalizePath(pathname);
+  let allowedResources = [];
+
+  // 2. Definir las reglas de acceso (Tu lógica solicitada)
+  // Usamos startsWith para que proteja también subrutas (ej: orders/123)
+  if (p === '/admin/dp/zones') {
+    allowedResources = ["DpSupervisor_view"];
+  } 
+  else if (p === '/admin/dp/orders' || p.startsWith('/admin/dp/orders/')) {
+    allowedResources = ["DpSupervisor_view", "DpDespachador_view"];
+  } 
+  else if (p === '/admin/dp/config') {
+    allowedResources = ["DpSupervisor_view"];
+  } 
+  else if (p === '/admin/dp/audit') {
+    allowedResources = ["DpSupervisor_view"];
+  } 
+  else {
+    // Rutas públicas dentro del dashboard (ej. home)
+    return true; 
+  }
+
+  // 3. Verificar si el usuario tiene AL MENOS UNO de los permisos requeridos
+  // (Lógica OR: si allowedResources tiene A y B, y el usuario tiene B, pasa)
+  const hasAccess = allowedResources.some(resource => userPermissions.includes(resource));
+  
+  return hasAccess;
+}
+
 async function render(pathname) {
   const container = document.getElementById('dp-app-content');
   if (!container) return;
 
   const route = routeFor(pathname);
+  
+  // 1. Validación de Ruta existente (Código original)
   if (!route) {
     container.innerHTML = `<div class="p-6"><div class="rounded-2xl border border-slate-200 bg-white p-6">
       <div class="text-lg font-extrabold text-slate-900">Ruta no soportada</div>
@@ -158,6 +206,29 @@ async function render(pathname) {
     </div></div>`;
     return;
   }
+
+  // ---------------------------------------------------------
+  // 2. NUEVA VALIDACIÓN DE PERMISOS (MIDDLEWARE)
+  // ---------------------------------------------------------
+  if (!checkRouteAccess(pathname)) {
+    container.innerHTML = `
+      <div class="flex h-full flex-col items-center justify-center p-12 text-center">
+        <div class="mb-4 rounded-full bg-red-100 p-4 text-red-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        </div>
+        <h2 class="mb-2 text-2xl font-bold text-slate-800">Acceso Restringido</h2>
+        <p class="mb-6 max-w-md text-slate-500">
+          No tienes los permisos necesarios para ver esta sección. 
+          Contacta a un administrador si crees que esto es un error.
+        </p>
+        <a href="/admin/dp" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">
+          Volver al Inicio
+        </a>
+      </div>
+    `;
+    return; // Detenemos la ejecución aquí. No se hace fetch.
+  }
+  // ---------------------------------------------------------
 
   if (currentAbort) currentAbort.abort();
   currentAbort = new AbortController();
