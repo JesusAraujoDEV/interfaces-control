@@ -44,9 +44,9 @@ const viewsWithPermission = async (req, res, next) => {
 
     // Vistas de Delivery & Pickup
 
-    case rutaSolicitada === "/admin/dp":
-        resource = ["DpSupervisor_view", "DpDespachador_view"];
-        break;
+    // case rutaSolicitada === "/admin/dp":
+    //     resource = ["DpSupervisor_view", "DpDespachador_view"];
+    //     break;
     case rutaSolicitada === "/admin/dp/zones":
         resource = ["DpSupervisor_view"];
         break;
