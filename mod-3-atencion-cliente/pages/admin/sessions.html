@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charlotte Admin - Monitor de Sesiones</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: { 50: '#f2f7f1', 700: '#13532a', 800: '#0f4a22' }, primary: '#205638', secondary: '#4CAF50', 'bg-light': '#F9FAFB' } } } };
+  </script>
+  <link rel="stylesheet" href="/shared/styles/global.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f2f7f1;
+      --fg: #1f2937;
+      --card: #ffffff;
+      --border: rgba(15, 74, 34, 0.14);
+      --primary: #0f4a22;
+      --primary-contrast: #ffffff;
+      --accent: #13532a;
+      --muted: rgba(31, 41, 55, 0.68);
+      --shadow: 0 22px 60px rgba(16, 24, 40, 0.12);
+      --radius: 16px;
+      --container: 1120px;
+      --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-serif: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .theme-admin { background-color: var(--bg); color: var(--fg); font-family: var(--font-sans); }
+    .theme-admin header { background-color: var(--bg) !important; box-shadow: none; border-color: transparent !important; }
+    .theme-admin .surface { background-color: var(--card) !important; border-color: var(--border) !important; box-shadow: var(--shadow); border-radius: var(--radius); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hidden { display: none !important; }
+    .sidebar-transition { transition: transform 0.3s ease-in-out; }
+  </style>
+</head>
+<body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
+
+  <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+  <div id="admin-sidebar-container" data-active="sessions"></div>
+
+  <main id="main-content" class="flex-1 flex flex-col h-full overflow-hidden relative w-full">
+    <header class="hidden">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 md:mb-6">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none">
+            <span class="material-icons-outlined text-2xl">menu</span>
+          </button>
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-900 truncate" id="page-title">Monitor de Sesiones</h1>
+          <p class="text-sm md:text-base text-gray-600 mt-1">Monitorea la actividad en tiempo real de clientes por mesa.</p>
+        </div>
+        <div id="table-actions" class="hidden"></div>
+      </div>
+    </header>
+
+    <div id="view-sessions" class="flex-1 overflow-y-auto p-4 md:p-8 pt-0">
+      <div class="mb-4">
+        <div class="flex items-start gap-3">
+          <button onclick="toggleSidebar()" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+            <span class="material-icons-outlined text-2xl">menu</span>
+          </button>
+          <div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight" id="page-title">Monitor de Sesiones</h1>
+            <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Monitorea la actividad en tiempo real de clientes por mesa.</p>
+          </div>
+        </div>
+      </div>
+      <div class="mb-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded shadow-sm flex items-start gap-3">
+        <span class="material-icons-outlined mt-1">info</span>
+        <div>
+          <p class="font-bold">Monitor de Actividad en Tiempo Real</p>
+          <p class="text-sm mt-1">Aquí puedes ver quién está conectado en cada mesa.</p>
+          <div class="mt-2 text-sm bg-white p-2 rounded border border-blue-100 inline-block">
+            <span class="inline-block w-3 h-3 bg-red-100 border border-red-500 rounded-full mr-2"></span>
+            <span class="font-bold text-red-700">Alerta Fantasma:</span> +50 min sin consumo.
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden overflow-x-auto surface">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+          <thead class="bg-brand-800 text-white">
+            <tr>
+              <th class="p-4 text-xs font-semibold uppercase">Mesa</th>
+              <th class="p-4 text-xs font-semibold uppercase">Cliente / ID</th>
+              <th class="p-4 text-xs font-semibold uppercase">Hora Ingreso</th>
+              <th class="p-4 text-xs font-semibold uppercase">Tiempo Activo</th>
+              <th class="p-4 text-xs font-semibold uppercase">Total Cuenta</th>
+              <th class="p-4 text-xs font-semibold uppercase text-right">Control</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100" id="sessions-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSessionsData();
+    });
+
+    window.toggleSidebar = () => {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      if (!sidebar || !overlay) return;
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    };
+
+    async function loadSessionsData() {
+      const sessionsBody = document.getElementById('sessions-body');
+      sessionsBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center">Cargando sesiones activas...</td></tr>';
+      try {
+        const response = await window.ClientApi.getActiveClients();
+        if (response.success && response.data && response.data.length > 0) {
+          sessionsBody.innerHTML = response.data.map(renderSessionRow).join('');
+        } else {
+          sessionsBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">No hay clientes activos.</td></tr>';
+        }
+      } catch (error) {
+        console.error(error);
+        sessionsBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500">Error: ${error.message}</td></tr>`;
+      }
+    }
+
+    function renderSessionRow(client) {
+      const created = new Date(client.createdAt);
+      const now = new Date();
+      const diffMs = now - created;
+      const diffMins = Math.floor(diffMs / 60000);
+      const timeString = created.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const currentConsumption = client.totalAmount || 0;
+      const isGhost = diffMins > 30 && currentConsumption === 0;
+
+      const rowClass = isGhost ? 'bg-red-50 hover:bg-red-100 border-l-4 border-red-500' : 'hover:bg-gray-50 border-b border-gray-100';
+      const timeClass = isGhost ? 'text-red-600 font-bold' : 'text-gray-600';
+
+      return `
+        <tr class="${rowClass} transition-colors">
+          <td class="p-4 font-bold text-gray-800">Mesa ${client.table.tableNumber}</td>
+          <td class="p-4 text-sm">
+            <div class="font-medium">${client.customerName || 'Invitado'}</div>
+            <div class="text-xs text-gray-500">ID: ${client.id}</div>
+          </td>
+          <td class="p-4 text-sm text-gray-600">${timeString}</td>
+          <td class="p-4 text-sm ${timeClass}">${diffMins} min</td>
+          <td class="p-4 text-sm font-mono">$${currentConsumption.toFixed(2)}</td>
+          <td class="p-4 text-right">
+            <button onclick="forceCloseSession(${client.id})" class="text-xs text-red-500 hover:text-red-700 underline">Forzar Salida</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    window.forceCloseSession = async (clientId) => {
+      if(confirm("¿Estás seguro de cerrar forzosamente esta sesión?")) {
+        try {
+          await window.ClientApi.updateClient(clientId, { status: "CLOSED" });
+          if (typeof showToast === 'function') {
+            showToast('Sesión cerrada correctamente.', 'success');
+          }
+          loadSessionsData();
+        } catch(e) {
+          if (typeof showToast === 'function') {
+            showToast(e.message || 'Error desconocido', 'error', 5000);
+          }
+        }
+      }
+    };
+  </script>
+
+  <script src="/config.js"></script>
+  <script defer src="/mod-3-atencion-cliente/components/toast.js"></script>
+  <script defer src="/mod-3-atencion-cliente/components/admin-auth.js"></script>
+  <script defer src="/mod-3-atencion-cliente/components/aside.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/base.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/auth.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/client.js"></script>
+</body>
+</html>

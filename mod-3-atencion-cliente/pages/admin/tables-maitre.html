@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlotte Admin - Mesas (Maitre)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f2f7f1', 700: '#13532a', 800: '#0f4a22' },
+                        primary: '#205638',
+                        secondary: '#4CAF50',
+                        'bg-light': '#F9FAFB',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/shared/styles/global.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        :root {
+          --bg: #f2f7f1;
+          --fg: #1f2937;
+          --card: #ffffff;
+          --border: rgba(15, 74, 34, 0.14);
+          --primary: #0f4a22;
+          --primary-contrast: #ffffff;
+          --accent: #13532a;
+          --muted: rgba(31, 41, 55, 0.68);
+          --shadow: 0 22px 60px rgba(16, 24, 40, 0.12);
+          --radius: 16px;
+          --container: 1120px;
+          --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+          --font-serif: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .theme-admin { background-color: var(--bg); color: var(--fg); font-family: var(--font-sans); }
+        .theme-admin header { background-color: var(--bg) !important; box-shadow: none; border-color: transparent !important; }
+        .theme-admin .surface { background-color: var(--card) !important; border-color: var(--border) !important; box-shadow: var(--shadow); border-radius: var(--radius); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hidden { display: none !important; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card-enter { animation: fadeIn 0.3s ease-out forwards; }
+        .page-enter { animation: fadeIn 0.25s ease-out both; }
+        .page-leave { opacity: 0 !important; transform: translateY(4px); transition: opacity .22s ease, transform .22s ease; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
+
+    <div id="mobile-overlay" onclick="toggleSidebar()" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity">
+    </div>
+
+    <!-- Aside con data-active específico para Maitre -->
+    <div id="admin-sidebar-container" data-active="tables-maitre"></div>
+
+    <main id="main-content" class="flex-1 flex flex-col h-full overflow-hidden relative w-full page-enter">
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pt-0">
+            <div class="mb-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="w-full md:w-auto flex items-start gap-3">
+                        <button onclick="toggleSidebar()" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+                            <span class="material-icons-outlined text-2xl">menu</span>
+                        </button>
+                        <div>
+                            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">Mesas (Maitre)</h1>
+                            <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Consulta y gestiona estado y QR de mesas.</p>
+                        </div>
+                    </div>
+                    <!-- Sin acciones de crear/papelera en la vista de Maitre -->
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden overflow-x-auto surface">
+                <table class="w-full text-left border-collapse min-w-[700px]"> 
+                    <thead class="bg-brand-800 text-white">
+                        <tr>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">ID</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">Mesa #</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide text-center">Sesiones</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide">Estado</th>
+                            <th class="p-4 text-xs font-semibold uppercase tracking-wide text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="table-body"></tbody>
+                </table>
+            </div>
+            <div id="pagination-container" class="flex justify-center items-center mt-6 gap-2"></div>
+            <div class="h-8"></div>
+        </div>
+    </main>
+
+    <!-- Reutilizamos el mismo modal para edición (sin botón de crear) -->
+    <div id="create-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Editar Mesa</h3>
+                        <form id="create-table-form" class="mt-4 space-y-4">
+                            <input type="hidden" id="table_id">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Número de Mesa</label>
+                                <input type="number" id="table_number" required min="1" class="mt-1 block w-full rounded border-gray-300 py-2 px-3 border" disabled>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Capacidad</label>
+                                <input type="number" id="capacity" required min="1" value="4" class="mt-1 block w-full rounded border-gray-300 py-2 px-3 border">
+                            </div>
+                            <div id="status-container">
+                                <label class="block text-sm font-medium text-gray-700">Estado</label>
+                                <select id="modal_status" class="mt-1 block w-full rounded border-gray-300 py-2 px-3 border bg-white">
+                                    <option value="AVAILABLE">Available (Disponible)</option>
+                                    <option value="OCCUPIED">Occupied (Ocupada)</option>
+                                    <option value="OUT_OF_SERVICE">Out of Service (Mantenimiento)</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" onclick="handleFormSubmit()" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800 sm:ml-3 sm:w-auto">Guardar</button>
+                        <button type="button" onclick="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="qr-modal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 text-center">
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
+                            <span class="material-icons-outlined text-green-600">qr_code_2</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Código QR - Mesa <span id="qr-table-num">#</span></h3>
+                        <div class="mt-4 flex justify-center bg-gray-50 p-4 rounded border">
+                            <img id="qr-image" src="" alt="QR" class="w-48 h-48 object-contain">
+                        </div>
+                        <a id="qr-test-link" href="#" target="_blank" class="mt-2 text-xs text-blue-600 hover:underline block">Probar enlace</a>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button onclick="closeQrModal()" class="w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm sm:w-auto">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script defer src="/mod-3-atencion-cliente/components/toast.js"></script>
+    <script src="/mod-3-atencion-cliente/components/admin-auth.js"></script>
+    <script src="/mod-3-atencion-cliente/components/aside.js"></script>
+    <script src="/mod-3-atencion-cliente/api/base.js"></script>
+    <script src="/mod-3-atencion-cliente/api/auth.js"></script>
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/api/tables.js"></script>
+    <script src="/mod-3-atencion-cliente/api/service-request.js"></script>
+
+    <script>
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        const tableBody = document.getElementById('table-body');
+        const modal = document.getElementById('create-modal');
+        const form = document.getElementById('create-table-form');
+        const qrModalEl = document.getElementById('qr-modal');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTablesData();
+        });
+
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
+
+        async function loadTablesData() {
+            try {
+                tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Cargando...</td></tr>';
+                const response = await window.TablesApi.getTables(currentPage, itemsPerPage, '', false);
+
+                if (response.success && response.data.length > 0) {
+                    tableBody.innerHTML = response.data.map(renderTableRow).join('');
+
+                    if (response.metadata) {
+                        renderPagination(response.metadata);
+                    }
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Sin registros.</td></tr>';
+                    document.getElementById('pagination-container').innerHTML = '';
+                }
+            } catch (error) {
+                console.error(error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Error: ${error.message}</td></tr>`;
+            }
+        }
+
+        function renderPagination(meta) {
+            const container = document.getElementById('pagination-container');
+            if (meta.total_pages <= 1) { container.innerHTML = ''; return; }
+            const isFirst = meta.current_page === 1;
+            const isLast = meta.current_page === meta.total_pages;
+            container.innerHTML = `
+                <button onclick="window.changePage(${meta.current_page - 1})" ${isFirst ? 'disabled' : ''} class="px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-1">
+                    <span class="material-icons-outlined text-sm">chevron_left</span> Anterior
+                </button>
+                <span class="text-sm text-gray-600 font-medium px-2 flex items-center">
+                    Página ${meta.current_page} de ${meta.total_pages}
+                    <span class="ml-2 text-xs text-gray-400">(${meta.total_items} ítems)</span>
+                </span>
+                <button onclick="window.changePage(${meta.current_page + 1})" ${isLast ? 'disabled' : ''} class="px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-1">
+                    Siguiente <span class="material-icons-outlined text-sm">chevron_right</span>
+                </button>`;
+        }
+
+        function renderTableRow(table) {
+            const statusStyles = {
+                'AVAILABLE': 'bg-green-100 text-green-800',
+                'OCCUPIED': 'bg-orange-100 text-orange-800',
+                'OUT_OF_SERVICE': 'bg-gray-200 text-gray-800'
+            };
+            const badgeClass = statusStyles[table.current_status] || 'bg-gray-100 text-gray-800';
+            const activeSessions = table.active_sessions || 0;
+            const sessionColor = activeSessions > 0 ? 'text-green-600 font-bold' : 'text-gray-400';
+
+            const buttons = `
+                <button onclick="window.openQrModal('${table.table_number}', '${table.qr_uuid}')" class="text-gray-400 hover:text-blue-600 p-1"><span class="material-icons-outlined">qr_code_2</span></button>
+                <button onclick="window.openEditModal('${table.id}', '${table.table_number}', '${table.capacity}', '${table.current_status}')" class="text-gray-400 hover:text-green-600 p-1"><span class="material-icons-outlined">edit</span></button>
+            `;
+
+            return `
+                <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
+                    <td class="p-4 text-sm text-gray-700">#${table.id}</td>
+                    <td class="p-4 text-sm font-medium text-gray-900">${table.table_number} <span class="text-gray-400 text-xs font-normal">(Cap: ${table.capacity})</span></td>
+                    <td class="p-4 text-center ${sessionColor}">${activeSessions}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded-full text-xs font-medium ${badgeClass}">${table.current_status}</span></td>
+                    <td class="p-4 text-right flex justify-end gap-1">${buttons}</td>
+                </tr>`;
+        }
+
+        window.openEditModal = (id, num, cap, status) => {
+            form.reset();
+            document.getElementById('table_id').value = id;
+            document.getElementById('table_number').value = num;
+            document.getElementById('capacity').value = cap;
+            document.getElementById('modal_status').value = status;
+            document.getElementById('table_number').disabled = true;
+            document.getElementById('status-container').classList.remove('hidden');
+            document.getElementById('modal-title').textContent = `Editar Mesa #${num}`;
+            modal.classList.remove('hidden');
+        };
+
+        window.closeModal = () => modal.classList.add('hidden');
+
+        window.handleFormSubmit = async () => {
+            const id = document.getElementById('table_id').value;
+            const capacity = document.getElementById('capacity').value;
+            const status = document.getElementById('modal_status').value;
+
+            if (!capacity || isNaN(capacity) || parseInt(capacity) <= 0) {
+                if (typeof showToast === 'function') { showToast("La capacidad debe ser un entero positivo.", 'warning'); }
+                return;
+            }
+
+            try {
+                const updatedTable = await window.TablesApi.updateTable(id, { currentStatus: status, capacity: parseInt(capacity) });
+                if (updatedTable.id && !updatedTable.error) {
+                    if (typeof showToast === 'function') { showToast(`Mesa #${updatedTable.table_number} actualizada con éxito.`, 'success'); }
+                    closeModal();
+                    loadTablesData();
+                } else {
+                    let msg = `Error (${updatedTable.status || 'Desconocido'}):\n`;
+                    if (updatedTable.message) {
+                        msg += `${updatedTable.error}: ${updatedTable.message}`;
+                    } else if (updatedTable.validationErrors) {
+                        msg += "Verifique los datos:\n";
+                        const issues = updatedTable.validationErrors;
+                        Object.keys(issues).forEach(key => {
+                            const errText = issues[key]._errors ? issues[key]._errors.join(', ') : 'Inválido';
+                            msg += `- ${key}: ${errText}\n`;
+                        });
+                    } else {
+                        msg += updatedTable.error || "Ocurrió un error inesperado.";
+                    }
+                    if (typeof showToast === 'function') { showToast(msg, 'error', 6000); }
+                }
+            } catch (e) {
+                if (typeof showToast === 'function') { showToast("Error: " + (e.message || 'Desconocido'), 'error', 6000); }
+            }
+        };
+
+        window.openQrModal = (num, uuid) => {
+            const url = `${window.location.origin}/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${uuid}`;
+            document.getElementById('qr-table-num').textContent = `#${num}`;
+            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
+            document.getElementById('qr-test-link').href = url;
+            qrModalEl.classList.remove('hidden');
+        };
+        window.closeQrModal = () => qrModalEl.classList.add('hidden');
+
+        window.changePage = (newPage) => {
+            if (newPage < 1) return;
+            currentPage = newPage;
+            loadTablesData();
+        };
+    </script>
+</body>
+</html>
