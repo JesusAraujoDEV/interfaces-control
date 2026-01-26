@@ -1,6 +1,26 @@
 // Archivo: mod-3-atencion-cliente/components/navbar.js
 
 document.addEventListener("DOMContentLoaded", () => {
+    // --- Estilos para transiciones de página y variables de color de marca ---
+    (function injectPageTransitionStyles(){
+        if (document.getElementById('page-transition-style')) return;
+        const style = document.createElement('style');
+        style.id = 'page-transition-style';
+        style.textContent = `
+            :root {
+                --brand-name-color: #0f4a22;
+                --brand-tagline-base: #1F2937;
+            }
+            body.page-transition { transition: opacity 120ms ease; }
+            .page-fade-in { opacity: 1; }
+            .page-fade-out { opacity: 0.92; }
+            @media (prefers-reduced-motion: reduce) {
+                body.page-transition { transition: none; }
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.classList.add('page-transition', 'page-fade-in');
+    })();
     
     // 0. FUNCIÓN DE LOGOUT (Integrada aquí para no depender de otros archivos)
     window.handleLogout = async function() {
@@ -79,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Generamos los links normales
         const linksHtml = navLinks.map(link => {
             const isActive = currentPage === link.id;
-            const activeClass = "text-primary font-bold";
+            const activeClass = "text-primary font-bold bg-primary/10 rounded-xl ring-1 ring-primary/20";
             const inactiveClass = "text-gray-400 hover:text-gray-600 font-medium";
             const indicator = isActive ? `<div class="absolute top-0 w-8 h-0.5 bg-primary rounded-b-full"></div>` : '';
 
@@ -103,6 +123,36 @@ document.addEventListener("DOMContentLoaded", () => {
         mobileContainer.innerHTML = linksHtml + logoutHtml;
     }
     
+    // Inyectar bloque de marca si existe `brand-container`
+    const brandContainer = document.getElementById('brand-container');
+    // Mostrar marca en desktop en todas las vistas (brand-container está oculto en mobile via clases)
+    if (brandContainer) {
+        const menuLink = { id: 'home', name: 'Menu', url: 'menu.html', icon: 'restaurant_menu' };
+        const menuHref = menuLink.url;
+        brandContainer.innerHTML = `
+            <a class="brand flex items-center gap-3 w-[280px] shrink-0" href="${menuHref}" aria-label="Charlotte Bistró">
+                <img class="brand__logo w-10 h-10 md:w-16 md:h-16" src="/assets/charlotte_logo.png" alt="Charlotte Bistró" width="64" height="64" loading="eager">
+                <span class="brand__text flex flex-col whitespace-nowrap">
+                    <span class="brand__name text-[16px] leading-[19.2px] font-bold tracking-[1.3px] uppercase" style="font-family: 'Inter', sans-serif; color: var(--brand-name-color, #0f4a22);">Charlotte Bistró</span>
+                    <span class="brand__tagline text-[11px] leading-[16.5px] tracking-[2px] font-semibold" style="color: var(--brand-tagline-base, #1F2937); opacity: 0.55;">DONDE EL SABOR TOMA LA RUTA</span>
+                </span>
+            </a>`;
+    }
+
+    // Mostrar marca en mobile SOLO en menú si existe el contenedor específico
+    const brandContainerMobile = document.getElementById('brand-container-mobile');
+    if (brandContainerMobile && currentPage === 'home') {
+        const menuHref = 'menu.html';
+        brandContainerMobile.innerHTML = `
+            <a class="brand flex items-center gap-3" href="${menuHref}" aria-label="Charlotte Bistró">
+                <img class="brand__logo w-10 h-10" src="/assets/charlotte_logo.png" alt="Charlotte Bistró" width="40" height="40" loading="eager">
+                <span class="brand__text flex flex-col whitespace-nowrap">
+                    <span class="brand__name text-[15px] leading-[18px] font-bold tracking-[1.1px] uppercase" style="font-family: 'Inter', sans-serif; color: var(--brand-name-color, #0f4a22);">Charlotte Bistró</span>
+                    <span class="brand__tagline text-[10px] leading-[15px] tracking-[2px] font-semibold" style="color: var(--brand-tagline-base, #1F2937); opacity: 0.65;">DONDE EL SABOR TOMA LA RUTA</span>
+                </span>
+            </a>`;
+    }
+
     // ============================================================
     // 4. RENDERIZAR MENÚ DESKTOP (Top Bar) + BOTÓN LOGOUT
     // ============================================================
@@ -111,8 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Generamos los links normales
         const linksHtml = navLinks.map(link => {
              const isActive = currentPage === link.id;
-             const activeClass = "text-primary font-bold bg-green-50 px-3 py-2 rounded-lg";
-             const inactiveClass = "text-gray-500 hover:text-primary font-medium transition px-3 py-2";
+             const activeClass = "text-white bg-primary px-3 py-2 rounded-lg shadow-sm";
+             const inactiveClass = "text-gray-600 hover:text-primary font-medium transition px-3 py-2";
              
              return `
                 <a href="${link.url}" class="${isActive ? activeClass : inactiveClass} flex items-center gap-2">
@@ -131,4 +181,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         desktopContainer.innerHTML = linksHtml + logoutHtml;
     }
+
+    // --- Navegación suave: interceptar clicks en enlaces del navbar ---
+    function initSmoothNav(container) {
+        if (!container) return;
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const canAnimate = isDesktop && !reduceMotion;
+        container.querySelectorAll('a[href]')?.forEach(a => {
+            a.addEventListener('click', (e) => {
+                if (!canAnimate) return; // En mobile o reduce motion, no interceptar
+                const url = a.getAttribute('href');
+                if (!url) return;
+                e.preventDefault();
+                document.body.classList.remove('page-fade-in');
+                document.body.classList.add('page-fade-out');
+                setTimeout(() => { window.location.href = url; }, 120);
+            });
+        });
+    }
+
+    initSmoothNav(mobileContainer);
+    initSmoothNav(document.getElementById('desktop-nav-container'));
 });

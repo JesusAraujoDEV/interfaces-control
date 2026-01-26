@@ -36,6 +36,11 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .hidden { display: none !important; }
     .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    /* Ajuste tipografía y densidad */
+    #page-title { font-size: 30px !important; line-height: 1.2; }
+    .table-compact th, .table-compact td { padding: 0.75rem !important; }
+    .table-compact th { font-size: 11px; }
+    .table-compact td { font-size: 13px; }
   </style>
 </head>
 <body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
@@ -83,7 +88,7 @@
       </div>
 
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden overflow-x-auto surface">
-        <table class="w-full text-left border-collapse min-w-[800px]">
+        <table class="table-compact w-full text-left border-collapse min-w-[740px]">
           <thead class="bg-brand-800 text-white">
             <tr>
               <th class="p-4 text-xs font-semibold uppercase">Mesa</th>
