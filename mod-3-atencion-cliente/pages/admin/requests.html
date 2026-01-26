@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charlotte Admin - Solicitudes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: { 50: '#f2f7f1', 700: '#13532a', 800: '#0f4a22' }, primary: '#205638', secondary: '#4CAF50', 'bg-light': '#F9FAFB' } } } };
+  </script>
+  <link rel="stylesheet" href="/shared/styles/global.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f2f7f1;
+      --fg: #1f2937;
+      --card: #ffffff;
+      --border: rgba(15, 74, 34, 0.14);
+      --primary: #0f4a22;
+      --primary-contrast: #ffffff;
+      --accent: #13532a;
+      --muted: rgba(31, 41, 55, 0.68);
+      --shadow: 0 22px 60px rgba(16, 24, 40, 0.12);
+      --radius: 16px;
+      --container: 1120px;
+      --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-serif: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .theme-admin { background-color: var(--bg); color: var(--fg); font-family: var(--font-sans); }
+    .theme-admin header { background-color: var(--bg) !important; box-shadow: none; border-color: transparent !important; }
+    .theme-admin .surface { background-color: var(--card) !important; border-color: var(--border) !important; box-shadow: var(--shadow); border-radius: var(--radius); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hidden { display: none !important; }
+    .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .card-enter { animation: fadeIn 0.3s ease-out forwards; }
+    .page-enter { animation: fadeIn 0.25s ease-out both; }
+    .page-leave { opacity: 0 !important; transform: translateY(4px); transition: opacity .22s ease, transform .22s ease; }
+  </style>
+</head>
+<body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
+
+  <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+  <div id="admin-sidebar-container" data-active="requests"></div>
+
+  <main id="main-content" class="flex-1 flex flex-col h-full overflow-hidden relative w-full page-enter">
+    <header class="hidden">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 md:mb-6">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none">
+            <span class="material-icons-outlined text-2xl">menu</span>
+          </button>
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-900 truncate" id="page-title">Solicitudes de Servicio</h1>
+          <p class="text-sm md:text-base text-gray-600 mt-1">Gestiona llamados a mesero y quejas; marca solicitudes como atendidas.</p>
+        </div>
+        <div id="table-actions" class="hidden"></div>
+      </div>
+    </header>
+
+    <div id="view-requests" class="flex-1 overflow-y-auto p-4 md:p-8 pt-0">
+      <div class="mb-4">
+        <div class="flex items-start gap-3">
+          <button onclick="toggleSidebar()" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+            <span class="material-icons-outlined text-2xl">menu</span>
+          </button>
+          <div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight" id="page-title">Solicitudes de Servicio</h1>
+            <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Gestiona llamados a mesero y quejas; marca solicitudes como atendidas.</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sticky top-0 pt-2 pb-2 z-10">
+        <div class="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200 surface">
+          <button onclick="filterRequests('PENDING')" id="filter-pending" class="px-4 py-2 text-sm font-medium rounded-md bg-orange-100 text-orange-700 transition-colors">
+            Pendientes
+          </button>
+          <button onclick="filterRequests('ATTENDED')" id="filter-attended" class="px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-colors">
+            Historial Atendidos
+          </button>
+        </div>
+        <button onclick="loadRequestsData()" class="text-gray-500 hover:text-primary flex items-center gap-2 text-sm bg-white px-3 py-1 rounded border border-gray-200 shadow-sm">
+          <span class="material-icons-outlined text-lg">refresh</span> Actualizar
+        </button>
+      </div>
+      <div id="requests-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8"></div>
+    </div>
+  </main>
+
+  <script>
+    let requestStatusFilter = 'PENDING';
+    let requestInterval = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRequestsData();
+      // Auto-refresco cada 15 seg
+      requestInterval = setInterval(loadRequestsData, 15000);
+    });
+
+    window.toggleSidebar = () => {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      if (!sidebar || !overlay) return;
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    };
+
+    window.filterRequests = (status) => {
+      requestStatusFilter = status;
+      const btnPending = document.getElementById('filter-pending');
+      const btnAttended = document.getElementById('filter-attended');
+      if(status === 'PENDING') {
+        btnPending.className = "px-4 py-2 text-sm font-medium rounded-md bg-orange-100 text-orange-700 transition-colors shadow-sm";
+        btnAttended.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-colors";
+      } else {
+        btnPending.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-700 transition-colors";
+        btnAttended.className = "px-4 py-2 text-sm font-medium rounded-md bg-green-100 text-green-700 transition-colors shadow-sm";
+      }
+      loadRequestsData();
+    };
+
+    async function loadRequestsData() {
+      const requestsGrid = document.getElementById('requests-grid');
+      if(requestsGrid.innerHTML === '') {
+        requestsGrid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">Cargando solicitudes...</div>';
+      }
+      try {
+        const response = await window.ServiceRequestApi.getRequests(1, 20, requestStatusFilter);
+        if (response.success && response.data.length > 0) {
+          requestsGrid.innerHTML = response.data.map(renderRequestCard).join('');
+        } else {
+          requestsGrid.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-400 bg-white rounded-lg border border-dashed border-gray-300">
+              <span class="material-icons-outlined text-4xl mb-2">inbox</span>
+              <p>No hay solicitudes ${requestStatusFilter === 'PENDING' ? 'pendientes' : 'en el historial'}.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showToast === 'function') {
+          showToast('No se pudieron cargar las solicitudes.', 'error', 4000);
+        }
+      }
+    }
+
+    function renderRequestCard(req) {
+      const created = new Date(req.created_at || req.createdAt);
+      const now = new Date();
+      const diffMins = Math.floor((now - created) / 60000);
+      let timeString = diffMins < 1 ? 'Hace un momento' : `Hace ${diffMins} min`;
+      if (diffMins > 60) timeString = created.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+
+      const isComplaint = req.type === 'COMPLAINT';
+      const isPending = req.status === 'PENDING';
+      const cardBorder = isComplaint ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-blue-500';
+      const iconBg = isComplaint ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600';
+      const iconName = isComplaint ? 'priority_high' : 'pan_tool';
+      const titleText = isComplaint ? 'Queja / Incidente' : 'Llamado a Mesero';
+      const mesaId = req.table_info?.id || req.table_id || '?';
+
+      let actionButton = '';
+      if (isPending) {
+        actionButton = `
+          <button onclick="attendRequest('${req.id}')" class="w-full mt-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-all font-medium text-sm flex items-center justify-center gap-2 group">
+            <span class="material-icons-outlined text-gray-400 group-hover:text-green-600 text-lg">check_circle</span>
+            Marcar como Atendido
+          </button>
+        `;
+      } else {
+        const attendedTime = req.attended_at ? new Date(req.attended_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--:--';
+        actionButton = `
+          <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-center text-gray-400">
+            Atendido a las ${attendedTime}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="card-enter bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow flex flex-col justify-between ${isPending ? cardBorder : 'opacity-75'} surface">
+          <div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full ${iconBg} flex items-center justify-center">
+                  <span class="material-icons-outlined text-lg">${iconName}</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 text-sm">${titleText}</h4>
+                  <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <span class="material-icons-outlined text-[10px]">schedule</span>
+                    ${timeString}
+                  </p>
+                </div>
+              </div>
+              <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded border border-gray-200">Mesa ${mesaId}</span>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-gray-700 text-sm mb-2 leading-relaxed italic border border-gray-100">
+              "${req.message || 'Sin mensaje'}"
+            </div>
+          </div>
+          ${actionButton}
+        </div>
+      `;
+    }
+
+    window.attendRequest = async (id) => {
+      try {
+        await window.ServiceRequestApi.markAsAttended(id);
+        if (typeof showToast === 'function') {
+          showToast('Solicitud marcada como atendida.', 'success');
+        }
+        loadRequestsData();
+      } catch (e) {
+        if (typeof showToast === 'function') {
+          showToast('Error al actualizar: ' + (e.message || 'Desconocido'), 'error', 5000);
+        }
+      }
+    };
+  </script>
+
+  <script src="/config.js"></script>
+  <script defer src="/mod-3-atencion-cliente/components/toast.js"></script>
+  <script defer src="/mod-3-atencion-cliente/components/admin-auth.js"></script>
+  <script defer src="/mod-3-atencion-cliente/components/aside.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/base.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/auth.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/service-request.js"></script>
+</body>
+</html>

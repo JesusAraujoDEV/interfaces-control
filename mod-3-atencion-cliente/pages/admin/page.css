@@ -1,0 +1,46 @@
+.atc-card {
+  display: block;
+  border: 1px solid rgb(226 232 240);
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem; /* ligeramente más grande */
+  transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+}
+
+.atc-card:hover {
+  border-color: rgb(203 213 225);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+  transform: translateY(-1px);
+}
+
+.atc-card-title {
+  font-weight: 800;
+  font-size: 1.125rem; /* 18px */
+}
+
+.atc-card-desc {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: rgb(71 85 105);
+}
+
+.atc-card-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.9rem;
+  background: rgba(19, 83, 42, 0.08);
+  color: rgb(15, 74, 34);
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+/* Simple page transitions to match module styling */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: fadeIn 0.25s ease-out both; }
+.page-leave { opacity: 0 !important; transform: translateY(4px); transition: opacity .22s ease, transform .22s ease; }

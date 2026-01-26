@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — Atención al Cliente</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: { 50: '#f2f7f1', 700: '#13532a', 800: '#0f4a22' },
+              primary: '#205638',
+              secondary: '#4CAF50',
+              'bg-light': '#F9FAFB',
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="/mod-3-atencion-cliente/pages/admin/page.css" />
+    <style>
+      :root {
+        --bg: #f2f7f1;       /* brand-50 */
+        --fg: #1f2937;       /* text */
+        --card: #ffffff;     /* surface */
+        --border: rgba(15, 74, 34, 0.14);
+        --primary: #0f4a22;  /* brand-800 */
+        --primary-contrast: #ffffff;
+        --accent: #13532a;   /* brand-700 */
+        --muted: rgba(31, 41, 55, 0.68);
+        --shadow: 0 22px 60px rgba(16, 24, 40, 0.12);
+        --radius: 16px;
+        --container: 1120px;
+        --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+        --font-serif: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      .theme-admin { background-color: var(--bg); color: var(--fg); font-family: var(--font-sans); }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .hidden { display: none !important; }
+      .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    </style>
+  </head>
+  <body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
+
+    <div id="mobile-overlay" onclick="toggleSidebar()" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+    <div class="flex w-full">
+      <div id="admin-sidebar-container" data-active="home"></div>
+      <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full page-enter">
+        <header class="mb-6">
+          <div class="inline-flex items-center gap-2 text-xs text-slate-500">
+            <a class="hover:text-slate-800" href="/admin">Admin</a>
+            <span aria-hidden="true">/</span>
+            <span class="text-slate-700">Atención al Cliente</span>
+          </div>
+          <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold">Dashboard — Atención al Cliente</h1>
+          <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas.</p>
+        </header>
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a class="atc-card" href="./tables.html">
+            <div class="atc-card-icon">🍽️</div>
+            <div class="atc-card-title">Inventario de Mesas</div>
+            <div class="atc-card-desc">Crear, editar, archivar y restaurar.</div>
+          </a>
+          <a class="atc-card" href="./tables-maitre.html">
+            <div class="atc-card-icon">🪑</div>
+            <div class="atc-card-title">Mesas (Maitre)</div>
+            <div class="atc-card-desc">Consulta estado, QR y edición básica.</div>
+          </a>
+          <a class="atc-card" href="./sessions.html">
+            <div class="atc-card-icon">👥</div>
+            <div class="atc-card-title">Monitor de Sesiones</div>
+            <div class="atc-card-desc">Actividad y sesiones por mesa.</div>
+          </a>
+          <a class="atc-card" href="./requests.html">
+            <div class="atc-card-icon">🔔</div>
+            <div class="atc-card-title">Solicitudes</div>
+            <div class="atc-card-desc">Llamados y quejas de clientes.</div>
+          </a>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      window.toggleSidebar = () => {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('mobile-overlay');
+        if (!sidebar || !overlay) return;
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+      };
+    </script>
+    <script src="/mod-3-atencion-cliente/components/aside.js"></script>
+  </body>
+</html>
