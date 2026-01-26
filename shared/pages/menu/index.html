@@ -606,7 +606,7 @@
     }
 
     async function loadKitchenCatalog() {
-      const res = await fetch(`${KITCHEN_URL}/api/kitchen/products`, {
+      const res = await fetch(`${KITCHEN_URL}/api/kitchen/products?activeOnly=true`, {
         method: 'GET',
         headers: { Accept: 'application/json' }
       });
