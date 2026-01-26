@@ -187,8 +187,9 @@ function checkRouteAccess(pathname) {
   // 3. Verificar si el usuario tiene AL MENOS UNO de los permisos requeridos
   // (Lógica OR: si allowedResources tiene A y B, y el usuario tiene B, pasa)
   const hasAccess = allowedResources.some(resource => userPermissions.includes(resource));
-  
-  return hasAccess;
+  const usuario = JSON.parse(localStorage.getItem('administrative_user'));
+  const isAdmin = usuario && usuario.isAdmin;
+  return hasAccess || isAdmin;
 }
 
 async function render(pathname) {
