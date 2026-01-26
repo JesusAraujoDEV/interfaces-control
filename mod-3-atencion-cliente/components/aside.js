@@ -7,7 +7,7 @@
     if (!container) return;
 
     const asideMarkup = `
-      <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-72 md:w-80 bg-white border-r border-gray-200 flex flex-col justify-between h-full shadow-lg md:shadow-sm transform -translate-x-full md:translate-x-0 md:relative sidebar-transition flex-shrink-0 overflow-y-auto no-scrollbar">
+      <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-[18rem] md:w-[20rem] bg-white border-r border-gray-200 flex flex-col justify-between h-full shadow-lg md:shadow-sm transform -translate-x-full md:translate-x-0 md:relative sidebar-transition flex-shrink-0 overflow-y-auto no-scrollbar">
         <div>
           <div class="p-6 border-b border-gray-100">
             <div class="flex items-center gap-3">
@@ -29,9 +29,9 @@
           </div>
 
           <nav class="px-3 pb-4 space-y-1 mt-2">
-            <a href="./index.html" id="nav-home" title="Inicio" class="group flex items-start gap-3 rounded-xl px-4 py-3 transition-colors border">
+            <a href="./index.html" id="nav-home" title="Inicio" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
               <div class="mt-0.5 nav-icon text-brand-800">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-[22px] h-[22px]"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-[20px] h-[20px]"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"></path></svg>
               </div>
               <div class="min-w-0 atc-nav-text">
                 <div class="text-base font-semibold leading-6">Inicio</div>
@@ -39,33 +39,33 @@
               </div>
             </a>
 
-            <a href="./tables.html" id="nav-tables" class="group flex items-start gap-3 rounded-xl px-4 py-3 transition-colors border">
-              <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[22px]">table_restaurant</span></div>
+            <a href="./tables.html" id="nav-tables" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
+              <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[20px]">table_restaurant</span></div>
               <div class="min-w-0">
                 <div class="text-base font-semibold leading-6">Inventario Mesas</div>
                 <div class="text-sm text-gray-500 leading-5 truncate">Gestión de mesas</div>
               </div>
             </a>
 
-            <a href="./tables-maitre.html" id="nav-tables-maitre" class="group flex items-start gap-3 rounded-xl px-4 py-3 transition-colors border">
-              <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[22px]">event_seat</span></div>
+            <a href="./tables-maitre.html" id="nav-tables-maitre" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
+              <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[20px]">event_seat</span></div>
               <div class="min-w-0">
                 <div class="text-base font-semibold leading-6">Mesas (Maitre)</div>
                 <div class="text-sm text-gray-500 leading-5 truncate">Operación en sala</div>
               </div>
             </a>
 
-            <a href="./sessions.html" id="nav-sessions" class="group flex items-start gap-3 rounded-xl px-4 py-3 transition-colors border">
-              <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[22px]">people_alt</span></div>
+            <a href="./sessions.html" id="nav-sessions" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
+              <div class="mt-0.5 nav-icon"><span class="material-icons-outlined text-[20px]">people_alt</span></div>
               <div class="min-w-0">
                 <div class="text-base font-semibold leading-6">Monitor Sesiones</div>
                 <div class="text-sm text-gray-500 leading-5 truncate">Actividad en mesas</div>
               </div>
             </a>
 
-            <a href="./requests.html" id="nav-requests" class="group flex items-start gap-3 rounded-xl px-4 py-3 transition-colors border">
+            <a href="./requests.html" id="nav-requests" class="group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors border">
               <div class="relative mt-0.5 nav-icon">
-                <span class="material-icons-outlined text-[22px]">notifications_active</span>
+                <span class="material-icons-outlined text-[20px]">notifications_active</span>
                 <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
@@ -117,7 +117,7 @@
       if (!el) return;
       // Reset base classes
       el.classList.remove(...activeClasses, ...inactiveClasses);
-      el.classList.add('group','flex','items-start','gap-3','rounded-xl','px-4','py-3','transition-colors','border');
+      el.classList.add('group','flex','items-start','gap-3','rounded-xl','px-3','py-2','transition-colors','border');
       if (key === active) {
         el.classList.add(...activeClasses);
       } else {
