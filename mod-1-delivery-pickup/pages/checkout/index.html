@@ -167,6 +167,70 @@
     <script type="module" src="/landing/script.js"></script>
     <script type="module" src="/shared/components/app-header.js"></script>
     <script type="module" src="/mod-1-delivery-pickup/pages/checkout/page.js"></script>
+  </main>
+
+  <!-- Payment Method Modal -->
+  <div id="paymentMethodModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
+    <div id="paymentMethodOverlay" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+        <div class="p-6">
+          <h2 id="paymentMethodTitle" class="text-lg font-extrabold text-gray-900">Método de pago</h2>
+          <p class="mt-2 text-sm text-gray-600">Selecciona el método de pago para este pedido.</p>
+
+          <div class="mt-6 space-y-3">
+            <button id="payCashBtn" type="button" class="w-full py-3 rounded-lg border border-gray-200 bg-white">Efectivo</button>
+            <button id="payDigitalBtn" type="button" class="w-full py-3 rounded-lg bg-brand-800 text-white">Digital</button>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button id="paymentMethodClose" type="button" class="text-sm text-gray-600">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Details Modal (for DIGITAL) -->
+  <div id="paymentDetailsModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
+    <div id="paymentDetailsOverlay" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+        <div class="p-6">
+          <h2 class="text-lg font-extrabold text-gray-900">Datos de pago</h2>
+          <p class="mt-1 text-sm text-gray-600">Confirma los datos y añade la referencia.</p>
+
+          <div class="mt-4 space-y-3 text-sm text-gray-700">
+            <div>Nombre: <strong id="pdName">-</strong></div>
+            <div>Teléfono: <strong id="pdPhone">-</strong></div>
+            <div>Banco: <strong id="pdBank">Bancamiga</strong></div>
+            <div>Monto: <strong id="pdAmount">$0.00</strong></div>
+          </div>
+
+          <div class="mt-4">
+            <label class="block text-sm font-medium">Últimos 4 dígitos de referencia</label>
+            <div class="mt-2 flex gap-2">
+              <input id="pdRef" maxlength="4" placeholder="Ej: 5235" class="w-full rounded-md border p-2" />
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <label class="block text-sm font-medium">Banco (selecciona uno)</label>
+            <div class="mt-2 space-y-2 text-sm">
+              <label><input type="radio" name="pdBankChoice" value="Bancamiga" checked /> Bancamiga</label><br/>
+              <label><input type="radio" name="pdBankChoice" value="Mercantil" /> Mercantil</label><br/>
+              <label><input type="radio" name="pdBankChoice" value="Provincial" /> Provincial</label>
+            </div>
+          </div>
+
+          <div class="mt-6 flex items-center justify-end gap-3">
+            <button id="pdCancel" type="button" class="text-sm text-gray-600">Cancelar</button>
+            <button id="pdConfirm" type="button" class="bg-brand-800 text-white py-2 px-4 rounded-lg">Confirmar pago</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
