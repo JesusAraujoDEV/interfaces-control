@@ -4,13 +4,14 @@ const URL_BASE_API_SEGURIDAD = SEGURIDAD_CONFIG.URL_BASE_API_SEGURIDAD;
 
 async function hasPermission(resource, method, access_token) {
     try {
-        const res = await fetch(`${URL_BASE_API_SEGURIDAD}/api/seguridad/auth/hasPermission`, {
+        const resources = resource;
+        const res = await fetch(`${URL_BASE_API_SEGURIDAD}/api/seguridad/auth/hasPermissionView`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${access_token}`,
             },
-            body: JSON.stringify({ resource, method }),
+            body: JSON.stringify({ resources, method }),
         });
         const data = await res.json();
         return { success: true, data };
