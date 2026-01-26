@@ -268,10 +268,9 @@ let pendingPayment = { payment_type: null, payment_reference: '', payment_receiv
 
 // Payment method buttons
 document.getElementById('payCashBtn')?.addEventListener('click', () => {
-  pendingPayment = { payment_type: 'CASH', payment_reference: '', payment_received: false, payment_bank: '' };
   closePaymentMethodModal();
-  // proceed to create order immediately for cash
-  submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
+  // Abrir modal de efectivo para condiciones y cálculo de vuelto
+  openPaymentCashModal();
 });
 document.getElementById('payDigitalBtn')?.addEventListener('click', () => {
   closePaymentMethodModal();
@@ -297,12 +296,118 @@ document.getElementById('pdConfirm')?.addEventListener('click', () => {
   submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
 });
 document.getElementById('paymentDetailsOverlay')?.addEventListener('click', () => closePaymentDetailsModal());
+
+// Payment cash modal (conditions + cálculo de vuelto)
+function openPaymentCashModal() {
+  const m = document.getElementById('paymentCashModal');
+  if (!m) return;
+  // populate dynamic fields
+  const total = cartTotal(readCart());
+  document.getElementById('pcTotal').textContent = formatPrice(total);
+  // conditions depend on mode
+  const cond = document.getElementById('pcConditions');
+  const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
+  if (cond) {
+    if (mode === 'pickup') {
+      cond.innerHTML = `
+        <strong>Caso A: Para PICKUP (Retiro en Tienda)</strong>
+        <p>Por normativas de seguridad y flujo de caja, al seleccionar pago en efectivo usted acepta las siguientes condiciones:</p>
+        <ul class="text-sm list-disc pl-5">
+          <li>Integridad del Papel Moneda: No aceptamos billetes rotos, manchados, pegados o excesivamente deteriorados. Nuestro personal validará cada billete.</li>
+          <li>Verificación Inmediata: Debe contar su vuelto frente al cajero antes de retirarse. No se aceptan reclamos posteriores una vez abandonada la zona de caja.</li>
+          <li>Pago Exacto: Se agradece el pago exacto para agilizar su despacho.</li>
+        </ul>
+      `;
+    } else {
+      cond.innerHTML = `
+        <strong>Caso B: Para DELIVERY</strong>
+        <p>El servicio de delivery es operado por una empresa independiente. Para garantizar su seguridad y la correcta gestión del cambio:</p>
+        <ul class="text-sm list-disc pl-5">
+          <li>Declaración Obligatoria: Debe ingresar EXACTAMENTE con qué billete va a pagar. No enviamos cambio no declarado.</li>
+          <li>Gestión de Vuelto: Charlotte Bistró enviará el vuelto exacto (si aplica) dentro del paquete sellado o entregado al conductor.</li>
+          <li>Límite de Responsabilidad: Charlotte Bistró NO se hace responsable por transacciones personales adicionales, propinas o cambios de divisa realizados directamente con el conductor ajenos al monto de la factura.</li>
+        </ul>
+      `;
+    }
+  }
+
+  // reset inputs
+  const input = document.getElementById('pcCashAmount');
+  if (input) input.value = '';
+  const summary = document.getElementById('pcChangeSummary');
+  if (summary) summary.textContent = '';
+
+  m.classList.remove('hidden');
+}
+function closePaymentCashModal() {
+  const m = document.getElementById('paymentCashModal');
+  if (!m) return;
+  m.classList.add('hidden');
+}
+
+// helper: calcular desglose de vuelto
+function calcularDesgloseVuelto(totalPagar, montoEfectivo) {
+  let vuelto = Number(montoEfectivo) - Number(totalPagar);
+  if (!Number.isFinite(vuelto)) return '⚠️ Monto inválido.';
+  if (vuelto < 0) return '⚠️ El monto en efectivo es menor a la deuda.';
+  if (vuelto === 0) return '✅ Pago exacto. No se requiere vuelto.';
+
+  const denominaciones = [100, 50, 20, 10, 5, 1];
+  let desglose = [];
+  let resto = Math.round(vuelto);
+
+  denominaciones.forEach(billete => {
+    if (resto >= billete) {
+      const cantidad = Math.floor(resto / billete);
+      resto = resto % billete;
+      desglose.push(`${cantidad} billete${cantidad > 1 ? 's' : ''} de $${billete}`);
+    }
+  });
+
+  return `Tu vuelto de $${vuelto} se entregará (aprox) en: ${desglose.join(', ')}.`;
+}
+
+// live update change when user types efectivo
+document.getElementById('pcCashAmount')?.addEventListener('input', () => {
+  const total = cartTotal(readCart());
+  const val = document.getElementById('pcCashAmount')?.value || '';
+  const summary = document.getElementById('pcChangeSummary');
+  if (!summary) return;
+  const msg = calcularDesgloseVuelto(total, Number(val));
+  summary.textContent = msg;
+});
+
+// cash modal actions
+document.getElementById('pcCancel')?.addEventListener('click', () => closePaymentCashModal());
+document.getElementById('pcConfirm')?.addEventListener('click', () => {
+  const val = Number(document.getElementById('pcCashAmount')?.value || 0);
+  const total = Number(cartTotal(readCart()));
+  if (!val || val < total) {
+    alert('El monto en efectivo debe ser igual o mayor al total a pagar.');
+    return;
+  }
+  const change = val - total;
+  const breakdown = calcularDesgloseVuelto(total, val);
+  const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
+  // For pickup we assume payment_received true (pago en mostrador). For delivery, received=false until entrega.
+  pendingPayment = {
+    payment_type: 'CASH',
+    payment_cash_amount: val,
+    payment_change: change,
+    payment_change_breakdown: breakdown,
+    payment_received: mode === 'pickup',
+    payment_reference: '',
+    payment_bank: ''
+  };
+  closePaymentCashModal();
+  submitOrderFlow(mode);
+});
+
+document.getElementById('paymentCashOverlay')?.addEventListener('click', () => closePaymentCashModal());
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  const m1 = document.getElementById('paymentMethodModal');
-  const m2 = document.getElementById('paymentDetailsModal');
-  if (m2 && !m2.classList.contains('hidden')) closePaymentDetailsModal();
-  else if (m1 && !m1.classList.contains('hidden')) closePaymentMethodModal();
+  const mc = document.getElementById('paymentCashModal');
+  if (mc && !mc.classList.contains('hidden')) closePaymentCashModal();
 });
 function setZone(zone) {
   const byName = zoneChips.find(btn => btn.dataset.zone === zone);
