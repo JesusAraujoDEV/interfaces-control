@@ -23,6 +23,7 @@ async function cargarColaKDS() {
         const tareas = await response.json();
         renderizarTareas(tareas);
     } catch (error) {
+        console.log(error)
         console.error('Error al cargar la cola KDS:', error);
     }
 }
