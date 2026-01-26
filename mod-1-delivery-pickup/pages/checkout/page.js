@@ -230,25 +230,79 @@ document.getElementById('cartModalItems')?.addEventListener('input', e => {
   if (!id) return;
   updateCartItemNotes(id, el.value);
 });
-// Notas modal bindings
-document.getElementById('notesConfirm')?.addEventListener('click', () => {
-  closeNotesModal();
-  // Submit the pending order flow; mode was set when opening the modal
+// Payment modals bindings
+const paymentMethodModal = document.getElementById('paymentMethodModal');
+const paymentDetailsModal = document.getElementById('paymentDetailsModal');
+
+function openPaymentMethodModal() {
+  const m = document.getElementById('paymentMethodModal');
+  if (!m) return;
+  m.classList.remove('hidden');
+}
+function closePaymentMethodModal() {
+  const m = document.getElementById('paymentMethodModal');
+  if (!m) return;
+  m.classList.add('hidden');
+}
+function openPaymentDetailsModal() {
+  const m = document.getElementById('paymentDetailsModal');
+  if (!m) return;
+  // populate basic info
+  const name = document.getElementById('fullName')?.value.trim() || '-';
+  const phone = document.getElementById('phone')?.value.trim() || '-';
+  const amount = formatPrice(cartTotal(readCart()));
+  document.getElementById('pdName').textContent = name;
+  document.getElementById('pdPhone').textContent = phone;
+  document.getElementById('pdAmount').textContent = amount;
+  m.classList.remove('hidden');
+}
+function closePaymentDetailsModal() {
+  const m = document.getElementById('paymentDetailsModal');
+  if (!m) return;
+  m.classList.add('hidden');
+}
+
+// Pending state for order and payment
+let pendingOrderMode = null;
+let pendingPayment = { payment_type: null, payment_reference: '', payment_received: false, payment_bank: '' };
+
+// Payment method buttons
+document.getElementById('payCashBtn')?.addEventListener('click', () => {
+  pendingPayment = { payment_type: 'CASH', payment_reference: '', payment_received: false, payment_bank: '' };
+  closePaymentMethodModal();
+  // proceed to create order immediately for cash
   submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
 });
-document.getElementById('notesCancel')?.addEventListener('click', () => {
-  closeNotesModal();
+document.getElementById('payDigitalBtn')?.addEventListener('click', () => {
+  closePaymentMethodModal();
+  openPaymentDetailsModal();
 });
-document.getElementById('notesModalClose')?.addEventListener('click', () => {
-  closeNotesModal();
+document.getElementById('paymentMethodClose')?.addEventListener('click', () => closePaymentMethodModal());
+document.getElementById('paymentMethodOverlay')?.addEventListener('click', () => closePaymentMethodModal());
+
+// Payment details handlers
+document.getElementById('pdCancel')?.addEventListener('click', () => {
+  closePaymentDetailsModal();
 });
-document.getElementById('notesBackdrop')?.addEventListener('click', () => {
-  closeNotesModal();
+document.getElementById('pdConfirm')?.addEventListener('click', () => {
+  const ref = String(document.getElementById('pdRef')?.value || '').trim();
+  const bankChoice = document.querySelector('input[name="pdBankChoice"]:checked');
+  const bank = bankChoice ? bankChoice.value : '';
+  if (!ref) {
+    alert('Por favor ingresa los últimos dígitos de la referencia.');
+    return;
+  }
+  pendingPayment = { payment_type: 'DIGITAL', payment_reference: `${ref} - ${bank}`, payment_received: true, payment_bank: bank };
+  closePaymentDetailsModal();
+  submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
 });
+document.getElementById('paymentDetailsOverlay')?.addEventListener('click', () => closePaymentDetailsModal());
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  const modal = document.getElementById('notesModal');
-  if (modal && !modal.classList.contains('hidden')) closeNotesModal();
+  const m1 = document.getElementById('paymentMethodModal');
+  const m2 = document.getElementById('paymentDetailsModal');
+  if (m2 && !m2.classList.contains('hidden')) closePaymentDetailsModal();
+  else if (m1 && !m1.classList.contains('hidden')) closePaymentMethodModal();
 });
 function setZone(zone) {
   const byName = zoneChips.find(btn => btn.dataset.zone === zone);
@@ -426,6 +480,12 @@ function buildOrderPayload() {
   };
 
   if (isDelivery) payload.zone_id = zone && zone.zone_id ? zone.zone_id : '';
+  // Añadir costo de envío si está disponible en la zona
+  try {
+    if (isDelivery && zone && zone.shipping_cost) payload.shipping_cost = parsePrice(zone.shipping_cost);
+  } catch (e) {
+    // ignore
+  }
   // Nota opcional para cocina (campo añadido en el modal)
   try {
     const noteEl = document.getElementById('orderNote');
@@ -434,23 +494,21 @@ function buildOrderPayload() {
   } catch (e) {
     // ignore
   }
+  // Incluir información de pago si está presente
+  try {
+    if (typeof pendingPayment !== 'undefined' && pendingPayment && pendingPayment.payment_type) {
+      payload.payment_type = pendingPayment.payment_type;
+      if (pendingPayment.payment_reference) payload.payment_reference = pendingPayment.payment_reference;
+      payload.payment_received = !!pendingPayment.payment_received;
+      if (pendingPayment.payment_bank) payload.payment_bank = pendingPayment.payment_bank;
+    }
+  } catch (e) {
+    // ignore
+  }
   return payload;
 }
 
-// Estado temporal cuando el usuario confirma el formulario y se muestra el modal de notas
-let pendingOrderMode = null;
-
-function openNotesModal() {
-  const modal = document.getElementById('notesModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-}
-
-function closeNotesModal() {
-  const modal = document.getElementById('notesModal');
-  if (!modal) return;
-  modal.classList.add('hidden');
-}
+// (payment modal state is declared above)
 
 async function submitOrderFlow(mode) {
   if (proceedBtn) {
@@ -575,7 +633,10 @@ form.addEventListener('submit', function (e) {
     const mode = deliveryBtn.getAttribute('aria-pressed') === 'true' ? 'delivery' : 'pickup';
     localStorage.setItem('dp_service_type', mode);
     pendingOrderMode = mode;
-    submitOrderFlow(mode);
+    // Abrir modal para seleccionar método de pago; si el modal no existe, proceder directamente.
+    const pm = document.getElementById('paymentMethodModal');
+    if (pm) openPaymentMethodModal();
+    else submitOrderFlow(mode);
   } else {
     // Scroll to first error
     const firstErr = document.querySelector('p.text-red-600:not(.hidden)');
