@@ -113,7 +113,7 @@
           <div id="salesLabels" style="
                 display: flex;
                 justify-content: space-between;
-                margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */
+                margin-top: 10px;
                 color: var(--text-muted);
                 font-size: 0.875rem; /* 14px */
               ">
@@ -154,12 +154,6 @@
 
     // Carga datos desde la API y actualiza la interfaz
     async function loadDashboard() {
-      // Mostrar fecha actual
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const dateBadge = document.getElementById('current-date-badge');
-      if (dateBadge) dateBadge.textContent = '📅 ' + dateStr;
-
       try {
         // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
         const [sRes, aRes, pRes] = await Promise.allSettled([
@@ -233,7 +227,6 @@
 
         // Initial render (Day view)
         updateChartPeriod('day');
-
 
         // Alertas de inventario
         const alertsList = document.getElementById('alertsList');
@@ -441,6 +434,7 @@
       if (!el) return;
       const cfg = getStockLimits();
       const lines = [];
+      lines.push('<div><strong>Límite por defecto:</strong> ' + cfg.default + '%</div>');
       const keys = Object.keys(cfg.items || {});
       if (keys.length) {
         lines.push('<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>');
@@ -502,7 +496,7 @@
       const payload = { goal: newGoal.goal, target: newGoal.target };
       const endpoints = [
         '/configuration/goals/quarterly',
-        'https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/quarterly'
+        'http://localhost:3000/api/v1/kpi/configuration/goals/quarterly'
       ];
       let patched = false;
       for (const ep of endpoints) {

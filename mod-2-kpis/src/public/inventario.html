@@ -17,10 +17,15 @@
 
             <nav class="sidebar__nav">
                 <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
-                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item sidebar__menu-item--active"><i>📦</i> Inventario</a>
                 <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
+                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item sidebar__menu-item--active"><i>📦</i> Inventario</a>
                 <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item"><i>⏱️</i> Eficiencia</a>
+                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
             </nav>
+
+            <div class="sidebar__profile-footer">
+                <a href="#" class="sidebar__menu-item"><i>❓</i> Ayuda</a>
+            </div>
         </aside>
 
         <main class="content">
@@ -49,6 +54,7 @@
                     <div id="pareto-chart" class="w-full h-96 bg-gray-50 rounded-lg flex items-end justify-center relative">
                         <!-- Aquí se renderizará el gráfico SVG -->
                     </div>
+                    <p class="text-sm text-gray-600 mt-2">Datos obtenidos de la API. El producto campeón está resaltado en rojo.</p>
                 </div>
                 </div>
                 
@@ -146,7 +152,6 @@
                 const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts'); 
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
-                console.log('Datos de alertas recibidos:', data);
                 renderAlertsPanel(data);
             } catch (error) {
                 console.error('Error al obtener datos de alertas:', error);
@@ -312,11 +317,7 @@
             const panel = document.getElementById('alerts-panel');
             panel.innerHTML = '';
 
-            let criticalCount = 0;
-            if (Array.isArray(alerts)) {
-                criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
-            }
-
+            const criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
             const criticalHeader = document.createElement('div');
             criticalHeader.className = `mb-4 p-3 rounded-xl border flex items-center justify-between ${criticalCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`;
             criticalHeader.innerHTML = `
@@ -325,7 +326,7 @@
             `;
             panel.appendChild(criticalHeader);
 
-            if (Array.isArray(alerts) && alerts.length > 0) {
+            if (alerts && alerts.length > 0) {
                 alerts.forEach(alert => {
                     const item = document.createElement('div');
                     item.className = `p-4 border rounded-xl mb-3 shadow-sm transition-all hover:shadow-md ${
@@ -354,11 +355,6 @@
                     `;
                     panel.appendChild(item);
                 });
-            } else {
-                const noAlertsMsg = document.createElement('div');
-                noAlertsMsg.className = 'p-4 bg-gray-50 rounded-lg text-center text-gray-500';
-                noAlertsMsg.innerHTML = '<p>No hay alertas activas en este momento.</p>';
-                panel.appendChild(noAlertsMsg);
             }
         }
 
