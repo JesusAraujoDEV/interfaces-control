@@ -301,7 +301,7 @@ export function mountDpSidebar() {
     <div class="p-5">
       <div class="flex items-center gap-3 dp-brand-row">
         <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 7h18"/><path d="M6 7v14"/><path d="M18 7v14"/><path d="M6 21h12"/><path d="M9 7V3h6v4"/></svg>
+            <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
         </div>
         <div class="min-w-0 dp-sidebar-text">
           <div class="text-sm font-extrabold text-slate-900 leading-5">Delivery & Pickup</div>

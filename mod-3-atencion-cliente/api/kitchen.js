@@ -23,7 +23,7 @@ window.KitchenApi = {
         if (!baseUrl) throw new Error('URL de cocina no configurada');
 
         try {
-            const response = await window.HttpClient.request(`${baseUrl}/categories`, {
+            const response = await window.HttpClient.request(`${baseUrl}/categories?activeOnly=true`, {
                 method: 'GET'
             });
             return response;
@@ -42,7 +42,7 @@ window.KitchenApi = {
         if (!baseUrl) throw new Error('URL de cocina no configurada');
 
         try {
-            const response = await window.HttpClient.request(`${baseUrl}/products`, {
+            const response = await window.HttpClient.request(`${baseUrl}/products?activeOnly=true`, {
                 method: 'GET'
             });
             return response;
@@ -54,7 +54,7 @@ window.KitchenApi = {
 
     /**
      * Obtiene el detalle de un producto específico
-     * GET /api/kitchen/products/:id
+     * GET /api/kitchen/products/:id?activeOnly=true
      * @param {number|string} productId - ID del producto
      */
     getProductById: async (productId) => {

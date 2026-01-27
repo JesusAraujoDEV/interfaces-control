@@ -350,6 +350,22 @@ function renderOrder(order) {
 
   setText(byId('dpOrderTotal'), formatMoney(order.monto_total));
   setText(byId('dpOrderShipping'), formatMoney(order.monto_costo_envio));
+  // Payment info
+  try {
+    const rawType = order.payment_type ?? order.paymentType ?? order.payment_method ?? order.paymentMethod ?? null;
+    let typeLabel = '—';
+    if (rawType) {
+      const rt = String(rawType).toUpperCase();
+      if (rt.includes('EFECT') || rt === 'CASH') typeLabel = 'Efectivo';
+      else if (rt.includes('CARD') || rt.includes('DEBIT') || rt.includes('CREDIT') || rt === 'DIGITAL') typeLabel = 'Digital';
+      else typeLabel = String(rawType);
+    }
+    const received = typeof (order.payment_received ?? order.paymentReceived) === 'boolean' ? (order.payment_received ?? order.paymentReceived) : false;
+    setText(byId('dpOrderPaymentType'), typeLabel);
+    setText(byId('dpOrderPaymentReceived'), received ? 'Sí' : 'No');
+  } catch (e) {
+    // ignore rendering errors
+  }
 
   renderTimestamps(order);
   renderNotes(order);

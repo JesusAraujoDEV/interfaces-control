@@ -73,7 +73,7 @@ app.get("/config.js", (req, res) => {
 // Favicon (tanto en dev como en Vercel, Vercel servirá /favicon.ico desde public/, pero
 // en dev respondemos explícitamente para evitar 404 de ruido).
 app.get("/favicon.ico", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "assets", "001novo_120744.ico"));
+  res.sendFile(path.join(__dirname, "public", "assets", "charlotte_icon.ico"));
 });
 
 // Compatibilidad Vercel: mismo contenido que /config.js
@@ -146,6 +146,10 @@ app.get("/order-tracking/:id", (req, res) => {
     )
   );
 });
+
+// Rutas para Modulo 5 (Cocina)
+const cocinaRoutes = require('./mod-5-cocina/routes');
+app.use('/cocina', cocinaRoutes);
 
 // Mount KPIs routes
 app.use(KpisRoutes);

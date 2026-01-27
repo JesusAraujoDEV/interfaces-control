@@ -4,6 +4,11 @@
     --borde: #e5e7eb;
 }
 
+body {
+    background-color: #f2f7f1 !important;
+    font-family: 'Oswald';
+}
+
 /* Contenedor principal del Sidebar */
 .barra-lateral {
     width: 260px;

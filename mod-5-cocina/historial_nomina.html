@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
+    <title>Historial de Nómina - Kitchen OS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <header class="header">
+            <h1 class="header__title">Historial de Nómina</h1>
+            <div class="filters">
+                <input type="text" id="staffId" placeholder="ID de Staff">
+                <button class="btn btn--primary" id="btnCargar">Cargar</button>
+            </div>
+        </header>
+
+        <section class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nominas</th>
+                    </tr>
+                </thead>
+                <tbody id="shiftsBody"></tbody>
+            </table>
+        </section>
+        <div class="historial-list"></div>
+    </main>
+
+    <script type="module" src="./js/historial_nomina.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>
