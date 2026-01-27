@@ -2,7 +2,7 @@ const SEGURIDAD_CONFIG = require("../../config/seguridad/seguridad");
 const { verifyToken } = require("../../utils/seguridad/jwt");
 
 const viewsWithAuthClient = async (req, res, next) => {
-  const access_token = req.cookies.access_token || null;
+  const access_token = req.cookies.access_token_atc || null;
   if (access_token) {
     try {
       const decoded = verifyToken(access_token);
