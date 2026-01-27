@@ -166,20 +166,20 @@
 
                         // 1. Unified Fetch Logic
                         const fetchTransactions = (search = "", startDate = null, endDate = null) => {
-                            let url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/business/transactions?search=${search}`;
+                            let url = `http://localhost:3000/api/v1/kpi/analytics/kitchen/queue`;
                             if (startDate) url += `&start_date=${startDate}`;
                             if (endDate) url += `&end_date=${endDate}`;
 
                             countLabel.innerText = "Sincronizando con servidor...";
                             
                             fetch(url)
-                                .then(res => res.json())
+                                .then(res => res.json().then(data => { console.log(data); return data; }))
                                 .then(response => {
-                                    allData = response.data || [];
+                                    allData = response.queue || [];
                                     updateScrollerHeight();
                                     scroller.scrollTop = 0;
                                     renderSlice();
-                                    
+                                    console.log(allData)
                                     if (search || startDate) {
                                         countLabel.innerText = `Mostrando ${allData.length} resultados filtrados`;
                                     } else {
@@ -202,25 +202,36 @@
                                 allData.length,
                                 Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
                             );
-
+                            
                             let rowsHtml = '';
                             for (let i = startIndex; i < endIndex; i++) {
                                 const item = allData[i];
+                                const createdDate = new Date(item.createdAt);
+                                const fecha = createdDate.toLocaleDateString('es-ES');
+                                const hora = createdDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                                const camarero = item.customerName || item.displayLabel || 'N/A';
+                                const cantidad = item.quantity;
+                                let duracion = item.status;
+                                if (item.startedAt && item.finishedAt) {
+                                    const diffMs = new Date(item.finishedAt) - new Date(item.startedAt);
+                                    const diffMin = Math.round(diffMs / 1000 / 60);
+                                    duracion = `${diffMin} min`;
+                                }
                                 rowsHtml += `
                                     <tr style="height: ${ROW_HEIGHT}px;" class="hover:bg-emerald-50 transition-colors">
-                                        <td class="data-table__td" style="width: 15%;">${item.id}</td>
-                                        <td class="data-table__td" style="width: 15%;">${item.date}</td>
-                                        <td class="data-table__td" style="width: 10%;">${item.time}</td>
-                                        <td class="data-table__td" style="width: 25%; font-weight: 500;">${item.waiter}</td>
-                                        <td class="data-table__td" style="width: 15%; font-weight: bold; color: #107c10;">$${item.amount}</td>
-                                        <td class="data-table__td" style="width: 20%;">${item.duration}</td>
+                                        <td class="data-table__td" style="width: 15%;">${item.externalOrderId}</td>
+                                        <td class="data-table__td" style="width: 15%;">${fecha}</td>
+                                        <td class="data-table__td" style="width: 10%;">${hora}</td>
+                                        <td class="data-table__td" style="width: 25%; font-weight: 500;">${camarero}</td>
+                                        <td class="data-table__td" style="width: 15%; font-weight: bold; color: #107c10;">${cantidad}</td>
+                                        <td class="data-table__td" style="width: 20%;">${duracion}</td>
                                     </tr>
                                 `;
                             }
 
                             tbody.innerHTML = rowsHtml;
                             realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
-                        };
+                        }
 
                         scroller.addEventListener('scroll', () => {
                             window.requestAnimationFrame(renderSlice);
@@ -324,7 +335,7 @@
                         const exportBtn = document.querySelector('.header-top .btn-primary');
                         
                         function pollExportJob(jobId) {
-                            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
+                            fetch(`http://localhost:3000/api/v1/kpi/reports/jobs/${jobId}`)
                                 .then(res => res.json())
                                 .then(data => {
                                     if (data.status === 'COMPLETED') {
@@ -359,7 +370,7 @@
                                     didOpen: () => Swal.showLoading()
                                 });
 
-                                fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { 
+                                fetch('http://localhost:3000/api/v1/kpi/reports/export', { 
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
@@ -380,7 +391,7 @@
                     // --- Global Alerts History ---
                     window.showAlertsHistory = function() {
                         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-                        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
+                        fetch('http://localhost:3000/api/v1/kpi/alerts/history')
                             .then(res => res.json())
                             .then(data => {
                                 Swal.fire({
