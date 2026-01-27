@@ -22,10 +22,178 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.add('page-transition', 'page-fade-in');
     })();
     
-    // 0. FUNCIÓN DE LOGOUT (Integrada aquí para no depender de otros archivos)
+    // --- Helpers Guard de Logout ---
+    function evaluateLogoutGuard() {
+        let orders = [];
+        try {
+            const saved = localStorage.getItem('charlotte_active_orders');
+            orders = saved ? JSON.parse(saved) : [];
+        } catch (e) { orders = []; }
+
+        const hasOrders = orders.length > 0;
+        const hasNonTerminal = orders.some(o => o && !['DELIVERED','CANCELLED'].includes(o.status));
+        const hasDelivered = orders.some(o => o && o.status === 'DELIVERED');
+
+        // Resumen por estado
+        const counts = orders.reduce((acc, o) => { acc[o.status] = (acc[o.status]||0)+1; return acc; }, {});
+        return { hasOrders, hasNonTerminal, hasDelivered, counts };
+    }
+
+    function ensureLogoutModalContainer() {
+        let overlay = document.getElementById('logoutGuardOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'logoutGuardOverlay';
+            overlay.className = 'fixed inset-0 z-50 hidden';
+            overlay.innerHTML = `
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-60 transition-opacity backdrop-blur-sm"></div>
+                <div class="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[520px] bg-white md:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6" id="logoutGuardContent"></div>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.bg-opacity-60').addEventListener('click', closeLogoutGuardModal);
+        }
+        return overlay;
+    }
+
+    function openLogoutGuardModal(guard) {
+        const overlay = ensureLogoutModalContainer();
+        const content = overlay.querySelector('#logoutGuardContent');
+        if (!content) return;
+
+        if (guard.hasNonTerminal) {
+            const p = guard.counts;
+            const hasCooking = !!p.COOKING;
+            if (hasCooking) {
+                // Caso: hay órdenes en preparación -> solo permitir ir a ver pedido
+                content.innerHTML = `
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
+                            <span class="material-icons-outlined text-xl text-yellow-600">warning</span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">Órdenes en preparación</h2>
+                            <p class="text-xs text-gray-500">Tienes órdenes en cocina. No es posible cancelar ni salir hasta que se entreguen y se pague.</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        ${p.PENDING ? `<div class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Pending: ${p.PENDING}</div>` : ''}
+                        ${p.COOKING ? `<div class="px-2 py-1 bg-blue-100 text-blue-800 rounded">Cooking: ${p.COOKING}</div>` : ''}
+                        ${p.DELIVERED ? `<div class="px-2 py-1 bg-green-100 text-green-800 rounded">Delivered: ${p.DELIVERED}</div>` : ''}
+                    </div>
+                    <div class="mt-6">
+                        <button id="btn-go-orders" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-800 transition flex items-center justify-center gap-2">
+                            <span class="material-icons-outlined text-sm">receipt_long</span> Ir a ver mi pedido
+                        </button>
+                    </div>`;
+                content.querySelector('#btn-go-orders').onclick = () => { window.location.href = '/mod-3-atencion-cliente/pages/pedidos/cart.html'; };
+            } else {
+                // Caso: solo pendientes (sin cooking) -> permitir cancelar pendientes
+                content.innerHTML = `
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
+                            <span class="material-icons-outlined text-xl text-yellow-600">warning</span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">Órdenes en curso</h2>
+                            <p class="text-xs text-gray-500">Tienes órdenes sin finalizar. Puedes cancelar las pendientes.</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        ${p.PENDING ? `<div class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Pending: ${p.PENDING}</div>` : ''}
+                        ${p.DELIVERED ? `<div class="px-2 py-1 bg-green-100 text-green-800 rounded">Delivered: ${p.DELIVERED}</div>` : ''}
+                    </div>
+                    <div class="mt-6 grid grid-cols-2 gap-3">
+                        <button id="btn-cancel-pending" class="w-full bg-red-50 text-red-700 font-bold py-3 rounded-xl border border-red-200 hover:bg-red-100 transition flex items-center justify-center gap-2">
+                            <span class="material-icons-outlined text-sm">cancel</span> Cancelar pendientes
+                        </button>
+                        <button id="btn-back" class="w-full bg-white text-gray-700 font-bold py-3 rounded-xl border border-gray-200 transition flex items-center justify-center gap-2">
+                            <span class="material-icons-outlined text-sm">arrow_back</span> Volver
+                        </button>
+                    </div>`;
+                content.querySelector('#btn-cancel-pending').onclick = cancelPendingAndLogout;
+                content.querySelector('#btn-back').onclick = closeLogoutGuardModal;
+            }
+        } else if (guard.hasDelivered) {
+            content.innerHTML = `
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                        <span class="material-icons-outlined text-xl text-green-600">payments</span>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Órdenes entregadas sin pago</h2>
+                        <p class="text-xs text-gray-500">Debes solicitar la cuenta y pagar antes de salir.</p>
+                    </div>
+                </div>
+                <div class="mt-6 grid grid-cols-2 gap-3">
+                    <button id="btn-go-pay" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-800 transition flex items-center justify-center gap-2">
+                        <span class="material-icons-outlined text-sm">payments</span> Ir a pagar
+                    </button>
+                    <button id="btn-back" class="w-full bg-white text-gray-700 font-bold py-3 rounded-xl border border-gray-200 transition flex items-center justify-center gap-2">
+                        <span class="material-icons-outlined text-sm">arrow_back</span> Volver
+                    </button>
+                </div>`;
+            content.querySelector('#btn-go-pay').onclick = () => { window.location.href = '/mod-3-atencion-cliente/pages/pedidos/cart.html'; };
+            content.querySelector('#btn-back').onclick = closeLogoutGuardModal;
+        } else {
+            // No bloqueos: salir directo
+            proceedLogout();
+            return;
+        }
+
+        overlay.classList.remove('hidden');
+    }
+
+    function closeLogoutGuardModal() {
+        const overlay = document.getElementById('logoutGuardOverlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    async function cancelPendingAndLogout() {
+        // Cancelar localmente y en servidor si es posible
+        let orders = [];
+        try {
+            const saved = localStorage.getItem('charlotte_active_orders');
+            orders = saved ? JSON.parse(saved) : [];
+        } catch (e) { orders = []; }
+
+        const pendingIds = orders.filter(o => o.status === 'PENDING').map(o => o.id);
+        if (pendingIds.length) {
+            for (const id of pendingIds) {
+                try {
+                    if (window.ClientApi && window.ClientApi.cancelOrder) {
+                        await window.ClientApi.cancelOrder(id);
+                    }
+                } catch (e) { console.warn('Error cancelando pendiente', e); }
+            }
+            // Actualizar local
+            orders = orders.map(o => (o.status === 'PENDING' ? { ...o, status: 'CANCELLED' } : o));
+            localStorage.setItem('charlotte_active_orders', JSON.stringify(orders));
+        }
+        // Re-evaluar guard tras cancelar
+        const guard = evaluateLogoutGuard();
+        if (guard.hasNonTerminal || guard.hasDelivered) {
+            // Aún quedan órdenes en curso o entregadas: mantener modal y bloquear salida
+            openLogoutGuardModal(guard);
+        } else {
+            closeLogoutGuardModal();
+            proceedLogout();
+        }
+    }
+
+    // 0. FUNCIÓN DE LOGOUT con guard
     window.handleLogout = async function() {
         if(!confirm("¿Estás seguro de que quieres salir?")) return;
+        const guard = evaluateLogoutGuard();
+        if (guard.hasNonTerminal || guard.hasDelivered) {
+            openLogoutGuardModal(guard);
+            return; // Bloquear flujo normal hasta resolver en modal
+        }
+        // Sin bloqueos
+        proceedLogout();
+    };
 
+    async function proceedLogout() {
         // --- PASO 1: Obtener ID y poner status CLOSED en Render ---
         const storedClient = localStorage.getItem('user_client'); 
         let clientId = null;
@@ -39,9 +207,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        if (clientId) {
+        if (clientId && window.ClientApi && window.ClientApi.updateClient) {
             try {
-                // Nota: Esto usa el token del localStorage que AÚN existe en este punto
                 await window.ClientApi.updateClient(clientId, { status: "CLOSED" });
                 console.log("Estado del cliente actualizado a CLOSED.");
             } catch (error) {
@@ -63,17 +230,15 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem('user_client');
         localStorage.removeItem('my_service_requests');
         localStorage.removeItem('restaurant_service_requests');
-        localStorage.removeItem('access_token'); // Borramos el token visual
+        localStorage.removeItem('access_token');
 
         const storedQrUuid = localStorage.getItem('current_qr_uuid');
-        
-        // Redirigir al scan con el UUID si existe
         if (storedQrUuid) {
             window.location.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
         } else {
             window.location.href = `/mod-3-atencion-cliente/pages/login/scan.html`;
         }
-    };
+    }
 
     // 1. Detectar página actual
     const path = window.location.pathname;
