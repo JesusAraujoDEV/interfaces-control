@@ -57,6 +57,11 @@
         .card-enter { animation: fadeIn 0.3s ease-out forwards; }
         .page-enter { animation: fadeIn 0.25s ease-out both; }
         .page-leave { opacity: 0 !important; transform: translateY(4px); transition: opacity .22s ease, transform .22s ease; }
+          /* Ajuste tipografía y densidad */
+          #page-title { font-size: 30px !important; line-height: 1.2; }
+          .table-compact th, .table-compact td { padding: 0.75rem !important; }
+          .table-compact th { font-size: 11px; }
+          .table-compact td { font-size: 13px; }
     </style>
 </head>
 <body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
@@ -131,7 +136,7 @@
             </div>
 
             <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden overflow-x-auto surface">
-                <table class="w-full text-left border-collapse min-w-[700px]"> 
+                <table class="table-compact w-full text-left border-collapse min-w-[680px]"> 
                     <thead class="bg-brand-800 text-white">
                         <tr>
                             <th class="p-4 text-xs font-semibold uppercase tracking-wide">ID</th>

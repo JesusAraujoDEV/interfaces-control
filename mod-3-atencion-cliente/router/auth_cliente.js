@@ -25,7 +25,7 @@ function authClienteRouter() {
                 // 3. Si Render dice OK, tomamos el token y creamos la cookie
                 const token = data.session_token; // Ojo: confirma si tu back devuelve 'session_token' o 'access_token'
 
-                res.cookie("access_token", token, {
+                res.cookie("access_token_atc", token, {
                     httpOnly: true, // JavaScript no la puede leer (Seguridad)
                     secure: true, // Solo HTTPS en producción
                     sameSite: "Strict",
@@ -55,7 +55,7 @@ function authClienteRouter() {
     });
 
     router.post('/logout', (req, res) => {
-        res.clearCookie('access_token');
+        res.clearCookie('access_token_atc');
         res.json({ success: true, message: "Sesión cerrada" });
     });
 
