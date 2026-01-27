@@ -11,13 +11,13 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Estilo Flatpickr Charlotte */
-        .flatpickr-calendar { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #107c10 !important; border-color: #107c10 !important; color: #fff !important; }
-        .flatpickr-day:hover { background: #ecfdf5 !important; }
-        .flatpickr-months .flatpickr-month { background: #fff; }
-        .flatpickr-current-month { font-weight: 700; color: #1e293b; }
-        .flatpickr-weekday { color: #64748b; font-weight: 600; }
-        #date-picker-inline { margin-top: 10px; }
+        .flatpickr-calendar { background: var(--white); border-radius: var(--border-radius); box-shadow: var(--shadow-light); border: 1px solid var(--border-color); }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: var(--primary-color) !important; border-color: var(--primary-color) !important; color: var(--white) !important; }
+        .flatpickr-day:hover { background: var(--primary-light) !important; }
+        .flatpickr-months .flatpickr-month { background: var(--white); }
+        .flatpickr-current-month { font-weight: 700; color: var(--text-dark); }
+        .flatpickr-weekday { color: var(--text-muted); font-weight: 600; }
+        #date-picker-inline { margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */ }
     </style>
 </head>
 
@@ -78,35 +78,35 @@
                         <h2 class="card__title">Filtros</h2>
                         
                         <div class="filter-group">
-                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Buscador Global</label>
+                            <label style="display:block; margin-bottom: calc(var(--spacing-unit) * 2.5); /* 10px */ font-weight: 600; font-size: 0.875rem;">Buscador Global</label>
                             <input type="text" id="global-search" placeholder="🔍 ID, Camarero..." 
-                                   style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
+                                   style="width:100%; padding: calc(var(--spacing-unit) * 2.5); /* 10px */ border-radius: var(--border-radius); border: 1px solid var(--border-color); font-size: 0.875rem;">
                         </div>
 
                         <div class="filter-group">
                             <label
-                                style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Rango
+                                style="display:block; margin-bottom: calc(var(--spacing-unit) * 2.5); /* 10px */ font-weight: 600; font-size: 0.875rem;">Rango
                                 de Fechas</label>
                             <div id="date-picker-inline" class="flatpickr-custom"></div>
                         </div>
 
-                        <div class="filter-group" style="margin-top: 2rem;">
-                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Tipo
+                        <div class="filter-group" style="margin-top: calc(var(--spacing-unit) * 5); /* 20px */">
+                            <label style="display:block; margin-bottom: calc(var(--spacing-unit) * 2.5); /* 10px */ font-weight: 600; font-size: 0.875rem;">Tipo
                                 de Informe</label>
                             <select
-                                style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                style="width:100%; padding: calc(var(--spacing-unit) * 2.5); /* 10px */ border-radius: var(--border-radius); border: 1px solid var(--border-color);">
                                 <option>Ventas</option>
                             </select>
                         </div>
 
-                        <button class="btn-primary" id="apply-filters-btn" style="width: 100%; margin-top: 2rem; justify-content: center;">
+                        <button class="btn-primary" id="apply-filters-btn" style="width: 100%; margin-top: calc(var(--spacing-unit) * 5); /* 20px */ justify-content: center;">
                             Aplicar Filtros
                         </button>
                     </div>
                 </aside>
 
                 <section class="table-section">
-                    <div class="tabs-container" style="margin-bottom: 1.5rem;">
+                    <div class="tabs-container" style="margin-bottom: calc(var(--spacing-unit) * 3.75); /* 15px */">
                         <button class="tab tab--active" data-range="30days">Últimos 30 días ▾</button>
                         <button class="tab" data-range="week">Semana Actual</button>
                         <button class="tab" data-range="month">Mes Actual</button>
@@ -117,7 +117,7 @@
                         style="padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 500px;">
 
                         <!-- Header fijo -->
-                        <div style="background-color: var(--primary-color); color: white; padding-right: 17px;">
+                        <div style="background-color: var(--primary-color); color: var(--white); padding-right: calc(var(--spacing-unit) * 4.25); /* 17px */">
                             <table class="data-table" style="margin-bottom: 0;">
                                 <thead class="data-table__thead">
                                     <tr>
@@ -143,259 +143,287 @@
                         </div>
 
                         <div
-                            style="padding: 10px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted);">
+                            style="padding: calc(var(--spacing-unit) * 2.5); /* 10px */ border-top: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-muted);">
                             <span id="record-count">Cargando transacciones...</span>
                         </div>
                     </div>
                 </section>
 
                 <script>
-                    document.addEventListener('DOMContentLoaded', () => {
-                        const scroller = document.getElementById('virtual-scroller');
-                        const ghost = document.getElementById('ghost-height');
-                        const realTable = document.getElementById('real-table');
-                        const tbody = document.getElementById('table-body');
-                        const countLabel = document.getElementById('record-count');
-                        const searchInput = document.getElementById('global-search');
-                        const applyBtn = document.getElementById('apply-filters-btn');
+    document.addEventListener('DOMContentLoaded', () => {
+        const scroller = document.getElementById('virtual-scroller');
+        const ghost = document.getElementById('ghost-height');
+        const realTable = document.getElementById('real-table');
+        const tbody = document.getElementById('table-body');
+        const countLabel = document.getElementById('record-count');
+        const searchInput = document.getElementById('global-search');
+        const applyBtn = document.getElementById('apply-filters-btn');
 
-                        const ROW_HEIGHT = 51; 
-                        let allData = [];
-                        let currentSearch = "";
-                        let selectedDate = null;
+        const ROW_HEIGHT = 51; 
+        let allData = [];
+        let filteredData = [];
+        let currentSearch = "";
+        let selectedDate = null;
 
-                        // 1. Unified Fetch Logic
-                        const fetchTransactions = (search = "", startDate = null, endDate = null) => {
-                            let url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/business/transactions?search=${search}`;
-                            if (startDate) url += `&start_date=${startDate}`;
-                            if (endDate) url += `&end_date=${endDate}`;
+        // 1. Unified Fetch Logic
+        const fetchTransactions = (search = "", startDate = null, endDate = null) => {
+            let url = `http://localhost:3000/api/v1/kpi/analytics/kitchen/queue`;
+            if (startDate) url += `&start_date=${startDate}`;
+            if (endDate) url += `&end_date=${endDate}`;
 
-                            countLabel.innerText = "Sincronizando con servidor...";
-                            
-                            fetch(url)
-                                .then(res => res.json())
-                                .then(response => {
-                                    allData = response.data || [];
-                                    updateScrollerHeight();
-                                    scroller.scrollTop = 0;
-                                    renderSlice();
-                                    
-                                    if (search || startDate) {
-                                        countLabel.innerText = `Mostrando ${allData.length} resultados filtrados`;
-                                    } else {
-                                        countLabel.innerText = `Mostrando ${allData.length} registros (ID total sincronizado)`;
-                                    }
-                                });
-                        };
-
-                        function updateScrollerHeight() {
-                            ghost.style.height = `${allData.length * ROW_HEIGHT}px`;
-                        }
-
-                        // 2. Virtual Scroll Logic
-                        const renderSlice = () => {
-                            const scrollTop = scroller.scrollTop;
-                            const viewportHeight = scroller.clientHeight;
-
-                            const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
-                            const endIndex = Math.min(
-                                allData.length,
-                                Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
-                            );
-
-                            let rowsHtml = '';
-                            for (let i = startIndex; i < endIndex; i++) {
-                                const item = allData[i];
-                                rowsHtml += `
-                                    <tr style="height: ${ROW_HEIGHT}px;" class="hover:bg-emerald-50 transition-colors">
-                                        <td class="data-table__td" style="width: 15%;">${item.id}</td>
-                                        <td class="data-table__td" style="width: 15%;">${item.date}</td>
-                                        <td class="data-table__td" style="width: 10%;">${item.time}</td>
-                                        <td class="data-table__td" style="width: 25%; font-weight: 500;">${item.waiter}</td>
-                                        <td class="data-table__td" style="width: 15%; font-weight: bold; color: #107c10;">$${item.amount}</td>
-                                        <td class="data-table__td" style="width: 20%;">${item.duration}</td>
-                                    </tr>
-                                `;
-                            }
-
-                            tbody.innerHTML = rowsHtml;
-                            realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
-                        };
-
-                        scroller.addEventListener('scroll', () => {
-                            window.requestAnimationFrame(renderSlice);
-                        });
-
-                        // 3. Reactive Filters
-                        let searchTimeout;
-                        if (searchInput) {
-                            searchInput.addEventListener('input', (e) => {
-                                currentSearch = e.target.value;
-                                clearTimeout(searchTimeout);
-                                // Debounce searching to reduce API calls
-                                searchTimeout = setTimeout(() => {
-                                    fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
-                                }, 400);
-                            });
-                        }
-
-                        // 4. Predefined Ranges Buttons
-                        document.querySelectorAll('.tab').forEach(btn => {
-                            btn.addEventListener('click', function() {
-                                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
-                                this.classList.add('tab--active');
-                                
-                                const range = this.getAttribute('data-range');
-                                const today = new Date();
-                                let start = null;
-                                let end = instance.formatDate(today, "Y-m-d");
-
-                                if (range === '30days') {
-                                    const d = new Date();
-                                    d.setDate(d.getDate() - 30);
-                                    start = instance.formatDate(d, "Y-m-d");
-                                } else if (range === 'week') {
-                                    const d = new Date();
-                                    const day = d.getDay() || 7;
-                                    d.setHours(-24 * (day - 1));
-                                    start = instance.formatDate(d, "Y-m-d");
-                                } else if (range === 'month') {
-                                    const d = new Date(today.getFullYear(), today.getMonth(), 1);
-                                    start = instance.formatDate(d, "Y-m-d");
-                                } else if (range === 'year') {
-                                    const d = new Date(today.getFullYear(), 0, 1);
-                                    start = instance.formatDate(d, "Y-m-d");
-                                }
-
-                                selectedStartDate = start;
-                                selectedEndDate = end;
-                                
-                                // Update Flatpickr visual selection
-                                if (instance) {
-                                    instance.setDate([start, end], false);
-                                }
-                                
-                                fetchTransactions(currentSearch, start, end);
-                            });
-                        });
-
-                        // 5. Flatpickr Initialization (The "Function/Library" part)
-                        let selectedStartDate = null;
-                        let selectedEndDate = null;
-                        let instance = null;
-
-                        instance = flatpickr("#date-picker-inline", {
-                            inline: true,
-                            mode: "range",
-                            dateFormat: "Y-m-d",
-                            locale: "es",
-                            onChange: function(selectedDates, dateStr, inst) {
-                                if (selectedDates.length === 1) {
-                                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
-                                    selectedEndDate = null;
-                                    fetchTransactions(currentSearch, selectedStartDate);
-                                } else if (selectedDates.length === 2) {
-                                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
-                                    selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
-                                    fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
-                                }
-                            }
-                        });
-
-                        if (applyBtn) {
-                            applyBtn.addEventListener('click', () => {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Datos Actualizados',
-                                    text: 'Información sincronizada con el rango seleccionado.',
-                                    timer: 1500,
-                                    showConfirmButton: false,
-                                    toast: true,
-                                    position: 'top-end'
-                                });
-                                fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
-                            });
-                        }
-
-                        // 5. Initial Load
-                        fetchTransactions();
-
-                        // 6. Export Logic with POLLING
-                        const exportBtn = document.querySelector('.header-top .btn-primary');
-                        
-                        function pollExportJob(jobId) {
-                            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
-                                .then(res => res.json())
-                                .then(data => {
-                                    if (data.status === 'COMPLETED') {
-                                        Swal.fire({
-                                            icon: 'success',
-                                            title: '¡Reporte Contable Listo!',
-                                            text: `Se ha generado el archivo para el rango seleccionado.`,
-                                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar CSV</a>`,
-                                            confirmButtonColor: '#387652'
-                                        });
-                                        exportBtn.disabled = false;
-                                        exportBtn.innerText = "📥 Exportar a Excel (.CSV)";
-                                    } else {
-                                        setTimeout(() => pollExportJob(jobId), 2000);
-                                    }
-                                })
-                                .catch(() => {
-                                    Swal.fire('Error', 'Se perdió la conexión con el servidor de reportes.', 'error');
-                                    exportBtn.disabled = false;
-                                });
-                        }
-
-                        if (exportBtn) {
-                            exportBtn.addEventListener('click', () => {
-                                exportBtn.disabled = true;
-                                exportBtn.innerText = "Generando...";
-
-                                Swal.fire({
-                                    title: 'Generando Contabilidad',
-                                    text: 'Procesando transacciones filtradas para el reporte...',
-                                    allowOutsideClick: false,
-                                    didOpen: () => Swal.showLoading()
-                                });
-
-                                fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { 
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
-                                })
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        pollExportJob(data.job_id);
-                                    })
-                                    .catch(() => {
-                                        Swal.fire('Error', 'No se pudo iniciar la exportación.', 'error');
-                                        exportBtn.disabled = false;
-                                        exportBtn.innerText = "📥 Exportar a Excel (.CSV)";
-                                    });
-                            });
-                        }
-                    });
-
-                    // --- Global Alerts History ---
-                    window.showAlertsHistory = function() {
-                        Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-                        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
-                            .then(res => res.json())
-                            .then(data => {
-                                Swal.fire({
-                                    title: '<span class="text-emerald-700">Historial de Alertas</span>',
-                                    html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
-                                        ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
-                                            <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
-                                            <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
-                                        </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
-                                    </div>`,
-                                    confirmButtonText: 'Entendido', confirmButtonColor: '#387652', width: '450px'
-                                });
-                            });
+            countLabel.innerText = "Sincronizando con servidor...";
+            
+            fetch(url)
+                .then(res => res.json().then(data => { console.log(data); return data; }))
+                .then(response => {
+                    allData = response.queue || [];
+                    filteredData = allData; // Initialize filteredData
+                    updateScrollerHeight();
+                    scroller.scrollTop = 0;
+                    renderSlice();
+                    console.log(allData)
+                    if (search || startDate) {
+                        countLabel.innerText = `Mostrando ${filteredData.length} resultados filtrados`;
+                    } else {
+                        countLabel.innerText = `Mostrando ${filteredData.length} registros (ID total sincronizado)`;
                     }
-                </script>
+                });
+        };
+
+        // New function to filter data locally
+        const filterData = () => {
+            if (currentSearch.trim() === "") {
+                filteredData = allData;
+            } else {
+                filteredData = allData.filter(item => 
+                    item.externalOrderId && item.externalOrderId.toLowerCase().includes(currentSearch.toLowerCase())
+                );
+            }
+            updateScrollerHeight();
+            scroller.scrollTop = 0;
+            renderSlice();
+            countLabel.innerText = `Mostrando ${filteredData.length} de ${allData.length} registros`;
+        };
+
+        function updateScrollerHeight() {
+            ghost.style.height = `${filteredData.length * ROW_HEIGHT}px`;
+        }
+
+        // 2. Virtual Scroll Logic
+        const renderSlice = () => {
+            const scrollTop = scroller.scrollTop;
+            const viewportHeight = scroller.clientHeight;
+
+            const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
+            const endIndex = Math.min(
+                filteredData.length,
+                Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
+            );
+            
+            let rowsHtml = '';
+            for (let i = startIndex; i < endIndex; i++) {
+                const item = filteredData[i];
+                const createdDate = new Date(item.createdAt);
+                const fecha = createdDate.toLocaleDateString('es-ES');
+                const hora = createdDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const camarero = item.customerName || item.displayLabel || 'N/A';
+                const cantidad = item.quantity;
+                let duracion = item.status;
+                if (item.startedAt && item.finishedAt) {
+                    const diffMs = new Date(item.finishedAt) - new Date(item.startedAt);
+                    const diffMin = Math.round(diffMs / 1000 / 60);
+                    duracion = `${diffMin} min`;
+                }
+                rowsHtml += `
+                    <tr style="height: ${ROW_HEIGHT}px;" class="hover:bg-emerald-50 transition-colors">
+                        <td class="data-table__td" style="width: 15%;">${item.externalOrderId}</td>
+                        <td class="data-table__td" style="width: 15%;">${fecha}</td>
+                        <td class="data-table__td" style="width: 10%;">${hora}</td>
+                        <td class="data-table__td" style="width: 25%; font-weight: 500;">${camarero}</td>
+                        <td class="data-table__td" style="width: 15%; font-weight: bold; color: #107c10;">${cantidad}</td>
+                        <td class="data-table__td" style="width: 20%;">${duracion}</td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = rowsHtml;
+            realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
+        }
+
+        scroller.addEventListener('scroll', () => {
+            window.requestAnimationFrame(renderSlice);
+        });
+
+        // 3. Reactive Filters
+        let searchTimeout;
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                currentSearch = e.target.value;
+                clearTimeout(searchTimeout);
+                // Debounce searching to reduce operations
+                searchTimeout = setTimeout(() => {
+                    filterData();
+                }, 400);
+            });
+        }
+
+        // 4. Predefined Ranges Buttons
+        document.querySelectorAll('.tab').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+                this.classList.add('tab--active');
+                
+                const range = this.getAttribute('data-range');
+                const today = new Date();
+                let start = null;
+                let end = instance.formatDate(today, "Y-m-d");
+
+                if (range === '30days') {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 30);
+                    start = instance.formatDate(d, "Y-m-d");
+                } else if (range === 'week') {
+                    const d = new Date();
+                    const day = d.getDay() || 7;
+                    d.setHours(-24 * (day - 1));
+                    start = instance.formatDate(d, "Y-m-d");
+                } else if (range === 'month') {
+                    const d = new Date(today.getFullYear(), today.getMonth(), 1);
+                    start = instance.formatDate(d, "Y-m-d");
+                } else if (range === 'year') {
+                    const d = new Date(today.getFullYear(), 0, 1);
+                    start = instance.formatDate(d, "Y-m-d");
+                }
+
+                selectedStartDate = start;
+                selectedEndDate = end;
+                
+                // Update Flatpickr visual selection
+                if (instance) {
+                    instance.setDate([start, end], false);
+                }
+                
+                fetchTransactions(currentSearch, start, end);
+            });
+        });
+
+        // 5. Flatpickr Initialization (The "Function/Library" part)
+        let selectedStartDate = null;
+        let selectedEndDate = null;
+        let instance = null;
+
+        instance = flatpickr("#date-picker-inline", {
+            inline: true,
+            mode: "range",
+            dateFormat: "Y-m-d",
+            locale: "es",
+            onChange: function(selectedDates, dateStr, inst) {
+                if (selectedDates.length === 1) {
+                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
+                    selectedEndDate = null;
+                    fetchTransactions(currentSearch, selectedStartDate);
+                } else if (selectedDates.length === 2) {
+                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
+                    selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
+                    fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
+                }
+            }
+        });
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Datos Actualizados',
+                    text: 'Información sincronizada con el rango seleccionado.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
+            });
+        }
+
+        // 5. Initial Load
+        fetchTransactions();
+
+        // 6. Export Logic with POLLING
+        const exportBtn = document.querySelector('.header-top .btn-primary');
+        
+        function pollExportJob(jobId) {
+            fetch(`http://localhost:3000/api/v1/kpi/reports/jobs/${jobId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'COMPLETED') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Reporte Contable Listo!',
+                            text: `Se ha generado el archivo para el rango seleccionado.`,
+                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar CSV</a>`,
+                            confirmButtonColor: '#387652'
+                        });
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📥 Exportar a Excel (.CSV)";
+                    } else {
+                        setTimeout(() => pollExportJob(jobId), 2000);
+                    }
+                })
+                .catch(() => {
+                    Swal.fire('Error', 'Se perdió la conexión con el servidor de reportes.', 'error');
+                    exportBtn.disabled = false;
+                });
+        }
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                exportBtn.disabled = true;
+                exportBtn.innerText = "Generando...";
+
+                Swal.fire({
+                    title: 'Generando Contabilidad',
+                    text: 'Procesando transacciones filtradas para el reporte...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch('http://localhost:3000/api/v1/kpi/reports/export', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        pollExportJob(data.job_id);
+                    })
+                    .catch(() => {
+                        Swal.fire('Error', 'No se pudo iniciar la exportación.', 'error');
+                        exportBtn.disabled = false;
+                        exportBtn.innerText = "📥 Exportar a Excel (.CSV)";
+                    });
+            });
+        }
+    });
+
+    // --- Global Alerts History ---
+    window.showAlertsHistory = function() {
+        Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+        fetch('http://localhost:3000/api/v1/kpi/alerts/history')
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({
+                    title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                    html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                        ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                            <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
+                            <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                        </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                    </div>`,
+                    confirmButtonText: 'Entendido', confirmButtonColor: '#387652', width: '450px'
+                });
+            });
+    }
+</script>
 
             </div>
         </main>

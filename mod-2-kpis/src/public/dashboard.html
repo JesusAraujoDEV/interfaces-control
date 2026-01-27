@@ -44,7 +44,7 @@
           ></div>
           <div>
             <p class="sidebar__user-name">Juan Pérez</p>
-            <p class="sidebar__user-role">Administrador</p>
+            <p class="sidebar__user-role">Gerente</p>
           </div>
         </div>
       </aside>
@@ -52,7 +52,7 @@
       <main class="content">
         <header class="header-top">
           <div>
-            <h1 class="header-top__title">HOLA, JUAN</h1>
+            <h1 class="header-top__title">HOLA, GERENTE</h1>
             <p class="header-top__subtitle">
               Este es el resumen de tu negocio.
             </p>
@@ -61,11 +61,12 @@
             class="date-badge"
             id="current-date-badge"
             style="
-              background: white;
-              padding: 8px 15px;
-              border-radius: 8px;
+              background: var(--white);
+              padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3.75); /* 8px 15px */
+              border-radius: var(--border-radius);
               border: 1px solid var(--border-color);
-              font-size: 0.8rem;
+              font-size: 0.875rem; /* 14px */
+              box-shadow: var(--shadow-light);
             "
           >
             📅 Cargando fecha...
@@ -92,13 +93,13 @@
               </button>
             </div>
             <p class="kpi-card__value" id="kpi-goal">Loading...</p>
-            <p style="font-size: 0.7rem; color: var(--text-muted)" id="kpi-goal-absolute">$0k</p>
+            <p style="font-size: 0.875rem; color: var(--text-muted)" id="kpi-goal-absolute">$0k</p>
           </div>
 
           <div class="kpi-card">
             <p class="kpi-card__label">Tiempo Atención</p>
             <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
-            <span style="font-size: 0.8rem; color: var(--text-muted)"
+            <span style="font-size: 0.875rem; color: var(--text-muted)"
               >Óptimo ⏱️</span
             >
           </div>
@@ -112,20 +113,21 @@
         <div class="dashboard-main-grid">
           <div class="chart-container">
             <h2 class="card__title">Ventas por Hora</h2>
-            <p class="kpi-card__value" style="font-size: 1.5rem">
+            <p class="kpi-card__value" style="font-size: 1.125rem">
               <span id="chart-revenue-today">$0</span>
-              <span style="font-size: 0.8rem; color: #28a745" id="chart-revenue-trend">Hoy +0%</span>
+              <span style="font-size: 0.875rem; color: #28a745" id="chart-revenue-trend">Hoy +0%</span>
             </p>
-            <div style="width: 100%; height: 250px; margin-top: 20px">
+            <div style="width: 100%; height: 250px; margin-top: calc(var(--spacing-unit) * 5); /* 20px */">
               <canvas id="demand-chart"></canvas>
             </div>
             <div
+              id="salesLabels"
               style="
                 display: flex;
                 justify-content: space-between;
-                margin-top: 10px;
+                margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */
                 color: var(--text-muted);
-                font-size: 0.7rem;
+                font-size: 0.875rem; /* 14px */
               "
             >
               <span>8 AM</span><span>12 PM</span><span>4 PM</span
@@ -139,7 +141,7 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 1.5rem;
+                margin-bottom: calc(var(--spacing-unit) * 3.75); /* 15px */
               "
             >
               <h2 class="card__title" style="margin-bottom: 0">
@@ -154,471 +156,384 @@
               </button>
             </div>
 
-            <div id="stock-alerts-list">
-              <!-- Dynamically populated from API -->
-              <p class="text-muted" style="font-size: 0.8rem">Cargando alertas...</p>
+            <div id="alertsList">
+              <!-- alertas serán renderizadas aquí -->
+              <p class="text-muted" style="font-size: 0.875rem">Cargando alertas...</p>
+            </div>
+
+            <div id="stockLimits" style="margin-top: calc(var(--spacing-unit) * 3); /* 12px */ font-size: 0.875rem; color:var(--text-muted);"></div>
             </div>
           </div>
-        </div>
-      </main>
+          </main>
     </div>
-
-    <!-- EDIT GOAL MODAL -->
-    <div class="modal-overlay" id="edit-modal">
-      <div class="modal">
-        <div class="modal__header">
-          <h3 class="modal__title">Editar Meta Trimestral</h3>
-          <button class="modal__close" id="close-modal-btn">&times;</button>
-        </div>
-        <div class="modal__body">
-          <div class="form-group">
-            <label for="goal-input" class="form-label">Nueva Meta (%)</label>
-            <input
-              type="number"
-              id="goal-input"
-              class="form-input"
-              min="0"
-              max="100"
-              placeholder="Ej. 75"
-            />
-          </div>
-        </div>
-        <div class="modal__footer">
-          <button class="btn-secondary" id="cancel-modal-btn">Cancelar</button>
-          <button class="btn-primary" id="save-goal-btn">Guardar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STOCK CONFIG MODAL -->
-    <div class="modal-overlay" id="stock-modal">
-      <div class="modal">
-        <div class="modal__header">
-          <h3 class="modal__title">Límites de Stock</h3>
-          <button class="modal__close" id="close-stock-modal-btn">
-            &times;
-          </button>
-        </div>
-        <div class="modal__body">
-          <div class="form-group">
-            <label for="stock-threshold-input" class="form-label"
-              >Alertar cuando el stock sea menor a (%):</label
-            >
-            <input
-              type="number"
-              id="stock-threshold-input"
-              class="form-input"
-              min="0"
-              max="100"
-              placeholder="Ej. 20"
-            />
-          </div>
-        </div>
-        <div class="modal__footer">
-          <button class="btn-secondary" id="cancel-stock-modal-btn">
-            Cancelar
-          </button>
-          <button class="btn-primary" id="save-stock-btn">Guardar</button>
-        </div>
-      </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Helper to format currency
-        const formatCurrency = (value) => {
-          return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(value);
-        };
+    // Carga datos desde la API y actualiza la interfaz
+    async function loadDashboard() {
+      // Mostrar fecha actual
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const dateBadge = document.getElementById('current-date-badge');
+      if (dateBadge) dateBadge.textContent = '📅 ' + dateStr;
 
-        let demandChartInstance = null;
+      try {
+        // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
+        const [sRes, aRes] = await Promise.allSettled([
+          fetch('http://localhost:3000/api/v1/kpi/dashboard/summary'),
+          fetch('http://localhost:3000/api/v1/kpi/inventory/alerts')
+        ]);
 
-        // 1. Unified Fetch Logic with Loading State
-        const loadDashboardData = (silent = false) => {
-          if (!silent) {
-            document.body.style.opacity = "0.7";
-          }
+        let summaryJson = {};
+        let alertsJson = {};
 
-          // Fetch Summary (Main KPIs)
-          const p1 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary`)
-            .then(res => res.json())
-            .then(data => {
-              if (data) {
-                document.getElementById("kpi-revenue").innerText = formatCurrency(data.revenue || 0);
-                document.getElementById("kpi-goal").innerText = `${data.quarterly_goal || 0}%`;
-                document.getElementById("kpi-goal-absolute").innerText = `$${data.quarterly_goal_total || "0k"}`;
-                document.getElementById("kpi-avg-time").innerText = data.avg_wait_time || "00:00";
-                document.getElementById("kpi-revenue-trend").innerText = data.revenue_trend || "--";
-                
-                // Rotation (New)
-                document.getElementById("kpi-rotation").innerText = `${data.rotation || 0} /hr`;
-                const rotTargetEl = document.getElementById("kpi-rotation-target");
-                if (data.rotation < data.rotation_target) {
-                    rotTargetEl.innerText = `Bajo Meta ${data.rotation_target}`;
-                    rotTargetEl.className = "kpi-card__trend kpi-card__trend--down";
-                } else {
-                    rotTargetEl.innerText = `Sobre Meta ${data.rotation_target}`;
-                    rotTargetEl.className = "kpi-card__trend kpi-card__trend--up";
-                }
-              }
-            });
-
-          // Fetch Range (Chart & Summary Header)
-          const p2 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary/range`)
-            .then(res => res.json())
-            .then(data => {
-              if (data && Array.isArray(data)) {
-                const labels = data.map(item => item.hour || "N/A");
-                const values = data.map(item => item.value || 0);
-                renderChart(labels, values);
-
-                // Update Chart Summary Header - SUM of all values for "Today"
-                const totalToday = values.reduce((a, b) => a + b, 0);
-                document.getElementById("chart-revenue-today").innerText = formatCurrency(totalToday);
-                document.getElementById("chart-revenue-trend").innerText = `Hoy +${(Math.random() * 5 + 5).toFixed(1)}%`;
-              }
-            });
-
-          // Fetch Stock Alerts (Dynamic List)
-          const p3 = fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts`)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    // Randomize stock values slightly for visual effect if mock data is static
-                    const variations = data.map(base => ({
-                        ...base,
-                        stock: Math.max(0, Math.min(100, base.stock + Math.floor(Math.random() * 10 - 5)))
-                    }));
-                    renderStockAlerts(variations);
-                }
-            });
-
-          Promise.all([p1, p2, p3]).finally(() => {
-            document.body.style.opacity = "1";
-          });
-        };
-
-        const renderStockAlerts = (alerts) => {
-            const container = document.getElementById("stock-alerts-list");
-            if (!container) return;
-            
-            container.innerHTML = alerts.map(alert => `
-                <div class="stock-item">
-                  <span class="stock-item__name">${alert.item}</span>
-                  <div style="display: flex; align-items: center">
-                    <div class="progress-bar">
-                      <div
-                        class="progress-bar__fill progress-bar__fill--${alert.stock < 20 ? 'low' : alert.stock < 50 ? 'medium' : 'high'}"
-                        style="width: ${alert.stock}%"
-                      ></div>
-                    </div>
-                    <span class="stock-item__percent">${alert.stock}%</span>
-                  </div>
-                </div>
-            `).join('');
-        };
-
-        const renderChart = (labels, values) => {
-          const canvas = document.getElementById("demand-chart");
-          if (!canvas) return;
-
-          const ctx = canvas.getContext("2d");
-          
-          if (demandChartInstance) {
-            demandChartInstance.destroy();
-          }
-
-          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          gradient.addColorStop(0, "rgba(56, 118, 82, 0.4)");
-          gradient.addColorStop(1, "rgba(56, 118, 82, 0)");
-
-          demandChartInstance = new Chart(ctx, {
-            type: "line",
-            data: {
-              labels: labels,
-              datasets: [{
-                label: "Ventas por Hora",
-                data: values,
-                borderColor: "#306245",
-                backgroundColor: gradient,
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: "#ffffff",
-                pointBorderColor: "#387652",
-                pointRadius: 4,
-                pointHoverRadius: 6,
-              }],
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
-              },
-              plugins: {
-                legend: { display: false },
-                tooltip: {
-                  backgroundColor: "#387652",
-                  titleColor: "#fff",
-                  bodyColor: "#fff",
-                  padding: 10,
-                  cornerRadius: 8,
-                  displayColors: false,
-                },
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  grid: { color: "#f5f5f5", drawBorder: false },
-                  ticks: { font: { size: 10 }, color: "#7d8590" },
-                },
-                x: {
-                  grid: { display: false },
-                  ticks: { font: { size: 10 }, color: "#7d8590" },
-                },
-              },
-            },
-          });
-        };
-
-        // Initial load
-        const updateDate = () => {
-          const dateBadge = document.getElementById("current-date-badge");
-          if (dateBadge) {
-            const now = new Date();
-            const options = { month: 'short', day: '2-digit' };
-            let dateStr = now.toLocaleDateString('es-ES', options);
-            // Capitalize first letter (e.g., Ene 23)
-            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-            dateBadge.innerHTML = `📅 Hoy, ${dateStr.replace('.', '')}`;
-          }
-        };
-
-        updateDate();
-        loadDashboardData();
-
-        // Auto-refresh every 60 seconds
-        setInterval(() => {
-          updateDate();
-          loadDashboardData(true);
-        }, 60000);
-
-        // 3. Edit Modal Logic (Updated with SweetAlert2)
-        const modal = document.getElementById("edit-modal");
-        const openBtn = document.getElementById("edit-goal-btn");
-        const closeBtn = document.getElementById("close-modal-btn");
-        const cancelBtn = document.getElementById("cancel-modal-btn");
-        const saveBtn = document.getElementById("save-goal-btn");
-        const goalInput = document.getElementById("goal-input");
-        let currentGoalId = 1;
-
-        if (openBtn) {
-          openBtn.addEventListener("click", () => {
-            const currentText = document.getElementById("kpi-goal").innerText;
-            const val = parseInt(currentText.replace("%", ""));
-            if (!isNaN(val)) goalInput.value = val;
-            modal.classList.add("open");
-          });
+        if (sRes.status === 'fulfilled' && sRes.value && sRes.value.ok) {
+          try { summaryJson = await sRes.value.json(); } catch(_) { summaryJson = {}; }
+        }
+        if (aRes.status === 'fulfilled' && aRes.value && aRes.value.ok) {
+          try { alertsJson = await aRes.value.json(); } catch(_) { alertsJson = {}; }
+        }
+        console.log('Fetched summary:', summaryJson);
+        console.log('Fetched alerts:', alertsJson);
+        const summary = summaryJson.data || summaryJson || {};
+        const alerts = alertsJson.alerts || alertsJson || [];
+        console.log('Dashboard summary:', summary);
+        // Ingresos (mapear a ambos conjuntos de IDs para evitar duplicados)
+        const revenue = summary.revenue || {};
+        const incomeEls = [document.getElementById('incomeValue'), document.getElementById('kpi-revenue')];
+        const incomeTrendEls = [document.getElementById('incomeTrend'), document.getElementById('kpi-revenue-trend')];
+        if (revenue.total != null) {
+          const txt = formatCurrency(revenue.total, revenue.currency);
+          incomeEls.forEach(e => { if (e) e.textContent = txt; });
+        }
+        if (revenue.trend_percentage != null) {
+          const t = (revenue.trend_direction === 'down' ? '-' : (revenue.trend_direction === 'up' ? '+' : '')) + revenue.trend_percentage + '%';
+          incomeTrendEls.forEach(e => { if (e) e.textContent = t; });
         }
 
-        const closeModal = () => modal.classList.remove("open");
-        if (closeBtn) closeBtn.addEventListener("click", closeModal);
-        if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+        // Meta trimestral (mapear a ambos bloques)
+        const quarterly = summary.quarterly_goal || {};
+        const quarterlyProgressEls = [document.getElementById('quarterlyProgress'), document.getElementById('kpi-goal')];
+        const quarterlyTargetEls = [document.getElementById('quarterlyTarget'), document.getElementById('kpi-goal-absolute')];
+        if (quarterly.progress_percentage != null) {
+          const txt = (quarterly.progress_percentage) + '%';
+          quarterlyProgressEls.forEach(e => { if (e) e.textContent = txt; });
+        }
+        if (quarterly.target != null) {
+          const txt = formatCurrency(quarterly.target, revenue.currency);
+          quarterlyTargetEls.forEach(e => { if (e) e.textContent = txt; });
+        }
 
-        window.addEventListener("click", (e) => {
-          if (e.target === modal) closeModal();
+        // Rotación / Tiempo atención (mapear a ambos bloques)
+        const ops = summary.operations || {};
+        const avgTimeEls = [document.getElementById('rotationValue'), document.getElementById('kpi-avg-time')];
+        const avgStatusEls = [document.getElementById('timeStatus')];
+        const rotationRateEls = [document.getElementById('rotationRate'), document.getElementById('kpi-rotation')];
+        const rotationStatusEls = [document.getElementById('rotationStatus'), document.getElementById('kpi-rotation-target')];
+        if (ops.avg_service_time) avgTimeEls.forEach(e => { if (e) e.textContent = ops.avg_service_time; });
+        if (ops.time_status) avgStatusEls.forEach(e => { if (e) e.textContent = ops.time_status; });
+        if (ops.table_rotation != null) rotationRateEls.forEach(e => { if (e) e.textContent = ops.table_rotation + ' /hr'; });
+        if (ops.rotation_status) rotationStatusEls.forEach(e => { if (e) e.textContent = ops.rotation_status; });
+
+        // Ventas por hora y valor total hoy (no vienen en la respuesta de ejemplo; manejar vacío)
+        const salesData = summary.sales_by_hour || summary.sales_hours || [];
+        const totalToday = summary.sales_total_today ?? (Array.isArray(salesData) ? salesData.reduce((s,i)=>s + (typeof i === 'number' ? i : (i.value||0)),0) : 0);
+        const salesValueEl = document.getElementById('chart-revenue-today');
+        const salesChangeEl = document.getElementById('chart-revenue-trend');
+        console.log(salesValueEl, salesChangeEl);
+        if (salesValueEl) salesValueEl.textContent = formatCurrency(totalToday, revenue.currency);
+        if (salesChangeEl && summary.sales_change) salesChangeEl.textContent = 'Hoy ' + summary.sales_change;
+
+        // Etiquetas debajo de la gráfica
+        const labelsEl = document.getElementById('salesLabels');
+        if (salesData.length) {
+          const labels = salesData.map(d => (d.hour || d.label || ''));
+          labelsEl.innerHTML = labels.map(l => '<span>' + escapeHtml(l || '') + '</span>').join('');
+        } else {
+          labelsEl.innerHTML = '<span>--</span><span>--</span><span>--</span><span>--</span>';
+        }
+
+        // Dibujar gráfica en canvas
+        drawChart('demand-chart', salesData);
+
+        // Alertas de inventario
+        const alertsList = document.getElementById('alertsList');
+        alertsList.innerHTML = '';
+        const cfg = getStockLimits();
+        const defaultLimit = Number(cfg.default ?? 30);
+        const perItem = cfg.items || {};
+        (alerts || []).forEach(item => {
+          const percent = item.percent ?? item.level ?? 0;
+          const name = item.name || item.item || 'Sin nombre';
+          const limit = Number(perItem[name] ?? defaultLimit);
+          const isCritical = percent <= limit;
+
+          const div = document.createElement('div');
+          div.className = 'stock-item';
+          div.style.cursor = item.url ? 'pointer' : 'default';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          div.style.padding = '6px 0';
+
+          const left = document.createElement('div');
+          left.innerHTML = '<span class="stock-item__name">' + escapeHtml(name) + '</span>';
+
+          const right = document.createElement('div');
+          right.style.display = 'flex';
+          right.style.gap = '10px';
+          right.style.alignItems = 'center';
+
+          const bar = document.createElement('div');
+          bar.style.display = 'flex';
+          bar.style.alignItems = 'center';
+          bar.innerHTML = '<div class="progress-bar" style="width:160px;margin-right:8px"><div class="progress-bar__fill ' + getFillClass(percent) + '" style="width:' + percent + '%"></div></div><span class="stock-item__percent">' + percent + '%</span>';
+
+          const badge = document.createElement('span');
+          badge.style.fontSize = '0.8rem';
+          badge.style.padding = '4px 8px';
+          badge.style.borderRadius = '6px';
+          badge.style.background = isCritical ? 'rgba(255,99,71,0.12)' : 'transparent';
+          badge.style.color = isCritical ? '#c53030' : 'var(--text-muted)';
+          badge.textContent = isCritical ? 'Crítico (' + limit + '%)' : 'Límite ' + limit + '%';
+
+          const editBtn = document.createElement('button');
+          editBtn.textContent = 'Editar límite';
+          editBtn.className = 'icon-btn';
+          editBtn.onclick = (ev) => { ev.stopPropagation(); showEditLimitForItem(name, perItem[name]); };
+
+          right.appendChild(bar);
+          right.appendChild(badge);
+          right.appendChild(editBtn);
+
+          if (item.url) div.onclick = () => window.location.href = item.url;
+
+          div.appendChild(left);
+          div.appendChild(right);
+          alertsList.appendChild(div);
         });
 
-        if (saveBtn) {
-          saveBtn.addEventListener("click", () => {
-            const newVal = goalInput.value;
-            if (!newVal || newVal < 0 || newVal > 100) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Valor inválido',
-                    text: 'Por favor ingrese un valor entre 0 y 100',
-                    confirmButtonColor: '#387652'
-                });
-              return;
-            }
-
-            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/${currentGoalId}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ goal: newVal }),
-            })
-              .then((res) => {
-                if (!res.ok) throw new Error("Error updating goal");
-                return res.json();
-              })
-              .then((data) => {
-                document.getElementById("kpi-goal").innerText = `${newVal}%`;
-                closeModal();
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Meta actualizada!',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-              })
-              .catch((err) => {
-                Swal.fire('Error', 'No se pudo guardar la meta', 'error');
-              });
-          });
+        // si no hay alertas mostrar mensaje
+        if (!alerts.length) {
+          alertsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Sin alertas críticas</div>';
         }
 
-        // 4. Stock Limits Modal Logic (Updated)
-        const stockModal = document.getElementById("stock-modal");
-        const openStockBtn = document.getElementById("stock-settings-btn");
-        const closeStockBtn = document.getElementById("close-stock-modal-btn");
-        const cancelStockBtn = document.getElementById("cancel-stock-modal-btn");
-        const saveStockBtn = document.getElementById("save-stock-btn");
-        const stockInput = document.getElementById("stock-threshold-input");
+        // Wire settings button and render stored limits
+        const settingsBtn = document.getElementById('stock-settings-btn');
+        if (settingsBtn) settingsBtn.onclick = (ev) => { ev.preventDefault(); showDefaultLimitEditor(); };
+        // Wire edit-goal button for quarterly goal
+        const editGoalBtn = document.getElementById('edit-goal-btn');
+        if (editGoalBtn) editGoalBtn.onclick = (ev) => { ev.preventDefault();
+          const current = (summary.quarterly_goal ?? null);
+          const absolute = (summary.quarterly_goal_total ?? null);
+          showEditQuarterlyGoal(current, absolute);
+        };
+        renderStockLimits();
 
-        if (openStockBtn) {
-          openStockBtn.addEventListener("click", () => {
-            // Carga dinámica del valor actual
-            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/data/stock')
-              .then(res => res.json())
-              .then(data => {
-                stockInput.value = data.value || 20;
-                stockModal.classList.add("open");
-              });
-          });
-        }
+      } catch (err) {
+        console.error('Error cargando dashboard:', err);
+      }
+    }
 
-        const closeStockModal = () => stockModal.classList.remove("open");
-        if (closeStockBtn) closeStockBtn.addEventListener("click", closeStockModal);
-        if (cancelStockBtn) cancelStockBtn.addEventListener("click", closeStockModal);
+    function formatCurrency(v, currency) {
+      const n = Number(v) || 0;
+      const symbol = (currency === 'USD' ? '$' : (currency ? currency + ' ' : '$'));
+      return symbol + n.toLocaleString();
+    }
 
-        if (saveStockBtn) {
-          saveStockBtn.addEventListener("click", () => {
-            const newVal = stockInput.value;
-            if (!newVal || newVal < 0 || newVal > 100) {
-                Swal.fire('Atención', 'Ingresa un porcentaje válido (0-100)', 'warning');
-                return;
-            }
+    // ...existing helper functions (getFillClass, drawChart, escapeHtml)...
+    function getFillClass(p) {
+      if (p >= 70) return 'progress-bar__fill--high';
+      if (p <= 30) return 'progress-bar__fill--low';
+      return '';
+    }
 
-            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/thresholds/stock`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ threshold: newVal }),
-            })
-              .then((res) => {
-                if (!res.ok) throw new Error("Error updating threshold");
-                return res.json();
-              })
-              .then((data) => {
-                closeStockModal();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Límite actualizado',
-                    text: 'Los umbrales de stock han sido guardados.',
-                    confirmButtonColor: '#387652'
-                });
-                loadDashboardData(true); // Refrescar stock list
-              })
-              .catch((err) => {
-                Swal.fire('Error', 'Hubo un problema al guardar', 'error');
-              });
-          });
-        }
+    function drawChart(canvasId, data) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      const DPR = window.devicePixelRatio || 1;
 
-        // Export Logic with POLLING
-        const exportBtn = document.querySelector(".header-top .btn-primary");
-        
-        function pollExportJob(jobId) {
-            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'COMPLETED') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Reporte Listo!',
-                            text: 'La descarga se iniciará automáticamente.',
-                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar manualmente</a>`,
-                            confirmButtonColor: '#387652'
-                        });
-                        exportBtn.disabled = false;
-                        exportBtn.innerText = "📤 Exportar Reporte";
-                    } else {
-                        // Seguir consultando cada 2 segundos
-                        setTimeout(() => pollExportJob(jobId), 2000);
-                    }
-                })
-                .catch(() => {
-                    Swal.fire('Error', 'Se perdió la conexión con el servidor de reportes.', 'error');
-                    exportBtn.disabled = false;
-                });
-        }
+      // Compute visible size robustly
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || canvas.parentElement?.clientWidth || 800;
+      const h = rect.height || 250;
 
-        if (exportBtn) {
-          exportBtn.addEventListener("click", () => {
-            exportBtn.disabled = true;
-            exportBtn.innerText = "Preparando...";
-            
-            Swal.fire({
-                title: 'Generando Reporte',
-                text: 'Esto puede tardar unos segundos...',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
+      // Set canvas drawing buffer and CSS size
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      canvas.width = Math.max(1, Math.floor(w * DPR));
+      canvas.height = Math.max(1, Math.floor(h * DPR));
 
-            fetch("https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export", { method: "POST" })
-              .then((res) => res.json())
-              .then((data) => {
-                // Iniciar POLLING
-                pollExportJob(data.job_id);
-              })
-              .catch((err) => {
-                Swal.fire('Error', 'No se pudo iniciar la exportación', 'error');
-                exportBtn.disabled = false;
-              });
-          });
-        }
+      // Reset transform and scale for DPR
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(DPR, DPR);
 
-        // --- NEW: Global Alerts History ---
-        window.showAlertsHistory = function() {
-            Swal.fire({
-                title: 'Consultando historial...',
-                didOpen: () => Swal.showLoading()
-            });
+      ctx.clearRect(0, 0, w, h);
+      const points = (data || []).map(d => (typeof d === 'number' ? {label:'', value:d} : {label: d.hour || d.label || '', value: d.value || 0}));
+      if (!points.length) {
+        // dibujar fondo suave cuando no hay datos
+        ctx.fillStyle = '#f5f7fa';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'var(--text-muted, #6b7280)';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('No hay datos de ventas por hora', w/2, h/2);
+        return;
+      }
 
-            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
-                .then(res => res.json())
-                .then(data => {
-                    Swal.fire({
-                        title: '<span class="text-emerald-700">Historial de Alertas</span>',
-                        html: `
-                            <div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
-                                ${data.map(alert => `
-                                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <span class="text-xs font-bold text-emerald-600">${alert.type}</span>
-                                            <span class="text-[10px] text-slate-400">${alert.date}</span>
-                                        </div>
-                                        <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
-                                    </div>
-                                `).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
-                            </div>
-                        `,
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: '#387652',
-                        width: '450px'
-                    });
-                })
-                .catch(() => {
-                    Swal.fire('Error', 'No se pudo obtener el historial de alertas.', 'error');
-                });
+      const values = points.map(p => p.value);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const padding = 30;
+      const usableW = w - padding * 2;
+      const usableH = h - padding * 2;
+
+      // eje x
+      ctx.strokeStyle = '#e9eef2';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, h - padding);
+      ctx.lineTo(w - padding, h - padding);
+      ctx.stroke();
+
+      // línea
+      ctx.strokeStyle = '#1f8ef1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        const x = padding + (i / (points.length - 1 || 1)) * usableW;
+        const y = h - padding - ((p.value - min) / (max - min || 1)) * usableH;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // puntos y etiquetas pequeñas
+      points.forEach((p, i) => {
+        const x = padding + (i / (points.length - 1 || 1)) * usableW;
+        const y = h - padding - ((p.value - min) / (max - min || 1)) * usableH;
+        ctx.fillStyle = '#1f8ef1';
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'var(--text-muted)';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(p.label || '', Math.max(5, x - 15), h - 8);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // Stock limits persisted in localStorage under key 'stockLimits'
+    function getStockLimits() {
+      try {
+        const raw = localStorage.getItem('stockLimits');
+        if (!raw) return { default: 30, items: {} };
+        const parsed = JSON.parse(raw);
+        return { default: Number(parsed.default ?? 30), items: parsed.items || {} };
+      } catch (e) {
+        return { default: 30, items: {} };
+      }
+    }
+
+    function saveStockLimits(obj) {
+      localStorage.setItem('stockLimits', JSON.stringify(obj));
+      renderStockLimits();
+    }
+
+    function renderStockLimits() {
+      const el = document.getElementById('stockLimits');
+      if (!el) return;
+      const cfg = getStockLimits();
+      const lines = [];
+      const keys = Object.keys(cfg.items || {});
+      if (keys.length) {
+        lines.push('<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>');
+        lines.push('<ul style="margin:6px 0 0 14px">' + keys.map(k => '<li>' + escapeHtml(k) + ': ' + cfg.items[k] + '%</li>').join('') + '</ul>');
+      }
+      el.innerHTML = lines.join('');
+    }
+
+    async function showEditLimitForItem(itemName, current) {
+      const { value: percent } = await Swal.fire({
+        title: 'Editar límite para "' + escapeHtml(itemName) + '"',
+        input: 'number',
+        inputLabel: 'Límite (%)',
+        inputValue: current ?? '',
+        inputAttributes: { min: 0, max: 100, step: 1 },
+        showCancelButton: true
+      });
+      if (percent === undefined || percent === null) return;
+      const cfg = getStockLimits();
+      cfg.items = cfg.items || {};
+      cfg.items[itemName] = Number(percent || 0);
+      saveStockLimits(cfg);
+      loadDashboard();
+    }
+
+    async function showDefaultLimitEditor() {
+      const cfg = getStockLimits();
+      const { value: def } = await Swal.fire({
+        title: 'Límite por defecto de stock',
+        input: 'number',
+        inputLabel: 'Porcentaje crítico (%)',
+        inputValue: cfg.default,
+        inputAttributes: { min: 0, max: 100, step: 1 },
+        showCancelButton: true
+      });
+      if (def === undefined || def === null) return;
+      cfg.default = Number(def || 0);
+      saveStockLimits(cfg);
+      loadDashboard();
+    }
+
+    // Editar meta trimestral (modal + patch al backend si está disponible)
+    async function showEditQuarterlyGoal(currentValue, currentTarget) {
+      const { value: newGoal } = await Swal.fire({
+        title: 'Editar Meta Trimestral',
+        html: '<input id="swal-goal" type="number" class="swal2-input" placeholder="Porcentaje" value="' + (currentValue ?? '') + '">' +
+              '<input id="swal-target" type="text" class="swal2-input" placeholder="Meta absoluta (ej. 450k)" value="' + (currentTarget ?? '') + '">',
+        focusConfirm: false,
+        showCancelButton: true,
+        preConfirm: () => {
+          const g = document.getElementById('swal-goal').value;
+          const t = document.getElementById('swal-target').value;
+          return { goal: g !== '' ? Number(g) : null, target: t };
         }
       });
+      if (!newGoal) return;
+
+      // Try to PATCH to known endpoints
+      const payload = { goal: newGoal.goal, target: newGoal.target };
+      const endpoints = [
+        '/configuration/goals/quarterly',
+        'http://localhost:3000/api/v1/kpi/configuration/goals/quarterly'
+      ];
+      let patched = false;
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: payload.goal, target: payload.target }) });
+          if (res.ok) { patched = true; break; }
+        } catch (e) {
+          // ignore and try next
+        }
+      }
+
+      // Update UI locally regardless
+      const qEls = [document.getElementById('quarterlyProgress'), document.getElementById('kpi-goal')];
+      const qTargetEls = [document.getElementById('quarterlyTarget'), document.getElementById('kpi-goal-absolute')];
+      if (payload.goal != null) qEls.forEach(e => { if (e) e.textContent = payload.goal + '%'; });
+      if (payload.target != null) qTargetEls.forEach(e => { if (e) e.textContent = payload.target; });
+
+      if (patched) {
+        Swal.fire({ icon: 'success', title: 'Meta actualizada' });
+      } else {
+        Swal.fire({ icon: 'warning', title: 'Guardado local', text: 'No se pudo actualizar el backend; cambios aplicados localmente.' });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboard);
     </script>
-  </body>
+</body>
 </html>

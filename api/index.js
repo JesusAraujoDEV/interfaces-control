@@ -94,7 +94,7 @@ app.get("/api/config.js", (req, res) => {
 // Favicon para Vercel (sirve el mismo ico que en dev)
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(
-    path.join(PROJECT_ROOT, "public", "assets", "001novo_120744.ico")
+    path.join(PROJECT_ROOT, "public", "assets", "charlotte_icon.ico")
   );
 });
 

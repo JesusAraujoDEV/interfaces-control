@@ -1068,10 +1068,6 @@ video {
   height: 24rem;
 }
 
-.h-\[20px\] {
-  height: 20px;
-}
-
 .h-\[40vh\] {
   height: 40vh;
 }
@@ -2062,8 +2058,8 @@ video {
   --tw-gradient-to: transparent var(--tw-gradient-to-position);
 }
 
-.fill-slate-500 {
-  fill: #64748b;
+.fill-gray-700 {
+  fill: #374151;
 }
 
 .object-contain {
@@ -2252,10 +2248,6 @@ video {
 
 .pl-12 {
   padding-left: 3rem;
-}
-
-.pl-5 {
-  padding-left: 1.25rem;
 }
 
 .pr-2 {
@@ -2907,10 +2899,6 @@ video {
 
 .backdrop-blur-sm {
   --tw-backdrop-blur: blur(4px);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-}
-
-.backdrop-filter {
   backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
 }
 
