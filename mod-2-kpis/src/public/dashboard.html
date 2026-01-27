@@ -50,65 +50,208 @@
             <section class="stats-grid">
                 <div class="kpi-card">
                     <p class="kpi-card__label">Ingresos</p>
-                    <p class="kpi-card__value">$12,450</p>
-                    <span class="kpi-card__trend kpi-card__trend--up">+12%</span>
+                    <p id="incomeValue" class="kpi-card__value">$0</p>
+                    <span id="incomeTrend" class="kpi-card__trend kpi-card__trend--up">0%</span>
                 </div>
                 <div class="kpi-card">
                     <p class="kpi-card__label">Meta Trimestral</p>
-                    <p class="kpi-card__value">65%</p>
-                    <p style="font-size: 0.7rem; color: var(--text-muted);">$450k</p>
+                    <p id="quarterlyProgress" class="kpi-card__value">0%</p>
+                    <p id="quarterlyTarget" style="font-size: 0.7rem; color: var(--text-muted);">$0</p>
                 </div>
                 <div class="kpi-card">
                     <p class="kpi-card__label">Tiempo Atención</p>
-                    <p class="kpi-card__value">04:15 min</p>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">Óptimo ⏱️</span>
+                    <p id="rotationValue" class="kpi-card__value">00:00</p>
+                    <span id="timeStatus" style="font-size: 0.8rem; color: var(--text-muted);">--</span>
                 </div>
                 <div class="kpi-card" onclick="window.location.href='operaciones.html'" style="cursor:pointer">
                     <p class="kpi-card__label">Rotación</p>
-                    <p class="kpi-card__value">1.2 /hr</p>
-                    <span class="kpi-card__trend kpi-card__trend--down">Bajo Meta 1.7</span>
+                    <p id="rotationRate" class="kpi-card__value">0 /hr</p>
+                    <span id="rotationStatus" class="kpi-card__trend kpi-card__trend--down">--</span>
                 </div>
             </section>
 
             <div class="dashboard-main-grid">
                 <div class="chart-container">
                     <h2 class="card__title">Ventas por Hora</h2>
-                    <p class="kpi-card__value" style="font-size: 1.5rem;">$1,850 <span style="font-size: 0.8rem; color: #28a745;">Hoy +8.2%</span></p>
-                    <div style="width: 100%; height: 250px; background: linear-gradient(transparent, #e8f3ee); border-bottom: 2px solid var(--primary-color); margin-top: 20px; border-radius: 0 0 10px 10px;"></div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 10px; color: var(--text-muted); font-size: 0.7rem;">
-                        <span>8 AM</span><span>12 PM</span><span>4 PM</span><span>8 PM</span>
+                    <p id="salesValue" class="kpi-card__value" style="font-size: 1.5rem;">$0 <span id="salesChange" style="font-size: 0.8rem; color: #28a745;"></span></p>
+                    <canvas id="salesChart" width="800" height="250" style="width:100%; height:250px; border-radius: 0 0 10px 10px; display:block; margin-top:20px;"></canvas>
+                    <div id="salesLabels" style="display: flex; justify-content: space-between; margin-top: 10px; color: var(--text-muted); font-size: 0.7rem;">
+                        <span></span><span></span><span></span><span></span>
                     </div>
                 </div>
 
                 <div class="stock-alerts">
                     <h2 class="card__title">Alertas de Stock</h2>
                     
-                    <div class="stock-item" onclick="window.location.href='inventario.html'" style="cursor:pointer">
-                        <span class="stock-item__name">Tomates</span>
-                        <div style="display: flex; align-items: center;">
-                            <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--low" style="width: 15%;"></div></div>
-                            <span class="stock-item__percent">15%</span>
-                        </div>
+                    <div id="alertsList">
+                        <!-- alertas serán renderizadas aquí -->
                     </div>
-
-                    <div class="stock-item">
-                        <span class="stock-item__name">Queso</span>
-                        <div style="display: flex; align-items: center;">
-                            <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--low" style="width: 25%;"></div></div>
-                            <span class="stock-item__percent">25%</span>
-                        </div>
-                    </div>
-
-                    <div class="stock-item">
-                        <span class="stock-item__name">Café en Grano</span>
-                        <div style="display: flex; align-items: center;">
-                            <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--high" style="width: 80%;"></div></div>
-                            <span class="stock-item__percent">80%</span>
-                        </div>
-                    </div>
-                    </div>
+                </div>
             </div>
         </main>
     </div>
+    <script>
+    // Carga datos desde la API y actualiza la interfaz
+    async function loadDashboard() {
+      try {
+        const [summaryRes, alertsRes] = await Promise.all([
+          fetch('http://localhost:3000/api/v1/kpi/dashboard/summary'),
+          fetch('http://localhost:3000/api/v1/kpi/inventory/alerts')
+        ]);
+        
+        const summaryJson = summaryRes.ok ? await summaryRes.json() : {};
+        const alertsJson = alertsRes.ok ? await alertsRes.json() : {};
+        const summary = summaryJson.data || {};
+        const alerts = alertsJson.alerts || [];
+        console.log('Dashboard summary:', summary);
+        // Ingresos
+        const incomeEl = document.getElementById('incomeValue');
+        const incomeTrendEl = document.getElementById('incomeTrend');
+        const revenue = summary.revenue || {};
+        if (revenue.total != null) incomeEl.textContent = formatCurrency(revenue.total, revenue.currency);
+        if (revenue.trend_percentage != null) incomeTrendEl.textContent = (revenue.trend_direction === 'down' ? '-' : (revenue.trend_direction === 'up' ? '+' : '')) + revenue.trend_percentage + '%';
+
+        // Meta trimestral
+        const quarterly = summary.quarterly_goal || {};
+        const quarterlyProgressEl = document.getElementById('quarterlyProgress');
+        const quarterlyTargetEl = document.getElementById('quarterlyTarget');
+        if (quarterly.progress_percentage != null) quarterlyProgressEl.textContent = (quarterly.progress_percentage) + '%';
+        if (quarterly.target != null) quarterlyTargetEl.textContent = formatCurrency(quarterly.target, revenue.currency);
+
+        // Rotación / Tiempo atención
+        const ops = summary.operations || {};
+        if (ops.avg_service_time) document.getElementById('rotationValue').textContent = ops.avg_service_time;
+        if (ops.time_status) document.getElementById('timeStatus').textContent = ops.time_status;
+        if (ops.table_rotation != null) document.getElementById('rotationRate').textContent = ops.table_rotation + ' /hr';
+        if (ops.rotation_status) document.getElementById('rotationStatus').textContent = ops.rotation_status;
+
+        // Ventas por hora y valor total hoy (no vienen en la respuesta de ejemplo; manejar vacío)
+        const salesData = summary.sales_by_hour || summary.sales_hours || [];
+        const totalToday = summary.sales_total_today ?? (Array.isArray(salesData) ? salesData.reduce((s,i)=>s + (typeof i === 'number' ? i : (i.value||0)),0) : 0);
+        const salesValueEl = document.getElementById('salesValue');
+        const salesChangeEl = document.getElementById('salesChange');
+        salesValueEl.firstChild && salesValueEl.firstChild.nodeValue !== undefined && (salesValueEl.firstChild.nodeValue = formatCurrency(totalToday, revenue.currency) + ' ');
+        if (summary.sales_change) salesChangeEl.textContent = 'Hoy ' + summary.sales_change;
+
+        // Etiquetas debajo de la gráfica
+        const labelsEl = document.getElementById('salesLabels');
+        if (salesData.length) {
+          const labels = salesData.map(d => (d.hour || d.label || ''));
+          labelsEl.innerHTML = labels.map(l => '<span>' + escapeHtml(l || '') + '</span>').join('');
+        } else {
+          labelsEl.innerHTML = '<span>--</span><span>--</span><span>--</span><span>--</span>';
+        }
+
+        // Dibujar gráfica en canvas
+        drawChart('salesChart', salesData);
+
+        // Alertas de inventario
+        const alertsList = document.getElementById('alertsList');
+        alertsList.innerHTML = '';
+        (alerts || []).forEach(item => {
+          const percent = item.percent ?? item.level ?? 0;
+          const div = document.createElement('div');
+          div.className = 'stock-item';
+          div.style.cursor = item.url ? 'pointer' : 'default';
+          div.innerHTML = `
+            <span class="stock-item__name">${escapeHtml(item.name || item.item || 'Sin nombre')}</span>
+            <div style="display:flex;align-items:center;">
+              <div class="progress-bar"><div class="progress-bar__fill ${getFillClass(percent)}" style="width:${percent}%;"></div></div>
+              <span class="stock-item__percent">${percent}%</span>
+            </div>`;
+          if (item.url) div.onclick = () => window.location.href = item.url;
+          alertsList.appendChild(div);
+        });
+
+        // si no hay alertas mostrar mensaje
+        if (!alerts.length) {
+          alertsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Sin alertas críticas</div>';
+        }
+
+      } catch (err) {
+        console.error('Error cargando dashboard:', err);
+      }
+    }
+
+    function formatCurrency(v, currency) {
+      const n = Number(v) || 0;
+      const symbol = (currency === 'USD' ? '$' : (currency ? currency + ' ' : '$'));
+      return symbol + n.toLocaleString();
+    }
+
+    // ...existing helper functions (getFillClass, drawChart, escapeHtml)...
+    function getFillClass(p) {
+      if (p >= 70) return 'progress-bar__fill--high';
+      if (p <= 30) return 'progress-bar__fill--low';
+      return '';
+    }
+
+    function drawChart(canvasId, data) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      const DPR = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = w * DPR;
+      canvas.height = h * DPR;
+      ctx.scale(DPR, DPR);
+
+      ctx.clearRect(0, 0, w, h);
+      const points = (data || []).map(d => typeof d === 'number' ? {label:'', value:d} : {label: d.hour || d.label || '', value: d.value || 0});
+      if (!points.length) {
+        // dibujar fondo suave cuando no hay datos
+        ctx.fillStyle = '#f5f7fa';
+        ctx.fillRect(0, 0, w, h);
+        return;
+      }
+
+      const values = points.map(p => p.value);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const padding = 30;
+      const usableW = w - padding * 2;
+      const usableH = h - padding * 2;
+
+      // eje x
+      ctx.strokeStyle = '#e9eef2';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, h - padding);
+      ctx.lineTo(w - padding, h - padding);
+      ctx.stroke();
+
+      // línea
+      ctx.strokeStyle = '#1f8ef1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        const x = padding + (i / (points.length - 1 || 1)) * usableW;
+        const y = h - padding - ((p.value - min) / (max - min || 1)) * usableH;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // puntos y etiquetas pequeñas
+      points.forEach((p, i) => {
+        const x = padding + (i / (points.length - 1 || 1)) * usableW;
+        const y = h - padding - ((p.value - min) / (max - min || 1)) * usableH;
+        ctx.fillStyle = '#1f8ef1';
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'var(--text-muted)';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(p.label || '', Math.max(5, x - 15), h - 8);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
 </body>
 </html>
