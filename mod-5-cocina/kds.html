@@ -1,30 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
     <title>Cola de Producción KDS - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <img src="logo.png" alt="Logo" class="sidebar__logo">
+            <!-- Placeholder logo or avatar -->
+            <div class="sidebar__avatar"></div>
             <div class="sidebar__info">
-                <p class="sidebar__user">Charlotte</p>
-                <p class="sidebar__role">Kitchen OS</p>
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
             </div>
         </div>
+
         <nav class="sidebar__nav">
-            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
-            <a href="#" class="sidebar__link"><i data-lucide="utensils-crosses"></i> Recetas y Productos</a>
-            <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
-            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="clipboard-list"></i> Pedidos</a>
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link sidebar__link--active">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
         </nav>
+
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
 
@@ -34,25 +71,10 @@
                 <h1 class="header__title">Cola de Producción KDS</h1>
                 <p class="header__subtitle">Seguimiento de pedidos en vivo para la cocina.</p>
             </div>
-            
-            <div class="kds-stats">
-                <div class="stat-card">
-                    <span class="stat-card__label">Pedidos Activos</span>
-                    <span class="stat-card__value">12</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Pedidos Retrasados</span>
-                    <span class="stat-card__value stat-card__value--danger">2</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Hora del Sistema</span>
-                    <span class="stat-card__value">14:32</span>
-                </div>
-            </div>
         </header>
 
         <div class="kds-grid">
-            
+
             <section class="kds-column">
                 <h2 class="kds-column__title">Nuevo</h2>
                 <div class="kds-column__list">
@@ -62,7 +84,8 @@
                                 <span class="order-card__id">Mesa 14</span>
                                 <span class="order-card__timer">Temporizador: 02:15</span>
                             </div>
-                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En Restaurante</span>
+                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En
+                                Restaurante</span>
                         </div>
                         <ul class="order-card__items">
                             <li><strong>2x</strong> Hamburguesa Clásica</li>
@@ -78,7 +101,8 @@
                                 <span class="order-card__id">Pedido #512</span>
                                 <span class="order-card__timer">Temporizador: 01:30</span>
                             </div>
-                            <span class="order-type order-type--delivery"><i data-lucide="shopping-bag"></i> Para Llevar</span>
+                            <span class="order-type order-type--delivery"><i data-lucide="shopping-bag"></i> Para
+                                Llevar</span>
                         </div>
                         <ul class="order-card__items">
                             <li><strong>1x</strong> Sándwich Pollo Picante</li>
@@ -119,7 +143,8 @@
                                 <span class="order-card__id">Mesa 5</span>
                                 <span class="order-card__timer">Completado: 14:28</span>
                             </div>
-                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En Restaurante</span>
+                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En
+                                Restaurante</span>
                         </div>
                         <ul class="order-card__items">
                             <li><strong>1x</strong> Filete de Salmón</li>
@@ -133,6 +158,33 @@
         </div>
     </main>
 
+    <!-- Auth Modal -->
+    <div id="kdsAuthModal" class="modal">
+        <div class="modal__content" style="max-width: 400px;">
+            <div class="modal__header">
+                <h2>Identificación Cocina</h2>
+                <button class="modal__close" id="closeKdsAuthModal">&times;</button>
+            </div>
+            <form id="kdsAuthForm" class="modal__form">
+                <input type="hidden" id="kdsAuthAction">
+                <input type="hidden" id="kdsAuthData">
+
+                <div class="form-group">
+                    <label for="kdsWorkerCode">Código de Chef/Ayudante</label>
+                    <input type="password" id="kdsWorkerCode" name="workerCode" class="form-input"
+                        placeholder="Ingrese código (ej. 1234)" required autocomplete="off" inputmode="numeric">
+                </div>
+
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelKdsAuthBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>lucide.createIcons();</script>
+    <script type="module" src="./js/kds.js"></script>
 </body>
+
 </html>

@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = redirectUrl;
         return;
       }
-      window.location.href = "/shared/admin-home/index.html";
+      window.location.href = "/admin";
       
     } else {
       const errorData = await response.json();

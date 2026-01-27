@@ -1,79 +1,142 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
     <title>Despacho de Camareros - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="app-container app-container--centered">
 
-    <div class="dispatch-layout">
-        <header class="dispatch-header">
-            <div class="dispatch-header__top">
-                <div class="brand">
-                    <i data-lucide="utensils" class="brand__icon"></i>
-                    <span class="brand__name">Charlotte KOS</span>
-                </div>
-                <div class="user-profile-sm">
-                    <img src="avatar.jpg" alt="User" class="user-profile-sm__img">
-                </div>
-            </div>
-            <div class="dispatch-header__main">
-                <h1 class="header__title">Vista de Despacho de Camareros</h1>
-                <p class="header__subtitle">Feed en vivo de todos los pedidos listos para despachar.</p>
-            </div>
-        </header>
+<body class="app-container ">
 
-        <nav class="dispatch-tabs">
-            <button class="dispatch-tabs__btn dispatch-tabs__btn--active">Todos</button>
-            <button class="dispatch-tabs__btn">Mesas</button>
-            <button class="dispatch-tabs__btn">Delivery</button>
+    <aside class="sidebar">
+        <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
+            <div class="sidebar__avatar"></div>
+            <div class="sidebar__info">
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link sidebar__link--active">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
         </nav>
 
-        <section class="dispatch-feed">
-            <article class="dispatch-item">
-                <div class="dispatch-item__header">
-                    <h2 class="dispatch-item__title">MESA 5</h2>
-                    <span class="dispatch-item__timer">hace 2 min</span>
+        <div class="sidebar__footer">
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <div class="dispatch-layout">
+            <header class="dispatch-header">
+                <div class="dispatch-header__top">
+                    <div class="brand">
+                        <i data-lucide="utensils" class="brand__icon"></i>
+                        <span class="brand__name">Charlotte KOS</span>
+                    </div>
+                    <div class="user-profile-sm">
+                        <img src="avatar.jpg" alt="User" class="user-profile-sm__img">
+                    </div>
                 </div>
-                <div class="dispatch-item__content">
-                    <span class="dispatch-item__status">Listo</span>
-                    <p class="dispatch-item__description">2x Hamburguesa Clásica, 1x Patatas Fritas</p>
+                <div class="dispatch-header__main">
+                    <h1 class="header__title">Vista de Despacho de Camareros</h1>
+                    <p class="header__subtitle">Feed en vivo de todos los pedidos listos para despachar.</p>
                 </div>
-            </article>
+            </header>
 
-            <article class="dispatch-item">
-                <div class="dispatch-item__header">
-                    <h2 class="dispatch-item__title">DELIVERY #104</h2>
-                    <span class="dispatch-item__timer">hace 5 min</span>
-                </div>
-                <div class="dispatch-item__content">
-                    <span class="dispatch-item__status">Listo</span>
-                    <p class="dispatch-item__description">1x Bol Vegano, 1x Ensalada</p>
-                </div>
-            </article>
+            <nav class="dispatch-tabs">
+                <button class="dispatch-tabs__btn dispatch-tabs__btn--active" data-filter="ALL">Todos</button>
+                <button class="dispatch-tabs__btn" data-filter="DINE_IN">Mesas</button>
+                <button class="dispatch-tabs__btn" data-filter="DELIVERY">Delivery</button>
+            </nav>
 
-            <article class="dispatch-item">
-                <div class="dispatch-item__header">
-                    <h2 class="dispatch-item__title">MESA 12</h2>
-                    <span class="dispatch-item__timer">hace 8 min</span>
-                </div>
-                <div class="dispatch-item__content">
-                    <span class="dispatch-item__status">Listo</span>
-                    <p class="dispatch-item__description">1x Filete con Patatas, 1x Sopa del Día</p>
-                </div>
-            </article>
-        </section>
+            <section class="dispatch-feed" id="dispatchFeed">
+                <!-- Items populated by JS -->
+                <div style="padding: 2rem; text-align: center; color: #64748b;">Cargando pedidos listos...</div>
+            </section>
 
-        <footer class="dispatch-actions">
-            <button class="btn btn--primary btn--xl">
-                <i data-lucide="check-check"></i> MARCAR ENTREGADO
-            </button>
-        </footer>
-    </div>
+            <div class="despacho-list"></div>
 
-    <script>lucide.createIcons();</script>
+            <!-- Auth Modal -->
+            <div id="authModal" class="modal">
+                <div class="modal__content" style="max-width: 400px;">
+                    <div class="modal__header">
+                        <h2>Identificación Requerida</h2>
+                        <button class="modal__close" id="closeAuthModal">&times;</button>
+                    </div>
+                    <form id="authForm" class="modal__form">
+                        <input type="hidden" id="authAction">
+                        <input type="hidden" id="authTaskId">
+
+                        <div class="form-group">
+                            <label for="workerCode">Código de Camarero</label>
+                            <input type="password" id="workerCode" name="workerCode" class="form-input"
+                                placeholder="Ingrese su código (ej. 1234)" required autocomplete="off"
+                                inputmode="numeric">
+                        </div>
+
+                        <div class="modal__actions">
+                            <button type="button" class="btn btn--secondary" id="cancelAuthBtn">Cancelar</button>
+                            <button type="submit" class="btn btn--primary">Confirmar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                // Modal Utils
+                function openModal(id) {
+                    const m = document.getElementById(id);
+                    if (m) { m.style.display = 'block'; setTimeout(() => m.classList.add('modal--active'), 10); }
+                }
+                function closeModal(id) {
+                    const m = document.getElementById(id);
+                    if (m) { m.classList.remove('modal--active'); setTimeout(() => m.style.display = 'none', 300); }
+                }
+                document.getElementById('closeAuthModal').addEventListener('click', () => closeModal('authModal'));
+                document.getElementById('cancelAuthBtn').addEventListener('click', () => closeModal('authModal'));
+            </script>
+            <script>lucide.createIcons();</script>
+            <script type="module" src="./js/despacho.js"></script>
+    </main>
 </body>
+
 </html>
