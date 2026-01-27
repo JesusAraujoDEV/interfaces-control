@@ -1,0 +1,30 @@
+<aside class="barra-lateral">
+  <div class="flex items-center gap-3 mb-10">
+    <div class="logo-box">C</div>
+    <div>
+      <h4 class="text-sm font-bold text-gray-800">Charlotte</h4>
+      <p class="text-[10px] text-gray-400">Restaurant OS</p>
+    </div>
+  </div>
+
+  <nav class="menu-navegacion">
+    <a href="/seguridad/usuarios"
+      ><i class="fa-solid fa-user-group"></i> Usuarios</a
+    >
+    <a href="/seguridad/roles"
+      ><i class="fa-solid fa-user-shield"></i> Roles</a>
+    <a href="/seguridad/permisos"
+      ><i class="fa-solid fa-key"></i> Permisos</a>
+    <a href="/seguridad/restaurante/coordenadas"
+      ><i class="fa-solid fa-location-dot"></i> Restaurante Coordenadas</a>
+    
+    <a href="/seguridad/perfil/editar"><i class="fa-solid fa-gear"></i> Mi perfil</a>
+  </nav>
+
+  <div class="menu-inferior">
+    <% if (user) { %>
+      <a href="/seguridad/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    <% } %>
+  </div>
+
+</aside>

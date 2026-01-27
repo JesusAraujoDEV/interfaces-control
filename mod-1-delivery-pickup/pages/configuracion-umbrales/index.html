@@ -3,98 +3,126 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Operational Threshold Config</title>
-    <link rel="stylesheet" href="./page.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Configuración — Delivery & Pickup</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link rel="stylesheet" href="/mod-1-delivery-pickup/pages/configuracion-umbrales/page.css" />
   </head>
-  <body class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-sm h-[820px] bg-[#f5f6f5] rounded-lg shadow-md overflow-hidden">
-      <div class="card h-full flex flex-col">
-        <!-- Header -->
-        <div class="flex items-center gap-4 px-4 py-3 bg-white/0">
-          <button aria-label="back" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h2 class="text-lg font-semibold text-gray-800">Configuración de Umbrales Operativos</h2>
-        </div>
-
-        <div class="px-4 py-3 border-b border-gray-200">
-          <h3 class="text-sm font-semibold text-gray-800">Tiempos Máximos</h3>
-        </div>
-
-        <div class="flex-1 overflow-auto px-4 py-3">
-          <!-- Item -->
-          <div class="mb-4">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm font-medium text-gray-800">Tiempo de preparación (cocina)</p>
-                <p class="text-xs text-gray-400">Tiempo máximo permitido para que la cocina prepare un pedido</p>
-              </div>
-              <div class="text-sm font-semibold text-gray-700 mt-1">15 min</div>
-            </div>
-          </div>
-
-          <div class="mb-4">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm font-medium text-gray-800">Tiempo de espera (despacho)</p>
-                <p class="text-xs text-gray-400">Tiempo máximo permitido para que el despacho espere un pedido</p>
-              </div>
-              <div class="text-sm font-semibold text-gray-700 mt-1">5 min</div>
-            </div>
-          </div>
-
-          <div class="mb-6">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm font-medium text-gray-800">Tiempo de entrega</p>
-                <p class="text-xs text-gray-400">Tiempo máximo permitido para que la entrega complete un pedido</p>
-              </div>
-              <div class="text-sm font-semibold text-gray-700 mt-1">30 min</div>
-            </div>
-          </div>
-
-          <div class="px-1 py-2">
-            <h4 class="text-sm font-semibold text-gray-800 mb-3">Valores Críticos</h4>
-
-            <div class="mb-4">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-800">Tasa de aceptación de pedidos</p>
-                  <p class="text-xs text-gray-400">Valor crítico para la tasa de aceptación de pedidos</p>
-                </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">95%</div>
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-800">Tasa de cancelación de pedidos</p>
-                  <p class="text-xs text-gray-400">Valor crítico para la tasa de cancelación de pedidos</p>
-                </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">5%</div>
-              </div>
-            </div>
-
-            <div class="mb-6">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-800">Tasa de éxito de entrega</p>
-                  <p class="text-xs text-gray-400">Valor crítico para la tasa de éxito de entrega</p>
-                </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">98%</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="px-4 pb-6 pt-2 bg-transparent">
-          <button class="w-full bg-[#1f5a3a] hover:bg-[#16472b] text-white py-3 rounded-lg shadow-sm">Guardar cambios</button>
-        </div>
+  <body class="antialiased text-slate-900">
+    <header class="flex items-start sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold">Configuración</h1>
+        <p class="mt-1 text-sm text-slate-600">Umbrales operativos y valores críticos.</p>
       </div>
-    </div>
+      <div class="flex items-center gap-2">
+        <label class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 select-none">
+          <input id="dpThresholdsOnlyActive" type="checkbox" class="h-4 w-4" />
+          <span>Solo activos</span>
+        </label>
+        <button
+          id="dpThresholdsRefresh"
+          type="button"
+          class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+        >
+          Actualizar
+        </button>
+        <button
+          id="dpThresholdsAdd"
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
+        >
+          <span aria-hidden="true">+</span>
+          Agregar métrica
+        </button>
+      </div>
+    </header>
+
+    <main class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-extrabold text-slate-900">Thresholds</h3>
+            <p class="mt-1 text-sm text-slate-600">Activa/desactiva o elimina umbrales por métrica.</p>
+          </div>
+          <div id="dpThresholdsMeta" class="text-xs text-slate-500"></div>
+        </div>
+
+        <div id="dpThresholdsError" class="hidden mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
+
+        <ul id="dpThresholdsList" class="mt-4 space-y-3"></ul>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h4 id="dpThresholdsFormTitle" class="text-lg font-extrabold text-slate-900">Agregar threshold</h4>
+            <p class="mt-1 text-sm text-slate-600">Métrica, valor crítico e indicador activo.</p>
+          </div>
+          <button
+            id="dpThresholdsCancel"
+            type="button"
+            class="hidden rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+        </div>
+
+        <form id="dpThresholdsForm" class="mt-4 space-y-4" novalidate>
+          <div>
+            <label class="text-sm text-slate-700 block mb-2">Métrica</label>
+            <select
+              id="dpThresholdMetricAffected"
+              required
+              class="w-full bg-[var(--input)] text-slate-800 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+            >
+              <option value="" selected disabled>Seleccione una métrica…</option>
+              <option value="ORDERS_PENDING_MAX">ORDERS_PENDING_MAX</option>
+              <option value="KITCHEN_TIME_MAX_MINUTES">KITCHEN_TIME_MAX_MINUTES</option>
+              <option value="DISPATCH_CAPACITY_MAX">DISPATCH_CAPACITY_MAX</option>
+              <option value="DELIVERY_TRAVEL_TIME_MAX_MINUTES">DELIVERY_TRAVEL_TIME_MAX_MINUTES</option>
+              <option value="DRIVER_ASSIGNMENT_TIMEOUT_MINUTES">DRIVER_ASSIGNMENT_TIMEOUT_MINUTES</option>
+              <option value="PICKUP_WAIT_TIME_MAX_MINUTES">PICKUP_WAIT_TIME_MAX_MINUTES</option>
+              <option value="TOTAL_ORDER_CYCLE_MAX_MINUTES">TOTAL_ORDER_CYCLE_MAX_MINUTES</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm text-slate-700 block mb-2">Valor crítico (entero)</label>
+              <input
+                id="dpThresholdValueCritical"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                required
+                placeholder="10"
+                class="w-full bg-[var(--input)] text-slate-800 placeholder-slate-400 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+              />
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-800 select-none w-full justify-between">
+                <span>Activo</span>
+                <input id="dpThresholdIsActive" type="checkbox" class="h-4 w-4" checked />
+              </label>
+            </div>
+          </div>
+
+          <div id="dpThresholdsFormError" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
+
+          <div class="pt-2">
+            <button
+              id="dpThresholdsSubmit"
+              type="submit"
+              class="w-full bg-[var(--accent)] text-white rounded-xl py-3 font-semibold hover:brightness-105"
+            >
+              Crear threshold
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/mod-1-delivery-pickup/pages/configuracion-umbrales/page.js"></script>
   </body>
 </html>

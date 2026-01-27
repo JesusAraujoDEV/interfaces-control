@@ -1,0 +1,53 @@
+:root {
+    --verde-oscuro: #1e4d35;
+    --verde-claro: #dcfce7;
+    --borde: #e5e7eb;
+}
+
+/* Contenedor principal del Sidebar */
+.barra-lateral {
+    width: 260px;
+    background: white;
+    border-right: 1px solid var(--borde);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+/* Caja del Logo (La "C" verde) */
+.logo-box {
+    width: 36px;
+    height: 36px;
+    background: #1e4d35;
+    color: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+/* Menú de Navegación */
+.menu-navegacion { 
+    flex-grow: 1; 
+    margin-top: 30px; 
+}
+
+.menu-navegacion a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    color: #4b5563;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+    text-decoration: none; /* Agregado recomendado para quitar el subrayado por defecto */
+}
+
+/* Estado activo del link */
+.menu-navegacion a.activo {
+    background: var(--verde-claro);
+    color: var(--verde-oscuro);
+    font-weight: 600;
+}

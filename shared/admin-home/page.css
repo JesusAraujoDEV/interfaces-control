@@ -1,0 +1,7 @@
+/* Estilos específicos de la vista (Tailwind es la base).
+   Mantener mínimo para respetar el patrón MPA/SPA ligera.
+*/
+
+.admin-card:active {
+  transform: translateY(1px);
+}

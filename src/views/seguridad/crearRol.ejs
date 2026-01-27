@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Rol - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/seguridad/crearRol.css">
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-[#f8fafc]">
+    <div id="modalPermiso" class="modal-overlay hidden">
+        <div class="modal-container">
+            <header class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900" id="modalTitle">Crear Permiso</h2>
+                <p class="text-sm text-gray-500 mt-1" id="modalDescription">Usa este formulario para definir un nuevo permiso y asociarlo con este rol.</p>
+            </header>
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="campo">
+                        <label>Nombre del Permiso</label>
+                        <input type="text" id="nombrePermiso" placeholder="ej., Ver Pedidos">
+                    </div>
+                    <div class="campo">
+                        <label>Tipo</label>
+                        <select id="tipoPermiso" class="select-personalizado">
+                            <option selected disabled>Selecciona un tipo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="campo">
+                        <label>Recurso</label>
+                        <select id="recursoPermiso" class="select-personalizado">
+                            <option selected disabled>Selecciona un recurso</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>Método</label>
+                        <select id="metodoPermiso" class="select-personalizado">
+                            <option selected disabled>Selecciona un método</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="cerrarModal()" class="btn-cancelar-modal">Cancelar</button>
+                    <button type="submit" class="btn-guardar">Crear Permiso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex min-h-screen">
+         
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="flex-grow p-12">
+            <header class="mb-8">
+                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Dashboard / Roles / Crear Rol</p>
+                <h1 class="text-3xl font-bold text-gray-900">Crear Rol</h1>
+                <p class="text-sm text-gray-500">Crea un rol y asigna los permisos necesarios.</p>
+            </header>
+
+            <div class="max-w-5xl space-y-6" style="margin: auto;">
+                <form id="formCrearRol">
+                    <div class="tarjeta-blanca">
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div class="campo">
+                                <label>Nombre del Rol</label>
+                                <input type="text" id="name" placeholder="ej., Administrador" required>
+                            </div>
+                            <div class="campo">
+                                <label>Descripción</label>
+                                <textarea rows="2" id="description" placeholder="Describe el rol..." required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-3 block">Permisos Asignados</label>
+                            <button type="button" onclick="abrirModal()" class="btn-añadir-permiso mb-4 opacity-50 cursor-not-allowed" disabled>
+                                Añadir Permiso
+                            </button>
+                            <div class="flex flex-wrap gap-2" id="permisosAsignados">
+                                <!-- Los permisos se agregarán dinámicamente aquí -->
+                            </div>
+                        </div>
+
+                        
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4">
+                        <div class="flex gap-3">
+                            <a href="/seguridad/roles" class="btn-cancelar">Cancelar</a>
+                            <button type="submit" class="btn-guardar">Guardar Rol</button>
+                        </div>
+                </div>
+            </form>
+        </main>
+    </div>
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    <script>
+        let assignedPermissions = [];
+        let editingPermissionIndex = -1;
+
+        function addPermissionSpan(perm, index) {
+            if (!perm || !perm.name) return;
+            const permisosDiv = document.getElementById('permisosAsignados');
+            const span = document.createElement('span');
+            span.className = 'badge-permiso';
+            span.setAttribute('data-index', index);
+            span.innerHTML = `${perm.name} <i class="fa-solid fa-xmark"></i>`;
+            span.style.cursor = 'pointer';
+            
+            // Click en el badge para editar
+            span.onclick = (e) => {
+                if (e.target.classList.contains('fa-xmark')) {
+                    // Si hace click en la X, eliminar
+                    assignedPermissions.splice(index, 1);
+                    updatePermissionDisplay();
+                } else {
+                    // Si hace click en el badge, editar
+                    editarPermiso(index);
+                }
+            };
+            
+            permisosDiv.appendChild(span);
+        }
+
+        function updatePermissionDisplay() {
+            const permisosDiv = document.getElementById('permisosAsignados');
+            permisosDiv.innerHTML = '';
+            assignedPermissions = assignedPermissions.filter(p => p && p.name); // Filter out null or invalid permissions
+            assignedPermissions.forEach((perm, index) => {
+                addPermissionSpan(perm, index);
+            });
+        }
+
+        function editarPermiso(index) {
+            const perm = assignedPermissions[index];
+            if (!perm) return;
+            editingPermissionIndex = index;
+            
+            // Llenar el modal con los datos del permiso
+            document.getElementById('nombrePermiso').value = perm.name;
+            document.getElementById('tipoPermiso').value = perm.type;
+            document.getElementById('recursoPermiso').value = perm.resource;
+            document.getElementById('metodoPermiso').value = perm.method;
+            
+            // Cambiar el texto del título y descripción
+            document.getElementById('modalTitle').textContent = 'Editar Permiso';
+            document.getElementById('modalDescription').textContent = 'Modifica los datos del permiso seleccionado.';
+            document.querySelector('.modal-container .btn-guardar').textContent = 'Actualizar Permiso';
+            
+            abrirModal();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const formCrearRol = document.getElementById("formCrearRol");
+            const btnSubmit = document.querySelector(".btn-guardar");
+
+            formCrearRol.addEventListener("submit", async function (event) {
+                if (!formCrearRol.checkValidity()) {
+                    return;
+                }
+                event.preventDefault();
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = "Guardando...";
+                
+                const name = document.getElementById("name").value.trim();
+                const description = document.getElementById("description").value.trim();
+                
+                // Validaciones adicionales
+                if (!name) {
+                    window.seguridad_notyf.error("El nombre del rol es obligatorio.");
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = "Guardar Rol";
+                    return;
+                }
+                
+                if (!description) {
+                    window.seguridad_notyf.error("La descripción del rol es obligatoria.");
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = "Guardar Rol";
+                    return;
+                }
+
+                const permissionsIds = [];
+                for (const perm of assignedPermissions) {
+                    if (perm.id) {
+                        permissionsIds.push(perm.id);
+                    } else {
+                        // Crear el permiso
+                        try {
+                            const response = await fetch('/api/seguridad/permissions', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(perm)
+                            });
+                            if (response.ok) {
+                                const data = await response.json();
+                                permissionsIds.push(data.permission.id);
+                                perm.id = data.permission.id; // Actualizar el permiso con id
+                            } else {
+                                const error = await response.json();
+                                window.seguridad_notyf.error(`Error al crear permiso ${perm.name}: ${error.message}`);
+                                btnSubmit.disabled = false;
+                                btnSubmit.textContent = "Guardar Rol";
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('Error creating permission:', error);
+                            window.seguridad_notyf.error(`Error de conexión al crear permiso ${perm.name}`);
+                            btnSubmit.disabled = false;
+                            btnSubmit.textContent = "Guardar Rol";
+                            return;
+                        }
+                    }
+                }
+                
+                const urlApi = "/api/seguridad/roles";
+                const payload = { name, description };
+                if (permissionsIds.length > 0) {
+                    payload.permissions = permissionsIds;
+                }
+
+                try {
+                    const response = await fetch(urlApi, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const roleId = data.id || (data.role && data.role.id) || data.role_id;
+                        if (!roleId) {
+                            console.error('No se pudo obtener el ID del rol:', data);
+                            window.seguridad_notyf.error("Error al obtener el ID del rol creado.");
+                            return;
+                        }
+                        window.seguridad_notyf.success("Rol creado exitosamente. Redirigiendo...");
+                        setTimeout(() => window.location.href = `/seguridad/roles/editar/${roleId}`, 2000);
+                    } else {
+                        const errorData = await response.json();
+                        window.seguridad_notyf.error(errorData.message || "Error desconocido al crear el rol.");
+                    }
+                } catch (error) {
+                    console.error("Error creating role:", error);
+                    window.seguridad_notyf.error("Error de conexión al crear el rol.");
+                }
+
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Guardar Rol";
+            });
+
+            // Modal permission creation/editing
+            document.querySelector('.modal-container .btn-guardar').addEventListener('click', async () => {
+                const name = document.getElementById('nombrePermiso').value.trim();
+                const type = document.getElementById('tipoPermiso').value;
+                const resource = document.getElementById('recursoPermiso').value;
+                const method = document.getElementById('metodoPermiso').value;
+
+                if (!name || !type || !resource || !method) {
+                    window.seguridad_notyf.error("Todos los campos del permiso son obligatorios.");
+                    return;
+                }
+
+                if (editingPermissionIndex >= 0) {
+                    // Actualizar permiso existente
+                    assignedPermissions[editingPermissionIndex] = { name, type, resource, method };
+                    editingPermissionIndex = -1;
+                    window.seguridad_notyf.success("Permiso actualizado exitosamente.");
+                } else {
+                    // Agregar nuevo permiso
+                    assignedPermissions.push({ name, type, resource, method });
+                    window.seguridad_notyf.success("Permiso agregado exitosamente.");
+                }
+                
+                updatePermissionDisplay();
+                cerrarModal();
+                
+                // Limpiar campos
+                document.getElementById('nombrePermiso').value = '';
+                document.getElementById('tipoPermiso').value = '';
+                document.getElementById('recursoPermiso').value = '';
+                document.getElementById('metodoPermiso').value = '';
+                
+                // Resetear botón
+                document.querySelector('.modal-container .btn-guardar').textContent = 'Crear Permiso';
+                
+            });
+        });
+
+        function abrirModal() {
+            editingPermissionIndex = -1; // Reset editing mode
+            
+            // Resetear título y descripción
+            document.getElementById('modalTitle').textContent = 'Crear Permiso';
+            document.getElementById('modalDescription').textContent = 'Usa este formulario para definir un nuevo permiso y asociarlo con este rol.';
+            document.querySelector('.modal-container .btn-guardar').textContent = 'Crear Permiso';
+            
+            // Fetch permission types, resources, and methods
+            Promise.all([
+                fetch('/api/seguridad/enums/Permission/type').then(r => r.json()),
+                fetch('/api/seguridad/enums/Permission/resource').then(r => r.json()),
+                fetch('/api/seguridad/enums/Permission/method').then(r => r.json())
+            ]).then(([typesData, resourcesData, methodsData]) => {
+                // Populate types
+                console.log('Epale');
+                console.log(typesData);
+                console.log(resourcesData);
+                console.log(methodsData);
+                if (typesData.success) {
+                    const selectTipo = document.getElementById('tipoPermiso');
+                    selectTipo.innerHTML = '<option selected disabled>Selecciona un tipo</option>';
+                    // Quita el ultimo elemento de typesData.types
+                    typesData = { ...typesData, types: typesData.types.slice(0, -1) };
+                    typesData.types.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type;
+                        option.textContent = type;
+                        selectTipo.appendChild(option);
+                    });
+                }
+
+                // Populate resources
+                if (resourcesData.success && resourcesData.resources.Resources) {
+                    const selectRecurso = document.getElementById('recursoPermiso');
+                    selectRecurso.innerHTML = '<option selected disabled>Selecciona un recurso</option>';
+                    resourcesData.resources.Resources.forEach(resource => {
+                        const option = document.createElement('option');
+                        option.value = resource;
+                        option.textContent = resource;
+                        selectRecurso.appendChild(option);
+                    });
+                }
+
+                // Populate methods
+                if (methodsData.success && methodsData.methods.Methods) {
+                    const selectMetodo = document.getElementById('metodoPermiso');
+                    selectMetodo.innerHTML = '<option selected disabled>Selecciona un método</option>';
+                    methodsData.methods.Methods.forEach(method => {
+                        const option = document.createElement('option');
+                        option.value = method;
+                        option.textContent = method;
+                        selectMetodo.appendChild(option);
+                    });
+                }
+            }).catch(error => console.error('Error fetching enums:', error));
+            
+            document.getElementById('modalPermiso').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalPermiso').classList.add('hidden');
+            
+            // Limpiar campos y resetear título cuando se cierra
+            document.getElementById('nombrePermiso').value = '';
+            document.getElementById('tipoPermiso').value = '';
+            document.getElementById('recursoPermiso').value = '';
+            document.getElementById('metodoPermiso').value = '';
+            document.getElementById('modalTitle').textContent = 'Crear Permiso';
+            document.getElementById('modalDescription').textContent = 'Usa este formulario para definir un nuevo permiso y asociarlo con este rol.';
+            document.querySelector('.modal-container .btn-guardar').textContent = 'Crear Permiso';
+            editingPermissionIndex = -1;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard D/P</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link rel="stylesheet" href="/mod-1-delivery-pickup/pages/dashboard-home/page.css" />
+  </head>
+  <body class="antialiased text-slate-900">
+    <div class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8">
+      <app-header></app-header>
+    </div>
+
+    <header class="mb-6">
+      <div class="inline-flex items-center gap-2 text-xs text-slate-500">
+        <a class="hover:text-slate-800" href="/admin">Admin</a>
+        <span aria-hidden="true">/</span>
+        <span class="text-slate-700">Delivery & Pickup</span>
+      </div>
+      <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold">Dashboard — Delivery & Pickup</h1>
+      <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas.</p>
+    </header>
+
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <a class="dp-card" href="/admin/dp/orders">
+        <div class="dp-card-icon">📦</div>
+        <div class="dp-card-title">Órdenes</div>
+        <div class="dp-card-desc">Listado y estados de pedidos.</div>
+      </a>
+      <a class="dp-card" href="/admin/dp/zones">
+        <div class="dp-card-icon">🗺️</div>
+        <div class="dp-card-title">Zonas</div>
+        <div class="dp-card-desc">Cobertura, ETA y tarifas.</div>
+      </a>
+      <a class="dp-card" href="/admin/dp/config">
+        <div class="dp-card-icon">⚙️</div>
+        <div class="dp-card-title">Configuración</div>
+        <div class="dp-card-desc">Umbrales operativos.</div>
+      </a>
+      <a class="dp-card" href="/admin/dp/audit">
+        <div class="dp-card-icon">🧾</div>
+        <div class="dp-card-title">Auditoría</div>
+        <div class="dp-card-desc">Logs y exportación.</div>
+      </a>
+    </section>
+
+    <script type="module" src="/shared/components/app-header.js"></script>
+    <script type="module" src="/mod-1-delivery-pickup/pages/dashboard-home/page.js"></script>
+  </body>
+</html>

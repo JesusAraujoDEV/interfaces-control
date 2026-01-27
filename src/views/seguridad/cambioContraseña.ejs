@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambiar Contraseña - Charlotte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/seguridad/cambioContraseña.css">
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="contenido-principal">
+            <header class="cabecera-crear" style="text-align: center;">
+                <div class="info-titulo">
+                    <h1>Cambiar contraseña</h1>
+                </div>
+            </header>
+
+            <div class="contenedor-centrado">
+                <section class="tarjeta-blanca">
+                    <form id="formCambioPassword" class="formulario-usuario">
+                        
+                        <div class="grupo-horizontal">
+                            <label>Contraseña actual</label>
+                            <div class="input-icono">
+                                <input id="current-password" type="password" placeholder="Escribe tu contraseña actual" required autocomplete="current-password">
+                                <i id="toggle-current-password" class="fa-regular fa-eye cursor-pointer"></i>
+                            </div>
+                        </div>
+
+                        <div class="grupo-horizontal">
+                            <label>Nueva contraseña</label>
+                            <div class="input-icono">
+                                <input id="new-password" type="password" placeholder="Escribe la nueva contraseña" required autocomplete="new-password">
+                                <i id="toggle-new-password" class="fa-regular fa-eye cursor-pointer"></i>
+                            </div>
+                        </div>
+
+                        <div class="grupo-horizontal">
+                            <label>Confirmar contraseña</label>
+                            <div class="input-icono">
+                                <input id="confirm-password" type="password" placeholder="Confirma la nueva contraseña" required autocomplete="new-password">
+                                <i id="toggle-confirm-password" class="fa-regular fa-eye cursor-pointer"></i>
+                            </div>
+                        </div>
+
+                        <div class="botones-formulario">
+                            <button type="button" class="btn-cancelar" onclick="window.history.back()">Cancelar</button>
+                            <button type="submit" id="btnGuardar" class="btn-guardar">Guardar contraseña</button>
+                        </div>  
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("DOM Cargado: Inicializando vista de cambio de contraseña");
+
+            const form = document.getElementById("formCambioPassword");
+            const btnGuardar = document.getElementById("btnGuardar");
+
+            const mostrarNotificacion = (mensaje, tipo) => {
+                if (window.seguridad_notyf) {
+                    tipo === 'success' ? window.seguridad_notyf.success(mensaje) : window.seguridad_notyf.error(mensaje);
+                } else {
+                    alert(mensaje);
+                }
+            };
+
+            const setupToggle = (toggleId, inputId) => {
+                const toggle = document.getElementById(toggleId);
+                const input = document.getElementById(inputId);
+                if (toggle && input) {
+                    toggle.addEventListener("click", function () {
+                        const type = input.getAttribute("type") === "password" ? "text" : "password";
+                        input.setAttribute("type", type);
+                        this.classList.toggle("fa-eye");
+                        this.classList.toggle("fa-eye-slash");
+                    });
+                }
+            };
+
+            setupToggle("toggle-current-password", "current-password");
+            setupToggle("toggle-new-password", "new-password");
+            setupToggle("toggle-confirm-password", "confirm-password");
+
+       
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+             
+                btnGuardar.disabled = true;
+                btnGuardar.innerText = "Procesando...";
+                
+                console.log("Evento submit detectado");
+
+                const current_password = document.getElementById("current-password").value;
+                const new_password = document.getElementById("new-password").value;
+                const confirm_password = document.getElementById("confirm-password").value;
+
+                if (new_password !== confirm_password) {
+                    mostrarNotificacion("La nueva contraseña y la confirmación no coinciden", "error");
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerText = "Guardar contraseña";
+                    return;
+                }
+
+                try {
+                    const token = localStorage.getItem('access_token');
+                    console.log("Enviando petición al servidor...");
+
+                    const response = await fetch("/api/seguridad/auth/passwordChange", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ current_password, new_password })
+                    });
+
+                    console.log("Servidor respondió con status:", response.status);
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        mostrarNotificacion(data.message || "Contraseña actualizada correctamente", "success");
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        mostrarNotificacion(data.message || "Error al cambiar contraseña", "error");
+                        btnGuardar.disabled = false;
+                        btnGuardar.innerText = "Guardar contraseña";
+                    }
+
+                } catch (error) {
+                    console.error("Error en la conexión:", error);
+                    mostrarNotificacion("Error de conexión con el servidor", "error");
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerText = "Guardar contraseña";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informes Históricos - Charlotte</title>
-    <link rel="stylesheet" href="/styles.css">
-    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
-    
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-    /* Estilos para cumplir el requisito de Tabla Densa */
-    .data-table--dense th, .data-table--dense td { padding: 4px 8px !important; font-size: 0.85rem; }
-    .data-table--dense tr:hover { background-color: #f1f8ff; cursor: pointer; }
-    /* Estilos para el botón de carga */
-    .btn-loading { background-color: #6c757d !important; cursor: wait !important; pointer-events: none; }
-    .btn-success { background-color: #28a745 !important; border-color: #28a745 !important; }
-</style>
+        /* Estilo Flatpickr Charlotte */
+        .flatpickr-calendar { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: #107c10 !important; border-color: #107c10 !important; color: #fff !important; }
+        .flatpickr-day:hover { background: #ecfdf5 !important; }
+        .flatpickr-months .flatpickr-month { background: #fff; }
+        .flatpickr-current-month { font-weight: 700; color: #1e293b; }
+        .flatpickr-weekday { color: #64748b; font-weight: 600; }
+        #date-picker-inline { margin-top: 10px; }
+    </style>
 </head>
+
 <body>
 
     <div class="main-layout">
@@ -29,14 +34,20 @@
             </div>
 
             <nav class="sidebar__nav">
-                <a href="#" class="sidebar__menu-item sidebar__menu-item--active">
+                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item sidebar__menu-item--active">
                     <span>📊</span> Business Intelligence
                 </a>
-                <a href="#" class="sidebar__menu-item">
-                    <span>📋</span> Inventario
+                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item">
+                    <span>📦</span> Inventario
                 </a>
-                <a href="#" class="sidebar__menu-item">
-                    <span>👥</span> Empleados
+                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item">
+                    <span>⏱️</span> Eficiencia
+                </a>
+                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()">
+                    <span>🔔</span> Alertas
                 </a>
                 <a href="#" class="sidebar__menu-item">
                     <span>⚙️</span> Configuración
@@ -56,9 +67,8 @@
                     <h1 class="header-top__title">Informes Históricos</h1>
                     <p class="header-top__subtitle">Descarga de datos históricos y contabilidad.</p>
                 </div>
-                <button id="btnExport" class="btn-primary" onclick="iniciarExportacion()">
-                    <span id="btnIcon">⬇️</span> 
-                    <span id="btnText">Exportar a Excel (.CSV)</span>
+                <button class="btn-primary">
+                    <span>📥</span> Exportar a Excel (.CSV)
                 </button>
             </header>
 
@@ -68,124 +78,329 @@
                         <h2 class="card__title">Filtros</h2>
                         
                         <div class="filter-group">
-                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Rango de Fechas</label>
-                            <div class="calendar-widget">
-                                <div class="calendar-widget__header">
-                                    <span>&lt;</span> Agosto 2024 <span>&gt;</span>
-                                </div>
-                                <div class="calendar-widget__grid">
-                                    <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
-                                    <span class="calendar-widget__day">1</span><span class="calendar-widget__day">2</span><span class="calendar-widget__day">3</span><span class="calendar-widget__day">4</span>
-                                    <span class="calendar-widget__day calendar-widget__day--selected">5</span><span class="calendar-widget__day">6</span><span class="calendar-widget__day">7</span><span class="calendar-widget__day">8</span><span class="calendar-widget__day">9</span><span class="calendar-widget__day calendar-widget__day--selected">10</span>
-                                    </div>
-                            </div>
+                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Buscador Global</label>
+                            <input type="text" id="global-search" placeholder="🔍 ID, Camarero..." 
+                                   style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
+                        </div>
+
+                        <div class="filter-group">
+                            <label
+                                style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Rango
+                                de Fechas</label>
+                            <div id="date-picker-inline" class="flatpickr-custom"></div>
                         </div>
 
                         <div class="filter-group" style="margin-top: 2rem;">
-                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Tipo de Informe</label>
-                            <select style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <label style="display:block; margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Tipo
+                                de Informe</label>
+                            <select
+                                style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
                                 <option>Ventas</option>
                             </select>
                         </div>
 
-                        <button class="btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center;">
+                        <button class="btn-primary" id="apply-filters-btn" style="width: 100%; margin-top: 2rem; justify-content: center;">
                             Aplicar Filtros
                         </button>
                     </div>
                 </aside>
 
                 <section class="table-section">
-                    <div class="card" style="padding: 0; overflow: hidden;">
-                        <table class="data-table data-table--dense">
-                            <thead class="data-table__thead">
-                                <tr>
-                                    <th class="data-table__th">ID TRANSACCIÓN</th>
-                                    <th class="data-table__th">FECHA</th>
-                                    <th class="data-table__th">HORA</th>
-                                    <th class="data-table__th">CAMARERO</th>
-                                    <th class="data-table__th">CANTIDAD</th>
-                                    <th class="data-table__th">DURACIÓN TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                <tr>
-                                    <td class="data-table__td">TXN-001254</td>
-                                    <td class="data-table__td">08/08/2024</td>
-                                    <td class="data-table__td">14:32</td>
-                                    <td class="data-table__td">Ana Pérez</td>
-                                    <td class="data-table__td"><strong>$45.50</strong></td>
-                                    <td class="data-table__td">25 min</td>
-                                </tr>
+                    <div class="tabs-container" style="margin-bottom: 1.5rem;">
+                        <button class="tab tab--active" data-range="30days">Últimos 30 días ▾</button>
+                        <button class="tab" data-range="week">Semana Actual</button>
+                        <button class="tab" data-range="month">Mes Actual</button>
+                        <button class="tab" data-range="year">Año Actual</button>
+                    </div>
+
+                    <div class="card"
+                        style="padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 500px;">
+
+                        <!-- Header fijo -->
+                        <div style="background-color: var(--primary-color); color: white; padding-right: 17px;">
+                            <table class="data-table" style="margin-bottom: 0;">
+                                <thead class="data-table__thead">
+                                    <tr>
+                                        <th class="data-table__th" style="width: 15%;">ID TRANSACCIÓN</th>
+                                        <th class="data-table__th" style="width: 15%;">FECHA</th>
+                                        <th class="data-table__th" style="width: 10%;">HORA</th>
+                                        <th class="data-table__th" style="width: 25%;">CAMARERO</th>
+                                        <th class="data-table__th" style="width: 15%;">CANTIDAD</th>
+                                        <th class="data-table__th" style="width: 20%;">DURACIÓN TOTAL</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <!-- Contenedor con scroll (VIRTUALIZADO) -->
+                        <div id="virtual-scroller" style="flex-grow: 1; overflow-y: auto; position: relative;">
+                            <div id="ghost-height" style="height: 0;"></div>
+                            <table class="data-table" id="real-table"
+                                style="position: absolute; top: 0; left: 0; width: 100%;">
+                                <tbody id="table-body">
                                 </tbody>
-                        </table>
-                        <div style="padding: 15px; color: var(--text-muted); font-size: 0.8rem; display: flex; justify-content: space-between;">
-                            <span>Mostrando 1-6 de 82 resultados</span>
-                            <div>
-                                <button style="border:none; background:none; cursor:pointer;">&lt;</button>
-                                <button style="border:none; background:none; cursor:pointer;">&gt;</button>
-                            </div>
+                            </table>
+                        </div>
+
+                        <div
+                            style="padding: 10px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted);">
+                            <span id="record-count">Cargando transacciones...</span>
                         </div>
                     </div>
                 </section>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const scroller = document.getElementById('virtual-scroller');
+                        const ghost = document.getElementById('ghost-height');
+                        const realTable = document.getElementById('real-table');
+                        const tbody = document.getElementById('table-body');
+                        const countLabel = document.getElementById('record-count');
+                        const searchInput = document.getElementById('global-search');
+                        const applyBtn = document.getElementById('apply-filters-btn');
+
+                        const ROW_HEIGHT = 51; 
+                        let allData = [];
+                        let currentSearch = "";
+                        let selectedDate = null;
+
+                        // 1. Unified Fetch Logic
+                        const fetchTransactions = (search = "", startDate = null, endDate = null) => {
+                            let url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/business/transactions?search=${search}`;
+                            if (startDate) url += `&start_date=${startDate}`;
+                            if (endDate) url += `&end_date=${endDate}`;
+
+                            countLabel.innerText = "Sincronizando con servidor...";
+                            
+                            fetch(url)
+                                .then(res => res.json())
+                                .then(response => {
+                                    allData = response.data || [];
+                                    updateScrollerHeight();
+                                    scroller.scrollTop = 0;
+                                    renderSlice();
+                                    
+                                    if (search || startDate) {
+                                        countLabel.innerText = `Mostrando ${allData.length} resultados filtrados`;
+                                    } else {
+                                        countLabel.innerText = `Mostrando ${allData.length} registros (ID total sincronizado)`;
+                                    }
+                                });
+                        };
+
+                        function updateScrollerHeight() {
+                            ghost.style.height = `${allData.length * ROW_HEIGHT}px`;
+                        }
+
+                        // 2. Virtual Scroll Logic
+                        const renderSlice = () => {
+                            const scrollTop = scroller.scrollTop;
+                            const viewportHeight = scroller.clientHeight;
+
+                            const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
+                            const endIndex = Math.min(
+                                allData.length,
+                                Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
+                            );
+
+                            let rowsHtml = '';
+                            for (let i = startIndex; i < endIndex; i++) {
+                                const item = allData[i];
+                                rowsHtml += `
+                                    <tr style="height: ${ROW_HEIGHT}px;" class="hover:bg-emerald-50 transition-colors">
+                                        <td class="data-table__td" style="width: 15%;">${item.id}</td>
+                                        <td class="data-table__td" style="width: 15%;">${item.date}</td>
+                                        <td class="data-table__td" style="width: 10%;">${item.time}</td>
+                                        <td class="data-table__td" style="width: 25%; font-weight: 500;">${item.waiter}</td>
+                                        <td class="data-table__td" style="width: 15%; font-weight: bold; color: #107c10;">$${item.amount}</td>
+                                        <td class="data-table__td" style="width: 20%;">${item.duration}</td>
+                                    </tr>
+                                `;
+                            }
+
+                            tbody.innerHTML = rowsHtml;
+                            realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
+                        };
+
+                        scroller.addEventListener('scroll', () => {
+                            window.requestAnimationFrame(renderSlice);
+                        });
+
+                        // 3. Reactive Filters
+                        let searchTimeout;
+                        if (searchInput) {
+                            searchInput.addEventListener('input', (e) => {
+                                currentSearch = e.target.value;
+                                clearTimeout(searchTimeout);
+                                // Debounce searching to reduce API calls
+                                searchTimeout = setTimeout(() => {
+                                    fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
+                                }, 400);
+                            });
+                        }
+
+                        // 4. Predefined Ranges Buttons
+                        document.querySelectorAll('.tab').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+                                this.classList.add('tab--active');
+                                
+                                const range = this.getAttribute('data-range');
+                                const today = new Date();
+                                let start = null;
+                                let end = instance.formatDate(today, "Y-m-d");
+
+                                if (range === '30days') {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() - 30);
+                                    start = instance.formatDate(d, "Y-m-d");
+                                } else if (range === 'week') {
+                                    const d = new Date();
+                                    const day = d.getDay() || 7;
+                                    d.setHours(-24 * (day - 1));
+                                    start = instance.formatDate(d, "Y-m-d");
+                                } else if (range === 'month') {
+                                    const d = new Date(today.getFullYear(), today.getMonth(), 1);
+                                    start = instance.formatDate(d, "Y-m-d");
+                                } else if (range === 'year') {
+                                    const d = new Date(today.getFullYear(), 0, 1);
+                                    start = instance.formatDate(d, "Y-m-d");
+                                }
+
+                                selectedStartDate = start;
+                                selectedEndDate = end;
+                                
+                                // Update Flatpickr visual selection
+                                if (instance) {
+                                    instance.setDate([start, end], false);
+                                }
+                                
+                                fetchTransactions(currentSearch, start, end);
+                            });
+                        });
+
+                        // 5. Flatpickr Initialization (The "Function/Library" part)
+                        let selectedStartDate = null;
+                        let selectedEndDate = null;
+                        let instance = null;
+
+                        instance = flatpickr("#date-picker-inline", {
+                            inline: true,
+                            mode: "range",
+                            dateFormat: "Y-m-d",
+                            locale: "es",
+                            onChange: function(selectedDates, dateStr, inst) {
+                                if (selectedDates.length === 1) {
+                                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
+                                    selectedEndDate = null;
+                                    fetchTransactions(currentSearch, selectedStartDate);
+                                } else if (selectedDates.length === 2) {
+                                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
+                                    selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
+                                    fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
+                                }
+                            }
+                        });
+
+                        if (applyBtn) {
+                            applyBtn.addEventListener('click', () => {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Datos Actualizados',
+                                    text: 'Información sincronizada con el rango seleccionado.',
+                                    timer: 1500,
+                                    showConfirmButton: false,
+                                    toast: true,
+                                    position: 'top-end'
+                                });
+                                fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
+                            });
+                        }
+
+                        // 5. Initial Load
+                        fetchTransactions();
+
+                        // 6. Export Logic with POLLING
+                        const exportBtn = document.querySelector('.header-top .btn-primary');
+                        
+                        function pollExportJob(jobId) {
+                            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.status === 'COMPLETED') {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: '¡Reporte Contable Listo!',
+                                            text: `Se ha generado el archivo para el rango seleccionado.`,
+                                            footer: `<a href="${data.download_url}" class="text-emerald-600 font-bold" target="_blank">Descargar CSV</a>`,
+                                            confirmButtonColor: '#387652'
+                                        });
+                                        exportBtn.disabled = false;
+                                        exportBtn.innerText = "📥 Exportar a Excel (.CSV)";
+                                    } else {
+                                        setTimeout(() => pollExportJob(jobId), 2000);
+                                    }
+                                })
+                                .catch(() => {
+                                    Swal.fire('Error', 'Se perdió la conexión con el servidor de reportes.', 'error');
+                                    exportBtn.disabled = false;
+                                });
+                        }
+
+                        if (exportBtn) {
+                            exportBtn.addEventListener('click', () => {
+                                exportBtn.disabled = true;
+                                exportBtn.innerText = "Generando...";
+
+                                Swal.fire({
+                                    title: 'Generando Contabilidad',
+                                    text: 'Procesando transacciones filtradas para el reporte...',
+                                    allowOutsideClick: false,
+                                    didOpen: () => Swal.showLoading()
+                                });
+
+                                fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { 
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
+                                })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        pollExportJob(data.job_id);
+                                    })
+                                    .catch(() => {
+                                        Swal.fire('Error', 'No se pudo iniciar la exportación.', 'error');
+                                        exportBtn.disabled = false;
+                                        exportBtn.innerText = "📥 Exportar a Excel (.CSV)";
+                                    });
+                            });
+                        }
+                    });
+
+                    // --- Global Alerts History ---
+                    window.showAlertsHistory = function() {
+                        Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+                        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
+                            .then(res => res.json())
+                            .then(data => {
+                                Swal.fire({
+                                    title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                                    html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                                        ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                            <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
+                                            <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
+                                        </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                                    </div>`,
+                                    confirmButtonText: 'Entendido', confirmButtonColor: '#387652', width: '450px'
+                                });
+                            });
+                    }
+                </script>
+
             </div>
         </main>
     </div>
-    <script>
-        // 1. Script para Simular la Tabla Densa con Datos
-        document.addEventListener('DOMContentLoaded', () => {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = ''; // Limpia lo que haya
-            // Generamos 20 filas para que se vea "Densa" como pide la tarea
-            for(let i=1; i<=20; i++) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="data-table__td">TXN-00${1000+i}</td>
-                        <td class="data-table__td">2024-08-${i < 10 ? '0'+i : i}</td>
-                        <td class="data-table__td">14:${10+i}</td>
-                        <td class="data-table__td">Cajero ${i%3 + 1}</td>
-                        <td class="data-table__td">$${(Math.random()*100).toFixed(2)}</td>
-                        <td class="data-table__td">${Math.floor(Math.random()*30)} min</td>
-                        <td class="data-table__td"><span style="color:green; font-weight:bold;">Done</span></td>
-                    </tr>`;
-            }
-        });
 
-        // 2. Lógica del Botón Exportar (POLLING requerido)
-        function iniciarExportacion() {
-            const btn = document.getElementById('btnExport');
-            const icon = document.getElementById('btnIcon');
-            const text = document.getElementById('btnText');
-
-            // Estado: Cargando
-            btn.classList.add('btn-loading');
-            text.innerText = "Generando archivo...";
-            icon.innerText = "⏳";
-
-            // Simulamos Polling (Preguntar cada 2 seg)
-            let intentos = 0;
-            const intervalo = setInterval(() => {
-                intentos++;
-                console.log("Consultando estado del archivo... Intento " + intentos);
-                
-                // A los 4 segundos (2 intentos), simulamos que terminó
-                if(intentos >= 2) {
-                    clearInterval(intervalo);
-                    // Estado: Éxito
-                    btn.classList.remove('btn-loading');
-                    btn.classList.add('btn-success');
-                    text.innerText = "¡Descarga Lista!";
-                    icon.innerText = "✅";
-                    alert("⬇️ Descargando reporte_mensual.csv ...");
-                    
-                    // Resetear botón a los 3 seg
-                    setTimeout(() => {
-                        btn.classList.remove('btn-success');
-                        text.innerText = "Exportar a Excel (.CSV)";
-                        icon.innerText = "⬇️";
-                    }, 3000);
-                }
-            }, 2000);
-        }
-    </script>
 </body>
+
 </html>

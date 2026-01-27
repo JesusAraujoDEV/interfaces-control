@@ -1,0 +1,19 @@
+/* Configuraciones personalizadas que no vienen por defecto en Tailwind */
+
+.contenedor-login {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.seccion-imagen {
+    /* Imagen de fondo referencial de un restaurante */
+    background-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), 
+                      url('https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1200');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Ajuste para fuentes más limpias */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

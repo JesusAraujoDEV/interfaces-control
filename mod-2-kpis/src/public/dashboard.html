@@ -1,38 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Dashboard - Charlotte</title>
-    <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body>
     <div class="main-layout">
-        <aside class="sidebar">
-            <div class="sidebar__logo">
-                <span class="icon">☕</span> CHARLOTTE
+      <aside class="sidebar">
+        <div class="sidebar__logo"><span class="icon">☕</span> CHARLOTTE</div>
+
+        <nav class="sidebar__nav">
+          <a
+            href="/mod-2-kpis/src/public/dashboard.html"
+            class="sidebar__menu-item sidebar__menu-item--active"
+          >
+            <i>🏠</i> Dashboard
+          </a>
+          <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item">
+            <i>📊</i> Reportes
+          </a>
+          <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item">
+            <i>📦</i> Inventario
+          </a>
+          <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item">
+            <i>⏱️</i> Eficiencia
+          </a>
+          <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()">
+            <i>🔔</i> Alertas
+          </a>
+          <a href="#" class="sidebar__menu-item"> <i>⚙️</i> Configuración </a>
+        </nav>
+
+        <div class="sidebar__profile-footer">
+          <div
+            class="sidebar__avatar"
+            style="
+              background-image: url(&quot;user.jpg&quot;);
+              background-size: cover;
+            "
+          ></div>
+          <div>
+            <p class="sidebar__user-name">Juan Pérez</p>
+            <p class="sidebar__user-role">Administrador</p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="header-top">
+          <div>
+            <h1 class="header-top__title">HOLA, JUAN</h1>
+            <p class="header-top__subtitle">
+              Este es el resumen de tu negocio.
+            </p>
+          </div>
+          <div
+            class="date-badge"
+            id="current-date-badge"
+            style="
+              background: white;
+              padding: 8px 15px;
+              border-radius: 8px;
+              border: 1px solid var(--border-color);
+              font-size: 0.8rem;
+            "
+          >
+            📅 Cargando fecha...
+          </div>
+        </header>
+
+        <section class="stats-grid">
+          <div class="kpi-card">
+            <p class="kpi-card__label">Ingresos</p>
+            <p class="kpi-card__value" id="kpi-revenue">Loading...</p>
+            <span class="kpi-card__trend" id="kpi-revenue-trend">--</span>
+          </div>
+          <div class="kpi-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <p class="kpi-card__label">Meta Trimestral</p>
+              <button id="edit-goal-btn" class="icon-btn" title="Editar Meta">
+                ✏️
+              </button>
+            </div>
+            <p class="kpi-card__value" id="kpi-goal">Loading...</p>
+            <p style="font-size: 0.7rem; color: var(--text-muted)" id="kpi-goal-absolute">$0k</p>
+          </div>
+
+          <div class="kpi-card">
+            <p class="kpi-card__label">Tiempo Atención</p>
+            <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted)"
+              >Óptimo ⏱️</span
+            >
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-card__label">Rotación</p>
+            <p class="kpi-card__value" id="kpi-rotation">0.0 /hr</p>
+            <span class="kpi-card__trend" id="kpi-rotation-target">Meta --</span>
+          </div>
+        </section>
+
+        <div class="dashboard-main-grid">
+          <div class="chart-container">
+            <h2 class="card__title">Ventas por Hora</h2>
+            <p class="kpi-card__value" style="font-size: 1.5rem">
+              <span id="chart-revenue-today">$0</span>
+              <span style="font-size: 0.8rem; color: #28a745" id="chart-revenue-trend">Hoy +0%</span>
+            </p>
+            <div style="width: 100%; height: 250px; margin-top: 20px">
+              <canvas id="demand-chart"></canvas>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 10px;
+                color: var(--text-muted);
+                font-size: 0.7rem;
+              "
+            >
+              <span>8 AM</span><span>12 PM</span><span>4 PM</span
+              ><span>8 PM</span>
+            </div>
+          </div>
+
+          <div class="stock-alerts">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <h2 class="card__title" style="margin-bottom: 0">
+                Alertas de Stock
+              </h2>
+              <button
+                id="stock-settings-btn"
+                class="icon-btn"
+                title="Configurar Límites"
+              >
+                ⚙️
+              </button>
             </div>
 
-            <nav class="sidebar__nav">
-                <a href="dashboard.html" class="sidebar__menu-item sidebar__menu-item--active">
-                    <i>🏠</i> Dashboard
-                </a>
-                <a href="index.html" class="sidebar__menu-item">
-                    <i>📊</i> Reportes
-                </a>
-                <a href="#" class="sidebar__menu-item">
-                    <i>📦</i> Inventario
-                </a>
-                <a href="#" class="sidebar__menu-item">
-                    <i>⚙️</i> Configuración
-                </a>
-            </nav>
-
-            <div class="sidebar__profile-footer">
-                <div class="sidebar__avatar" style="background-image: url('user.jpg'); background-size: cover;"></div>
-                <div>
-                    <p class="sidebar__user-name">Juan Pérez</p>
-                    <p class="sidebar__user-role">Administrador</p>
-                </div>
+            <div id="stock-alerts-list">
+              <!-- Dynamically populated from API -->
+              <p class="text-muted" style="font-size: 0.8rem">Cargando alertas...</p>
             </div>
         </aside>
 

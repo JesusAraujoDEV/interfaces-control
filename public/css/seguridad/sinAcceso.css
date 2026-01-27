@@ -1,0 +1,36 @@
+:root {
+    --verde-charlotte: #1e4d35; /* El verde usado en la cabecera de las tablas */
+    --gris-suave: #f1f5f9;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-primario {
+    background-color: var(--verde-charlotte);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.btn-primario:hover {
+    background-color: #143625;
+    transform: translateY(-1px);
+}
+
+.btn-secundario {
+    background-color: var(--gris-suave);
+    color: #475569;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-secundario:hover {
+    background-color: #e2e8f0;
+}

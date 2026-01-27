@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Order - Charlotte's Restaurant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#205638', secondary: '#E8F5E9', danger: '#DC2626' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-slide-up { animation: slide-up 0.3s ease-out; }
+        
+        /* Animación para la barra de progreso */
+        .progress-bar-fill { transition: width 30s linear; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+
+    <header class="md:hidden p-4 flex items-center bg-white sticky top-0 z-20 shadow-sm">
+        <button onclick="history.back()" class="p-2 -ml-2 mr-2 text-gray-600">
+            <span class="material-icons-outlined">arrow_back</span>
+        </button>
+        <h1 class="text-xl font-bold text-gray-900 flex-1 text-center">Mi Orden</h1>
+        <div class="w-8"></div>
+    </header>
+
+    <header class="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div class="container mx-auto max-w-6xl px-4 h-20 flex items-center justify-between">
+            <a href="menu.html" class="text-2xl font-bold text-gray-900 tracking-tight hover:text-primary transition">
+                Charlotte's Restaurant
+            </a>
+            <div id="desktop-nav-container" class="flex items-center gap-8"></div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-10">
+        
+        <h1 class="hidden md:block text-3xl font-bold text-gray-900 mb-8">Gestión de Pedidos</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800 flex items-center gap-2">
+                            <span class="material-icons-outlined text-primary">shopping_cart</span>
+                            Nuevos Ítems (No enviados)
+                        </h2>
+                        <button onclick="clearCart()" id="btn-clear" class="text-xs text-red-500 font-medium hover:underline hidden">Limpiar Todo</button>
+                    </div>
+                    
+                    <div id="cart-items-container" class="p-4 space-y-4 min-h-[150px]">
+                        <div class="text-center py-8">
+                            <span class="animate-spin material-icons-outlined text-gray-400">refresh</span>
+                        </div>
+                    </div>
+
+                    <div id="cart-footer" class="bg-gray-50 p-6 border-t border-gray-100">
+                        <div class="flex justify-between items-end mb-4">
+                            <span class="text-gray-600">Total para nuevos ítems:</span>
+                            <span class="text-2xl font-bold text-gray-900" id="summary-total">$0.00</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="menu.html" class="flex items-center justify-center gap-2 w-full bg-white hover:bg-gray-50 text-gray-700 font-bold py-3 rounded-xl border border-gray-200 transition">
+                                <span class="material-icons-outlined text-sm">add</span> Añadir Más
+                            </a>
+                            <button onclick="openConfirmation()" id="btn-checkout" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-3 rounded-xl shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                Enviar a Cocina
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                            <span class="material-icons-outlined text-gray-500">receipt_long</span>
+                            Historial de Órdenes
+                        </h3>
+                        <button onclick="updateOrdersStatus()" class="text-primary hover:bg-green-50 p-1 rounded-full transition" title="Actualizar Órdenes">
+                            <span class="material-icons-outlined text-sm">refresh</span>
+                        </button>
+                    </div>
+
+                    <div id="orders-history-container" class="p-4 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                        <p class="text-center text-gray-400 text-sm py-4">No órdenes enviadas aún.</p>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-4 p-6 border-b border-gray-200 pb-4">
+                        <div>
+                            <span class="text-gray-600 text-sm font-medium">Total Consumido:</span>
+                            <p class="text-xs text-gray-400 mt-1">No incluye impuestos</p>
+                        </div>
+                        <span class="text-2xl font-bold text-gray-900" id="history-total">$0.00</span>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 bg-gray-50">
+                        <button id="btn-request-bill" onclick="requestBill()" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl shadow-md flex justify-center items-center gap-2 hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <span class="material-icons-outlined text-sm">payments</span>
+                            Solicitar Cuenta y Pagar
+                        </button>
+                        <p id="bill-hint" class="text-xs text-center text-red-400 mt-2 hidden">
+                            Espera hasta que todas las órdenes sean entregadas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="confirmOverlay" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60 transition-opacity backdrop-blur-sm" onclick="closeConfirmation()"></div>
+        <div class="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 
+                    w-full md:w-[400px] bg-white md:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up z-50">
+            <div class="p-6 pb-8 text-center">
+                <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-icons-outlined text-3xl text-primary">restaurant</span>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900 mb-2">¿Enviar orden a la cocina?</h2>
+                <div class="space-y-3 mt-6">
+                    <button id="btn-confirm-send" onclick="sendOrderToKitchen()" class="w-full bg-primary hover:bg-green-800 text-white font-bold py-3.5 rounded-xl shadow-md transition">
+                        Sí, Enviar Orden
+                    </button>
+                    <button onclick="closeConfirmation()" class="w-full bg-white text-gray-700 font-bold py-3.5 rounded-xl border border-gray-200 transition">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="paymentOverlay" class="fixed inset-0 z-[60] hidden bg-white">
+        <div class="flex flex-col items-center justify-center h-full max-w-md mx-auto px-6 text-center">
+            
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <span class="material-icons-outlined text-4xl text-gray-600">storefront</span>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Pago en Progreso</h2>
+            <p class="text-gray-500 mb-8">Por favor, dirígete a la caja para completar tu pago.</p>
+
+            <div class="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden">
+                <div id="payment-progress-bar" class="h-full bg-primary rounded-full w-0"></div>
+            </div>
+            
+            <p class="text-xs text-gray-400 font-medium">Validando el estado del pago...</p>
+        </div>
+    </div>
+
+    <div id="toast" class="pointer-events-none fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <span class="material-icons-outlined text-green-400">check_circle</span>
+        <span id="toast-message" class="flex-1 text-sm font-medium">Notification</span>
+    </div>
+
+    <nav id="mobile-nav-container"></nav>
+
+    <script src="/config.js"></script>
+    <script src="/mod-3-atencion-cliente/components/navbar.js"></script>
+    <script src="/mod-3-atencion-cliente/api/base.js"></script>
+    <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    
+    <script>
+        // === ESTADO ===
+        let cart = [];
+        let activeOrders = []; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            loadActiveOrders(); 
+            renderCart();
+            renderActiveOrders(); 
+            setInterval(updateOrdersStatus, 5000);
+        });
+
+        // ==========================================
+        // LÓGICA DEL CARRITO (Igual que antes)
+        // ==========================================
+        function loadCart() {
+            try {
+                const saved = localStorage.getItem('charlotte_cart');
+                cart = saved ? JSON.parse(saved) : [];
+            } catch (e) { cart = []; }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const btnCheckout = document.getElementById('btn-checkout');
+            const totalEl = document.getElementById('summary-total');
+            const btnClear = document.getElementById('btn-clear');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10">
+                        <span class="material-icons-outlined text-gray-300 text-5xl mb-2">shopping_bag</span>
+                        <p class="text-gray-400 text-sm">Your cart is empty</p>
+                    </div>`;
+                totalEl.textContent = '$0.00';
+                btnCheckout.disabled = true;
+                btnClear.classList.add('hidden');
+                return;
+            }
+
+            btnCheckout.disabled = false;
+            btnClear.classList.remove('hidden');
+
+            let subtotal = 0;
+            container.innerHTML = cart.map((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                const img = item.image || 'https://placehold.co/100x100?text=Food';
+
+                return `
+                <div class="flex gap-4 items-start border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                    <img src="${img}" class="w-16 h-16 rounded-lg object-cover bg-gray-100">
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
+                            <span class="font-bold text-gray-900 text-sm">$${itemTotal.toFixed(2)}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 line-clamp-1">${item.notes || 'No instrucciones especiales'}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-wide">Eliminar</button>
+                            <div class="flex items-center bg-gray-100 rounded-lg h-7">
+                                <button onclick="updateQuantity(${index}, -1)" class="w-7 flex items-center justify-center text-gray-500 hover:text-primary">-</button>
+                                <span class="text-xs font-bold w-4 text-center">${item.quantity}</span>
+                                <button onclick="updateQuantity(${index}, 1)" class="w-7 flex items-center justify-center text-gray-500 hover:text-primary">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            totalEl.textContent = `$${subtotal.toFixed(2)}`;
+        }
+
+        function updateQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) { removeItem(index); return; }
+            saveCart();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            saveCart();
+        }
+        
+        function clearCart() {
+            cart = [];
+            saveCart();
+        }
+
+        function saveCart() {
+            localStorage.setItem('charlotte_cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        // ==========================================
+        // LÓGICA DE HISTORIAL Y BILL
+        // ==========================================
+        
+        function loadActiveOrders() {
+            try {
+                const saved = localStorage.getItem('charlotte_active_orders');
+                activeOrders = saved ? JSON.parse(saved) : [];
+            } catch (e) { activeOrders = []; }
+        }
+
+        function saveActiveOrders() {
+            localStorage.setItem('charlotte_active_orders', JSON.stringify(activeOrders));
+        }
+
+        function renderActiveOrders() {
+            const container = document.getElementById('orders-history-container');
+            const btnRequestBill = document.getElementById('btn-request-bill');
+            const billHint = document.getElementById('bill-hint');
+            const historyTotalEl = document.getElementById('history-total');
+
+            // --- CÁLCULO DEL TOTAL DEL HISTORIAL ---
+            // Sumamos todas las órdenes que NO estén canceladas
+            const totalHistory = activeOrders.reduce((acc, order) => {
+                if (order.status === 'CANCELLED') return acc; // Ignorar canceladas
+                
+                // Sumar items de esta orden
+                const orderSum = order.items.reduce((sum, item) => {
+                    return sum + (item.unitPrice * item.quantity);
+                }, 0);
+                
+                return acc + orderSum;
+            }, 0);
+
+            // Actualizar el texto en pantalla
+            if(historyTotalEl) {
+                historyTotalEl.textContent = `$${totalHistory.toFixed(2)}`;
+            }
+            
+            // --- VALIDACIÓN DE BOTÓN BILL ---
+            // 1. Debe haber al menos una orden.
+            // 2. TODAS las órdenes activas deben estar DELIVERED o CANCELLED.
+            // 3. Si hay alguna en PENDING o COOKING, no se puede pedir cuenta.
+            
+            const hasOrders = activeOrders.length > 0;
+            
+            // Verificamos si hay alguna orden que NO esté terminada (ni delivered ni cancelled)
+            const hasPendingOrders = activeOrders.some(o => 
+                o.status !== 'DELIVERED' && o.status !== 'CANCELLED'
+            );
+
+            // Solo habilitamos si hay órdenes Y NO hay pendientes
+            const canPay = hasOrders && !hasPendingOrders;
+
+            btnRequestBill.disabled = !canPay;
+            
+            if (hasOrders && hasPendingOrders) {
+                billHint.classList.remove('hidden'); // Mostrar mensaje de error
+            } else {
+                billHint.classList.add('hidden');
+            }
+
+            if (!hasOrders) {
+                container.innerHTML = `<div class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p class="text-gray-400 text-sm">No hay órdenes enviadas a la cocina aún.</p>
+                </div>`;
+                return;
+            }
+
+            const sortedOrders = [...activeOrders].sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
+
+            container.innerHTML = sortedOrders.map(order => {
+
+                if (!order || !order.id) {
+                    console.warn("Orden corrupta detectada en render:", order);
+                    return ''; // Retornamos vacío para no romper la vista
+                }
+
+                const isPending = order.status === 'PENDING';
+                const isCancelled = order.status === 'CANCELLED';
+                const isDelivered = order.status === 'DELIVERED';
+                
+                let statusColor = "bg-yellow-100 text-yellow-800";
+                let statusIcon = "schedule";
+                if(isCancelled) { statusColor = "bg-red-100 text-red-800"; statusIcon = "cancel"; }
+                if(isDelivered) { statusColor = "bg-green-100 text-green-800"; statusIcon = "check_circle"; }
+                if(order.status === 'COOKING' || order.status === 'READY') { statusColor = "bg-blue-100 text-blue-800"; statusIcon = "soup_kitchen"; }
+
+                // 2. FECHA SEGURA
+                const fechaSegura = order.sentAt ? new Date(order.sentAt) : new Date();
+                const time = fechaSegura.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                // 3. ID SEGURO (Aquí estaba el error del substring)
+                const shortId = (order.id && typeof order.id === 'string') 
+                                ? order.id.substring(0,6) 
+                                : '???';
+
+                return `
+                <div class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm relative transition-all ${isCancelled ? 'opacity-60 grayscale-[0.5]' : ''}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Orden #${shortId}</span>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                <span class="text-xs text-gray-500">${time}</span>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ${statusColor}">
+                            <span class="material-icons-outlined text-[12px]">${statusIcon}</span>
+                            ${order.status}
+                        </span>
+                    </div>
+                    <div class="space-y-1 mb-3">
+                        ${order.items.map(item => `
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-700"><span class="font-bold text-gray-900">${item.quantity}x</span> ${item.name}</span>
+                                <span class="text-gray-500 text-xs">$${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${isPending ? `
+                        <button onclick="cancelOrder('${order.id}')" class="w-full mt-1 py-1.5 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
+                            <span class="material-icons-outlined text-sm">close</span> Cancelar Orden
+                        </button>
+                    ` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // REQUEST BILL FUNCTION
+        // ==========================================
+        async function requestBill() {
+            // 1. Confirmación visual inicial
+            if (!confirm("¿Estás seguro de que deseas pedir la cuenta y cerrar la mesa?")) return;
+
+            // 2. Obtener datos del cliente
+            const clientStr = localStorage.getItem('user_client');
+            let client = null;
+            try {
+                client = clientStr ? JSON.parse(clientStr) : null;
+            } catch (e) { console.error("Error parseando cliente", e); }
+
+            if (!client || !client.id) {
+                alert("Error de sesión: No se encontró el ID del cliente. Escanea el QR nuevamente.");
+                return;
+            }
+
+            // 3. Calcular Total (Items activos no cancelados)
+            const totalAmount = activeOrders.reduce((orderSum, order) => {
+                if (order.status === 'CANCELLED') return orderSum;
+                const itemsSum = order.items.reduce((itemSum, item) => {
+                    return itemSum + (item.unitPrice * item.quantity);
+                }, 0);
+                return orderSum + itemsSum;
+            }, 0);
+
+            console.log(`Total calculado: $${totalAmount}`);
+
+            // 4. Preparar Interfaz (Overlay y Barra)
+            const overlay = document.getElementById('paymentOverlay');
+            const progressBar = document.getElementById('payment-progress-bar');
+            const overlayTitle = overlay.querySelector('h2') || overlay.querySelector('.payment-title'); 
+            const overlayText = overlay.querySelector('p') || overlay.querySelector('.payment-text');
+
+            // 5. Configurar Tiempos y Textos
+            // Si Total es 0 -> Espera rápida de 3 segundos (Salir sin consumir)
+            // Si Total > 0 -> Espera de simulación de 30 segundos (Pago físico)
+            const waitTime = totalAmount === 0 ? 3000 : 30000;
+
+            if (totalAmount === 0) {
+                if(overlayTitle) overlayTitle.textContent = "Cerrando Mesa...";
+                if(overlayText) overlayText.textContent = "Finalizando sesión y liberando mesa.";
+                progressBar.style.transition = "width 3s linear"; 
+            } else {
+                if(overlayTitle) overlayTitle.textContent = "Procesando Cierre...";
+                if(overlayText) overlayText.textContent = "Por favor dirígete a caja para realizar el pago. La sesión se cerrará automáticamente.";
+                progressBar.style.transition = "width 30s linear";
+            }
+
+            // Mostrar Overlay y arrancar animación
+            overlay.classList.remove('hidden');
+            void progressBar.offsetWidth; // Forzar reflow para reiniciar animación
+            progressBar.classList.add('progress-bar-fill');
+            progressBar.style.width = '100%';
+
+            try {
+                // 6. Llamada a la API DIRECTA A CLOSED
+                // Al haber quitado la validación en el backend, esto cerrará la mesa y la liberará
+                // sin importar si el usuario es GUEST.
+                const response = await window.ClientApi.updateClient(client.id, {
+                    total_amount: totalAmount,
+                    status: "CLOSED"
+                });
+
+                if (response.success) {
+                    console.log(`Mesa cerrada en servidor. Esperando ${waitTime/1000}s de simulación visual...`);
+
+                    // 7. Esperar el tiempo visual y redirigir
+                    setTimeout(async () => {
+                        await finishPaymentSession();
+                    }, waitTime);
+
+                } else {
+                    throw new Error(response.message || "Error al cerrar la mesa");
+                }
+
+            } catch (error) {
+                console.error("Error requestBill:", error);
+                
+                // Si falla (ej: error de conexión), ocultamos el overlay para no bloquear al usuario
+                overlay.classList.add('hidden');
+                progressBar.style.width = '0';
+                progressBar.classList.remove('progress-bar-fill');
+                
+                alert("Error al cerrar: " + error.message);
+            }
+        }
+
+        // Función auxiliar de limpieza y redirección
+        async function finishPaymentSession() {
+
+            try {
+                await fetch('/api/atencion-cliente/logout', { method: 'POST' });
+                console.log("Cookie de sesión eliminada.");
+            } catch (e) { 
+                console.error("Error contactando endpoint de logout", e); 
+            }
+
+            // Limpiar LocalStorage y Redirigir ---
+            localStorage.removeItem('charlotte_cart');
+            localStorage.removeItem('charlotte_active_orders');
+            localStorage.removeItem('user_client');
+            localStorage.removeItem('my_service_requests');
+            localStorage.removeItem('restaurant_service_requests');
+            localStorage.removeItem('access_token');
+            
+            // Redirigir a pantalla de éxito
+            window.location.href = '/mod-3-atencion-cliente/pages/payment/payment-completed.html';
+        }
+
+        // ==========================================
+        // COMUNICACIÓN CON API
+        // ==========================================
+
+        async function sendOrderToKitchen() {
+            const btn = document.getElementById('btn-confirm-send');
+            const originalContent = btn.innerHTML;
+            const orderPayload = {
+                notes: "", 
+                items: cart.map(item => ({
+                    product_id: item.productId,
+                    quantity: item.quantity,
+                    unit_price: item.price,
+                    special_instructions: item.notes || ""
+                }))
+            };
+            btn.innerHTML = `<span class="material-icons-outlined animate-spin mr-2">refresh</span> Enviando...`;
+            btn.disabled = true;
+
+            try {
+                const response = await window.ClientApi.createOrder(orderPayload);
+                const newOrder = {
+                    id: response.id,
+                    status: 'PENDING', 
+                    sentAt: new Date().toISOString(),
+                    items: cart.map(c => ({ name: c.name, quantity: c.quantity, unitPrice: c.price }))
+                };
+                activeOrders.unshift(newOrder);
+                saveActiveOrders();
+                cart = []; saveCart(); loadCart(); renderCart(); renderActiveOrders(); 
+                closeConfirmation();
+                showToast('¡Orden enviada a la cocina!', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if(!confirm('¿Estás seguro de que deseas cancelar?')) return;
+            try {
+                const response = await window.ClientApi.cancelOrder(orderId);
+                if (response.success) {
+                    const index = activeOrders.findIndex(o => o.id === orderId);
+                    if (index !== -1) {
+                        activeOrders[index].status = 'CANCELLED';
+                        saveActiveOrders();
+                        renderActiveOrders();
+                        showToast('Orden cancelada', 'success');
+                    }
+                } 
+            } catch (error) {
+                showToast('No se pudo cancelar', 'error');
+                updateOrdersStatus(); 
+            }
+        }
+
+        async function updateOrdersStatus() {
+            const ordersCheck = activeOrders.filter(o => o.status !== 'CANCELLED' && o.status !== 'DELIVERED');
+            if (ordersCheck.length === 0) {
+                // Si ya no hay ordenes activas, refrescamos la UI por si el botón de pago debe activarse
+                renderActiveOrders(); 
+                return;
+            }
+
+            let changesDetected = false;
+            for (let order of ordersCheck) {
+                try {
+                    const response = await window.ClientApi.getOrder(order.id);
+                    if (response.success && response.data) {
+                        const serverStatus = response.data.status; 
+                        if (serverStatus !== order.status) {
+                            order.status = serverStatus;
+                            changesDetected = true;
+                            if(serverStatus === 'DELIVERED') showToast(`¡Orden entregada!`, 'success');
+                        }
+                    }
+                } catch (e) { console.warn("Polling error", e); }
+            }
+            if (changesDetected) {
+                saveActiveOrders();
+                renderActiveOrders();
+            }
+        }
+        
+        // ==========================================
+        // UI HELPERS
+        // ==========================================
+        const overlay = document.getElementById('confirmOverlay');
+        function openConfirmation() { overlay.classList.remove('hidden'); }
+        function closeConfirmation() { overlay.classList.add('hidden'); }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            const icon = toast.querySelector('.material-icons-outlined');
+            msgEl.textContent = msg;
+            icon.textContent = type === 'success' ? 'check_circle' : 'error';
+            icon.className = `material-icons-outlined ${type === 'success' ? 'text-green-400' : 'text-red-400'}`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+    </script>
+</body>
+</html>

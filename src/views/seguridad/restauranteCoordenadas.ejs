@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuración de Geolocalización</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <link rel="stylesheet" href="/css/seguridad/restauranteCoordenadas.css">
+    
+    <style>
+        /* Pequeño estilo para el icono de carga sin romper tu CSS */
+        .fa-spinner { display: none; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* Cursor mano para la lupa */
+        .fa-magnifying-glass { cursor: pointer; }
+    </style>
+    <%- include('../partials/inyectarHelpersCss.ejs') %>
+</head>
+<body class="bg-gray-50">
+
+    <div class="contenedor-dashboard">
+        
+        <%- include('../partials/aside.ejs') %>
+
+        <main class="contenido-principal">
+            
+            <nav class="breadcrumb">
+                <span>Ajustes</span> / <span class="actual">Geolocalización</span>
+            </nav>
+
+            <header class="titulo-pagina">
+                <h1>Configuración de Geolocalización</h1>
+                <p>Establece y visualiza la ubicación del restaurante y el área de entrega.</p>
+            </header>
+
+            <div class="layout-configuracion">
+                <section class="tarjeta-formulario-geo">
+                    <h3>Establecer Ubicación del Restaurante y Área de Entrega</h3>
+                    
+                    <form class="formulario-geo" id="formCoordenadas">
+                        <div class="grupo">
+                            <label>Dirección o Nombre de la Ubicación</label>
+                            <div class="input-con-icono">
+                                <i class="fa-solid fa-magnifying-glass" id="icono-buscar" onclick="buscarPorDireccionTexto()" title="Buscar dirección"></i>
+                                <i class="fa-solid fa-spinner" id="icono-loading"></i>
+                                
+                                <input type="text" id="input-direccion" placeholder="Ej: Av. Principal 123, Ciudad" onchange="buscarPorDireccionTexto()">
+                            </div>
+                        </div>
+
+                        <div class="fila-input">
+                            <div class="grupo">
+                                <label>Latitud</label>
+                                <input type="number" id="latitud" step="any" value="40.7128">
+                            </div>
+                            <div class="grupo">
+                                <label>Longitud</label>
+                                <input type="number" id="longitud" step="any" value="-74.0060">
+                            </div>
+                        </div>
+
+                        <div class="grupo">
+                            <label>Radio de Entrega (km)</label>
+                            <input type="number" id="radio" step="0.1" value="2">
+                        </div>
+
+                        <div class="grupo">
+                            <label style="display: inline;">Verificacion de ubicacion requerida</label>
+                            <input type="checkbox" id="required" style="display: inline; width: auto;">
+                        </div>
+
+                        <div class="acciones-geo">
+                            <button type="submit" class="btn-guardar" id="btnGuardar">Guardar Cambios</button>
+                            <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
+                            <button type="button" class="btn-cancelar" onclick="centrarEnMiUbicacion()" title="Usar mi ubicación actual" style="min-width: 40px; padding: 0 10px;">
+                                <i class="fa-solid fa-crosshairs"></i>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <section id="contenedor-mapa-interactivo" class="contenedor-mapa">
+                    <div id="mapa" style="height: 100%; width: 100%; min-height: 400px;"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <%- include('../partials/inyectarHelpersJs.ejs') %>
+    <!-- Todos los demas scripts despues de estos que se inyectan -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // --- 1. Referencias al DOM (Usando los IDs que agregamos) ---
+        const inputLat = document.getElementById('latitud');
+        const inputLng = document.getElementById('longitud');
+        const inputRadio = document.getElementById('radio');
+        const inputDireccion = document.getElementById('input-direccion');
+        const iconSearch = document.getElementById('icono-buscar');
+        const iconLoading = document.getElementById('icono-loading');
+
+        // Valores iniciales
+        let latInicial = parseFloat(inputLat.value) || 40.7128;
+        let lngInicial = parseFloat(inputLng.value) || -74.0060;
+        let radioInicial = parseFloat(inputRadio.value) || 2;
+        let coordenadasExistentes = null;
+        const notyf = window.seguridad_notyf || new Notyf();
+
+        // --- 2. Inicializar Mapa ---
+        var map = L.map('mapa').setView([latInicial, lngInicial], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Marcador draggable
+        var marcador = L.marker([latInicial, lngInicial], { draggable: true }).addTo(map)
+            .bindPopup('Ubicación del Restaurante')
+            .openPopup();
+
+        // Círculo de radio
+        var circulo = L.circle([latInicial, lngInicial], {
+            color: '#1e4d35',      
+            fillColor: '#dcfce7',  
+            fillOpacity: 0.4,
+            radius: radioInicial * 1000 
+        }).addTo(map);
+
+        // --- 3. Lógica de Geolocalización y Sincronización ---
+
+        // Helper: Mostrar spinner de carga
+        function toggleLoading(cargando) {
+            if (cargando) {
+                iconSearch.style.display = 'none';
+                iconLoading.style.display = 'inline-block';
+            } else {
+                iconSearch.style.display = 'inline-block';
+                iconLoading.style.display = 'none';
+            }
+        }
+
+        // A. Actualizar Inputs y Mapa dado una Lat/Lng
+        function actualizarTodo(lat, lng, buscarDireccion = false) {
+            // 1. Mover visuales
+            const nuevaPos = new L.LatLng(lat, lng);
+            marcador.setLatLng(nuevaPos);
+            circulo.setLatLng(nuevaPos);
+            map.panTo(nuevaPos);
+
+            // 2. Actualizar inputs numéricos
+            inputLat.value = lat.toFixed(6);
+            inputLng.value = lng.toFixed(6);
+
+            // 3. Buscar dirección (Reverse Geocoding) si se solicita
+            if (buscarDireccion) {
+                obtenerNombreDireccion(lat, lng);
+            }
+        }
+
+        // B. Reverse Geocoding (Coordenadas -> Texto)
+        async function obtenerNombreDireccion(lat, lng) {
+            toggleLoading(true);
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data && data.display_name) {
+                    inputDireccion.value = data.display_name;
+                }
+            } catch (e) {
+                console.error("Error geocoding:", e);
+            }
+            toggleLoading(false);
+        }
+
+        // C. Forward Geocoding (Texto -> Coordenadas)
+        async function buscarPorDireccionTexto() {
+            const query = inputDireccion.value;
+            if (query.length < 3) return;
+
+            toggleLoading(true);
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    actualizarTodo(lat, lng, false); // false para no re-buscar el texto que ya escribimos
+                } else {
+                    alert("Dirección no encontrada");
+                }
+            } catch (e) {
+                console.error("Error buscando:", e);
+            }
+            toggleLoading(false);
+        }
+
+        // D. Obtener ubicación real del usuario
+        function centrarEnMiUbicacion() {
+            if (navigator.geolocation) {
+                toggleLoading(true);
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        actualizarTodo(pos.coords.latitude, pos.coords.longitude, true);
+                        map.setZoom(15);
+                        toggleLoading(false);
+                    },
+                    (err) => {
+                        alert("No se pudo obtener tu ubicación");
+                        toggleLoading(false);
+                    }
+                );
+            } else {
+                alert("Geolocalización no soportada");
+            }
+        }
+
+        // --- 4. Event Listeners ---
+
+        // Mapa: Click
+        map.on('click', (e) => {
+            actualizarTodo(e.latlng.lat, e.latlng.lng, true);
+        });
+
+        // Marcador: Arrastrar
+        marcador.on('drag', (e) => {
+            circulo.setLatLng(marcador.getLatLng()); // Círculo sigue al pin suavemente
+        });
+        marcador.on('dragend', (e) => {
+            const pos = marcador.getLatLng();
+            actualizarTodo(pos.lat, pos.lng, true);
+        });
+
+        // Inputs: Lat/Lng manual
+        function manualUpdate() {
+            const lat = parseFloat(inputLat.value);
+            const lng = parseFloat(inputLng.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                actualizarTodo(lat, lng, true);
+            }
+        }
+        inputLat.addEventListener('change', manualUpdate);
+        inputLng.addEventListener('change', manualUpdate);
+
+        // Input: Radio
+        inputRadio.addEventListener('input', function() {
+            const km = parseFloat(this.value);
+            if (!isNaN(km)) {
+                circulo.setRadius(km * 1000);
+            }
+        });
+
+        // --- 5. Funciones de API ---
+
+        // Cargar coordenadas existentes
+        async function cargarCoordenadas() {
+            try {
+                const response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                    method: 'GET'
+                });
+
+                if (response.status === 404) {
+                    // No hay coordenadas guardadas, usar valores por defecto
+                    coordenadasExistentes = null;
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar coordenadas');
+                }
+
+                const data = await response.json();
+                coordenadasExistentes = data;
+
+                // Cargar valores en los inputs
+                if (data.latitude && data.longitud) {
+                    latInicial = parseFloat(data.latitude);
+                    lngInicial = parseFloat(data.longitud);
+                    const requiredCheckbox = document.getElementById('required');
+                    if (data.required !== undefined) {
+                        requiredCheckbox.checked = data.required;
+                    }
+                    inputLat.value = latInicial.toFixed(6);
+                    inputLng.value = lngInicial.toFixed(6);
+                    
+                    // Actualizar mapa
+                    const nuevaPos = new L.LatLng(latInicial, lngInicial);
+                    marcador.setLatLng(nuevaPos);
+                    circulo.setLatLng(nuevaPos);
+                    map.setView([latInicial, lngInicial], 13);
+                }
+
+                if (data.radius) {
+                    radioInicial = parseFloat(data.radius);
+                    inputRadio.value = radioInicial;
+                    circulo.setRadius(radioInicial * 1000);
+                }
+
+                // Buscar dirección si hay coordenadas
+                if (data.latitude && data.longitud) {
+                    obtenerNombreDireccion(latInicial, lngInicial);
+                }
+            } catch (error) {
+                console.error('Error cargando coordenadas:', error);
+                // No mostrar error si es 404, es normal que no existan coordenadas
+                if (error.message && !error.message.includes('404')) {
+                    notyf.error('Error al cargar las coordenadas existentes');
+                }
+            }
+        }
+
+        // Guardar coordenadas
+        async function guardarCoordenadas() {
+            const lat = parseFloat(inputLat.value);
+            const lng = parseFloat(inputLng.value);
+            const radio = parseFloat(inputRadio.value);
+
+            if (isNaN(lat) || isNaN(lng) || isNaN(radio)) {
+                notyf.error('Por favor, completa todos los campos requeridos');
+                return;
+            }
+
+            const body = {
+                latitude: lat,
+                longitud: lng,
+                radius: radio,
+                required: document.getElementById('required').checked
+            };
+
+            try {
+                const btnGuardar = document.getElementById('btnGuardar');
+                btnGuardar.disabled = true;
+                btnGuardar.textContent = 'Guardando...';
+
+                let response;
+                if (coordenadasExistentes === null) {
+                    // Crear nuevas coordenadas
+                    response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                        method: 'POST',
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    // Actualizar coordenadas existentes
+                    response = await httpSeguridadClient('/api/seguridad/restaurants', {
+                        method: 'PATCH',
+                        body: JSON.stringify(body)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMsg = data.message || response.statusText || 'Error al guardar las coordenadas';
+                    throw new Error(errorMsg);
+                }
+
+                coordenadasExistentes = data;
+                notyf.success('Coordenadas guardadas exitosamente');
+            } catch (error) {
+                console.error('Error guardando coordenadas:', error);
+                const errorMsg = error.message || 'Error al guardar las coordenadas. Por favor, intenta nuevamente.';
+                notyf.error(errorMsg);
+            } finally {
+                const btnGuardar = document.getElementById('btnGuardar');
+                btnGuardar.disabled = false;
+                btnGuardar.textContent = 'Guardar Cambios';
+            }
+        }
+
+        // --- 6. Event Listeners del Formulario ---
+        const formCoordenadas = document.getElementById('formCoordenadas');
+        formCoordenadas.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await guardarCoordenadas();
+        });
+
+        const btnCancelar = document.getElementById('btnCancelar');
+        btnCancelar.addEventListener('click', () => {
+            window.location.href = '/seguridad';
+        });
+
+        // --- 7. Ejecutar al inicio ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarCoordenadas();
+            // Si no hay coordenadas, intentar usar geolocalización
+            if (coordenadasExistentes === null) {
+                centrarEnMiUbicacion();
+            }
+        });
+
+    </script>
+</body>
+</html>
