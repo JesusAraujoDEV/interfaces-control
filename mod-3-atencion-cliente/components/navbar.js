@@ -281,7 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const logoutHtml = `
             <button onclick="handleLogout()" class="flex-1 py-3 flex flex-col items-center justify-center relative transition-colors text-red-400 hover:text-red-600 font-medium">
                 <span class="material-icons-outlined text-2xl mb-0.5">logout</span>
-                <span class="text-[10px]">Exit</span>
+                <span class="text-[10px]">Salir</span>
             </button>
         `;
 
