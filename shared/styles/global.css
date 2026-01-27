@@ -7,6 +7,7 @@
 	--text: #1f2937;
 	--muted: #6b7280;
 	--surface: #ffffff;
+	--container: 1120px;
 }
 
 html,
@@ -20,6 +21,19 @@ body {
 		'Helvetica Neue', Arial;
 	background: var(--brand-50);
 	color: var(--text);
+}
+
+/* Simple container utility used by shared components (matches landing/styles.css) */
+.container {
+    width: min(var(--container), calc(100% - 32px));
+    margin-inline: auto;
+}
+
+/* Header inner fallback for pages where Tailwind overrides .container */
+.header__inner {
+	width: min(var(--container, 1120px), calc(100% - 32px));
+	margin-inline: auto;
+	padding-inline: 16px;
 }
 
 /* Fallback de utilidades usadas en las vistas (si Tailwind no aplica por algún motivo) */

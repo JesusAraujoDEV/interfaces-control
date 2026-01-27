@@ -230,25 +230,184 @@ document.getElementById('cartModalItems')?.addEventListener('input', e => {
   if (!id) return;
   updateCartItemNotes(id, el.value);
 });
-// Notas modal bindings
-document.getElementById('notesConfirm')?.addEventListener('click', () => {
-  closeNotesModal();
-  // Submit the pending order flow; mode was set when opening the modal
+// Payment modals bindings
+const paymentMethodModal = document.getElementById('paymentMethodModal');
+const paymentDetailsModal = document.getElementById('paymentDetailsModal');
+
+function openPaymentMethodModal() {
+  const m = document.getElementById('paymentMethodModal');
+  if (!m) return;
+  m.classList.remove('hidden');
+}
+function closePaymentMethodModal() {
+  const m = document.getElementById('paymentMethodModal');
+  if (!m) return;
+  m.classList.add('hidden');
+}
+function openPaymentDetailsModal() {
+  const m = document.getElementById('paymentDetailsModal');
+  if (!m) return;
+  // populate basic info
+  const name = document.getElementById('fullName')?.value.trim() || '-';
+  const phone = document.getElementById('phone')?.value.trim() || '-';
+  const amount = formatPrice(cartTotal(readCart()));
+  document.getElementById('pdName').textContent = name;
+  document.getElementById('pdPhone').textContent = phone;
+  document.getElementById('pdAmount').textContent = amount;
+  m.classList.remove('hidden');
+}
+function closePaymentDetailsModal() {
+  const m = document.getElementById('paymentDetailsModal');
+  if (!m) return;
+  m.classList.add('hidden');
+}
+
+// Pending state for order and payment
+let pendingOrderMode = null;
+let pendingPayment = { payment_type: null, payment_reference: '', payment_received: false, payment_bank: '' };
+
+// Payment method buttons
+document.getElementById('payCashBtn')?.addEventListener('click', () => {
+  closePaymentMethodModal();
+  // Abrir modal de efectivo para condiciones y cálculo de vuelto
+  openPaymentCashModal();
+});
+document.getElementById('payDigitalBtn')?.addEventListener('click', () => {
+  closePaymentMethodModal();
+  openPaymentDetailsModal();
+});
+document.getElementById('paymentMethodClose')?.addEventListener('click', () => closePaymentMethodModal());
+document.getElementById('paymentMethodOverlay')?.addEventListener('click', () => closePaymentMethodModal());
+
+// Payment details handlers
+document.getElementById('pdCancel')?.addEventListener('click', () => {
+  closePaymentDetailsModal();
+});
+document.getElementById('pdConfirm')?.addEventListener('click', () => {
+  const ref = String(document.getElementById('pdRef')?.value || '').trim();
+  const bankChoice = document.querySelector('input[name="pdBankChoice"]:checked');
+  const bank = bankChoice ? bankChoice.value : '';
+  if (!ref) {
+    alert('Por favor ingresa los últimos dígitos de la referencia.');
+    return;
+  }
+  pendingPayment = { payment_type: 'DIGITAL', payment_reference: `${ref} - ${bank}`, payment_received: true, payment_bank: bank };
+  closePaymentDetailsModal();
   submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
 });
-document.getElementById('notesCancel')?.addEventListener('click', () => {
-  closeNotesModal();
+document.getElementById('paymentDetailsOverlay')?.addEventListener('click', () => closePaymentDetailsModal());
+
+// Payment cash modal (conditions + cálculo de vuelto)
+function openPaymentCashModal() {
+  const m = document.getElementById('paymentCashModal');
+  if (!m) return;
+  // populate dynamic fields
+  const total = cartTotal(readCart());
+  document.getElementById('pcTotal').textContent = formatPrice(total);
+  // conditions depend on mode
+  const cond = document.getElementById('pcConditions');
+  const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
+  if (cond) {
+    if (mode === 'pickup') {
+      cond.innerHTML = `
+        <strong>Caso A: Para PICKUP (Retiro en Tienda)</strong>
+        <p>Por normativas de seguridad y flujo de caja, al seleccionar pago en efectivo usted acepta las siguientes condiciones:</p>
+        <ul class="text-sm list-disc pl-5">
+          <li>Integridad del Papel Moneda: No aceptamos billetes rotos, manchados, pegados o excesivamente deteriorados. Nuestro personal validará cada billete.</li>
+          <li>Verificación Inmediata: Debe contar su vuelto frente al cajero antes de retirarse. No se aceptan reclamos posteriores una vez abandonada la zona de caja.</li>
+          <li>Pago Exacto: Se agradece el pago exacto para agilizar su despacho.</li>
+        </ul>
+      `;
+    } else {
+      cond.innerHTML = `
+        <strong>Caso B: Para DELIVERY</strong>
+        <p>El servicio de delivery es operado por una empresa independiente. Para garantizar su seguridad y la correcta gestión del cambio:</p>
+        <ul class="text-sm list-disc pl-5">
+          <li>Declaración Obligatoria: Debe ingresar EXACTAMENTE con qué billete va a pagar. No enviamos cambio no declarado.</li>
+          <li>Gestión de Vuelto: Charlotte Bistró enviará el vuelto exacto (si aplica) dentro del paquete sellado o entregado al conductor.</li>
+          <li>Límite de Responsabilidad: Charlotte Bistró NO se hace responsable por transacciones personales adicionales, propinas o cambios de divisa realizados directamente con el conductor ajenos al monto de la factura.</li>
+        </ul>
+      `;
+    }
+  }
+
+  // reset inputs
+  const input = document.getElementById('pcCashAmount');
+  if (input) input.value = '';
+  const summary = document.getElementById('pcChangeSummary');
+  if (summary) summary.textContent = '';
+
+  m.classList.remove('hidden');
+}
+function closePaymentCashModal() {
+  const m = document.getElementById('paymentCashModal');
+  if (!m) return;
+  m.classList.add('hidden');
+}
+
+// helper: calcular desglose de vuelto
+function calcularDesgloseVuelto(totalPagar, montoEfectivo) {
+  let vuelto = Number(montoEfectivo) - Number(totalPagar);
+  if (!Number.isFinite(vuelto)) return '⚠️ Monto inválido.';
+  if (vuelto < 0) return '⚠️ El monto en efectivo es menor a la deuda.';
+  if (vuelto === 0) return '✅ Pago exacto. No se requiere vuelto.';
+
+  const denominaciones = [100, 50, 20, 10, 5, 1];
+  let desglose = [];
+  let resto = Math.round(vuelto);
+
+  denominaciones.forEach(billete => {
+    if (resto >= billete) {
+      const cantidad = Math.floor(resto / billete);
+      resto = resto % billete;
+      desglose.push(`${cantidad} billete${cantidad > 1 ? 's' : ''} de $${billete}`);
+    }
+  });
+
+  return `Tu vuelto de $${vuelto} se entregará (aprox) en: ${desglose.join(', ')}.`;
+}
+
+// live update change when user types efectivo
+document.getElementById('pcCashAmount')?.addEventListener('input', () => {
+  const total = cartTotal(readCart());
+  const val = document.getElementById('pcCashAmount')?.value || '';
+  const summary = document.getElementById('pcChangeSummary');
+  if (!summary) return;
+  const msg = calcularDesgloseVuelto(total, Number(val));
+  summary.textContent = msg;
 });
-document.getElementById('notesModalClose')?.addEventListener('click', () => {
-  closeNotesModal();
+
+// cash modal actions
+document.getElementById('pcCancel')?.addEventListener('click', () => closePaymentCashModal());
+document.getElementById('pcConfirm')?.addEventListener('click', () => {
+  const val = Number(document.getElementById('pcCashAmount')?.value || 0);
+  const total = Number(cartTotal(readCart()));
+  if (!val || val < total) {
+    alert('El monto en efectivo debe ser igual o mayor al total a pagar.');
+    return;
+  }
+  const change = val - total;
+  const breakdown = calcularDesgloseVuelto(total, val);
+  const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
+  // For cash payments we default to not-marking as received here (will be handled at POS).
+  pendingPayment = {
+    payment_type: 'EFECTIVO',
+    payment_cash_amount: val,
+    payment_change: change,
+    payment_change_breakdown: breakdown,
+    payment_received: false,
+    payment_reference: ' ',
+    payment_bank: ''
+  };
+  closePaymentCashModal();
+  submitOrderFlow(mode);
 });
-document.getElementById('notesBackdrop')?.addEventListener('click', () => {
-  closeNotesModal();
-});
+
+document.getElementById('paymentCashOverlay')?.addEventListener('click', () => closePaymentCashModal());
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  const modal = document.getElementById('notesModal');
-  if (modal && !modal.classList.contains('hidden')) closeNotesModal();
+  const mc = document.getElementById('paymentCashModal');
+  if (mc && !mc.classList.contains('hidden')) closePaymentCashModal();
 });
 function setZone(zone) {
   const byName = zoneChips.find(btn => btn.dataset.zone === zone);
@@ -426,6 +585,12 @@ function buildOrderPayload() {
   };
 
   if (isDelivery) payload.zone_id = zone && zone.zone_id ? zone.zone_id : '';
+  // Añadir costo de envío si está disponible en la zona
+  try {
+    if (isDelivery && zone && zone.shipping_cost) payload.shipping_cost = parsePrice(zone.shipping_cost);
+  } catch (e) {
+    // ignore
+  }
   // Nota opcional para cocina (campo añadido en el modal)
   try {
     const noteEl = document.getElementById('orderNote');
@@ -434,23 +599,21 @@ function buildOrderPayload() {
   } catch (e) {
     // ignore
   }
+  // Incluir información de pago si está presente
+  try {
+    if (typeof pendingPayment !== 'undefined' && pendingPayment && pendingPayment.payment_type) {
+      payload.payment_type = pendingPayment.payment_type;
+      if (pendingPayment.payment_reference) payload.payment_reference = pendingPayment.payment_reference;
+      payload.payment_received = !!pendingPayment.payment_received;
+      if (pendingPayment.payment_bank) payload.payment_bank = pendingPayment.payment_bank;
+    }
+  } catch (e) {
+    // ignore
+  }
   return payload;
 }
 
-// Estado temporal cuando el usuario confirma el formulario y se muestra el modal de notas
-let pendingOrderMode = null;
-
-function openNotesModal() {
-  const modal = document.getElementById('notesModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-}
-
-function closeNotesModal() {
-  const modal = document.getElementById('notesModal');
-  if (!modal) return;
-  modal.classList.add('hidden');
-}
+// (payment modal state is declared above)
 
 async function submitOrderFlow(mode) {
   if (proceedBtn) {
@@ -575,7 +738,10 @@ form.addEventListener('submit', function (e) {
     const mode = deliveryBtn.getAttribute('aria-pressed') === 'true' ? 'delivery' : 'pickup';
     localStorage.setItem('dp_service_type', mode);
     pendingOrderMode = mode;
-    openNotesModal();
+    // Abrir modal para seleccionar método de pago; si el modal no existe, proceder directamente.
+    const pm = document.getElementById('paymentMethodModal');
+    if (pm) openPaymentMethodModal();
+    else submitOrderFlow(mode);
   } else {
     // Scroll to first error
     const firstErr = document.querySelector('p.text-red-600:not(.hidden)');

@@ -1,31 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <script src="/js/api.js"></script>
     <title>Gestión de Activos Fijos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-container">
 
     <aside class="sidebar">
         <div class="sidebar__profile">
+            <!-- Placeholder logo or avatar -->
             <div class="sidebar__avatar"></div>
             <div class="sidebar__info">
-                <p class="sidebar__user">Charlotte</p>
-                <p class="sidebar__role">Kitchen OS</p>
+                <p class="sidebar__user">Admin Cocina</p>
+                <p class="sidebar__role">Gerente</p>
             </div>
         </div>
+
         <nav class="sidebar__nav">
-            <a href="#" class="sidebar__link"><i data-lucide="layout-grid"></i> Panel de Control</a>
-            <a href="#" class="sidebar__link"><i data-lucide="package"></i> Inventario</a>
-            <a href="#" class="sidebar__link sidebar__link--active"><i data-lucide="wrench"></i> Activos Fijos</a>
-            <a href="#" class="sidebar__link"><i data-lucide="book-open"></i> Recetas</a>
-            <a href="#" class="sidebar__link"><i data-lucide="truck"></i> Proveedores</a>
+            <a href="index.html" class="sidebar__link">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="kds.html" class="sidebar__link">
+                <i data-lucide="monitor"></i> KDS
+            </a>
+            <a href="Despacho.html" class="sidebar__link">
+                <i data-lucide="truck"></i> Despacho
+            </a>
+            <a href="rec-pro.html" class="sidebar__link">
+                <i data-lucide="chef-hat"></i> Recetas
+            </a>
+            <a href="inv.html" class="sidebar__link">
+                <i data-lucide="package"></i> Inventario
+            </a>
+            <a href="activos.html" class="sidebar__link sidebar__link--active">
+                <i data-lucide="box"></i> Activos
+            </a>
+            <a href="personal.html" class="sidebar__link">
+                <i data-lucide="users"></i> Personal
+            </a>
+            <a href="historial_pedidos.html" class="sidebar__link">
+                <i data-lucide="history"></i> Historial
+            </a>
         </nav>
+
         <div class="sidebar__footer">
-            <a href="#" class="sidebar__link"><i data-lucide="settings"></i> Configuración</a>
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
+            <div class="sidebar__footer-action">
+                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </div>
     </aside>
 
@@ -33,8 +69,7 @@
         <header class="header">
             <h1 class="header__title">Gestión de Activos Fijos</h1>
             <div class="header__actions">
-                <button class="btn btn--secondary">Añadir Nuevo Activo</button>
-                <button class="btn btn--primary"><i data-lucide="clipboard-check"></i> Auditar Activos</button>
+                <button class="btn btn--primary" id="addAssetBtn">Añadir Nuevo Activo</button>
             </div>
         </header>
 
@@ -52,55 +87,338 @@
             </div>
         </section>
 
-        <section class="assets-grid">
-            
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1594140710204-5825bc5f5d84?auto=format&fit=crop&w=400" alt="Sartén" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Sartén de teflón</h3>
-                    <p class="asset-card__total">Total: 25</p>
-                    <span class="badge badge--success">Operativo</span>
-                </div>
-            </article>
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=400" alt="Cuchillo" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Cuchillo de chef</h3>
-                    <p class="asset-card__total">Total: 15</p>
-                    <span class="badge badge--success">Operativo</span>
-                </div>
-            </article>
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1574633062347-99a0ad7934b5?auto=format&fit=crop&w=400" alt="Tazones" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Juego de tazones</h3>
-                    <p class="asset-card__total">Total: 10</p>
-                    <span class="badge badge--warning">Dañado</span>
-                </div>
-            </article>
-
-            <article class="asset-card">
-                <div class="asset-card__image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1582231243152-32a8264582f3?auto=format&fit=crop&w=400" alt="Tabla" class="asset-card__img">
-                </div>
-                <div class="asset-card__content">
-                    <h3 class="asset-card__title">Tabla de cortar</h3>
-                    <p class="asset-card__total">Total: 30</p>
-                    <span class="badge badge--danger">Perdido</span>
-                </div>
-            </article>
-
+        <section id="assetsGrid" class="assets-grid">
+            <!-- Asset cards se poblarán vía JS -->
         </section>
     </main>
 
-    <script>lucide.createIcons();</script>
+    <!-- Modal para Nuevo Activo -->
+    <div id="newAssetModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Nuevo Activo</h2>
+                <button class="modal__close" id="closeNewAssetModal">&times;</button>
+            </div>
+            <form id="newAssetForm" class="modal__form">
+                <div class="form-group">
+                    <label for="assetName">Nombre del Activo</label>
+                    <input type="text" id="assetName" name="name" required minlength="1">
+                </div>
+                <div class="form-group">
+                    <label for="assetTotal">Total</label>
+                    <input type="number" id="assetTotal" name="totalQuantity" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="assetStatus">Estado</label>
+                    <select id="assetStatus" name="status" required>
+                        <option value="OPERATIONAL">Operativo</option>
+                        <option value="UNDER_MAINTENANCE">En Mantenimiento</option>
+                        <option value="DAMAGED">Dañado</option>
+                        <option value="LOST">Perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="assetNotes">Notas (Opcional)</label>
+                    <textarea id="assetNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelNewAssetBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Crear Activo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Reportar Incidente -->
+    <div id="reportIncidentModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Reportar Incidente</h2>
+                <button class="modal__close" id="closeReportModal">&times;</button>
+            </div>
+            <form id="reportIncidentForm" class="modal__form">
+                <input type="hidden" id="incidentAssetId" name="asset_id">
+                <div class="form-group">
+                    <label for="incidentQuantity">Cantidad Perdida</label>
+                    <input type="number" id="incidentQuantity" name="quantity" min="1" required placeholder="ej. 2">
+                </div>
+                <div class="form-group">
+                    <label for="incidentReason">Motivo</label>
+                    <select id="incidentReason" name="reason" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Deterioro">Deterioro</option>
+                        <option value="Pérdida">Pérdida</option>
+                        <option value="Robo">Robo</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reporterPin">PIN del Responsable</label>
+                    <input type="password" id="reporterPin" name="reporter_pin" required
+                        placeholder="Ingrese su PIN de 6 dígitos" minlength="4" maxlength="6">
+                </div>
+                <!-- Hidden input not needed if we just use the ID from validation response -->
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelReportBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Reportar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- Modals Logic with Animation ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+                // Small timeout to allow display block to apply before adding class for opacity transition
+                setTimeout(() => {
+                    modal.classList.add('modal--active');
+                }, 10);
+            }
+        }
+
+        function closeModalFn(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('modal--active');
+                setTimeout(() => {
+                    if (!modal.classList.contains('modal--active')) {
+                        modal.style.display = 'none';
+                    }
+                }, 300); // Wait for transition
+            }
+        }
+
+        // --- Assets Logic ---
+
+        async function loadAssets() {
+            const container = document.getElementById('assetsGrid');
+            container.innerHTML = '';
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/assets`, {
+                    method: 'GET',
+                    headers: getCommonHeaders()
+                });
+                if (!resp.ok) throw new Error(`Error: ${resp.status}`);
+                const data = await resp.json();
+                const assets = Array.isArray(data) ? data : (data.data || []);
+
+                if (assets.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">No hay activos registrados.</p>';
+                    return;
+                }
+
+                assets.forEach(a => addAssetCard(a));
+            } catch (err) {
+                console.error('Error cargando activos:', err);
+                container.innerHTML = '<p style="color:red;">Error cargando activos. Revisa la conexión.</p>';
+            }
+        }
+
+        function addAssetCard(asset) {
+            const container = document.getElementById('assetsGrid');
+            if (container.innerHTML.includes('No hay activos') || container.innerHTML.includes('Error')) {
+                container.innerHTML = '';
+            }
+
+            const status = (asset.status || '').toUpperCase();
+            let badgeClass = 'badge--warning';
+            let badgeText = status;
+
+            if (status === 'OPERATIONAL') {
+                badgeClass = 'badge--success';
+                badgeText = 'Operativo';
+            } else if (status === 'DAMAGED') {
+                badgeClass = 'badge--danger';
+                badgeText = 'Dañado';
+            } else if (status === 'LOST') {
+                badgeClass = 'badge--danger';
+                badgeText = 'Perdido';
+            } else if (status === 'UNDER_MAINTENANCE') {
+                badgeClass = 'badge--warning';
+                badgeText = 'Mantenimiento';
+            }
+
+            const title = asset.name || 'Activo sin nombre';
+            const total = asset.totalQuantity != null ? asset.totalQuantity : (asset.total || 0);
+
+            const article = document.createElement('article');
+            article.className = 'asset-card';
+            // Layout without image
+            article.innerHTML = `
+                <div class="asset-card__content" style="padding: 1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 1rem;">
+                        <h3 class="asset-card__title" style="margin:0; font-size: 1.1rem; font-weight: 600;">${title}</h3>
+                        <span class="badge ${badgeClass}" style="font-size: 0.75rem;">${badgeText}</span>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                         <p class="asset-card__total" style="font-size: 0.9rem; color: var(--text-muted);">
+                            Total: <strong class="total-count" style="color: var(--text-main); font-size: 1.2rem;">${total}</strong>
+                        </p>
+                        ${asset.notes ? `<p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic;">${asset.notes}</p>` : ''}
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                        <button class="btn btn--small report-incident-btn" data-id="${asset.id}" style="flex:1;">
+                            <i data-lucide="alert-triangle" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Reportar
+                        </button>
+                        <button class="btn btn--small view-history-btn" data-id="${asset.id}" style="flex:1;">
+                             <i data-lucide="history" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Historial
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(article);
+
+            // Re-render icons for this element if needed
+            if (window.lucide) window.lucide.createIcons({ root: article });
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', loadAssets);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        // --- New Asset Modal ---
+        const newAssetModal = document.getElementById('newAssetModal');
+        const newAssetForm = document.getElementById('newAssetForm');
+        document.getElementById('addAssetBtn').addEventListener('click', () => {
+            newAssetForm.reset();
+            openModal('newAssetModal');
+        });
+        document.getElementById('closeNewAssetModal').addEventListener('click', () => closeModalFn('newAssetModal'));
+        document.getElementById('cancelNewAssetBtn').addEventListener('click', () => closeModalFn('newAssetModal'));
+
+        newAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(newAssetForm);
+
+            const payload = {
+                name: formData.get('name'),
+                totalQuantity: parseInt(formData.get('totalQuantity')),
+                status: formData.get('status'),
+                notes: formData.get('notes') || undefined
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/assets`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(response.status);
+
+                const newAsset = await response.json();
+                addAssetCard(newAsset);
+                closeModalFn('newAssetModal');
+                // Could show toast success here
+            } catch (error) {
+                console.error('Error creando activo:', error);
+                alert('No se pudo crear el activo.');
+            }
+        });
+
+        // --- Report Incident Modal ---
+        const reportIncidentModal = document.getElementById('reportIncidentModal');
+        const reportIncidentForm = document.getElementById('reportIncidentForm');
+
+        // Delegation for dynamic buttons
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.report-incident-btn');
+            if (btn) {
+                const assetId = btn.dataset.id;
+                openReportModal(assetId);
+            }
+
+            const histBtn = e.target.closest('.view-history-btn');
+            if (histBtn) {
+                const assetId = histBtn.dataset.id;
+                window.location.href = `auditoria.html?assetId=${assetId}`;
+            }
+        });
+
+        async function validateWorkerPin(pin) {
+            try {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/staff/validate`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify({ workerCode: pin })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 404) return null;
+                    throw new Error('Error de validación');
+                }
+                const data = await response.json();
+                // Ensure we return the ID you want (backend usually returns kitchenStaff object with .id)
+                // If it's returning the user ID, adjust accordingly. 
+                // Based on kds implementation, it returns { id, role, ... } which is the KitchenStaff ID usually.
+                return data;
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+        function openReportModal(assetId) {
+            document.getElementById('incidentAssetId').value = assetId;
+            const pinInput = document.getElementById('reporterPin');
+            if (pinInput) pinInput.value = ''; // Clear previous pin
+            openModal('reportIncidentModal');
+        }
+
+        document.getElementById('closeReportModal').addEventListener('click', () => closeModalFn('reportIncidentModal'));
+        document.getElementById('cancelReportBtn').addEventListener('click', () => closeModalFn('reportIncidentModal'));
+
+        reportIncidentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(reportIncidentForm);
+            const assetId = formData.get('asset_id');
+            const quantity = parseInt(formData.get('quantity'));
+            const pin = formData.get('reporter_pin');
+
+            // 1. Validate PIN
+            const staff = await validateWorkerPin(pin);
+            if (!staff) {
+                alert('PIN inválido o usuario no autorizado.');
+                return;
+            }
+
+            // 2. Report Log using Staff ID
+            const payload = {
+                quantityChange: -quantity,
+                reason: formData.get('reason'),
+                reportedBy: staff.id // Sending the verified KitchenStaff ID
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}/logs`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(response.status);
+
+                // Update UI without reload
+                const card = document.querySelector(`.report-incident-btn[data-id="${assetId}"]`).closest('.asset-card');
+                const totalSpan = card.querySelector('.total-count');
+                const currentTotal = parseInt(totalSpan.textContent);
+                totalSpan.textContent = Math.max(0, currentTotal - quantity);
+
+                closeModalFn('reportIncidentModal');
+                reportIncidentForm.reset();
+            } catch (error) {
+                console.error('Error reportando incidente:', error);
+                alert('Error al reportar incidente.');
+            }
+        });
+    </script>
 </body>
+
 </html>

@@ -36,13 +36,12 @@ window.TablesApi = {
         });
     },
 
-    // NUEVO: Función para Restaurar
-    restoreTable: async (id, newTableNumber) => {
+    // Restaurar manteniendo el número de mesa original (sin solicitar nuevo número)
+    restoreTable: async (id) => {
         const baseUrl = window.TablesApi.getBaseUrl();
-        // PATCH requiere body con el nuevo número
+        // Enviamos PATCH sin body para que el backend restaure sin cambiar el número
         return window.HttpClient.request(`${baseUrl}/tables/${id}/restore`, { 
-            method: 'PATCH',
-            body: JSON.stringify({ tableNumber: parseInt(newTableNumber) })
+            method: 'PATCH'
         });
     },
 

@@ -236,6 +236,9 @@ function mapOrderFromApi(o) {
       (o?.zone && (o.zone.shipping_cost ?? o.zone.shippingCost)) ??
       o?.monto_costo_envio ?? o?.shipping_amount ?? o?.shippingAmount ?? null,
     notes: o?.notes ?? o?.note ?? null,
+    // Payment info (if provided by API) — keep original keys so we can decide later
+    payment_type: o?.payment_type ?? o?.paymentType ?? o?.payment_method ?? null,
+    payment_received: typeof (o?.payment_received ?? o?.paymentReceived) === 'boolean' ? (o.payment_received ?? o.paymentReceived) : false,
   };
 }
 
@@ -421,12 +424,13 @@ function updateOrder(id, patch) {
   state.orders = state.orders.map((o) => (String(o.id) === String(id) ? { ...o, ...patch } : o));
 }
 
-async function patchOrderStatus(orderId, nextStatus) {
+async function patchOrderStatus(orderId, nextStatus, extras = {}) {
   const dpBase = getDpUrl();
   const url = dpBase
     ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`
     : `/api/dp/v1/orders/${encodeURIComponent(orderId)}/status`;
-  await fetchJson(url, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+  const body = Object.assign({ status: nextStatus }, extras || {});
+  await fetchJson(url, { method: 'PATCH', body: JSON.stringify(body) });
 }
 
 async function cancelOrder(orderIdOrReadableId, reasonCancelled) {
@@ -563,10 +567,19 @@ async function handleAction(action, id) {
     return;
   }
 
-  if (action === 'delivered' && st === STATUS.EN_ROUTE) {
+  if (action === 'delivered' && (st === STATUS.EN_ROUTE || st === STATUS.READY_FOR_DISPATCH)) {
     try {
       setPageError('');
-      await patchOrderStatus(orderId, STATUS.DELIVERED);
+      // When marking delivered from either EN_ROUTE (delivery) or READY_FOR_DISPATCH (pickup)
+      // include payment_received and, for cash payments, set payment_type: "EFECTIVO".
+      const paymentRaw = (order.payment_type || order.paymentType || order.payment_method || '') || '';
+      const isCash = ['EFECTIVO', 'CASH', 'CASH_ON_DELIVERY', 'CASH_ON_PICKUP', 'EFECTIVO_COBRO'].includes(
+        String(paymentRaw).toUpperCase()
+      );
+      const extras = { payment_received: true };
+      if (isCash) extras.payment_type = 'EFECTIVO';
+
+      await patchOrderStatus(orderId, STATUS.DELIVERED, extras);
       await loadOrdersFromBackend();
     } catch (e) {
       setPageError(normalizeErrorMessage(e));

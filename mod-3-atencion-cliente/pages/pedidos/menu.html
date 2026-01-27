@@ -13,8 +13,9 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#205638', 
-                        secondary: '#E8F5E9',
+                        primary: '#357854',
+                        primaryDark: '#13532a',
+                        cream: '#f2f7f1'
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -29,15 +30,25 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Estilo para la pestaña activa */
-        .tab-btn.active {
-            color: #1B5E20;
-            border-bottom-color: #1B5E20;
-            font-weight: 700;
+        /* Barra de categorías tipo píldora */
+        .tab-btn { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 0.5rem 1rem; 
+            border-radius: 9999px; 
+            border: 1px solid #e5e7eb; 
+            background: #ffffff; 
+            color: #374151; 
+            font-weight: 700; 
+            font-size: 0.875rem; 
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; 
+            white-space: nowrap; 
         }
-        .tab-btn {
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
+        .tab-btn:hover { background: #f9fafb; }
+        .tab-btn.active { 
+            background: #13532a; 
+            color: #ffffff; 
+            border-color: transparent; 
         }
 
         /* Skeleton loading */
@@ -52,41 +63,45 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+<body class="bg-cream text-gray-800 font-sans min-h-screen flex flex-col overflow-y-scroll">
 
-    <!-- ============ HEADER ============ -->
-    <header class="bg-white sticky top-0 z-30 shadow-sm">
-        <div class="container mx-auto max-w-6xl px-4 pt-4">
-            
-            <!-- Logo y Navegación Desktop -->
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Charlotte's Restaurant</h1>
-                
-                <!-- Navegación Desktop -->
-                <div id="desktop-nav-container" class="hidden md:flex gap-6 items-center"></div>
-            </div>
-            
-            <!-- Barra de búsqueda -->
-            <div class="relative max-w-2xl mx-auto mb-6 group">
-                <span class="material-icons-outlined absolute left-4 top-3 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
-                <input type="text" 
-                       id="search-input"
-                       placeholder="Buscar platos o bebidas..." 
-                       class="w-full bg-gray-100 rounded-xl py-3 pl-11 pr-4 text-sm font-medium text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white border border-transparent focus:border-gray-200 transition-all">
-            </div>
+    <!-- ============ HEADER MOBILE ============ -->
+    <header class="md:hidden bg-white sticky top-0 z-20 shadow-sm">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div id="brand-container-mobile" class="flex items-center gap-3"></div>
+            <div class="w-8"></div>
+        </div>
+    </header>
 
-            <!-- Tabs de Categorías -->
-            <nav id="category-tabs" class="flex gap-8 overflow-x-auto no-scrollbar justify-start md:justify-center border-b border-gray-100">
-                <!-- Se cargan dinámicamente -->
-                <div class="skeleton h-8 w-20 rounded mb-3"></div>
-                <div class="skeleton h-8 w-24 rounded mb-3"></div>
-                <div class="skeleton h-8 w-28 rounded mb-3"></div>
-            </nav>
+    <!-- ============ HEADER DESKTOP ============ -->
+    <header class="hidden md:block bg-[#f2f7f1] border-b border-[#e6efe4] sticky top-0 z-30">
+        <div class="container mx-auto max-w-6xl px-4 h-20 flex items-center justify-between">
+            <div id="brand-container" class="hidden md:flex items-center gap-3 w-[280px] shrink-0"></div>
+            <div id="desktop-nav-container" class="hidden md:flex gap-6 items-center"></div>
         </div>
     </header>
 
     <!-- ============ MAIN CONTENT ============ -->
     <main class="flex-grow container mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-8">
+        <!-- Barra de búsqueda -->
+        <div class="relative max-w-2xl mx-auto mb-6 group">
+            <span class="material-icons-outlined absolute left-4 top-3 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+            <input type="text"
+                id="search-input"
+                placeholder="Buscar platos o bebidas..."
+                class="w-full bg-white rounded-xl py-3 pl-11 pr-4 text-sm font-medium text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 border border-gray-300 focus:border-primary/30 shadow-sm transition-all">
+        </div>
+
+        <!-- Barra de Categorías -->
+        <div class="mt-2">
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Categorías</h2>
+            <nav id="category-tabs" class="flex gap-3 overflow-x-auto no-scrollbar justify-start md:justify-start py-2">
+                <!-- Se cargan dinámicamente -->
+                <div class="skeleton h-8 w-20 rounded-full mb-1"></div>
+                <div class="skeleton h-8 w-24 rounded-full mb-1"></div>
+                <div class="skeleton h-8 w-28 rounded-full mb-1"></div>
+            </nav>
+        </div>
         
         <!-- Grid de Productos -->
         <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -182,6 +197,7 @@
             const price = parseFloat(product.price || product.precio || product.basePrice || 0);
             const name = product.name || product.nombre || 'Producto';
             const image = product.imageUrl || product.image_url || product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';
+            const description = product.description || product.descripcion || '';
 
             // Verificar si ya existe en el carrito
             const existingIndex = cart.findIndex(item => item.productId === productId);
@@ -195,7 +211,8 @@
                     name: name,
                     price: price,
                     quantity: 1,
-                    image: image
+                    image: image,
+                    description: description
                 });
             }
 
@@ -315,7 +332,7 @@
         function renderCategories() {
             let html = `
                 <button onclick="filterMenu('all')" 
-                        class="tab-btn ${selectedCategory === 'all' ? 'active' : ''} whitespace-nowrap pb-3 text-sm font-medium text-gray-500 hover:text-primary">
+                        class="tab-btn ${selectedCategory === 'all' ? 'active' : ''}">
                     Todos
                 </button>
             `;
@@ -327,7 +344,7 @@
                 
                 html += `
                     <button onclick="filterMenu('${catId}')" 
-                            class="tab-btn ${isActive ? 'active' : ''} whitespace-nowrap pb-3 text-sm font-medium text-gray-500 hover:text-primary">
+                            class="tab-btn ${isActive ? 'active' : ''}">
                         ${escapeHtml(catName)}
                     </button>
                 `;
@@ -394,7 +411,7 @@
             }
 
             return `
-                <article class="menu-item bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex gap-4 cursor-pointer" 
+                <article class="menu-item bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-shadow border border-gray-100 flex gap-4 cursor-pointer" 
                          onclick="addToCart('${id}')">
                     <div class="flex-1 flex flex-col">
                         ${tagHtml ? `<div class="mb-2">${tagHtml}</div>` : '<div class="mb-2 h-6"></div>'}

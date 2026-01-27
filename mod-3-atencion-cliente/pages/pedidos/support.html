@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help & Service - The Golden Spoon</title>
+    <title>Ayuda y Servicio - Charlotte's Restaurant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -12,8 +12,8 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#205638',
-                        secondary: '#E8F5E9',
+                        primary: '#357854',
+                        secondary: '#f6faf7',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -23,18 +23,16 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+<body class="bg-[#f2f7f1] font-sans min-h-screen flex flex-col overflow-y-scroll">
 
     <header class="md:hidden p-4 text-center bg-white sticky top-0 z-20 shadow-sm">
         <h1 class="text-xl font-bold text-gray-900">Ayuda y Servicio</h1>
     </header>
 
-    <header class="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-30">
+    <header class="hidden md:block bg-[#f2f7f1] border-b border-[#e6efe4] sticky top-0 z-30">
         <div class="container mx-auto max-w-6xl px-4 h-20 flex items-center justify-between">
-            <a href="menu.html" class="text-2xl font-bold text-gray-900 tracking-tight hover:text-primary transition">
-                Charlotte's Restaurant
-            </a>
-            <div id="desktop-nav-container" class="flex items-center gap-8"></div>
+            <div id="brand-container" class="hidden md:flex items-center gap-3 w-[280px] shrink-0"></div>
+            <div id="desktop-nav-container" class="hidden md:flex gap-6 items-center"></div>
         </div>
     </header>
 
@@ -108,7 +106,10 @@
         </div>
     </div>
 
-    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-[-20px] invisible z-[60]"></div>
+    <div id="toast" class="pointer-events-none fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl z-[60] transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <span class="material-icons-outlined text-green-400">check_circle</span>
+        <span id="toast-message" class="flex-1 text-sm font-medium">Notificación</span>
+    </div>
 
     <nav id="mobile-nav-container"></nav>
     <script src="/config.js"></script>
@@ -137,18 +138,13 @@
         // --- GESTIÓN DE TOAST ---
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
-            if (type === 'success') {
-                toast.className = "fixed top-24 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 z-[60]";
-                toast.innerHTML = `<span class="material-icons-outlined text-green-400">check_circle</span> <span class="text-sm font-medium">${message}</span>`;
-            } else if (type === 'error') {
-                toast.className = "fixed top-24 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 z-[60]";
-                toast.innerHTML = `<span class="material-icons-outlined text-white">error</span> <span class="text-sm font-medium">${message}</span>`;
-            } else if (type === 'warning') {
-                toast.className = "fixed top-24 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 z-[60]";
-                toast.innerHTML = `<span class="material-icons-outlined text-white">warning</span> <span class="text-sm font-medium">${message}</span>`;
-            }
-            toast.classList.remove('opacity-0', 'translate-y-[-20px]', 'invisible');
-            setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-[-20px]', 'invisible'); }, 3000);
+            const msgEl = document.getElementById('toast-message');
+            const icon = toast.querySelector('.material-icons-outlined');
+            msgEl.textContent = message;
+            icon.textContent = type === 'success' ? 'check_circle' : 'error';
+            icon.className = `material-icons-outlined ${type === 'success' ? 'text-green-400' : 'text-red-400'}`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
         }
 
         // --- GESTIÓN DEL HISTORIAL (NUEVO) ---
@@ -363,6 +359,7 @@
     </script>
 
     <style>
+        html { scrollbar-gutter: stable; }
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fade-in 0.2s ease-out; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
