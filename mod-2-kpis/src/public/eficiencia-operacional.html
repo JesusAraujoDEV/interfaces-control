@@ -97,7 +97,7 @@
     // Función para hacer fetch a la API
     async function fetchRotationData() {
         try {
-            const response = await fetch('http://localhost:3000/api/v1/kpi/operations/staff-ranking');
+            const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking');
             if (!response.ok) throw new Error('Error en la API');
             const data = await response.json();
             console.log('Datos de rotación recibidos:', data);
@@ -140,7 +140,7 @@
 
     async function loadRanking(sort_by="EFFICIENCY") {
         try {
-            const response = await fetch(`http://localhost:3000/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}`);
+            const response = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}`);
             fullRankingData = await response.json();
             if (Array.isArray(fullRankingData.data)) {
                 renderTable(fullRankingData.data);
@@ -201,7 +201,7 @@
         });
 
         try {
-            const res = await fetch(`http://localhost:3000/api/v1/kpi/operations/staff-metrics/${staff.id}`);
+            const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-metrics/${staff.id}`);
             const metrics = await res.json();
 
             Swal.fire({
@@ -240,7 +240,7 @@
     }
 
     // --- Lógica de SLA ---
-    const API_URL = 'http://localhost:3000/api/v1/kpi/operations/sla-breakdown';
+    const API_URL = 'https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/sla-breakdown';
     let slaData = null;
 
     async function fetchData() {
@@ -286,7 +286,7 @@
 
     // --- Polling Logic for Export ---
     function pollExportJob(jobId) {
-        fetch(`http://localhost:3000/api/v1/kpi/reports/jobs/${jobId}`)
+        fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'COMPLETED') {
@@ -331,7 +331,7 @@
                     didOpen: () => Swal.showLoading()
                 });
 
-                fetch("http://localhost:3000/api/v1/kpi/reports/export", { method: "POST" })
+                fetch("https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export", { method: "POST" })
                     .then(res => res.json())
                     .then(data => {
                         pollExportJob(data.job_id);
@@ -348,7 +348,7 @@
     // --- Global Alerts History ---
     window.showAlertsHistory = function() {
         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-        fetch('http://localhost:3000/api/v1/kpi/alerts/history')
+        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
             .then(res => res.json())
             .then(data => {
                 Swal.fire({
