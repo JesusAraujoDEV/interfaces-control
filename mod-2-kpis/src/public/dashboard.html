@@ -44,7 +44,7 @@
           ></div>
           <div>
             <p class="sidebar__user-name">Juan Pérez</p>
-            <p class="sidebar__user-role">Administrador</p>
+            <p class="sidebar__user-role">Gerente</p>
           </div>
         </div>
       </aside>
@@ -52,7 +52,7 @@
       <main class="content">
         <header class="header-top">
           <div>
-            <h1 class="header-top__title">HOLA, JUAN</h1>
+            <h1 class="header-top__title">HOLA, GERENTE</h1>
             <p class="header-top__subtitle">
               Este es el resumen de tu negocio.
             </p>
@@ -121,6 +121,7 @@
               <canvas id="demand-chart"></canvas>
             </div>
             <div
+              id="salesLabels"
               style="
                 display: flex;
                 justify-content: space-between;
@@ -168,6 +169,12 @@
     <script>
     // Carga datos desde la API y actualiza la interfaz
     async function loadDashboard() {
+      // Mostrar fecha actual
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const dateBadge = document.getElementById('current-date-badge');
+      if (dateBadge) dateBadge.textContent = '📅 ' + dateStr;
+
       try {
         // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
         const [sRes, aRes] = await Promise.allSettled([
@@ -184,7 +191,8 @@
         if (aRes.status === 'fulfilled' && aRes.value && aRes.value.ok) {
           try { alertsJson = await aRes.value.json(); } catch(_) { alertsJson = {}; }
         }
-
+        console.log('Fetched summary:', summaryJson);
+        console.log('Fetched alerts:', alertsJson);
         const summary = summaryJson.data || summaryJson || {};
         const alerts = alertsJson.alerts || alertsJson || [];
         console.log('Dashboard summary:', summary);
@@ -228,10 +236,11 @@
         // Ventas por hora y valor total hoy (no vienen en la respuesta de ejemplo; manejar vacío)
         const salesData = summary.sales_by_hour || summary.sales_hours || [];
         const totalToday = summary.sales_total_today ?? (Array.isArray(salesData) ? salesData.reduce((s,i)=>s + (typeof i === 'number' ? i : (i.value||0)),0) : 0);
-        const salesValueEl = document.getElementById('salesValue');
-        const salesChangeEl = document.getElementById('salesChange');
-        salesValueEl.firstChild && salesValueEl.firstChild.nodeValue !== undefined && (salesValueEl.firstChild.nodeValue = formatCurrency(totalToday, revenue.currency) + ' ');
-        if (summary.sales_change) salesChangeEl.textContent = 'Hoy ' + summary.sales_change;
+        const salesValueEl = document.getElementById('chart-revenue-today');
+        const salesChangeEl = document.getElementById('chart-revenue-trend');
+        console.log(salesValueEl, salesChangeEl);
+        if (salesValueEl) salesValueEl.textContent = formatCurrency(totalToday, revenue.currency);
+        if (salesChangeEl && summary.sales_change) salesChangeEl.textContent = 'Hoy ' + summary.sales_change;
 
         // Etiquetas debajo de la gráfica
         const labelsEl = document.getElementById('salesLabels');
@@ -243,7 +252,7 @@
         }
 
         // Dibujar gráfica en canvas
-        drawChart('salesChart', salesData);
+        drawChart('demand-chart', salesData);
 
         // Alertas de inventario
         const alertsList = document.getElementById('alertsList');
@@ -438,7 +447,6 @@
       if (!el) return;
       const cfg = getStockLimits();
       const lines = [];
-      lines.push('<div><strong>Límite por defecto:</strong> ' + cfg.default + '%</div>');
       const keys = Object.keys(cfg.items || {});
       if (keys.length) {
         lines.push('<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>');
