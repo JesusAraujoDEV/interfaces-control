@@ -154,100 +154,75 @@
               </button>
             </div>
 
-            <div id="stock-alerts-list">
-              <!-- Dynamically populated from API -->
+            <div id="alertsList">
+              <!-- alertas serán renderizadas aquí -->
               <p class="text-muted" style="font-size: 0.8rem">Cargando alertas...</p>
             </div>
-        </aside>
 
-        <main class="content">
-            <header class="header-top">
-                <div>
-                    <h1 class="header-top__title">HOLA, JUAN</h1>
-                    <p class="header-top__subtitle">Este es el resumen de tu negocio.</p>
-                </div>
-                <div class="date-badge" style="background: white; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
-                    📅 Hoy, Dic 01
-                </div>
-            </header>
-
-            <section class="stats-grid">
-                <div class="kpi-card">
-                    <p class="kpi-card__label">Ingresos</p>
-                    <p id="incomeValue" class="kpi-card__value">$0</p>
-                    <span id="incomeTrend" class="kpi-card__trend kpi-card__trend--up">0%</span>
-                </div>
-                <div class="kpi-card">
-                    <p class="kpi-card__label">Meta Trimestral</p>
-                    <p id="quarterlyProgress" class="kpi-card__value">0%</p>
-                    <p id="quarterlyTarget" style="font-size: 0.7rem; color: var(--text-muted);">$0</p>
-                </div>
-                <div class="kpi-card">
-                    <p class="kpi-card__label">Tiempo Atención</p>
-                    <p id="rotationValue" class="kpi-card__value">00:00</p>
-                    <span id="timeStatus" style="font-size: 0.8rem; color: var(--text-muted);">--</span>
-                </div>
-                <div class="kpi-card" onclick="window.location.href='operaciones.html'" style="cursor:pointer">
-                    <p class="kpi-card__label">Rotación</p>
-                    <p id="rotationRate" class="kpi-card__value">0 /hr</p>
-                    <span id="rotationStatus" class="kpi-card__trend kpi-card__trend--down">--</span>
-                </div>
-            </section>
-
-            <div class="dashboard-main-grid">
-                <div class="chart-container">
-                    <h2 class="card__title">Ventas por Hora</h2>
-                    <p id="salesValue" class="kpi-card__value" style="font-size: 1.5rem;">$0 <span id="salesChange" style="font-size: 0.8rem; color: #28a745;"></span></p>
-                    <canvas id="salesChart" width="800" height="250" style="width:100%; height:250px; border-radius: 0 0 10px 10px; display:block; margin-top:20px;"></canvas>
-                    <div id="salesLabels" style="display: flex; justify-content: space-between; margin-top: 10px; color: var(--text-muted); font-size: 0.7rem;">
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                </div>
-
-                <div class="stock-alerts">
-                    <h2 class="card__title">Alertas de Stock</h2>
-                    
-                    <div id="alertsList">
-                        <!-- alertas serán renderizadas aquí -->
-                    </div>
-                </div>
+            <div id="stockLimits" style="margin-top:12px; font-size:0.9rem; color:var(--text-muted);"></div>
             </div>
-        </main>
+          </div>
+          </main>
     </div>
     <script>
     // Carga datos desde la API y actualiza la interfaz
     async function loadDashboard() {
       try {
-        const [summaryRes, alertsRes] = await Promise.all([
+        // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
+        const [sRes, aRes] = await Promise.allSettled([
           fetch('http://localhost:3000/api/v1/kpi/dashboard/summary'),
           fetch('http://localhost:3000/api/v1/kpi/inventory/alerts')
         ]);
-        
-        const summaryJson = summaryRes.ok ? await summaryRes.json() : {};
-        const alertsJson = alertsRes.ok ? await alertsRes.json() : {};
-        const summary = summaryJson.data || {};
-        const alerts = alertsJson.alerts || [];
+
+        let summaryJson = {};
+        let alertsJson = {};
+
+        if (sRes.status === 'fulfilled' && sRes.value && sRes.value.ok) {
+          try { summaryJson = await sRes.value.json(); } catch(_) { summaryJson = {}; }
+        }
+        if (aRes.status === 'fulfilled' && aRes.value && aRes.value.ok) {
+          try { alertsJson = await aRes.value.json(); } catch(_) { alertsJson = {}; }
+        }
+
+        const summary = summaryJson.data || summaryJson || {};
+        const alerts = alertsJson.alerts || alertsJson || [];
         console.log('Dashboard summary:', summary);
-        // Ingresos
-        const incomeEl = document.getElementById('incomeValue');
-        const incomeTrendEl = document.getElementById('incomeTrend');
+        // Ingresos (mapear a ambos conjuntos de IDs para evitar duplicados)
         const revenue = summary.revenue || {};
-        if (revenue.total != null) incomeEl.textContent = formatCurrency(revenue.total, revenue.currency);
-        if (revenue.trend_percentage != null) incomeTrendEl.textContent = (revenue.trend_direction === 'down' ? '-' : (revenue.trend_direction === 'up' ? '+' : '')) + revenue.trend_percentage + '%';
+        const incomeEls = [document.getElementById('incomeValue'), document.getElementById('kpi-revenue')];
+        const incomeTrendEls = [document.getElementById('incomeTrend'), document.getElementById('kpi-revenue-trend')];
+        if (revenue.total != null) {
+          const txt = formatCurrency(revenue.total, revenue.currency);
+          incomeEls.forEach(e => { if (e) e.textContent = txt; });
+        }
+        if (revenue.trend_percentage != null) {
+          const t = (revenue.trend_direction === 'down' ? '-' : (revenue.trend_direction === 'up' ? '+' : '')) + revenue.trend_percentage + '%';
+          incomeTrendEls.forEach(e => { if (e) e.textContent = t; });
+        }
 
-        // Meta trimestral
+        // Meta trimestral (mapear a ambos bloques)
         const quarterly = summary.quarterly_goal || {};
-        const quarterlyProgressEl = document.getElementById('quarterlyProgress');
-        const quarterlyTargetEl = document.getElementById('quarterlyTarget');
-        if (quarterly.progress_percentage != null) quarterlyProgressEl.textContent = (quarterly.progress_percentage) + '%';
-        if (quarterly.target != null) quarterlyTargetEl.textContent = formatCurrency(quarterly.target, revenue.currency);
+        const quarterlyProgressEls = [document.getElementById('quarterlyProgress'), document.getElementById('kpi-goal')];
+        const quarterlyTargetEls = [document.getElementById('quarterlyTarget'), document.getElementById('kpi-goal-absolute')];
+        if (quarterly.progress_percentage != null) {
+          const txt = (quarterly.progress_percentage) + '%';
+          quarterlyProgressEls.forEach(e => { if (e) e.textContent = txt; });
+        }
+        if (quarterly.target != null) {
+          const txt = formatCurrency(quarterly.target, revenue.currency);
+          quarterlyTargetEls.forEach(e => { if (e) e.textContent = txt; });
+        }
 
-        // Rotación / Tiempo atención
+        // Rotación / Tiempo atención (mapear a ambos bloques)
         const ops = summary.operations || {};
-        if (ops.avg_service_time) document.getElementById('rotationValue').textContent = ops.avg_service_time;
-        if (ops.time_status) document.getElementById('timeStatus').textContent = ops.time_status;
-        if (ops.table_rotation != null) document.getElementById('rotationRate').textContent = ops.table_rotation + ' /hr';
-        if (ops.rotation_status) document.getElementById('rotationStatus').textContent = ops.rotation_status;
+        const avgTimeEls = [document.getElementById('rotationValue'), document.getElementById('kpi-avg-time')];
+        const avgStatusEls = [document.getElementById('timeStatus')];
+        const rotationRateEls = [document.getElementById('rotationRate'), document.getElementById('kpi-rotation')];
+        const rotationStatusEls = [document.getElementById('rotationStatus'), document.getElementById('kpi-rotation-target')];
+        if (ops.avg_service_time) avgTimeEls.forEach(e => { if (e) e.textContent = ops.avg_service_time; });
+        if (ops.time_status) avgStatusEls.forEach(e => { if (e) e.textContent = ops.time_status; });
+        if (ops.table_rotation != null) rotationRateEls.forEach(e => { if (e) e.textContent = ops.table_rotation + ' /hr'; });
+        if (ops.rotation_status) rotationStatusEls.forEach(e => { if (e) e.textContent = ops.rotation_status; });
 
         // Ventas por hora y valor total hoy (no vienen en la respuesta de ejemplo; manejar vacío)
         const salesData = summary.sales_by_hour || summary.sales_hours || [];
@@ -272,18 +247,57 @@
         // Alertas de inventario
         const alertsList = document.getElementById('alertsList');
         alertsList.innerHTML = '';
+        const cfg = getStockLimits();
+        const defaultLimit = Number(cfg.default ?? 30);
+        const perItem = cfg.items || {};
         (alerts || []).forEach(item => {
           const percent = item.percent ?? item.level ?? 0;
+          const name = item.name || item.item || 'Sin nombre';
+          const limit = Number(perItem[name] ?? defaultLimit);
+          const isCritical = percent <= limit;
+
           const div = document.createElement('div');
           div.className = 'stock-item';
           div.style.cursor = item.url ? 'pointer' : 'default';
-          div.innerHTML = `
-            <span class="stock-item__name">${escapeHtml(item.name || item.item || 'Sin nombre')}</span>
-            <div style="display:flex;align-items:center;">
-              <div class="progress-bar"><div class="progress-bar__fill ${getFillClass(percent)}" style="width:${percent}%;"></div></div>
-              <span class="stock-item__percent">${percent}%</span>
-            </div>`;
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          div.style.padding = '6px 0';
+
+          const left = document.createElement('div');
+          left.innerHTML = '<span class="stock-item__name">' + escapeHtml(name) + '</span>';
+
+          const right = document.createElement('div');
+          right.style.display = 'flex';
+          right.style.gap = '10px';
+          right.style.alignItems = 'center';
+
+          const bar = document.createElement('div');
+          bar.style.display = 'flex';
+          bar.style.alignItems = 'center';
+          bar.innerHTML = '<div class="progress-bar" style="width:160px;margin-right:8px"><div class="progress-bar__fill ' + getFillClass(percent) + '" style="width:' + percent + '%"></div></div><span class="stock-item__percent">' + percent + '%</span>';
+
+          const badge = document.createElement('span');
+          badge.style.fontSize = '0.8rem';
+          badge.style.padding = '4px 8px';
+          badge.style.borderRadius = '6px';
+          badge.style.background = isCritical ? 'rgba(255,99,71,0.12)' : 'transparent';
+          badge.style.color = isCritical ? '#c53030' : 'var(--text-muted)';
+          badge.textContent = isCritical ? 'Crítico (' + limit + '%)' : 'Límite ' + limit + '%';
+
+          const editBtn = document.createElement('button');
+          editBtn.textContent = 'Editar límite';
+          editBtn.className = 'icon-btn';
+          editBtn.onclick = (ev) => { ev.stopPropagation(); showEditLimitForItem(name, perItem[name]); };
+
+          right.appendChild(bar);
+          right.appendChild(badge);
+          right.appendChild(editBtn);
+
           if (item.url) div.onclick = () => window.location.href = item.url;
+
+          div.appendChild(left);
+          div.appendChild(right);
           alertsList.appendChild(div);
         });
 
@@ -291,6 +305,18 @@
         if (!alerts.length) {
           alertsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Sin alertas críticas</div>';
         }
+
+        // Wire settings button and render stored limits
+        const settingsBtn = document.getElementById('stock-settings-btn');
+        if (settingsBtn) settingsBtn.onclick = (ev) => { ev.preventDefault(); showDefaultLimitEditor(); };
+        // Wire edit-goal button for quarterly goal
+        const editGoalBtn = document.getElementById('edit-goal-btn');
+        if (editGoalBtn) editGoalBtn.onclick = (ev) => { ev.preventDefault();
+          const current = (summary.quarterly_goal ?? null);
+          const absolute = (summary.quarterly_goal_total ?? null);
+          showEditQuarterlyGoal(current, absolute);
+        };
+        renderStockLimits();
 
       } catch (err) {
         console.error('Error cargando dashboard:', err);
@@ -315,18 +341,32 @@
       if (!canvas || !canvas.getContext) return;
       const ctx = canvas.getContext('2d');
       const DPR = window.devicePixelRatio || 1;
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      canvas.width = w * DPR;
-      canvas.height = h * DPR;
+
+      // Compute visible size robustly
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || canvas.parentElement?.clientWidth || 800;
+      const h = rect.height || 250;
+
+      // Set canvas drawing buffer and CSS size
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      canvas.width = Math.max(1, Math.floor(w * DPR));
+      canvas.height = Math.max(1, Math.floor(h * DPR));
+
+      // Reset transform and scale for DPR
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(DPR, DPR);
 
       ctx.clearRect(0, 0, w, h);
-      const points = (data || []).map(d => typeof d === 'number' ? {label:'', value:d} : {label: d.hour || d.label || '', value: d.value || 0});
+      const points = (data || []).map(d => (typeof d === 'number' ? {label:'', value:d} : {label: d.hour || d.label || '', value: d.value || 0}));
       if (!points.length) {
         // dibujar fondo suave cuando no hay datos
         ctx.fillStyle = '#f5f7fa';
         ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'var(--text-muted, #6b7280)';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('No hay datos de ventas por hora', w/2, h/2);
         return;
       }
 
@@ -373,6 +413,115 @@
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // Stock limits persisted in localStorage under key 'stockLimits'
+    function getStockLimits() {
+      try {
+        const raw = localStorage.getItem('stockLimits');
+        if (!raw) return { default: 30, items: {} };
+        const parsed = JSON.parse(raw);
+        return { default: Number(parsed.default ?? 30), items: parsed.items || {} };
+      } catch (e) {
+        return { default: 30, items: {} };
+      }
+    }
+
+    function saveStockLimits(obj) {
+      localStorage.setItem('stockLimits', JSON.stringify(obj));
+      renderStockLimits();
+    }
+
+    function renderStockLimits() {
+      const el = document.getElementById('stockLimits');
+      if (!el) return;
+      const cfg = getStockLimits();
+      const lines = [];
+      lines.push('<div><strong>Límite por defecto:</strong> ' + cfg.default + '%</div>');
+      const keys = Object.keys(cfg.items || {});
+      if (keys.length) {
+        lines.push('<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>');
+        lines.push('<ul style="margin:6px 0 0 14px">' + keys.map(k => '<li>' + escapeHtml(k) + ': ' + cfg.items[k] + '%</li>').join('') + '</ul>');
+      }
+      el.innerHTML = lines.join('');
+    }
+
+    async function showEditLimitForItem(itemName, current) {
+      const { value: percent } = await Swal.fire({
+        title: 'Editar límite para "' + escapeHtml(itemName) + '"',
+        input: 'number',
+        inputLabel: 'Límite (%)',
+        inputValue: current ?? '',
+        inputAttributes: { min: 0, max: 100, step: 1 },
+        showCancelButton: true
+      });
+      if (percent === undefined || percent === null) return;
+      const cfg = getStockLimits();
+      cfg.items = cfg.items || {};
+      cfg.items[itemName] = Number(percent || 0);
+      saveStockLimits(cfg);
+      loadDashboard();
+    }
+
+    async function showDefaultLimitEditor() {
+      const cfg = getStockLimits();
+      const { value: def } = await Swal.fire({
+        title: 'Límite por defecto de stock',
+        input: 'number',
+        inputLabel: 'Porcentaje crítico (%)',
+        inputValue: cfg.default,
+        inputAttributes: { min: 0, max: 100, step: 1 },
+        showCancelButton: true
+      });
+      if (def === undefined || def === null) return;
+      cfg.default = Number(def || 0);
+      saveStockLimits(cfg);
+      loadDashboard();
+    }
+
+    // Editar meta trimestral (modal + patch al backend si está disponible)
+    async function showEditQuarterlyGoal(currentValue, currentTarget) {
+      const { value: newGoal } = await Swal.fire({
+        title: 'Editar Meta Trimestral',
+        html: '<input id="swal-goal" type="number" class="swal2-input" placeholder="Porcentaje" value="' + (currentValue ?? '') + '">' +
+              '<input id="swal-target" type="text" class="swal2-input" placeholder="Meta absoluta (ej. 450k)" value="' + (currentTarget ?? '') + '">',
+        focusConfirm: false,
+        showCancelButton: true,
+        preConfirm: () => {
+          const g = document.getElementById('swal-goal').value;
+          const t = document.getElementById('swal-target').value;
+          return { goal: g !== '' ? Number(g) : null, target: t };
+        }
+      });
+      if (!newGoal) return;
+
+      // Try to PATCH to known endpoints
+      const payload = { goal: newGoal.goal, target: newGoal.target };
+      const endpoints = [
+        '/configuration/goals/quarterly',
+        'http://localhost:3000/api/v1/kpi/configuration/goals/quarterly'
+      ];
+      let patched = false;
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: payload.goal, target: payload.target }) });
+          if (res.ok) { patched = true; break; }
+        } catch (e) {
+          // ignore and try next
+        }
+      }
+
+      // Update UI locally regardless
+      const qEls = [document.getElementById('quarterlyProgress'), document.getElementById('kpi-goal')];
+      const qTargetEls = [document.getElementById('quarterlyTarget'), document.getElementById('kpi-goal-absolute')];
+      if (payload.goal != null) qEls.forEach(e => { if (e) e.textContent = payload.goal + '%'; });
+      if (payload.target != null) qTargetEls.forEach(e => { if (e) e.textContent = payload.target; });
+
+      if (patched) {
+        Swal.fire({ icon: 'success', title: 'Meta actualizada' });
+      } else {
+        Swal.fire({ icon: 'warning', title: 'Guardado local', text: 'No se pudo actualizar el backend; cambios aplicados localmente.' });
+      }
     }
 
     document.addEventListener('DOMContentLoaded', loadDashboard);
