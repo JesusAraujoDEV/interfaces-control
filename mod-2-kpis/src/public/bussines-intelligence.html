@@ -160,67 +160,111 @@
         const applyBtn = document.getElementById('apply-filters-btn');
 
         const ROW_HEIGHT = 51; 
-        let allData = [];
-        let filteredData = [];
-        let currentSearch = "";
-        let selectedDate = null;
+    let allData = [];
+    let filteredData = [];
+    let currentSearch = "";
+    let selectedStartDate = null;
+    let selectedEndDate = null;
 
-        // 1. Unified Fetch Logic
-        const fetchTransactions = (search = "", startDate = null, endDate = null) => {
-            let url = `http://localhost:3000/api/v1/kpi/analytics/kitchen/queue`;
-            if (startDate) url += `&start_date=${startDate}`;
-            if (endDate) url += `&end_date=${endDate}`;
+    // Function to update the ghost height for virtual scrolling
+    const updateScrollerHeight = () => {
+        ghost.style.height = `${filteredData.length * ROW_HEIGHT}px`;
+    };
 
-            countLabel.innerText = "Sincronizando con servidor...";
-            
-            fetch(url)
-                .then(res => res.json().then(data => { console.log(data); return data; }))
-                .then(response => {
-                    allData = response.queue || [];
-                    filteredData = allData; // Initialize filteredData
-                    updateScrollerHeight();
-                    scroller.scrollTop = 0;
-                    renderSlice();
-                    console.log(allData)
-                    if (search || startDate) {
-                        countLabel.innerText = `Mostrando ${filteredData.length} resultados filtrados`;
+    // 1. Unified Fetch Logic (Now fetches all data without date queries)
+    const fetchTransactions = () => {
+        let url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/analytics/kitchen/queue`;
+
+        countLabel.innerText = "Sincronizando con servidor...";
+        
+        fetch(url)
+            .then(res => {
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        // No data available, show message
+                        allData = [];
+                        filterData();
+                        countLabel.innerText = "No hay transacciones para el rango seleccionado.";
+                        return;
                     } else {
-                        countLabel.innerText = `Mostrando ${filteredData.length} registros (ID total sincronizado)`;
+                        throw new Error(`Error ${res.status}: ${res.statusText}`);
                     }
-                });
-        };
+                }
+                return res.json().then(data => { console.log(data); return data; });
+            })
+            .then(response => {
+                if (!response) return; // Skip if already handled in error
+                allData = response.queue || [];
+                filterData(); // Filter locally after fetching
+            })
+            .catch(error => {
+                console.error('Error fetching transactions:', error);
+                countLabel.innerText = "Error al cargar los datos. Intente nuevamente.";
+                allData = [];
+                filterData();
+            });
+    };
 
-        // New function to filter data locally
-        const filterData = () => {
-            if (currentSearch.trim() === "") {
-                filteredData = allData;
-            } else {
-                filteredData = allData.filter(item => 
-                    item.externalOrderId && item.externalOrderId.toLowerCase().includes(currentSearch.toLowerCase())
-                );
-            }
-            updateScrollerHeight();
-            scroller.scrollTop = 0;
-            renderSlice();
-            countLabel.innerText = `Mostrando ${filteredData.length} de ${allData.length} registros`;
-        };
+    // New function to filter data locally (by search and dates)
+    const filterData = () => {
+        let tempData = allData;
 
-        function updateScrollerHeight() {
-            ghost.style.height = `${filteredData.length * ROW_HEIGHT}px`;
+        // Filter by dates if selected
+        if (selectedStartDate && selectedEndDate) {
+            const start = new Date(selectedStartDate);
+            const end = new Date(selectedEndDate);
+            end.setHours(23, 59, 59, 999); // Include the entire end day
+            tempData = tempData.filter(item => {
+                const itemDate = new Date(item.createdAt);
+                return itemDate >= start && itemDate <= end;
+            });
+        } else if (selectedStartDate) {
+            const start = new Date(selectedStartDate);
+            tempData = tempData.filter(item => {
+                const itemDate = new Date(item.createdAt);
+                return itemDate >= start;
+            });
         }
 
+        // Filter by search
+        if (currentSearch.trim() !== "") {
+            tempData = tempData.filter(item => 
+                item.externalOrderId && item.externalOrderId.toLowerCase().includes(currentSearch.toLowerCase())
+            );
+        }
+
+        filteredData = tempData;
+        updateScrollerHeight();
+        scroller.scrollTop = 0;
+        renderSlice();
+
+        if (filteredData.length === 0) {
+            countLabel.innerText = "No hay transacciones para el rango seleccionado.";
+        } else if (currentSearch || selectedStartDate) {
+            countLabel.innerText = `Mostrando ${filteredData.length} resultados filtrados`;
+        } else {
+            countLabel.innerText = `Mostrando ${filteredData.length} registros (ID total sincronizado)`;
+        }
+    };
         // 2. Virtual Scroll Logic
         const renderSlice = () => {
-            const scrollTop = scroller.scrollTop;
-            const viewportHeight = scroller.clientHeight;
+        const scrollTop = scroller.scrollTop;
+        const viewportHeight = scroller.clientHeight;
 
-            const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
-            const endIndex = Math.min(
-                filteredData.length,
-                Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
-            );
-            
-            let rowsHtml = '';
+        const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
+        const endIndex = Math.min(
+            filteredData.length,
+            Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
+        );
+        
+        let rowsHtml = '';
+        if (filteredData.length === 0) {
+            rowsHtml = `
+                <tr style="height: ${ROW_HEIGHT}px;">
+                    <td colspan="6" class="data-table__td text-center text-gray-500">No hay transacciones para el rango seleccionado.</td>
+                </tr>
+            `;
+        } else {
             for (let i = startIndex; i < endIndex; i++) {
                 const item = filteredData[i];
                 const createdDate = new Date(item.createdAt);
@@ -245,10 +289,11 @@
                     </tr>
                 `;
             }
-
-            tbody.innerHTML = rowsHtml;
-            realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
         }
+
+        tbody.innerHTML = rowsHtml;
+        realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
+    };
 
         scroller.addEventListener('scroll', () => {
             window.requestAnimationFrame(renderSlice);
@@ -269,91 +314,94 @@
 
         // 4. Predefined Ranges Buttons
         document.querySelectorAll('.tab').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
-                this.classList.add('tab--active');
-                
-                const range = this.getAttribute('data-range');
-                const today = new Date();
-                let start = null;
-                let end = instance.formatDate(today, "Y-m-d");
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+            this.classList.add('tab--active');
+            
+            const range = this.getAttribute('data-range');
+            const today = new Date();
+            let start = null;
+            let end = instance.formatDate(today, "Y-m-d");
 
-                if (range === '30days') {
-                    const d = new Date();
-                    d.setDate(d.getDate() - 30);
-                    start = instance.formatDate(d, "Y-m-d");
-                } else if (range === 'week') {
-                    const d = new Date();
-                    const day = d.getDay() || 7;
-                    d.setHours(-24 * (day - 1));
-                    start = instance.formatDate(d, "Y-m-d");
-                } else if (range === 'month') {
-                    const d = new Date(today.getFullYear(), today.getMonth(), 1);
-                    start = instance.formatDate(d, "Y-m-d");
-                } else if (range === 'year') {
-                    const d = new Date(today.getFullYear(), 0, 1);
-                    start = instance.formatDate(d, "Y-m-d");
-                }
-
-                selectedStartDate = start;
-                selectedEndDate = end;
-                
-                // Update Flatpickr visual selection
-                if (instance) {
-                    instance.setDate([start, end], false);
-                }
-                
-                fetchTransactions(currentSearch, start, end);
-            });
-        });
-
-        // 5. Flatpickr Initialization (The "Function/Library" part)
-        let selectedStartDate = null;
-        let selectedEndDate = null;
-        let instance = null;
-
-        instance = flatpickr("#date-picker-inline", {
-            inline: true,
-            mode: "range",
-            dateFormat: "Y-m-d",
-            locale: "es",
-            onChange: function(selectedDates, dateStr, inst) {
-                if (selectedDates.length === 1) {
-                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
-                    selectedEndDate = null;
-                    fetchTransactions(currentSearch, selectedStartDate);
-                } else if (selectedDates.length === 2) {
-                    selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
-                    selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
-                    fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
-                }
+            if (range === '30days') {
+                const d = new Date();
+                d.setDate(d.getDate() - 30);
+                start = instance.formatDate(d, "Y-m-d");
+            } else if (range === 'week') {
+                const d = new Date();
+                const day = d.getDay() || 7;
+                d.setHours(-24 * (day - 1));
+                start = instance.formatDate(d, "Y-m-d");
+            } else if (range === 'month') {
+                const d = new Date(today.getFullYear(), today.getMonth(), 1);
+                start = instance.formatDate(d, "Y-m-d");
+            } else if (range === 'year') {
+                const d = new Date(today.getFullYear(), 0, 1);
+                start = instance.formatDate(d, "Y-m-d");
             }
+
+            selectedStartDate = start;
+            selectedEndDate = end;
+            
+            // Update Flatpickr visual selection
+            if (instance) {
+                instance.setDate([start, end], false);
+            }
+            
+            filterData(); // Filter locally instead of fetching
         });
+    });
 
-        if (applyBtn) {
-            applyBtn.addEventListener('click', () => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Datos Actualizados',
-                    text: 'Información sincronizada con el rango seleccionado.',
-                    timer: 1500,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                fetchTransactions(currentSearch, selectedStartDate, selectedEndDate);
-            });
+    // 5. Flatpickr Initialization
+    let instance = null;
+
+    instance = flatpickr("#date-picker-inline", {
+        inline: true,
+        mode: "range",
+        dateFormat: "Y-m-d",
+        locale: "es",
+        onChange: function(selectedDates, dateStr, inst) {
+            if (selectedDates.length === 1) {
+                selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
+                selectedEndDate = null;
+            } else if (selectedDates.length === 2) {
+                selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
+                selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
+            }
+            filterData(); // Filter locally
         }
+    });
 
-        // 5. Initial Load
-        fetchTransactions();
+    // 6. Initial Load
+    // Set initial range to the active tab (30 days)
+    const initialBtn = document.querySelector('.tab--active');
+    if (initialBtn) {
+        const range = initialBtn.getAttribute('data-range');
+        const today = new Date();
+        let start = null;
+        let end = instance.formatDate(today, "Y-m-d");
+
+        if (range === '30days') {
+            const d = new Date();
+            d.setDate(d.getDate() - 30);
+            start = instance.formatDate(d, "Y-m-d");
+        } // Add other ranges if needed, but since it's initial, assume 30days
+
+        selectedStartDate = start;
+        selectedEndDate = end;
+    }
+
+    fetchTransactions();
 
         // 6. Export Logic with POLLING
         const exportBtn = document.querySelector('.header-top .btn-primary');
         
         function pollExportJob(jobId) {
-            fetch(`http://localhost:3000/api/v1/kpi/reports/jobs/${jobId}`)
-                .then(res => res.json())
+            fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`)
+                .then(res => { 
+                    if (!res.ok) throw new Error('Error fetching job status');
+                    return res.json()
+                })
                 .then(data => {
                     if (data.status === 'COMPLETED') {
                         Swal.fire({
@@ -386,14 +434,15 @@
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
-
-                fetch('http://localhost:3000/api/v1/kpi/reports/export', { 
+                console.log({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate });
+                fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ search: currentSearch, start_date: selectedStartDate, end_date: selectedEndDate })
                 })
                     .then(res => res.json())
                     .then(data => {
+                        console.log(data);
                         pollExportJob(data.job_id);
                     })
                     .catch(() => {
@@ -408,7 +457,7 @@
     // --- Global Alerts History ---
     window.showAlertsHistory = function() {
         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-        fetch('http://localhost:3000/api/v1/kpi/alerts/history')
+        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
             .then(res => res.json())
             .then(data => {
                 Swal.fire({
