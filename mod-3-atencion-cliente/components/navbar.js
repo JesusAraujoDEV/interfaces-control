@@ -250,8 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. Definir Enlaces Principales
     const navLinks = [
         { id: 'home', name: 'Menu', url: 'menu.html', icon: 'restaurant_menu' },
-        { id: 'cart', name: 'Cart', url: 'cart.html', icon: 'shopping_bag' },
-        { id: 'support', name: 'Support', url: 'support.html', icon: 'support_agent' }
+        { id: 'cart', name: 'Carrito', url: 'cart.html', icon: 'shopping_bag' },
+        { id: 'support', name: 'Soporte', url: 'support.html', icon: 'support_agent' }
     ];
 
     // ============================================================
