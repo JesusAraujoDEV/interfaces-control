@@ -340,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const logoutHtml = `
             <div class="h-6 w-px bg-gray-200 mx-2"></div> <button onclick="handleLogout()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-100 bg-red-50 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm">
                 <span class="material-icons-outlined text-lg">logout</span>
-                Exit
+                Salir
             </button>
         `;
 
