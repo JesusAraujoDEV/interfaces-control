@@ -13,7 +13,7 @@
         <aside class="sidebar">
             <div class="sidebar__logo">
                 <span class="icon">☕</span> CHARLOTTE
-                <p style="font-size: 0.6rem; font-weight: normal; margin-top: -5px;">Sweet & Coffee</p>
+                <p style="font-size: 0.625rem; font-weight: normal; margin-top: calc(var(--spacing-unit) * -1.25); /* -5px */">Sweet & Coffee</p>
             </div>
 
             <nav class="sidebar__nav">
@@ -27,10 +27,7 @@
 
             <div class="sidebar__profile-footer">
                 <div class="sidebar__avatar" style="background-color: #ccc;"></div>
-                <div class="sidebar__logout" style="border:none; padding:0;">
-                    <a href="#" class="sidebar__menu-item" style="margin:0; padding:0; font-size: 0.8rem;">⚙️ Configuración</a>
-                    <a href="#" class="sidebar__menu-item" style="margin:0; padding:0; font-size: 0.8rem;">❓ Ayuda</a>
-                </div>
+                <div class="sidebar__logout" style="border:none; padding:0;"></div>
             </div>
         </aside>
 
@@ -81,8 +78,8 @@
                         </div>
                         <p class="gauge-container__value text-2xl font-bold mt-2" id="current-value">Cargando...</p>
                         <p class="gauge-container__label text-sm text-gray-600">Rotación Actual</p>
-                        <p style="font-size: 0.7rem; margin-top: 15px; color: var(--text-muted);">
-                            <span class="dot dot--danger" style="width: 6px; height: 6px;"></span> Meta: <span id="target-value">Cargando...</span>
+                        <p style="font-size: 0.875rem; margin-top: calc(var(--spacing-unit) * 3.75); /* 15px */ color: var(--text-muted);">
+                            <span class="dot dot--danger" style="width: calc(var(--spacing-unit) * 1.5); /* 6px */ height: calc(var(--spacing-unit) * 1.5); /* 6px */"></span> Meta: <span id="target-value">Cargando...</span>
                         </p>
                     </div>
                 </section>
