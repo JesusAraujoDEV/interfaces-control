@@ -34,8 +34,8 @@ class AppHeader extends HTMLElement {
 						<div class="brand flex items-center gap-3 w-[280px] shrink-0">
 							<img class="brand__logo w-10 h-10 md:w-16 md:h-16" src="/assets/charlotte_logo.png" alt="Charlotte Bistró" width="64" height="64" loading="eager">
 							<span class="brand__text flex flex-col whitespace-nowrap">
-								<span class="brand__name text-[16px] leading-[19.2px] font-bold tracking-[1.3px] uppercase" style="font-family: 'Inter', sans-serif; color: var(--brand-name-color, #0f4a22);">Charlotte Bistró</span>
-								<span class="brand__tagline text-[11px] leading-[16.5px] tracking-[2px] font-semibold" style="color: var(--brand-tagline-base, #1F2937); opacity: 0.55;">DONDE EL SABOR TOMA LA RUTA</span>
+								<span class="brand__name text-[16px] leading-[19.2px] font-bold tracking-[1.3px] uppercase" style="font-family: 'Inter', sans-serif; color: var(--brand-name-color, #0f4a22);">Charlotte Bistró | Modulo Administrativo</span>
+								<span class="brand__tagline text-[11px] leading-[16.5px] tracking-[2px] font-semibold" style="color: var(--brand-tagline-base, #1F2937); opacity: 0.55;">DONDE LA ADMINISTRACIÓN TOMA LA RUTA</span>
 							</span>
 						</div>
 					</div>
