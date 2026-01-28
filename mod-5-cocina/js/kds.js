@@ -85,6 +85,22 @@ function renderizarTareas(tareas) {
                 <i data-lucide="user" style="width:14px; height:14px;"></i> ${tarea.customerName}
             </div>` : '';
 
+        // GENERATE INGREDIENTS LIST
+        let ingredientsHtml = '';
+        if (tarea.recipeList && tarea.recipeList.length > 0) {
+            const items = tarea.recipeList.map(ing => {
+                if (ing.isExcluded) {
+                    return `<span style="text-decoration: line-through; color: #ef4444; opacity: 0.7; margin-right: 6px; font-size: 0.85em;">${ing.name}</span>`;
+                }
+                // Only show significant ingredients if desired, or all. For now showing all active ingredients normally
+                return `<span style="color: #475569; margin-right: 6px; font-size: 0.85em;">${ing.name}</span>`;
+            }).join(' • ');
+            
+            ingredientsHtml = `<div style="margin-top:0.3rem; padding: 4px; background: #f8fafc; border-radius: 4px; font-size: 0.85rem; line-height: 1.4;">
+                ${items}
+            </div>`;
+        }
+
         card.innerHTML = `
         <div class="order-card__header">
             <div class="order-card__meta">
@@ -100,6 +116,7 @@ function renderizarTareas(tareas) {
                 <i data-lucide="clipboard-list" style="width:12px; height:12px; vertical-align:middle; margin-right:4px;"></i>${tarea.preparationNotes}
             </li>` : ''}
         </ul>
+        ${ingredientsHtml}
         <div style="margin-top:0.5rem; font-size:0.85rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.5rem;">
            ${tarea.waiter ? `<i data-lucide="user-check" style="width:14px; height:14px; vertical-align:middle;"></i> Mesero: ${tarea.waiter.name}` : ''}
         </div>

@@ -15,45 +15,83 @@
 
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <!-- Placeholder logo or avatar -->
-            <div class="sidebar__avatar"></div>
-            <div class="sidebar__info">
-                <p class="sidebar__user">Admin Cocina</p>
-                <p class="sidebar__role">Gerente</p>
+            <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain"
+                    loading="eager">
             </div>
+            <div class="min-w-0">
+                <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
+                <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
+            </div>
+            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800">
+                <span aria-hidden="true">←</span>
+                <span>Volver a Admin</span>
+            </a>
         </div>
 
         <nav class="sidebar__nav">
             <a href="index.html" class="sidebar__link">
-                <i data-lucide="layout-dashboard"></i> Dashboard
+                <i data-lucide="layout-dashboard"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Dashboard</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Resumen</div>
+                </span>
             </a>
             <a href="kds.html" class="sidebar__link">
-                <i data-lucide="monitor"></i> KDS
+                <i data-lucide="monitor"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">KDS</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Cola de producción</div>
+                </span>
             </a>
             <a href="Despacho.html" class="sidebar__link">
-                <i data-lucide="truck"></i> Despacho
+                <i data-lucide="truck"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Despacho</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Entregas a camareros</div>
+                </span>
             </a>
             <a href="rec-pro.html" class="sidebar__link">
-                <i data-lucide="chef-hat"></i> Recetas
+                <i data-lucide="chef-hat"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Recetas</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Maestro de productos</div>
+                </span>
             </a>
             <a href="inv.html" class="sidebar__link">
-                <i data-lucide="package"></i> Inventario
+                <i data-lucide="package"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Inventario</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Consumibles y stock</div>
+                </span>
             </a>
             <a href="activos.html" class="sidebar__link sidebar__link--active">
-                <i data-lucide="box"></i> Activos
+                <i data-lucide="box"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Activos</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Equipos y utensilios</div>
+                </span>
             </a>
             <a href="personal.html" class="sidebar__link">
-                <i data-lucide="users"></i> Personal
+                <i data-lucide="users"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Personal</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Staff y turnos</div>
+                </span>
             </a>
             <a href="historial_pedidos.html" class="sidebar__link">
-                <i data-lucide="history"></i> Historial
+                <i data-lucide="history"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Historial</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Pedidos y acciones</div>
+                </span>
             </a>
         </nav>
 
         <div class="sidebar__footer">
             <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
             <div class="sidebar__footer-action">
-                <a href="/seguridad/logout" aria-label="Cerrar sesión" class="logout-link">
+                <a href="/seguridad/login" aria-label="Cerrar sesión" class="logout-link">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -67,25 +105,14 @@
 
     <main class="main-content">
         <header class="header">
+            <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
             <h1 class="header__title">Gestión de Activos Fijos</h1>
             <div class="header__actions">
+                <input type="text" id="searchAssets" placeholder="Buscar activos..."
+                    style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-right: 1rem;">
                 <button class="btn btn--primary" id="addAssetBtn">Añadir Nuevo Activo</button>
             </div>
         </header>
-
-        <section class="inventory-controls">
-            <div class="search-bar">
-                <i data-lucide="search" class="search-bar__icon"></i>
-                <input type="text" class="search-bar__input" placeholder="Buscar por nombre o ID...">
-            </div>
-            <div class="inventory-controls__view-options">
-                <button class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
-                <div class="view-toggle">
-                    <button class="view-toggle__btn view-toggle__btn--active"><i data-lucide="layout-grid"></i></button>
-                    <button class="view-toggle__btn"><i data-lucide="list"></i></button>
-                </div>
-            </div>
-        </section>
 
         <section id="assetsGrid" class="assets-grid">
             <!-- Asset cards se poblarán vía JS -->
@@ -166,6 +193,71 @@
         </div>
     </div>
 
+    <!-- Modal para Editar Activo -->
+    <div id="editAssetModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Editar Activo</h2>
+                <button class="modal__close" id="closeEditAssetModal">&times;</button>
+            </div>
+            <form id="editAssetForm" class="modal__form">
+                <input type="hidden" id="editAssetId" name="id">
+                <div class="form-group">
+                    <label for="editAssetName">Nombre del Activo</label>
+                    <input type="text" id="editAssetName" name="name" required minlength="1">
+                </div>
+                <div class="form-group">
+                    <label for="editAssetStatus">Estado</label>
+                    <select id="editAssetStatus" name="status" required>
+                        <option value="OPERATIONAL">Operativo</option>
+                        <option value="UNDER_MAINTENANCE">En Mantenimiento</option>
+                        <option value="DAMAGED">Dañado</option>
+                        <option value="LOST">Perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editAssetNotes">Notas</label>
+                    <textarea id="editAssetNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelEditAssetBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Registrar Entrada (Recuperación/Compra) -->
+    <div id="entryAssetModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Registrar Entrada</h2>
+                <button class="modal__close" id="closeEntryModal">&times;</button>
+            </div>
+            <form id="entryAssetForm" class="modal__form">
+                <input type="hidden" id="entryAssetId" name="asset_id">
+                <div class="form-group">
+                    <label for="entryQuantity">Cantidad a Ingresar</label>
+                    <input type="number" id="entryQuantity" name="quantity" min="1" required placeholder="ej. 5">
+                </div>
+                <div class="form-group">
+                    <label for="entryReason">Motivo</label>
+                    <input type="text" id="entryReason" name="reason" required
+                        placeholder="Ej. Compra nueva, Reparación finalizada">
+                </div>
+                <div class="form-group">
+                    <label for="entryPin">PIN del Responsable</label>
+                    <input type="password" id="entryPin" name="entry_pin" required placeholder="Ingrese su PIN"
+                        minlength="4" maxlength="6">
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelEntryBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // --- Modals Logic with Animation ---
         function openModal(modalId) {
@@ -192,6 +284,7 @@
         }
 
         // --- Assets Logic ---
+        let allAssetsData = [];
 
         async function loadAssets() {
             const container = document.getElementById('assetsGrid');
@@ -203,18 +296,35 @@
                 });
                 if (!resp.ok) throw new Error(`Error: ${resp.status}`);
                 const data = await resp.json();
-                const assets = Array.isArray(data) ? data : (data.data || []);
+                allAssetsData = Array.isArray(data) ? data : (data.data || []);
 
-                if (assets.length === 0) {
-                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">No hay activos registrados.</p>';
-                    return;
-                }
-
-                assets.forEach(a => addAssetCard(a));
+                renderAssets(allAssetsData);
             } catch (err) {
                 console.error('Error cargando activos:', err);
                 container.innerHTML = '<p style="color:red;">Error cargando activos. Revisa la conexión.</p>';
             }
+        }
+
+        function renderAssets(assets) {
+            const container = document.getElementById('assetsGrid');
+            container.innerHTML = '';
+
+            if (assets.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">No hay activos que coincidan con la búsqueda.</p>';
+                return;
+            }
+
+            assets.forEach(a => addAssetCard(a));
+        }
+
+        function filterAssets() {
+            const searchTerm = document.getElementById('searchAssets').value.toLowerCase();
+            const filtered = allAssetsData.filter(asset =>
+                (asset.name || '').toLowerCase().includes(searchTerm) ||
+                (asset.status || '').toLowerCase().includes(searchTerm) ||
+                (asset.notes || '').toLowerCase().includes(searchTerm)
+            );
+            renderAssets(filtered);
         }
 
         function addAssetCard(asset) {
@@ -261,12 +371,20 @@
                         ${asset.notes ? `<p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic;">${asset.notes}</p>` : ''}
                     </div>
 
-                    <div style="display: flex; gap: 0.5rem; margin-top: auto;">
-                        <button class="btn btn--small report-incident-btn" data-id="${asset.id}" style="flex:1;">
-                            <i data-lucide="alert-triangle" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Reportar
+                    <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
+                        <button class="btn btn--small btn--primary entry-asset-btn" data-id="${asset.id}" style="flex:1;" title="Entrada">
+                            <i data-lucide="plus-circle" style="width:14px; margin-right:4px;"></i> In
                         </button>
-                        <button class="btn btn--small view-history-btn" data-id="${asset.id}" style="flex:1;">
-                             <i data-lucide="history" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Historial
+                        <button class="btn btn--small report-incident-btn" data-id="${asset.id}" style="flex:1;" title="Salida/Incidente">
+                            <i data-lucide="minus-circle" style="width:14px; margin-right:4px;"></i> Out
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button class="btn btn--small btn--secondary edit-asset-btn" data-id="${asset.id}" style="flex:1;" title="Editar">
+                             <i data-lucide="edit-3" style="width:14px; margin-right:4px;"></i> Editar
+                        </button>
+                        <button class="btn btn--small view-history-btn" data-id="${asset.id}" style="flex:1;" title="Historial">
+                             <i data-lucide="history" style="width:14px; margin-right:4px;"></i> Historial
                         </button>
                     </div>
                 </div>
@@ -281,6 +399,12 @@
         document.addEventListener('DOMContentLoaded', loadAssets);
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) window.lucide.createIcons();
+
+            // Event listener para búsqueda
+            const searchInput = document.getElementById('searchAssets');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterAssets);
+            }
         });
 
         // --- New Asset Modal ---
@@ -335,10 +459,131 @@
                 openReportModal(assetId);
             }
 
+            const entryBtn = e.target.closest('.entry-asset-btn');
+            if (entryBtn) {
+                const assetId = entryBtn.dataset.id;
+                openEntryModal(assetId);
+            }
+
+            const editBtn = e.target.closest('.edit-asset-btn');
+            if (editBtn) {
+                const assetId = editBtn.dataset.id;
+                // Find asset data to populate form
+                // Ideally we should have the object, but we can fetch it or read from DOM if simple.
+                // Or we can just reload it. Since we don't have the object handy in closure easily without refactor,
+                // we'll fetch details or simpler: store basic data in attributes? No, let's fetch single asset or find in memory if we kept it.
+                // We'll just fetch it for editing to be safe detailed.
+                openEditModal(assetId);
+            }
+
             const histBtn = e.target.closest('.view-history-btn');
             if (histBtn) {
                 const assetId = histBtn.dataset.id;
                 window.location.href = `auditoria.html?assetId=${assetId}`;
+            }
+        });
+
+        // --- Edit Asset Logic ---
+        const editAssetModal = document.getElementById('editAssetModal');
+        const editAssetForm = document.getElementById('editAssetForm');
+
+        async function openEditModal(assetId) {
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}`, { headers: getCommonHeaders() });
+                if (!resp.ok) throw new Error('Error fetching asset details');
+                const asset = await resp.json();
+
+                document.getElementById('editAssetId').value = asset.id;
+                document.getElementById('editAssetName').value = asset.name;
+                document.getElementById('editAssetStatus').value = asset.status;
+                document.getElementById('editAssetNotes').value = asset.notes || '';
+
+                openModal('editAssetModal');
+            } catch (error) {
+                console.error(error);
+                alert('No se pudieron cargar los detalles del activo.');
+            }
+        }
+
+        document.getElementById('closeEditAssetModal').addEventListener('click', () => closeModalFn('editAssetModal'));
+        document.getElementById('cancelEditAssetBtn').addEventListener('click', () => closeModalFn('editAssetModal'));
+
+        editAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(editAssetForm);
+            const assetId = formData.get('id');
+            const payload = {
+                name: formData.get('name'),
+                status: formData.get('status'),
+                notes: formData.get('notes')
+            };
+
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}`, {
+                    method: 'PATCH',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error(resp.status);
+
+                loadAssets(); // Refresh grid
+                closeModalFn('editAssetModal');
+            } catch (err) {
+                console.error(err);
+                alert('Error al actualizar activo');
+            }
+        });
+
+
+        // --- Entry Asset Logic ---
+        const entryAssetModal = document.getElementById('entryAssetModal');
+        const entryAssetForm = document.getElementById('entryAssetForm');
+
+        function openEntryModal(assetId) {
+            document.getElementById('entryAssetId').value = assetId;
+            document.getElementById('entryPin').value = '';
+            document.getElementById('entryQuantity').value = '';
+            document.getElementById('entryReason').value = '';
+            openModal('entryAssetModal');
+        }
+
+        document.getElementById('closeEntryModal').addEventListener('click', () => closeModalFn('entryAssetModal'));
+        document.getElementById('cancelEntryBtn').addEventListener('click', () => closeModalFn('entryAssetModal'));
+
+        entryAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(entryAssetForm);
+            const assetId = formData.get('asset_id');
+            const quantity = parseInt(formData.get('quantity'));
+            const pin = formData.get('entry_pin');
+
+            // 1. Validate PIN
+            const staff = await validateWorkerPin(pin);
+            if (!staff) {
+                alert('PIN inválido o usuario no autorizado.');
+                return;
+            }
+
+            // 2. Report Log (Positive Quantity)
+            const payload = {
+                quantityChange: quantity, // Positive
+                reason: formData.get('reason'),
+                reportedBy: staff.id
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}/logs`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(response.status);
+
+                loadAssets(); // Refresh grid
+                closeModalFn('entryAssetModal');
+            } catch (error) {
+                console.error(error);
+                alert('Error al registrar entrada.');
             }
         });
 
@@ -419,6 +664,8 @@
             }
         });
     </script>
+    <script type="module" src="./js/sidebar.js"></script>
+    <script src="./js/admin-auth.js"></script>
 </body>
 
 </html>

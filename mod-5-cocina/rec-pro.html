@@ -341,6 +341,69 @@
             padding: 40px;
             color: #9ca3af;
         }
+
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: #059669;
+            /* Green success */
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #059669;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(14px);
+            -ms-transform: translateX(14px);
+            transform: translateX(14px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
     <link rel="stylesheet" href="styles.css">
 
@@ -350,44 +413,87 @@
 
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <div class="sidebar__avatar"></div>
-            <div class="sidebar__info">
-                <p class="sidebar__user">Admin Cocina</p>
-                <p class="sidebar__role">Gerente</p>
+            <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
             </div>
+            <div class="min-w-0">
+                <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
+                <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
+            </div>
+            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800">
+                <span aria-hidden="true">←</span>
+                <span>Volver a Admin</span>
+            </a>
         </div>
 
         <nav class="sidebar__nav">
             <a href="index.html" class="sidebar__link">
-                <i data-lucide="layout-dashboard"></i> Dashboard
+                <i data-lucide="layout-dashboard"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Dashboard</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Resumen</div>
+                </span>
             </a>
             <a href="kds.html" class="sidebar__link">
-                <i data-lucide="monitor"></i> KDS
+                <i data-lucide="monitor"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">KDS</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Cola de producción</div>
+                </span>
             </a>
             <a href="Despacho.html" class="sidebar__link">
-                <i data-lucide="truck"></i> Despacho
+                <i data-lucide="truck"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Despacho</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Entregas a camareros</div>
+                </span>
             </a>
             <a href="rec-pro.html" class="sidebar__link sidebar__link--active">
-                <i data-lucide="chef-hat"></i> Recetas
+                <i data-lucide="chef-hat"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Recetas</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Maestro de productos</div>
+                </span>
             </a>
             <a href="inv.html" class="sidebar__link">
-                <i data-lucide="package"></i> Inventario
+                <i data-lucide="package"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Inventario</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Consumibles y stock</div>
+                </span>
             </a>
             <a href="activos.html" class="sidebar__link">
-                <i data-lucide="box"></i> Activos
+                <i data-lucide="box"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Activos</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Equipos y utensilios</div>
+                </span>
             </a>
             <a href="personal.html" class="sidebar__link">
-                <i data-lucide="users"></i> Personal
+                <i data-lucide="users"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Personal</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Staff y turnos</div>
+                </span>
             </a>
             <a href="historial_pedidos.html" class="sidebar__link">
-                <i data-lucide="history"></i> Historial
+                <i data-lucide="history"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Historial</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Pedidos y acciones</div>
+                </span>
             </a>
         </nav>
 
         <div class="sidebar__footer">
+            <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
             <div class="sidebar__footer-action">
-                <a href="/seguridad/logout" class="logout-link">
-                    <i data-lucide="log-out"></i>
+                <a href="/seguridad/login" aria-label="Cerrar sesión" class="logout-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                     <span>Cerrar Sesión</span>
                 </a>
             </div>
@@ -395,6 +501,7 @@
     </aside>
 
     <main class="main-content">
+        <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
         <h1><i class="fas fa-utensils"></i> Maestro de Productos</h1>
 
         <div class="dashboard-grid" id="dashboard-stats"></div>
@@ -467,9 +574,13 @@
                 <h2>Configurar Receta</h2>
                 <span class="close" onclick="closeModal('recipeModal')">&times;</span>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
                 <select id="ingredientSelect" class="form-input" style="flex:2"></select>
                 <input type="number" id="ingredientQty" class="form-input" placeholder="Cant." style="flex:1">
+                <div style="display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+                    <input type="checkbox" id="ingredientMandatory" checked style="width: 18px; height: 18px;">
+                    <label for="ingredientMandatory" style="font-size: 0.9rem;">Obligatorio</label>
+                </div>
                 <button onclick="addIngredientToRecipe()" class="btn-primary"><i class="fas fa-plus"></i></button>
             </div>
             <table style="width:100%; border-collapse: collapse;">
@@ -497,6 +608,9 @@
 
     <div id="toast" class="toast"></div>
 
+    <script type="module" src="./js/sidebar.js"></script>
+    <script>if (window.lucide) lucide.createIcons();</script>
+    <script src="./js/admin-auth.js"></script>
     <script src="js/rec-pro.js"></script>
 </body>
 

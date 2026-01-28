@@ -13,17 +13,17 @@ let editingCategoryId = null;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM ready - initializing rec-pro');
     if (typeof lucide !== 'undefined') lucide.createIcons();
-    injectStyles();     
-    injectDashboard();  
-    loadCategories();   
-    loadProducts();     
-    loadInventory();    
+    injectStyles();
+    injectDashboard();
+    loadCategories();
+    loadProducts();
+    loadInventory();
 });
 
 function getCategoryImage(categoryName) {
     const name = (categoryName || '').toLowerCase();
     let icon = '🍽️';
-    let color = '#e5e7eb'; 
+    let color = '#e5e7eb';
 
     if (name.includes('pizza')) { icon = '🍕'; color = '#fef3c7'; }
     else if (name.includes('hamburg') || name.includes('burger')) { icon = '🍔'; color = '#fee2e2'; }
@@ -45,7 +45,7 @@ function getCategoryImage(categoryName) {
         <rect width="100%" height="100%" fill="${color}"/>
         <text x="50%" y="50%" font-family="Segoe UI, Emoji, Arial" font-size="80" text-anchor="middle" dominant-baseline="middle">${icon}</text>
     </svg>`;
-    
+
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
 
@@ -96,14 +96,14 @@ function injectDashboard() {
 function updateDashboard() {
     const activeProds = allProducts.filter(p => p.isActive !== false);
     const activeCats = allCategories.filter(c => c.isActive !== false);
-    
+
     const totalProdEl = document.getElementById('total-products');
     const activeProdEl = document.getElementById('active-products');
     const totalCatEl = document.getElementById('total-categories');
 
-    if(totalProdEl) totalProdEl.textContent = allProducts.length;
-    if(activeProdEl) activeProdEl.textContent = activeProds.length;
-    if(totalCatEl) totalCatEl.textContent = activeCats.length;
+    if (totalProdEl) totalProdEl.textContent = allProducts.length;
+    if (activeProdEl) activeProdEl.textContent = activeProds.length;
+    if (totalCatEl) totalCatEl.textContent = activeCats.length;
 }
 
 async function loadProducts() {
@@ -117,7 +117,7 @@ async function loadProducts() {
             updateDashboard();
             renderProducts();
         } else {
-            if(allProducts.length === 0) allProducts = []; 
+            if (allProducts.length === 0) allProducts = [];
         }
     } catch (e) {
         showToast('Error cargando productos', 'error');
@@ -135,7 +135,7 @@ async function loadCategories() {
             updateSelectors();
             updateDashboard();
             renderCategoriesList();
-            renderProducts(); 
+            renderProducts();
         }
     } catch (e) { console.error(e); }
 }
@@ -143,7 +143,7 @@ async function loadCategories() {
 async function loadInventory() {
     try {
         const res = await fetch(getInventoryUrl(), { headers: getCommonHeaders() });
-        if(res.ok) {
+        if (res.ok) {
             const data = await res.json();
             allInventory = data.data || data;
         }
@@ -154,14 +154,14 @@ function renderProducts() {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
     grid.innerHTML = '';
-    
+
     // Mostramos todos para poder activarlos/desactivarlos, pero filtramos por búsqueda/categoría
     let filtered = allProducts;
-    
+
     if (activeCategory !== 'all') {
         filtered = filtered.filter(p => p.categoryId === activeCategory);
     }
-    
+
     if (searchTerm) {
         const term = searchTerm.toLowerCase();
         filtered = filtered.filter(p => p.name.toLowerCase().includes(term));
@@ -211,7 +211,6 @@ function renderProducts() {
                         <span class="slider"></span>
                     </label>
                 </div>
-                <button class="action-btn btn-delete" title="Borrar Permanente" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
                 <button class="action-btn" title="Receta" onclick="openRecipeModal('${p.id}')"><i class="fas fa-scroll"></i></button>
             </div>
              <div style="padding: 10px; border-top: 1px solid #eee;">
@@ -237,15 +236,15 @@ function filterProducts() {
 async function saveProduct(e) {
     e.preventDefault();
     const id = document.getElementById('prodId').value;
-    
+
     const formData = new FormData();
     formData.append('name', document.getElementById('prodName').value);
     formData.append('basePrice', document.getElementById('prodPrice').value);
     formData.append('categoryId', document.getElementById('prodCategory').value);
     formData.append('description', document.getElementById('prodDesc').value);
-    
+
     const imageFile = document.getElementById('prodImage').files[0];
-    
+
     if (imageFile) {
         formData.append('image', imageFile);
     } else {
@@ -267,7 +266,7 @@ async function saveProduct(e) {
         const headers = getCommonHeaders();
         // IMPORTANTE: Para FormData, el navegador debe establecer el Content-Type automáticamente con el boundary.
         // Si lo forzamos a application/json o cualquier otro, el backend fallará al parsear.
-        if(headers['Content-Type']) delete headers['Content-Type'];
+        if (headers['Content-Type']) delete headers['Content-Type'];
 
         const res = await fetch(url, {
             method: method,
@@ -279,35 +278,16 @@ async function saveProduct(e) {
         if (res.ok) {
             showToast('Guardado correctamente', 'success');
             closeModal('productModal');
-            loadProducts(); 
+            loadProducts();
         } else {
             showToast(data.message || 'Error al guardar', 'error');
         }
-    } catch (error) { 
+    } catch (error) {
         console.error(error);
-        showToast('Error de conexión', 'error'); 
+        showToast('Error de conexión', 'error');
     }
 }
 window.saveProduct = saveProduct;
-
-async function deleteProduct(id) {
-    if(!confirm('¿Estás seguro de ELIMINAR este producto?')) return;
-    try {
-        const res = await fetch(`${getApiBase()}/products/${id}`, {
-            method: 'DELETE',
-            headers: getCommonHeaders()
-        });
-        if(res.ok) {
-            showToast('Producto eliminado', 'success');
-            allProducts = allProducts.filter(p => p.id !== id);
-            renderProducts();
-            updateDashboard();
-        } else {
-            showToast('No se pudo eliminar', 'error');
-        }
-    } catch (e) { showToast('Error de conexión', 'error'); }
-}
-window.deleteProduct = deleteProduct;
 
 function openEditProduct(id) {
     const product = allProducts.find(p => p.id === id);
@@ -319,14 +299,14 @@ function openEditProduct(id) {
     document.getElementById('prodPrice').value = product.basePrice;
     document.getElementById('prodCategory').value = product.categoryId;
     document.getElementById('prodDesc').value = product.description || '';
-    
+
     document.getElementById('productModal').classList.add('active');
 }
 window.openEditProduct = openEditProduct;
 
 async function saveCategory() {
     const name = document.getElementById('catNameInput').value.trim();
-    if(!name) return;
+    if (!name) return;
 
     const method = editingCategoryId ? 'PATCH' : 'POST';
     const url = editingCategoryId ? `${getApiBase()}/categories/${editingCategoryId}` : `${getApiBase()}/categories`;
@@ -337,20 +317,20 @@ async function saveCategory() {
             headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
             body: JSON.stringify({ name })
         });
-        if(res.ok) {
+        if (res.ok) {
             document.getElementById('catNameInput').value = '';
             editingCategoryId = null;
             document.getElementById('cancelCatEdit').style.display = 'none';
             loadCategories();
         }
-    } catch(e) { showToast('Error guardando categoría', 'error'); }
+    } catch (e) { showToast('Error guardando categoría', 'error'); }
 }
 window.saveCategory = saveCategory;
 
 function renderCategoriesList() {
     const tbody = document.getElementById('categoryListBody');
-    if(!tbody) return;
-    
+    if (!tbody) return;
+
     tbody.innerHTML = allCategories.map(c => {
         const isActive = c.isActive !== false;
         return `
@@ -375,13 +355,13 @@ async function toggleCategoryStatus(id, isActive) {
             headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
             body: JSON.stringify({ isActive })
         });
-        if(res.ok) {
+        if (res.ok) {
             const cat = allCategories.find(c => c.id === id);
-            if(cat) cat.isActive = isActive;
+            if (cat) cat.isActive = isActive;
             // No llamamos a loadCategories para evitar cerrar el modal si se refresca la UI drásticamente, 
             // pero necesitamos actualizar los selectores de la página principal.
             renderCategoriesList();
-            updateSelectors(); 
+            updateSelectors();
             showToast(isActive ? 'Categoría activada' : 'Categoría desactivada', 'success');
         }
     } catch (e) { showToast('Error al cambiar estado', 'error'); }
@@ -392,16 +372,16 @@ function updateSelectors() {
     const filterSelect = document.getElementById('categoryFilter');
     const formSelect = document.getElementById('prodCategory');
     const activeCategories = allCategories.filter(c => c.isActive !== false);
-    
-    if(filterSelect) {
+
+    if (filterSelect) {
         const currentFilter = filterSelect.value;
-        filterSelect.innerHTML = '<option value="all">Todas las Categorías</option>' + 
+        filterSelect.innerHTML = '<option value="all">Todas las Categorías</option>' +
             activeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         filterSelect.value = currentFilter;
     }
-    if(formSelect) {
+    if (formSelect) {
         const currentVal = formSelect.value;
-        formSelect.innerHTML = '<option value="">Seleccione...</option>' + 
+        formSelect.innerHTML = '<option value="">Seleccione...</option>' +
             activeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         formSelect.value = currentVal;
     }
@@ -414,15 +394,15 @@ async function toggleProductStatus(id, isActive) {
             headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
             body: JSON.stringify({ isActive })
         });
-        if(res.ok) {
+        if (res.ok) {
             const prod = allProducts.find(p => p.id === id);
-            if(prod) prod.isActive = isActive;
+            if (prod) prod.isActive = isActive;
             renderProducts();
             showToast(isActive ? 'Producto activado' : 'Producto desactivado', 'success');
         }
-    } catch (error) { 
+    } catch (error) {
         console.error(error);
-        showToast('Error de conexión', 'error'); 
+        showToast('Error de conexión', 'error');
     }
 }
 window.toggleProductStatus = toggleProductStatus;
@@ -442,22 +422,22 @@ function resetCategoryForm() {
 window.resetCategoryForm = resetCategoryForm;
 
 async function deleteCategory(id) {
-    if(!confirm('¿Borrar categoría?')) return;
+    if (!confirm('¿Borrar categoría?')) return;
     try {
-        await fetch(`${getApiBase()}/categories/${id}`, { method:'DELETE', headers: getCommonHeaders() });
+        await fetch(`${getApiBase()}/categories/${id}`, { method: 'DELETE', headers: getCommonHeaders() });
         loadCategories();
-    } catch(e) {}
+    } catch (e) { }
 }
 window.deleteCategory = deleteCategory;
 
 async function openRecipeModal(id) {
     currentRecipeProductId = id;
     document.getElementById('recipeModal').classList.add('active');
-    
+
     const select = document.getElementById('ingredientSelect');
-    if(allInventory.length === 0) await loadInventory();
-    
-    select.innerHTML = '<option value="">Seleccione...</option>' + 
+    if (allInventory.length === 0) await loadInventory();
+
+    select.innerHTML = '<option value="">Seleccione...</option>' +
         allInventory.map(i => `<option value="${i.id}">${i.name} (${i.unitMeasure})</option>`).join('');
 
     loadRecipeIngredients(id);
@@ -467,18 +447,33 @@ window.openRecipeModal = openRecipeModal;
 async function loadRecipeIngredients(prodId) {
     const tbody = document.getElementById('recipeListBody');
     tbody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
-    
+
     try {
         const res = await fetch(`${getApiBase()}/products/${prodId}/recipe`, { headers: getCommonHeaders() });
         const data = await res.json();
-        const recipes = data.data || data; 
+        const recipes = data.data || data;
 
         tbody.innerHTML = '';
-        if(Array.isArray(recipes) && recipes.length > 0) {
+        if (Array.isArray(recipes) && recipes.length > 0) {
             recipes.forEach(r => {
+                const isMandatory = (r.isMandatory === undefined || r.isMandatory === true);
+                // Switch HTML
+                const switchHtml = `
+                    <label class="switch" style="transform: scale(0.8);">
+                        <input type="checkbox" ${isMandatory ? 'checked' : ''} onchange="toggleRecipeMandatory('${r.id}', this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                    <span style="font-size: 0.8em; margin-left: 5px; vertical-align: middle;">
+                        ${isMandatory ? '(Obligatorio)' : '(Opcional)'}
+                    </span>
+                `;
+
                 tbody.innerHTML += `
                     <tr>
-                        <td>${r ? r.ingredientName : 'Item Inventario'}</td>
+                        <td>
+                            ${r ? r.ingredientName : 'Item Inventario'}
+                            <div style="margin-top: 5px;">${switchHtml}</div>
+                        </td>
                         <td>${r.qty} ${r ? r.unit : ''}</td>
                         <td><button onclick="deleteRecipeItem('${r.id}')" style="color:red">X</button></td>
                     </tr>`;
@@ -486,39 +481,67 @@ async function loadRecipeIngredients(prodId) {
         } else {
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Sin ingredientes asignados</td></tr>';
         }
-    } catch(e) { tbody.innerHTML = ''; }
+    } catch (e) { tbody.innerHTML = ''; }
 }
 window.loadRecipeIngredients = loadRecipeIngredients;
 
 async function addIngredientToRecipe() {
     const invId = document.getElementById('ingredientSelect').value;
     const qty = document.getElementById('ingredientQty').value;
-    if(!invId || !qty) return;
+    const isMandatory = document.getElementById('ingredientMandatory').checked;
+
+    if (!invId || !qty) return;
 
     try {
         await fetch(`${getApiBase()}/recipes`, {
             method: 'POST',
-            headers: {'Content-Type':'application/json', ...getCommonHeaders()},
+            headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
             body: JSON.stringify({
                 productId: currentRecipeProductId,
                 inventoryItemId: invId,
                 quantityRequired: Number(qty),
+                isMandatory: isMandatory,
                 applyOn: 'ALL'
             })
         });
+
+        document.getElementById('ingredientQty').value = '';
+        document.getElementById('ingredientMandatory').checked = true;
         loadRecipeIngredients(currentRecipeProductId);
-    } catch(e) { showToast('Error agregando', 'error'); }
+    } catch (e) { showToast('Error agregando', 'error'); }
 }
 window.addIngredientToRecipe = addIngredientToRecipe;
 
-window.deleteRecipeItem = async function(id) {
+window.toggleRecipeMandatory = async function (recipeId, isChecked) {
     try {
-        await fetch(`${getApiBase()}/recipes/${id}`, { method:'DELETE', headers: getCommonHeaders() });
+        const res = await fetch(`${getApiBase()}/recipes/${recipeId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...getCommonHeaders() },
+            body: JSON.stringify({ isMandatory: isChecked })
+        });
+        if (res.ok) {
+            showToast('Actualizado correctamente', 'success');
+            loadRecipeIngredients(currentRecipeProductId); // Recargar para actualizar etiquetas si es necesario
+        } else {
+            showToast('Error al actualizar', 'error');
+            // Revertir el toggle si falló (opcional, requeriría lógica más compleja de UI o simplemente recargar)
+            loadRecipeIngredients(currentRecipeProductId);
+        }
+    } catch (e) {
+        console.error(e);
+        showToast('Error de conexión', 'error');
         loadRecipeIngredients(currentRecipeProductId);
-    } catch(e) {}
+    }
 };
 
-window.checkAvailability = async function(productId) {
+window.deleteRecipeItem = async function (id) {
+    try {
+        await fetch(`${getApiBase()}/recipes/${id}`, { method: 'DELETE', headers: getCommonHeaders() });
+        loadRecipeIngredients(currentRecipeProductId);
+    } catch (e) { }
+};
+
+window.checkAvailability = async function (productId) {
     try {
         showToast('Consultando almacén...', 'info');
         const res = await fetch(`${getApiBase()}/products/${productId}/availability`, { headers: getCommonHeaders() });
@@ -534,23 +557,23 @@ window.checkAvailability = async function(productId) {
     } catch (e) { showToast('Error verificando disponibilidad', 'error'); }
 }
 
-window.openCreateProductModal = function() {
+window.openCreateProductModal = function () {
     document.getElementById('productModal').classList.add('active');
     document.getElementById('productForm').reset();
     document.getElementById('prodId').value = '';
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
 }
-window.openCategoryModal = function() {
+window.openCategoryModal = function () {
     document.getElementById('categoryModal').classList.add('active');
 }
-window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
-window.closeCategoryModal = function() { document.getElementById('categoryModal').classList.remove('active'); }
+window.closeModal = function (id) { document.getElementById(id).classList.remove('active'); }
+window.closeCategoryModal = function () { document.getElementById('categoryModal').classList.remove('active'); }
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
-    if(t) {
+    if (t) {
         t.textContent = msg;
         t.className = `toast show ${type}`;
-        setTimeout(() => t.className = t.className.replace('show',''), 3000);
+        setTimeout(() => t.className = t.className.replace('show', ''), 3000);
     }
 }
