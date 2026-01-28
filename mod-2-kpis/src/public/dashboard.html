@@ -1,655 +1,942 @@
 <!doctype html>
 <html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - Charlotte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css" />
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>Dashboard - Charlotte</title>
-  <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-
-<body>
-  <div class="main-layout">
-    <aside class="sidebar">
-      <div class="sidebar__logo"><span class="icon">☕</span> CHARLOTTE</div>
-
-      <nav class="sidebar__nav">
-        <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item sidebar__menu-item--active">
-          <i>🏠</i> Dashboard
-        </a>
-        <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item">
-          <i>📊</i> Reportes
-        </a>
-        <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item">
-          <i>📦</i> Inventario
-        </a>
-        <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item">
-          <i>⏱️</i> Eficiencia
-        </a>
-      </nav>
-
-      <div class="sidebar__profile-footer">
-        <div "sidebar__avatar" style="
-              background-image: url(&quot;user.jpg&quot;);
-              background-size: cover;
-            "></div>
-        <div>
-          <p class="sidebar__user-name">Juan Pérez</p>
-          <p class="sidebar__user-role">Gerente</p>
-        </div>
-      </div>
-    </aside>
-
-    <main class="content">
-      <header class="header-top">
-        <div>
-          <h1 class="header-top__title">HOLA, GERENTE</h1>
-          <p class="header-top__subtitle">
-            Este es el resumen de tu negocio.
-          </p>
-        </div>
-        <div "date-badge" id="current-date-badge" style="
+  <body>
+        <header class="header-top">
+          <div class="flex-1 min-w-0">
+            <div class="inline-flex items-center gap-2 text-xs text-slate-500 mb-1">
+              <a class="hover:text-slate-800" href="/admin">Admin</a>
+              <span aria-hidden="true">/</span>
+              <span class="text-slate-700">Indicadores y KPIs</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">Dashboard</h1>
+            <p class="mt-1 text-sm text-slate-600">Este es el resumen de tu negocio.</p>
+          </div>
+          <div
+            class="date-badge"
+            id="current-date-badge"
+            style="
               background: var(--white);
-              padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3.75); /* 8px 15px */
+              padding: 8px 15px;
               border-radius: var(--border-radius);
               border: 1px solid var(--border-color);
-              font-size: 0.875rem; /* 14px */
+              font-size: 0.875rem;
               box-shadow: var(--shadow-light);
-            ">
-          📅 Cargando fecha...
-        </div>
-      </header>
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            "
+          >
+            <span id="header-date">Cargando fecha...</span>
+          </div>
+        </header>
 
-      <section class="stats-grid">
-        <div class="kpi-card">
-          <p class="kpi-card__label">Ingresos</p>
-          <p class="kpi-card__value" id="kpi-revenue">Loading...</p>
-          <span class="kpi-card__trend" id="kpi-revenue-trend">--</span>
-        </div>
-        <div class="kpi-card">
-          <div style="
+        <section class="stats-grid">
+          <div class="kpi-card">
+            <p class="kpi-card__label">Ingresos</p>
+            <p class="kpi-card__value" id="kpi-revenue">Loading...</p>
+            <span class="kpi-card__trend" id="kpi-revenue-trend">--</span>
+          </div>
+          <div class="kpi-card">
+            <div
+              style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-              ">
-            <p class="kpi-card__label">Meta Trimestral</p>
-            <button id="edit-goal-btn" class="icon-btn" title="Editar Meta">
-              ✏️
-            </button>
+              "
+            >
+              <p class="kpi-card__label">Meta Trimestral</p>
+              <button id="edit-goal-btn" class="icon-btn" title="Editar Meta">
+                ✏️
+              </button>
+            </div>
+            <p class="kpi-card__value" id="kpi-goal">Loading...</p>
+            <p
+              style="font-size: 0.875rem; color: var(--text-muted)"
+              id="kpi-goal-absolute"
+            >
+              $0k
+            </p>
           </div>
-          <p class="kpi-card__value" id="kpi-goal">Loading...</p>
-          <p style="font-size: 0.875rem; color: var(--text-muted)" id="kpi-goal-absolute">$0k</p>
-        </div>
 
-        <div class="kpi-card">
-          <p class="kpi-card__label">Tiempo Atención</p>
-          <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
-          <span style="font-size: 0.875rem; color: var(--text-muted)">Óptimo ⏱️</span>
-        </div>
-        <div class="kpi-card">
-          <p class="kpi-card__label">Rotación</p>
-          <p class="kpi-card__value" id="kpi-rotation">0.0 /hr</p>
-          <span class="kpi-card__trend" id="kpi-rotation-target">Meta --</span>
-        </div>
-      </section>
-
-      <div class="dashboard-main-grid">
-        <div class="chart-container">
-          <h2 class="card__title">Ventas por Hora</h2>
-          <p class="kpi-card__value" style="font-size: 1.125rem">
-            <span id="chart-revenue-today">$0</span>
-            <span style="font-size: 0.875rem; color: #28a745" id="chart-revenue-trend">Today +0%</span>
-          </p>
-
-          <div class="tabs-container" style="margin-bottom: 0px; margin-top: 10px;">
-            <button class="tab tab--active" onclick="updateChartPeriod('day')">Día</button>
-            <button class="tab" onclick="updateChartPeriod('week')">Semana</button>
-            <button class="tab" onclick="updateChartPeriod('month')">Mes</button>
-            <button class="tab" onclick="updateChartPeriod('year')">Año</button>
+          <div class="kpi-card">
+            <p class="kpi-card__label">Tiempo Atención</p>
+            <p class="kpi-card__value" id="kpi-avg-time">Loading...</p>
+            <span style="font-size: 0.875rem; color: var(--text-muted)"
+              >Óptimo ⏱️</span
+            >
           </div>
-          <div style="width: 100%; height: 420px; margin-top: calc(var(--spacing-unit) * 5); /* 20px */">
-            <canvas id="demand-chart"></canvas>
+          <div class="kpi-card">
+            <p class="kpi-card__label">Rotación</p>
+            <p class="kpi-card__value" id="kpi-rotation">0.0 /hr</p>
+            <span class="kpi-card__trend" id="kpi-rotation-target"
+              >Meta --</span
+            >
           </div>
-          <div id="salesLabels" style="
+        </section>
+
+        <div class="dashboard-main-grid">
+          <div class="card">
+            <h2 class="card__title">Ventas por Hora</h2>
+            <p class="kpi-card__value" style="font-size: 1.125rem">
+              <span id="chart-revenue-today">$0</span>
+              <span
+                style="font-size: 0.875rem; color: #28a745"
+                id="chart-revenue-trend"
+                >Today +0%</span
+              >
+            </p>
+
+            <div
+              class="tabs-container"
+              style="margin-bottom: 0px; margin-top: 10px"
+            >
+              <button
+                class="tab tab--active"
+                onclick="updateChartPeriod('day')"
+              >
+                Día
+              </button>
+              <button class="tab" onclick="updateChartPeriod('week')">
+                Semana
+              </button>
+              <button class="tab" onclick="updateChartPeriod('month')">
+                Mes
+              </button>
+              <button class="tab" onclick="updateChartPeriod('year')">
+                Año
+              </button>
+            </div>
+            <div class="chart-container">
+              <canvas id="demand-chart"></canvas>
+            </div>
+            <div
+              id="salesLabels"
+              style="
                 display: flex;
                 justify-content: space-between;
                 margin-top: 10px;
                 color: var(--text-muted);
                 font-size: 0.875rem; /* 14px */
-              ">
-            <span>8 AM</span><span>12 PM</span><span>4 PM</span><span>8 PM</span>
+              "
+            >
+              <span>8 AM</span><span>12 PM</span><span>4 PM</span
+              ><span>8 PM</span>
+            </div>
           </div>
-        </div>
 
-        <div class="stock-alerts">
-          <div style="
+          <div class="stock-alerts">
+            <div
+              style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: calc(var(--spacing-unit) * 3.75); /* 15px */
-              ">
-            <h2 class="card__title" style="margin-bottom: 0">
-              Alertas de Stock
-            </h2>
-            <button id="stock-settings-btn" class="icon-btn" title="Configurar Límites">
-              ⚙️
-            </button>
-          </div>
+              "
+            >
+              <h2 class="card__title" style="margin-bottom: 0">
+                Alertas de Stock
+              </h2>
+              <button
+                id="stock-settings-btn"
+                class="icon-btn"
+                title="Configurar Límites"
+              >
+                ⚙️
+              </button>
+            </div>
+            <div class="chart-container" style="min-height: 200px;">
+              <div
+                id="gauge-chart"
+                style="width: 100%; height: 100%; min-height: 200px"
+              ></div>
+            </div>
+            <div id="alertsList">
+              <!-- alertas serán renderizadas aquí -->
+              <p class="text-muted" style="font-size: 0.875rem">
+                Cargando alertas...
+              </p>
+            </div>
 
-          <div id="alertsList">
-            <!-- alertas serán renderizadas aquí -->
-            <p class="text-muted" style="font-size: 0.875rem">Cargando alertas...</p>
-          </div>
-
-          <div id="stockLimits"
-            style="margin-top: calc(var(--spacing-unit) * 3); /* 12px */ font-size: 0.875rem; color:var(--text-muted);">
+            <div
+              id="stockLimits"
+              style="
+                margin-top: calc(var(--spacing-unit) * 3); /* 12px */
+                font-size: 0.875rem;
+                color: var(--text-muted);
+              "
+            ></div>
           </div>
         </div>
-      </div>
-    </main>
-  </div>
-  <script>
-    let globalSalesData = []; // Store raw pareto data
-    let globalCurrency = '$';
+    <script>
+      let globalSalesData = []; // Store raw pareto data
+      let globalCurrency = "$";
 
-    // Carga datos desde la API y actualiza la interfaz
-    async function loadDashboard() {
-      try {
-        // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
-        const [sRes, aRes, pRes] = await Promise.allSettled([
-          fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary'),
-          fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts'),
-          fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/pareto')
-        ]);
+      // Carga datos desde la API y actualiza la interfaz
+      async function loadDashboard() {
+        try {
+          // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
+          const [sRes, aRes, pRes] = await Promise.allSettled([
+            fetch(
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary",
+            ),
+            fetch(
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts",
+            ),
+            fetch(
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/pareto",
+            ),
+          ]);
 
-        let summaryJson = {};
-        let alertsJson = {};
-        let paretoJson = {};
+          let summaryJson = {};
+          let alertsJson = {};
+          let paretoJson = {};
 
-        if (sRes.status === 'fulfilled' && sRes.value && sRes.value.ok) {
-          try { summaryJson = await sRes.value.json(); } catch (_) { summaryJson = {}; }
+          if (sRes.status === "fulfilled" && sRes.value && sRes.value.ok) {
+            try {
+              summaryJson = await sRes.value.json();
+            } catch (_) {
+              summaryJson = {};
+            }
+          }
+          if (aRes.status === "fulfilled" && aRes.value && aRes.value.ok) {
+            try {
+              alertsJson = await aRes.value.json();
+            } catch (_) {
+              alertsJson = {};
+            }
+          }
+          if (pRes.status === "fulfilled" && pRes.value && pRes.value.ok) {
+            try {
+              paretoJson = await pRes.value.json();
+            } catch (_) {
+              paretoJson = {};
+            }
+          }
+          console.log("Fetched summary:", summaryJson);
+          console.log("Fetched alerts:", alertsJson);
+          console.log("Fetched pareto:", paretoJson);
+          const summary = summaryJson.data || summaryJson || {};
+          const alerts = alertsJson.alerts || alertsJson || [];
+          const paretoData = paretoJson.data || paretoJson || [];
+          console.log("Dashboard summary:", summary);
+          // Ingresos (mapear a ambos conjuntos de IDs para evitar duplicados)
+          const revenue = summary.revenue || {};
+          globalCurrency = revenue.currency || "$";
+          const incomeEls = [
+            document.getElementById("incomeValue"),
+            document.getElementById("kpi-revenue"),
+          ];
+          const incomeTrendEls = [
+            document.getElementById("incomeTrend"),
+            document.getElementById("kpi-revenue-trend"),
+          ];
+          if (revenue.total != null) {
+            const txt = formatCurrency(revenue.total, revenue.currency);
+            incomeEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+          if (revenue.trend_percentage != null) {
+            const t =
+              (revenue.trend_direction === "down"
+                ? "-"
+                : revenue.trend_direction === "up"
+                  ? "+"
+                  : "") +
+              revenue.trend_percentage +
+              "%";
+            incomeTrendEls.forEach((e) => {
+              if (e) e.textContent = t;
+            });
+          }
+
+          // Meta trimestral (mapear a ambos bloques)
+          const quarterly = summary.quarterly_goal || {};
+          const quarterlyProgressEls = [
+            document.getElementById("quarterlyProgress"),
+            document.getElementById("kpi-goal"),
+          ];
+          const quarterlyTargetEls = [
+            document.getElementById("quarterlyTarget"),
+            document.getElementById("kpi-goal-absolute"),
+          ];
+          if (quarterly.progress_percentage != null) {
+            const txt = quarterly.progress_percentage + "%";
+            quarterlyProgressEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+          if (quarterly.target != null) {
+            const txt = formatCurrency(quarterly.target, revenue.currency);
+            quarterlyTargetEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+
+          // Rotación / Tiempo atención (mapear a ambos bloques)
+          const ops = summary.operations || {};
+          const avgTimeEls = [
+            document.getElementById("rotationValue"),
+            document.getElementById("kpi-avg-time"),
+          ];
+          const avgStatusEls = [document.getElementById("timeStatus")];
+          const rotationRateEls = [
+            document.getElementById("rotationRate"),
+            document.getElementById("kpi-rotation"),
+          ];
+          const rotationStatusEls = [
+            document.getElementById("rotationStatus"),
+            document.getElementById("kpi-rotation-target"),
+          ];
+          if (ops.avg_service_time)
+            avgTimeEls.forEach((e) => {
+              if (e) e.textContent = ops.avg_service_time;
+            });
+          if (ops.time_status)
+            avgStatusEls.forEach((e) => {
+              if (e) e.textContent = ops.time_status;
+            });
+          if (ops.table_rotation != null)
+            rotationRateEls.forEach((e) => {
+              if (e) e.textContent = ops.table_rotation + " /hr";
+            });
+          if (ops.rotation_status)
+            rotationStatusEls.forEach((e) => {
+              if (e) e.textContent = ops.rotation_status;
+            });
+
+          console.log("Sales data for chart (raw pareto):", paretoData);
+
+          // Store global data for chart switching
+          globalSalesData = Array.isArray(paretoData)
+            ? paretoData
+            : paretoData.data || [];
+
+          // Initial render (Day view)
+          updateChartPeriod("day");
+
+          // Alertas de inventario
+          const alertsList = document.getElementById("alertsList");
+          alertsList.innerHTML = "";
+          const cfg = getStockLimits();
+          const defaultLimit = Number(cfg.default ?? 30);
+          const perItem = cfg.items || {};
+          (alerts || []).forEach((item) => {
+            const percent = item.percent ?? item.level ?? 0;
+            const name = item.name || item.item || "Sin nombre";
+            const limit = Number(perItem[name] ?? defaultLimit);
+            const isCritical = percent <= limit;
+
+            const div = document.createElement("div");
+            div.className = "stock-item";
+            div.style.cursor = item.url ? "pointer" : "default";
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.style.alignItems = "center";
+            div.style.padding = "6px 0";
+
+            const left = document.createElement("div");
+            left.innerHTML =
+              '<span class="stock-item__name">' + escapeHtml(name) + "</span>";
+
+            const right = document.createElement("div");
+            right.style.display = "flex";
+            right.style.gap = "10px";
+            right.style.alignItems = "center";
+
+            const bar = document.createElement("div");
+            bar.style.display = "flex";
+            bar.style.alignItems = "center";
+            bar.innerHTML =
+              '<div class="progress-bar" style="width:160px;margin-right:8px"><div class="progress-bar__fill ' +
+              getFillClass(percent) +
+              '" style="width:' +
+              percent +
+              '%"></div></div><span class="stock-item__percent">' +
+              percent +
+              "%</span>";
+
+            const badge = document.createElement("span");
+            badge.style.fontSize = "0.8rem";
+            badge.style.padding = "4px 8px";
+            badge.style.borderRadius = "6px";
+            badge.style.background = isCritical
+              ? "rgba(255,99,71,0.12)"
+              : "transparent";
+            badge.style.color = isCritical ? "#c53030" : "var(--text-muted)";
+            badge.textContent = isCritical
+              ? "Crítico (" + limit + "%)"
+              : "Límite " + limit + "%";
+
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Editar límite";
+            editBtn.className = "icon-btn";
+            editBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              showEditLimitForItem(name, perItem[name]);
+            };
+
+            right.appendChild(bar);
+            right.appendChild(badge);
+            right.appendChild(editBtn);
+
+            if (item.url) div.onclick = () => (window.location.href = item.url);
+
+            div.appendChild(left);
+            div.appendChild(right);
+            alertsList.appendChild(div);
+          });
+
+          // si no hay alertas mostrar mensaje
+          if (!alerts.length) {
+            alertsList.innerHTML =
+              '<div style="color:var(--text-muted); font-size:0.9rem;">Sin alertas críticas</div>';
+          }
+
+          // Wire settings button and render stored limits
+          const settingsBtn = document.getElementById("stock-settings-btn");
+          if (settingsBtn)
+            settingsBtn.onclick = (ev) => {
+              ev.preventDefault();
+              showDefaultLimitEditor();
+            };
+          // Wire edit-goal button for quarterly goal
+          const editGoalBtn = document.getElementById("edit-goal-btn");
+          if (editGoalBtn)
+            editGoalBtn.onclick = (ev) => {
+              ev.preventDefault();
+              const current = summary.quarterly_goal ?? null;
+              const absolute = summary.quarterly_goal_total ?? null;
+              showEditQuarterlyGoal(current, absolute);
+            };
+          renderStockLimits();
+        } catch (err) {
+          console.error("Error cargando dashboard:", err);
         }
-        if (aRes.status === 'fulfilled' && aRes.value && aRes.value.ok) {
-          try { alertsJson = await aRes.value.json(); } catch (_) { alertsJson = {}; }
-        }
-        if (pRes.status === 'fulfilled' && pRes.value && pRes.value.ok) {
-          try { paretoJson = await pRes.value.json(); } catch (_) { paretoJson = {}; }
-        }
-        console.log('Fetched summary:', summaryJson);
-        console.log('Fetched alerts:', alertsJson);
-        console.log('Fetched pareto:', paretoJson);
-        const summary = summaryJson.data || summaryJson || {};
-        const alerts = alertsJson.alerts || alertsJson || [];
-        const paretoData = paretoJson.data || paretoJson || [];
-        console.log('Dashboard summary:', summary);
-        // Ingresos (mapear a ambos conjuntos de IDs para evitar duplicados)
-        const revenue = summary.revenue || {};
-        globalCurrency = revenue.currency || '$';
-        const incomeEls = [document.getElementById('incomeValue'), document.getElementById('kpi-revenue')];
-        const incomeTrendEls = [document.getElementById('incomeTrend'), document.getElementById('kpi-revenue-trend')];
-        if (revenue.total != null) {
-          const txt = formatCurrency(revenue.total, revenue.currency);
-          incomeEls.forEach(e => { if (e) e.textContent = txt; });
-        }
-        if (revenue.trend_percentage != null) {
-          const t = (revenue.trend_direction === 'down' ? '-' : (revenue.trend_direction === 'up' ? '+' : '')) + revenue.trend_percentage + '%';
-          incomeTrendEls.forEach(e => { if (e) e.textContent = t; });
-        }
-
-        // Meta trimestral (mapear a ambos bloques)
-        const quarterly = summary.quarterly_goal || {};
-        const quarterlyProgressEls = [document.getElementById('quarterlyProgress'), document.getElementById('kpi-goal')];
-        const quarterlyTargetEls = [document.getElementById('quarterlyTarget'), document.getElementById('kpi-goal-absolute')];
-        if (quarterly.progress_percentage != null) {
-          const txt = (quarterly.progress_percentage) + '%';
-          quarterlyProgressEls.forEach(e => { if (e) e.textContent = txt; });
-        }
-        if (quarterly.target != null) {
-          const txt = formatCurrency(quarterly.target, revenue.currency);
-          quarterlyTargetEls.forEach(e => { if (e) e.textContent = txt; });
-        }
-
-        // Rotación / Tiempo atención (mapear a ambos bloques)
-        const ops = summary.operations || {};
-        const avgTimeEls = [document.getElementById('rotationValue'), document.getElementById('kpi-avg-time')];
-        const avgStatusEls = [document.getElementById('timeStatus')];
-        const rotationRateEls = [document.getElementById('rotationRate'), document.getElementById('kpi-rotation')];
-        const rotationStatusEls = [document.getElementById('rotationStatus'), document.getElementById('kpi-rotation-target')];
-        if (ops.avg_service_time) avgTimeEls.forEach(e => { if (e) e.textContent = ops.avg_service_time; });
-        if (ops.time_status) avgStatusEls.forEach(e => { if (e) e.textContent = ops.time_status; });
-        if (ops.table_rotation != null) rotationRateEls.forEach(e => { if (e) e.textContent = ops.table_rotation + ' /hr'; });
-        if (ops.rotation_status) rotationStatusEls.forEach(e => { if (e) e.textContent = ops.rotation_status; });
-
-        console.log('Sales data for chart (raw pareto):', paretoData);
-
-        // Store global data for chart switching
-        globalSalesData = Array.isArray(paretoData) ? paretoData : (paretoData.data || []);
-
-        // Initial render (Day view)
-        updateChartPeriod('day');
-
-        // Alertas de inventario
-        const alertsList = document.getElementById('alertsList');
-        alertsList.innerHTML = '';
-        const cfg = getStockLimits();
-        const defaultLimit = Number(cfg.default ?? 30);
-        const perItem = cfg.items || {};
-        (alerts || []).forEach(item => {
-          const percent = item.percent ?? item.level ?? 0;
-          const name = item.name || item.item || 'Sin nombre';
-          const limit = Number(perItem[name] ?? defaultLimit);
-          const isCritical = percent <= limit;
-
-          const div = document.createElement('div');
-          div.className = 'stock-item';
-          div.style.cursor = item.url ? 'pointer' : 'default';
-          div.style.display = 'flex';
-          div.style.justifyContent = 'space-between';
-          div.style.alignItems = 'center';
-          div.style.padding = '6px 0';
-
-          const left = document.createElement('div');
-          left.innerHTML = '<span class="stock-item__name">' + escapeHtml(name) + '</span>';
-
-          const right = document.createElement('div');
-          right.style.display = 'flex';
-          right.style.gap = '10px';
-          right.style.alignItems = 'center';
-
-          const bar = document.createElement('div');
-          bar.style.display = 'flex';
-          bar.style.alignItems = 'center';
-          bar.innerHTML = '<div class="progress-bar" style="width:160px;margin-right:8px"><div class="progress-bar__fill ' + getFillClass(percent) + '" style="width:' + percent + '%"></div></div><span class="stock-item__percent">' + percent + '%</span>';
-
-          const badge = document.createElement('span');
-          badge.style.fontSize = '0.8rem';
-          badge.style.padding = '4px 8px';
-          badge.style.borderRadius = '6px';
-          badge.style.background = isCritical ? 'rgba(255,99,71,0.12)' : 'transparent';
-          badge.style.color = isCritical ? '#c53030' : 'var(--text-muted)';
-          badge.textContent = isCritical ? 'Crítico (' + limit + '%)' : 'Límite ' + limit + '%';
-
-          const editBtn = document.createElement('button');
-          editBtn.textContent = 'Editar límite';
-          editBtn.className = 'icon-btn';
-          editBtn.onclick = (ev) => { ev.stopPropagation(); showEditLimitForItem(name, perItem[name]); };
-
-          right.appendChild(bar);
-          right.appendChild(badge);
-          right.appendChild(editBtn);
-
-          if (item.url) div.onclick = () => window.location.href = item.url;
-
-          div.appendChild(left);
-          div.appendChild(right);
-          alertsList.appendChild(div);
-        });
-
-        // si no hay alertas mostrar mensaje
-        if (!alerts.length) {
-          alertsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Sin alertas críticas</div>';
-        }
-
-        // Wire settings button and render stored limits
-        const settingsBtn = document.getElementById('stock-settings-btn');
-        if (settingsBtn) settingsBtn.onclick = (ev) => { ev.preventDefault(); showDefaultLimitEditor(); };
-        // Wire edit-goal button for quarterly goal
-        const editGoalBtn = document.getElementById('edit-goal-btn');
-        if (editGoalBtn) editGoalBtn.onclick = (ev) => {
-          ev.preventDefault();
-          const current = (summary.quarterly_goal ?? null);
-          const absolute = (summary.quarterly_goal_total ?? null);
-          showEditQuarterlyGoal(current, absolute);
-        };
-        renderStockLimits();
-
-      } catch (err) {
-        console.error('Error cargando dashboard:', err);
       }
-    }
 
-    function formatCurrency(v, currency) {
-      const n = Number(v) || 0;
-      const symbol = (currency === 'USD' ? '$' : (currency ? currency + ' ' : '$'));
-      return symbol + n.toLocaleString();
-    }
-
-    // ...existing helper functions (getFillClass, drawChart, escapeHtml)...
-    function getFillClass(p) {
-      if (p >= 70) return 'progress-bar__fill--high';
-      if (p <= 30) return 'progress-bar__fill--low';
-      return '';
-    }
-
-    function drawChart(canvasId, data) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas || !canvas.getContext) return;
-      const ctx = canvas.getContext('2d');
-      const DPR = window.devicePixelRatio || 1;
-
-      // Asegura que el canvas ocupe el 100% del contenedor ANTES de medir
-      canvas.style.display = 'block';
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-
-      // Ahora calcula el tamaño visible (debería coincidir con el contenedor)
-      const rect = canvas.getBoundingClientRect();
-      const w = rect.width || canvas.parentElement?.clientWidth || 800;
-      const h = rect.height || canvas.parentElement?.clientHeight || 420;
-
-      // Configura el buffer de dibujo y el tamaño CSS
-      canvas.width = Math.max(1, Math.floor(w * DPR));
-      canvas.height = Math.max(1, Math.floor(h * DPR));
-
-      // Restaura la transformación y escala para DPR
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(DPR, DPR);
-
-      // El resto de tu código de dibujo permanece igual...
-      ctx.clearRect(0, 0, w, h);
-      const points = (data || []).map(d => (typeof d === 'number' ? { label: '', value: d } : { label: d.hour || d.label || '', value: d.value || 0 }));
-      if (!points.length) {
-        // dibujar fondo suave cuando no hay datos
-        ctx.fillStyle = '#f5f7fa';
-        ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = 'var(--text-muted, #6b7280)';
-        ctx.font = '14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('No hay datos de ventas por hora', w / 2, h / 2);
-        return;
+      function formatCurrency(v, currency) {
+        const n = Number(v) || 0;
+        const symbol =
+          currency === "USD" ? "$" : currency ? currency + " " : "$";
+        return symbol + n.toLocaleString();
       }
 
-      const values = points.map(p => p.value);
-      const max = Math.max(...values);
-      const min = Math.min(...values);
-      const padding = 40; // reducido ligeramente para más espacio útil pero suficiente margen
-      const usableW = w - padding * 2;
-      const usableH = h - padding * 2;
+      // ...existing helper functions (getFillClass, drawChart, escapeHtml)...
+      function getFillClass(p) {
+        if (p >= 70) return "progress-bar__fill--high";
+        if (p <= 30) return "progress-bar__fill--low";
+        return "";
+      }
 
-      // eje x
-      ctx.strokeStyle = '#e9eef2';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(padding, h - padding);
-      ctx.lineTo(w - padding, h - padding);
-      ctx.stroke();
+      function drawChart(canvasId, data) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || !canvas.getContext) return;
+        const ctx = canvas.getContext("2d");
+        const DPR = window.devicePixelRatio || 1;
 
-      // línea (lineal)
-      ctx.strokeStyle = '#1f8ef1';
-      ctx.lineWidth = 2; // grosor estándar
-      ctx.beginPath();
-      points.forEach((p, i) => {
-        const x = padding + (i / (points.length - 1 || 1)) * usableW;
-        const y = h - padding - ((p.value - min) / (max - min || 1)) * usableH;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
+        // Asegura que el canvas ocupe el 100% del contenedor ANTES de medir
+        canvas.style.display = "block";
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
 
-      // puntos y etiquetas pequeñas (ajustados para legibilidad)
-      const labelInterval = Math.max(1, Math.ceil(points.length / 8)); // mostrar ~8 etiquetas
-      points.forEach((p, i) => {
-        const x = padding + (i / (points.length - 1 || 1)) * usableW;
-        const y = h - padding - ((p.value - min) / (max - min || 1)) * usableH;
-        ctx.fillStyle = '#1f8ef1';
+        // Ahora calcula el tamaño visible (debería coincidir con el contenedor)
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width || canvas.parentElement?.clientWidth || 800;
+        const h = rect.height || canvas.parentElement?.clientHeight || 420;
+
+        // Configura el buffer de dibujo y el tamaño CSS
+        canvas.width = Math.max(1, Math.floor(w * DPR));
+        canvas.height = Math.max(1, Math.floor(h * DPR));
+
+        // Restaura la transformación y escala para DPR
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(DPR, DPR);
+
+        // El resto de tu código de dibujo permanece igual...
+        ctx.clearRect(0, 0, w, h);
+        const points = (data || []).map((d) =>
+          typeof d === "number"
+            ? { label: "", value: d }
+            : { label: d.hour || d.label || "", value: d.value || 0 },
+        );
+        if (!points.length) {
+          // dibujar fondo suave cuando no hay datos
+          ctx.fillStyle = "#f5f7fa";
+          ctx.fillRect(0, 0, w, h);
+          ctx.fillStyle = "var(--text-muted, #6b7280)";
+          ctx.font = "14px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("No hay datos de ventas por hora", w / 2, h / 2);
+          return;
+        }
+
+        const values = points.map((p) => p.value);
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        const padding = 40; // reducido ligeramente para más espacio útil pero suficiente margen
+        const usableW = w - padding * 2;
+        const usableH = h - padding * 2;
+
+        // eje x
+        ctx.strokeStyle = "#e9eef2";
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2); // puntos más pequeños para menos solapamiento
+        ctx.moveTo(padding, h - padding);
+        ctx.lineTo(w - padding, h - padding);
+        ctx.stroke();
+
+        // línea (lineal con gradiente verde)
+        const gradient = ctx.createLinearGradient(0, padding, 0, h - padding);
+        gradient.addColorStop(0, "rgba(19, 83, 42, 0.4)");
+        gradient.addColorStop(1, "rgba(19, 83, 42, 0)");
+
+        ctx.strokeStyle = "#13532a";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          const x = padding + (i / (points.length - 1 || 1)) * usableW;
+          const y =
+            h - padding - ((p.value - min) / (max - min || 1)) * usableH;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // área bajo la línea
+        ctx.lineTo(padding + usableW, h - padding);
+        ctx.lineTo(padding, h - padding);
+        ctx.fillStyle = gradient;
         ctx.fill();
 
-        // Etiquetas solo cada labelInterval puntos
-        if (i % labelInterval === 0 && p.label) {
-          ctx.fillStyle = 'var(--text-muted)';
-          ctx.font = '10px sans-serif';
-          ctx.textAlign = 'center';
-          // mostrar solo "DD HH:00" si el label tiene espacio
-          const txtParts = String(p.label).split(' ');
-          const displayTxt = txtParts.length === 2 ? (txtParts[0].slice(8) + ' ' + txtParts[1]) : p.label;
-          ctx.fillText(displayTxt, x, h - 10);
-        }
-      });
-    }
+        // puntos y etiquetas pequeñas (ajustados para legibilidad)
+        const labelInterval = Math.max(1, Math.ceil(points.length / 8)); // mostrar ~8 etiquetas
+        points.forEach((p, i) => {
+          const x = padding + (i / (points.length - 1 || 1)) * usableW;
+          const y =
+            h - padding - ((p.value - min) / (max - min || 1)) * usableH;
+          ctx.fillStyle = "#13532a";
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, Math.PI * 2); 
+          ctx.fill();
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 2;
+          ctx.stroke();
 
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
-    // Stock limits persisted in localStorage under key 'stockLimits'
-    function getStockLimits() {
-      try {
-        const raw = localStorage.getItem('stockLimits');
-        if (!raw) return { default: 30, items: {} };
-        const parsed = JSON.parse(raw);
-        return { default: Number(parsed.default ?? 30), items: parsed.items || {} };
-      } catch (e) {
-        return { default: 30, items: {} };
-      }
-    }
-
-    function saveStockLimits(obj) {
-      localStorage.setItem('stockLimits', JSON.stringify(obj));
-      renderStockLimits();
-    }
-
-    function renderStockLimits() {
-      const el = document.getElementById('stockLimits');
-      if (!el) return;
-      const cfg = getStockLimits();
-      const lines = [];
-      const keys = Object.keys(cfg.items || {});
-      if (keys.length) {
-        lines.push('<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>');
-        lines.push('<ul style="margin:6px 0 0 14px">' + keys.map(k => '<li>' + escapeHtml(k) + ': ' + cfg.items[k] + '%</li>').join('') + '</ul>');
-      }
-      el.innerHTML = lines.join('');
-    }
-
-    async function showEditLimitForItem(itemName, current) {
-      const { value: percent } = await Swal.fire({
-        title: 'Editar límite para "' + escapeHtml(itemName) + '"',
-        input: 'number',
-        inputLabel: 'Límite (%)',
-        inputValue: current ?? '',
-        inputAttributes: { min: 0, max: 100, step: 1 },
-        showCancelButton: true
-      });
-      if (percent === undefined || percent === null) return;
-      const cfg = getStockLimits();
-      cfg.items = cfg.items || {};
-      cfg.items[itemName] = Number(percent || 0);
-      saveStockLimits(cfg);
-      loadDashboard();
-    }
-
-    async function showDefaultLimitEditor() {
-      const cfg = getStockLimits();
-      const { value: def } = await Swal.fire({
-        title: 'Límite por defecto de stock',
-        input: 'number',
-        inputLabel: 'Porcentaje crítico (%)',
-        inputValue: cfg.default,
-        inputAttributes: { min: 0, max: 100, step: 1 },
-        showCancelButton: true
-      });
-      if (def === undefined || def === null) return;
-      cfg.default = Number(def || 0);
-      saveStockLimits(cfg);
-      loadDashboard();
-    }
-
-    // Editar meta trimestral (modal + patch al backend si está disponible)
-    async function showEditQuarterlyGoal(currentValue, currentTarget) {
-      const { value: newGoal } = await Swal.fire({
-        title: 'Editar Meta Trimestral',
-        html: '<input id="swal-goal" type="number" class="swal2-input" placeholder="Porcentaje" value="' + (currentValue ?? '') + '">' +
-          '<input id="swal-target" type="text" class="swal2-input" placeholder="Meta absoluta (ej. 450k)" value="' + (currentTarget ?? '') + '">',
-        focusConfirm: false,
-        showCancelButton: true,
-        preConfirm: () => {
-          const g = document.getElementById('swal-goal').value;
-          const t = document.getElementById('swal-target').value;
-          return { goal: g !== '' ? Number(g) : null, target: t };
-        }
-      });
-      if (!newGoal) return;
-
-      // Try to PATCH to known endpoints
-      const payload = { goal: newGoal.goal, target: newGoal.target };
-      const endpoints = [
-        '/configuration/goals/quarterly',
-        'https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/quarterly'
-      ];
-      let patched = false;
-      for (const ep of endpoints) {
-        try {
-          const res = await fetch(ep, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: payload.goal, target: payload.target }) });
-          if (res.ok) { patched = true; break; }
-        } catch (e) {
-          // ignore and try next
-        }
-      }
-
-      // Update UI locally regardless
-      const qEls = [document.getElementById('quarterlyProgress'), document.getElementById('kpi-goal')];
-      const qTargetEls = [document.getElementById('quarterlyTarget'), document.getElementById('kpi-goal-absolute')];
-      if (payload.goal != null) qEls.forEach(e => { if (e) e.textContent = payload.goal + '%'; });
-      if (payload.target != null) qTargetEls.forEach(e => { if (e) e.textContent = payload.target; });
-
-      if (patched) {
-        Swal.fire({ icon: 'success', title: 'Meta actualizada' });
-      } else {
-        Swal.fire({ icon: 'warning', title: 'Guardado local', text: 'No se pudo actualizar el backend; cambios aplicados localmente.' });
-      }
-    }
-
-    function updateChartPeriod(period) {
-      // Update active tab UI
-      const tabs = document.querySelectorAll('.tabs-container .tab');
-      tabs.forEach(t => t.classList.remove('tab--active'));
-      const activeBtn = document.querySelector(`.tabs-container button[onclick="updateChartPeriod('${period}')"]`);
-      if (activeBtn) activeBtn.classList.add('tab--active');
-
-      const now = new Date();
-      const salesValueEl = document.getElementById('chart-revenue-today');
-      const labelsEl = document.getElementById('salesLabels');
-
-      // Parse all dates once
-      const parsed = globalSalesData.map(item => {
-        const datePart = item.last_sale_date || '';
-        const timePart = item.last_sale_time || '00:00:00';
-        const iso = datePart ? (datePart + 'T' + timePart) : null;
-        const d = iso ? new Date(iso) : null;
-        return Object.assign({}, item, { __saleDate: d });
-      }).filter(it => it.__saleDate != null);
-
-      let filteredData = [];
-      let labels = [];
-      let total = 0;
-
-      if (period === 'day') {
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const rangeStart = new Date(today); rangeStart.setHours(8, 0, 0, 0);
-        const rangeEnd = new Date(today); rangeEnd.setHours(20, 59, 59, 999);
-
-        const hours = [];
-        for (let h = 8; h <= 20; h++) {
-          hours.push(new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, 0, 0, 0));
-        }
-
-        const grouped = {};
-        parsed.filter(it => it.__saleDate >= rangeStart && it.__saleDate <= rangeEnd)
-          .forEach(item => {
-            const d = item.__saleDate;
-            const key = d.getHours();
-            grouped[key] = (grouped[key] || 0) + Number(item.revenue_generated || 0);
-          });
-
-        filteredData = hours.map(h => {
-          const hNum = h.getHours();
-          return { label: `${hNum}:00`, value: grouped[hNum] || 0 };
+          // Etiquetas solo cada labelInterval puntos
+          if (i % labelInterval === 0 && p.label) {
+            ctx.fillStyle = "var(--text-muted)";
+            ctx.font = "10px sans-serif";
+            ctx.textAlign = "center";
+            // mostrar solo "DD HH:00" si el label tiene espacio
+            const txtParts = String(p.label).split(" ");
+            const displayTxt =
+              txtParts.length === 2
+                ? txtParts[0].slice(8) + " " + txtParts[1]
+                : p.label;
+            ctx.fillText(displayTxt, x, h - 10);
+          }
         });
-
-        // Labels: 8 AM, 12 PM, 4 PM, 8 PM
-        labels = ['8 AM', '12 PM', '4 PM', '8 PM'];
-
-      } else if (period === 'week') {
-        // Last 7 days including today? Or current week? Let's do current week (Monday start)
-        const currentDay = now.getDay(); // 0=Sun, 1=Mon
-        const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // adjust when day is sunday
-        const monday = new Date(now.setDate(diff)); monday.setHours(0, 0, 0, 0);
-        const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
-
-        const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-        const grouped = new Array(7).fill(0);
-
-        parsed.filter(it => it.__saleDate >= monday && it.__saleDate <= sunday)
-          .forEach(item => {
-            const dayIdx = item.__saleDate.getDay(); // 0=Sun...6=Sat
-            const mappedIdx = dayIdx === 0 ? 6 : dayIdx - 1; // 0=Mon...6=Sun
-            grouped[mappedIdx] += Number(item.revenue_generated || 0);
-          });
-
-        filteredData = days.map((d, i) => ({ label: d, value: grouped[i] }));
-        labels = ['Lun', 'Mie', 'Vie', 'Dom'];
-
-      } else if (period === 'month') {
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-        const daysInMonth = endOfMonth.getDate();
-
-        const grouped = new Array(daysInMonth).fill(0);
-
-        parsed.filter(it => it.__saleDate >= startOfMonth && it.__saleDate <= endOfMonth)
-          .forEach(item => {
-            grouped[item.__saleDate.getDate() - 1] += Number(item.revenue_generated || 0);
-          });
-
-        filteredData = grouped.map((v, i) => ({ label: String(i + 1), value: v }));
-        // Show ~4 labels distributed
-        labels = [1, 10, 20, daysInMonth];
-
-      } else if (period === 'year') {
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-
-        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const grouped = new Array(12).fill(0);
-
-        parsed.filter(it => it.__saleDate >= startOfYear && it.__saleDate <= endOfYear)
-          .forEach(item => {
-            grouped[item.__saleDate.getMonth()] += Number(item.revenue_generated || 0);
-          });
-
-        filteredData = months.map((m, i) => ({ label: m, value: grouped[i] }));
-        labels = ['Ene', 'Abr', 'Jul', 'Oct'];
       }
 
-      total = filteredData.reduce((acc, curr) => acc + curr.value, 0);
-
-      // Update Total
-      if (salesValueEl) salesValueEl.textContent = formatCurrency(total, globalCurrency);
-
-      // Update Labels HTML
-      if (labelsEl) {
-        // For simplicity, just evenly space the predefined labels or generate them if filteredData is small?
-        // Actually, the previous logic had fixed labels for day. Let's just use the `labels` array we built.
-
-        // If we rely on drawingChart to draw X axis, we can hide this or update it. 
-        // The old code used #salesLabels div for text labels since canvas handles the drawing.
-        // But the drawChart function ALSO draws labels on X axis if we pass them?
-        // Checking drawChart implementation... 
-        // It draws labels: ctx.fillText(displayTxt...
-        // BUT dashboard had a separate div id="salesLabels" with "8 AM 12 PM..."
-        // I'll update that DIV to match our current view logic, or just rely on canvas if possible.
-        // The original code had specific HTML spans. Let's recreate that style.
-
-        labelsEl.innerHTML = labels.map(l => `<span>${l}</span>`).join('');
-        labelsEl.style.justifyContent = 'space-between';
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
       }
 
-      drawChart('demand-chart', filteredData);
-    }
+      // Stock limits persisted in localStorage under key 'stockLimits'
+      function getStockLimits() {
+        try {
+          const raw = localStorage.getItem("stockLimits");
+          if (!raw) return { default: 30, items: {} };
+          const parsed = JSON.parse(raw);
+          return {
+            default: Number(parsed.default ?? 30),
+            items: parsed.items || {},
+          };
+        } catch (e) {
+          return { default: 30, items: {} };
+        }
+      }
 
-    document.addEventListener('DOMContentLoaded', loadDashboard);
-  </script>
-</body>
+      function saveStockLimits(obj) {
+        localStorage.setItem("stockLimits", JSON.stringify(obj));
+        renderStockLimits();
+      }
 
+      function renderStockLimits() {
+        const el = document.getElementById("stockLimits");
+        if (!el) return;
+        const cfg = getStockLimits();
+        const lines = [];
+        const keys = Object.keys(cfg.items || {});
+        if (keys.length) {
+          lines.push(
+            '<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>',
+          );
+          lines.push(
+            '<ul style="margin:6px 0 0 14px">' +
+              keys
+                .map(
+                  (k) =>
+                    "<li>" + escapeHtml(k) + ": " + cfg.items[k] + "%</li>",
+                )
+                .join("") +
+              "</ul>",
+          );
+        }
+        el.innerHTML = lines.join("");
+      }
+
+      async function showEditLimitForItem(itemName, current) {
+        const { value: percent } = await Swal.fire({
+          title: 'Editar límite para "' + escapeHtml(itemName) + '"',
+          input: "number",
+          inputLabel: "Límite (%)",
+          inputValue: current ?? "",
+          inputAttributes: { min: 0, max: 100, step: 1 },
+          showCancelButton: true,
+        });
+        if (percent === undefined || percent === null) return;
+        const cfg = getStockLimits();
+        cfg.items = cfg.items || {};
+        cfg.items[itemName] = Number(percent || 0);
+        saveStockLimits(cfg);
+        loadDashboard();
+      }
+
+      async function showDefaultLimitEditor() {
+        const cfg = getStockLimits();
+        const { value: def } = await Swal.fire({
+          title: "Límite por defecto de stock",
+          input: "number",
+          inputLabel: "Porcentaje crítico (%)",
+          inputValue: cfg.default,
+          inputAttributes: { min: 0, max: 100, step: 1 },
+          showCancelButton: true,
+        });
+        if (def === undefined || def === null) return;
+        cfg.default = Number(def || 0);
+        saveStockLimits(cfg);
+        loadDashboard();
+      }
+
+      // Editar meta trimestral (modal + patch al backend si está disponible)
+      async function showEditQuarterlyGoal(currentValue, currentTarget) {
+        const { value: newGoal } = await Swal.fire({
+          title: "Editar Meta Trimestral",
+          html:
+            '<input id="swal-goal" type="number" class="swal2-input" placeholder="Porcentaje" value="' +
+            (currentValue ?? "") +
+            '">' +
+            '<input id="swal-target" type="text" class="swal2-input" placeholder="Meta absoluta (ej. 450k)" value="' +
+            (currentTarget ?? "") +
+            '">',
+          focusConfirm: false,
+          showCancelButton: true,
+          preConfirm: () => {
+            const g = document.getElementById("swal-goal").value;
+            const t = document.getElementById("swal-target").value;
+            return { goal: g !== "" ? Number(g) : null, target: t };
+          },
+        });
+        if (!newGoal) return;
+
+        // Try to PATCH to known endpoints
+        const payload = { goal: newGoal.goal, target: newGoal.target };
+        const endpoints = [
+          "/configuration/goals/quarterly",
+          "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/quarterly",
+        ];
+        let patched = false;
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(ep, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                goal: payload.goal,
+                target: payload.target,
+              }),
+            });
+            if (res.ok) {
+              patched = true;
+              break;
+            }
+          } catch (e) {
+            // ignore and try next
+          }
+        }
+
+        // Update UI locally regardless
+        const qEls = [
+          document.getElementById("quarterlyProgress"),
+          document.getElementById("kpi-goal"),
+        ];
+        const qTargetEls = [
+          document.getElementById("quarterlyTarget"),
+          document.getElementById("kpi-goal-absolute"),
+        ];
+        if (payload.goal != null)
+          qEls.forEach((e) => {
+            if (e) e.textContent = payload.goal + "%";
+          });
+        if (payload.target != null)
+          qTargetEls.forEach((e) => {
+            if (e) e.textContent = payload.target;
+          });
+
+        if (patched) {
+          Swal.fire({ icon: "success", title: "Meta actualizada" });
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Guardado local",
+            text: "No se pudo actualizar el backend; cambios aplicados localmente.",
+          });
+        }
+      }
+
+      function updateChartPeriod(period) {
+        // Update active tab UI
+        const tabs = document.querySelectorAll(".tabs-container .tab");
+        tabs.forEach((t) => t.classList.remove("tab--active"));
+        const activeBtn = document.querySelector(
+          `.tabs-container button[onclick="updateChartPeriod('${period}')"]`,
+        );
+        if (activeBtn) activeBtn.classList.add("tab--active");
+
+        const now = new Date();
+        const salesValueEl = document.getElementById("chart-revenue-today");
+        const labelsEl = document.getElementById("salesLabels");
+
+        // Parse all dates once
+        const parsed = globalSalesData
+          .map((item) => {
+            const datePart = item.last_sale_date || "";
+            const timePart = item.last_sale_time || "00:00:00";
+            const iso = datePart ? datePart + "T" + timePart : null;
+            const d = iso ? new Date(iso) : null;
+            return Object.assign({}, item, { __saleDate: d });
+          })
+          .filter((it) => it.__saleDate != null);
+
+        let filteredData = [];
+        let labels = [];
+        let total = 0;
+
+        if (period === "day") {
+          const today = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+          const rangeStart = new Date(today);
+          rangeStart.setHours(8, 0, 0, 0);
+          const rangeEnd = new Date(today);
+          rangeEnd.setHours(20, 59, 59, 999);
+
+          const hours = [];
+          for (let h = 8; h <= 20; h++) {
+            hours.push(
+              new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate(),
+                h,
+                0,
+                0,
+                0,
+              ),
+            );
+          }
+
+          const grouped = {};
+          parsed
+            .filter(
+              (it) => it.__saleDate >= rangeStart && it.__saleDate <= rangeEnd,
+            )
+            .forEach((item) => {
+              const d = item.__saleDate;
+              const key = d.getHours();
+              grouped[key] =
+                (grouped[key] || 0) + Number(item.revenue_generated || 0);
+            });
+
+          filteredData = hours.map((h) => {
+            const hNum = h.getHours();
+            return { label: `${hNum}:00`, value: grouped[hNum] || 0 };
+          });
+
+          // Labels: 8 AM, 12 PM, 4 PM, 8 PM
+          labels = ["8 AM", "12 PM", "4 PM", "8 PM"];
+        } else if (period === "week") {
+          // Last 7 days including today? Or current week? Let's do current week (Monday start)
+          const currentDay = now.getDay(); // 0=Sun, 1=Mon
+          const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // adjust when day is sunday
+          const monday = new Date(now.setDate(diff));
+          monday.setHours(0, 0, 0, 0);
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          sunday.setHours(23, 59, 59, 999);
+
+          const days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+          const grouped = new Array(7).fill(0);
+
+          parsed
+            .filter((it) => it.__saleDate >= monday && it.__saleDate <= sunday)
+            .forEach((item) => {
+              const dayIdx = item.__saleDate.getDay(); // 0=Sun...6=Sat
+              const mappedIdx = dayIdx === 0 ? 6 : dayIdx - 1; // 0=Mon...6=Sun
+              grouped[mappedIdx] += Number(item.revenue_generated || 0);
+            });
+
+          filteredData = days.map((d, i) => ({ label: d, value: grouped[i] }));
+          labels = ["Lun", "Mie", "Vie", "Dom"];
+        } else if (period === "month") {
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          const endOfMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            0,
+            23,
+            59,
+            59,
+          );
+          const daysInMonth = endOfMonth.getDate();
+
+          const grouped = new Array(daysInMonth).fill(0);
+
+          parsed
+            .filter(
+              (it) =>
+                it.__saleDate >= startOfMonth && it.__saleDate <= endOfMonth,
+            )
+            .forEach((item) => {
+              grouped[item.__saleDate.getDate() - 1] += Number(
+                item.revenue_generated || 0,
+              );
+            });
+
+          filteredData = grouped.map((v, i) => ({
+            label: String(i + 1),
+            value: v,
+          }));
+          // Show ~4 labels distributed
+          labels = [1, 10, 20, daysInMonth];
+        } else if (period === "year") {
+          const startOfYear = new Date(now.getFullYear(), 0, 1);
+          const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+
+          const months = [
+            "Ene",
+            "Feb",
+            "Mar",
+            "Abr",
+            "May",
+            "Jun",
+            "Jul",
+            "Ago",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dic",
+          ];
+          const grouped = new Array(12).fill(0);
+
+          parsed
+            .filter(
+              (it) =>
+                it.__saleDate >= startOfYear && it.__saleDate <= endOfYear,
+            )
+            .forEach((item) => {
+              grouped[item.__saleDate.getMonth()] += Number(
+                item.revenue_generated || 0,
+              );
+            });
+
+          filteredData = months.map((m, i) => ({
+            label: m,
+            value: grouped[i],
+          }));
+          labels = ["Ene", "Abr", "Jul", "Oct"];
+        }
+
+        total = filteredData.reduce((acc, curr) => acc + curr.value, 0);
+
+        // Update Total
+        if (salesValueEl)
+          salesValueEl.textContent = formatCurrency(total, globalCurrency);
+
+        // Update Labels HTML
+        if (labelsEl) {
+          // For simplicity, just evenly space the predefined labels or generate them if filteredData is small?
+          // Actually, the previous logic had fixed labels for day. Let's just use the `labels` array we built.
+
+          // If we rely on drawingChart to draw X axis, we can hide this or update it.
+          // The old code used #salesLabels div for text labels since canvas handles the drawing.
+          // But the drawChart function ALSO draws labels on X axis if we pass them?
+          // Checking drawChart implementation...
+          // It draws labels: ctx.fillText(displayTxt...
+          // BUT dashboard had a separate div id="salesLabels" with "8 AM 12 PM..."
+          // I'll update that DIV to match our current view logic, or just rely on canvas if possible.
+          // The original code had specific HTML spans. Let's recreate that style.
+
+          labelsEl.innerHTML = labels.map((l) => `<span>${l}</span>`).join("");
+          labelsEl.style.justifyContent = "space-between";
+        }
+
+        drawChart("demand-chart", filteredData);
+      }
+
+      function updateDate() {
+        const dateEl = document.getElementById("header-date");
+        if (dateEl) {
+          const now = new Date();
+          const options = {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          };
+          dateEl.textContent = now.toLocaleDateString("es-ES", options);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadDashboard();
+        updateDate();
+      });
+    </script>
+    <script type="module">
+      import {
+        initKpiLayout,
+        mountKpiSidebar,
+      } from "/mod-2-kpis/src/components/sidebar.js";
+      initKpiLayout();
+      mountKpiSidebar();
+    </script>
+  </body>
 </html>
