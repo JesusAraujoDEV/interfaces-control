@@ -90,8 +90,16 @@
 /* Layout de Configuración (2 Columnas) */
 .layout-configuracion {
     display: grid;
-    grid-template-columns: 400px 1fr;
+    /* Primera columna fija a 400px; segunda con mínimo de 400px y crecimiento flexible */
+    grid-template-columns: 400px minmax(400px, 1fr);
     gap: 30px;
+}
+
+/* Cuando no quepan las dos columnas, hacer wrap a una sola y colocar el mapa debajo */
+@media (max-width: 1180px) {
+    .layout-configuracion {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Tarjeta Formulario */
@@ -177,6 +185,11 @@ input {
     height: 500px; /* Altura obligatoria para que el mapa aparezca */
     border: 1px solid #e5e7eb;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Asegurar un mínimo de 400px de ancho para la sección del mapa */
+#contenedor-mapa-interactivo {
+    min-width: 400px;
 }
 
 #mapa {

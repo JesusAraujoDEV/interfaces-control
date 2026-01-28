@@ -4,6 +4,10 @@
     --borde: #e5e7eb;
 }
 
+#sidebar {
+    height: 100dvh;
+}
+
 /* Estilos de la base (Originales adaptados) */
 .logo-box { 
     width: 36px; height: 36px; background: #f1f3f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 800; 
