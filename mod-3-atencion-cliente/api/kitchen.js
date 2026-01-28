@@ -53,6 +53,26 @@ window.KitchenApi = {
     },
 
     /**
+     * Obtiene la receta (ingredientes) de un producto específico
+     * GET /api/kitchen/products/:id/recipe
+     * @param {string} productId - ID del producto
+     */
+    getProductRecipe: async (productId) => {
+        const baseUrl = window.KitchenApi.getBaseUrl();
+        if (!baseUrl) throw new Error('URL de cocina no configurada');
+
+        try {
+            const response = await window.HttpClient.request(`${baseUrl}/products/${productId}/recipe`, {
+                method: 'GET'
+            });
+            return response;
+        } catch (error) {
+            console.error('❌ Error obteniendo receta del producto:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Obtiene el detalle de un producto específico
      * GET /api/kitchen/products/:id?activeOnly=true
      * @param {number|string} productId - ID del producto

@@ -130,6 +130,30 @@
 
     </main>
 
+    <!-- Modal de ingredientes (solo lectura) -->
+    <div id="ingredientsModal" class="fixed inset-0 z-50 hidden" aria-labelledby="ingredients-modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60 transition-opacity backdrop-blur-sm" onclick="closeIngredientsModal()"></div>
+        <div class="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[520px] bg-white md:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up z-50">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                        <span class="material-icons-outlined text-xl text-primary">list_alt</span>
+                    </div>
+                    <div>
+                        <h2 id="ingredients-modal-title" class="text-lg font-bold text-gray-900">Ingredientes</h2>
+                        <p class="text-xs text-gray-500">Información de ingredientes por plato (solo lectura).</p>
+                    </div>
+                </div>
+                <div id="ingredients-modal-list" class="mt-4 max-h-[360px] overflow-y-auto no-scrollbar"></div>
+                <div class="mt-6">
+                    <button onclick="closeIngredientsModal()" class="w-full bg-white text-gray-700 font-bold py-3 rounded-xl border border-gray-200 transition flex items-center justify-center gap-2">
+                        <span class="material-icons-outlined text-sm">close</span> Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ TOAST NOTIFICATION ============ -->
     <div id="toast" class="pointer-events-none fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl z-40 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
         <span class="material-icons-outlined text-green-400">check_circle</span>
@@ -152,6 +176,7 @@
         let allCategories = [];
         let selectedCategory = 'all';
         let cart = [];
+        let recipeCache = {}; // cache por productId
 
         // ============ ELEMENTOS DOM ============
         const categoryTabs = document.getElementById('category-tabs');
@@ -186,8 +211,11 @@
         }
 
         function updateCartBadge() {
-            // El badge se maneja en la página del carrito
-            // Aquí solo mantenemos el carrito sincronizado en localStorage
+            try {
+                if (window.Navbar && typeof window.Navbar.updateCartBadge === 'function') {
+                    window.Navbar.updateCartBadge();
+                }
+            } catch (e) { /* noop */ }
         }
 
         function addToCart(productId) {
@@ -415,8 +443,13 @@
                          onclick="addToCart('${id}')">
                     <div class="flex-1 flex flex-col">
                         ${tagHtml ? `<div class="mb-2">${tagHtml}</div>` : '<div class="mb-2 h-6"></div>'}
-                        <h3 class="font-bold text-gray-900 text-lg mb-1 line-clamp-1">${escapeHtml(name)}</h3>
+                        <h3 class="font-bold text-gray-900 text-lg mb-1 leading-snug line-clamp-2 min-h-[40px]" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
                         <p class="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">${escapeHtml(description)}</p>
+                        <div class="mt-1">
+                            <button class="text-[11px] font-bold uppercase tracking-wide text-primary hover:text-green-800 inline-flex items-center gap-1" onclick="event.stopPropagation(); openIngredientsModal('${id}')">
+                                <span class="material-icons-outlined text-[14px]">list</span> Ver ingredientes
+                            </button>
+                        </div>
                         <div class="mt-auto">
                             <button class="inline-flex items-center gap-1 bg-gray-50 hover:bg-gray-100 text-gray-900 text-sm font-bold px-3 py-1.5 rounded-lg border border-gray-200 transition-colors">
                                 $${price} <span class="material-icons-outlined text-[14px] text-primary">add</span>
@@ -428,6 +461,66 @@
                          class="w-32 h-32 object-cover rounded-xl bg-gray-100"
                          onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80'">
                 </article>
+            `;
+        }
+
+        async function openIngredientsModal(productId) {
+            const overlay = document.getElementById('ingredientsModal');
+            const titleEl = document.getElementById('ingredients-modal-title');
+            const listEl = document.getElementById('ingredients-modal-list');
+
+            // Título con nombre del producto
+            const product = allProducts.find(p => String(getProductId(p)) === String(productId));
+            const productName = product ? (product.name || product.nombre || 'Producto') : 'Producto';
+            titleEl.textContent = `Ingredientes de: ${escapeHtml(productName)}`;
+
+            // Mostrar overlay
+            overlay.classList.remove('hidden');
+            listEl.innerHTML = `<div class="text-xs text-gray-500 flex items-center gap-2"><span class="material-icons-outlined animate-spin text-[14px] text-gray-400">refresh</span> Cargando ingredientes...</div>`;
+
+            try {
+                if (!recipeCache[productId]) {
+                    const res = await window.KitchenApi.getProductRecipe(productId);
+                    const recipe = Array.isArray(res) ? res : (res?.data || []);
+                    recipeCache[productId] = recipe;
+                }
+                listEl.innerHTML = renderIngredientsModalList(recipeCache[productId]);
+            } catch (e) {
+                console.error('Error cargando ingredientes:', e);
+                listEl.innerHTML = `<div class="text-xs text-red-500">No se pudieron cargar los ingredientes. Intenta más tarde.</div>`;
+            }
+        }
+
+        function closeIngredientsModal() {
+            const overlay = document.getElementById('ingredientsModal');
+            overlay.classList.add('hidden');
+        }
+
+        function renderIngredientsModalList(recipe) {
+            if (!Array.isArray(recipe) || recipe.length === 0) {
+                return `<div class="text-xs text-gray-400">No hay ingredientes disponibles.</div>`;
+            }
+            const applicable = recipe.filter(r => {
+                const scope = (r.scope || 'ALL').toUpperCase();
+                return scope === 'ALL' || scope === 'DINE_IN';
+            });
+            if (applicable.length === 0) {
+                return `<div class="text-xs text-gray-400">Ingredientes no aplicables a sala.</div>`;
+            }
+            return `
+                <div class="space-y-1">
+                    ${applicable.map(ing => `
+                        <div class="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                            <div class="text-sm text-gray-700">
+                                <span class="font-medium">${escapeHtml(ing.ingredientName || 'Ingrediente')}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${ing.isMandatory ? `<span class="text-[9px] px-2 py-0.5 rounded bg-green-100 text-green-700 font-bold uppercase">Obligatorio</span>` : ''}
+                                ${(ing.scope && ing.scope.toUpperCase() !== 'ALL') ? `<span class="text-[9px] px-2 py-0.5 rounded bg-gray-100 text-gray-600 font-bold uppercase">${escapeHtml(ing.scope)}</span>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             `;
         }
 
