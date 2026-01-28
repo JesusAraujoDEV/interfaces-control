@@ -15,38 +15,75 @@
 
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <!-- Placeholder logo or avatar -->
-            <div class="sidebar__avatar"></div>
-            <div class="sidebar__info">
-                <p class="sidebar__user">Admin Cocina</p>
-                <p class="sidebar__role">Gerente</p>
+            <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
             </div>
+            <div class="min-w-0">
+                <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
+                <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
+            </div>
+            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800">
+                <span aria-hidden="true">←</span>
+                <span>Volver a Admin</span>
+            </a>
         </div>
 
         <nav class="sidebar__nav">
             <a href="index.html" class="sidebar__link">
-                <i data-lucide="layout-dashboard"></i> Dashboard
+                <i data-lucide="layout-dashboard"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Dashboard</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Resumen</div>
+                </span>
             </a>
             <a href="kds.html" class="sidebar__link sidebar__link--active">
-                <i data-lucide="monitor"></i> KDS
+                <i data-lucide="monitor"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">KDS</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Cola de producción</div>
+                </span>
             </a>
             <a href="Despacho.html" class="sidebar__link">
-                <i data-lucide="truck"></i> Despacho
+                <i data-lucide="truck"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Despacho</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Entregas a camareros</div>
+                </span>
             </a>
             <a href="rec-pro.html" class="sidebar__link">
-                <i data-lucide="chef-hat"></i> Recetas
+                <i data-lucide="chef-hat"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Recetas</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Maestro de productos</div>
+                </span>
             </a>
             <a href="inv.html" class="sidebar__link">
-                <i data-lucide="package"></i> Inventario
+                <i data-lucide="package"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Inventario</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Consumibles y stock</div>
+                </span>
             </a>
             <a href="activos.html" class="sidebar__link">
-                <i data-lucide="box"></i> Activos
+                <i data-lucide="box"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Activos</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Equipos y utensilios</div>
+                </span>
             </a>
             <a href="personal.html" class="sidebar__link">
-                <i data-lucide="users"></i> Personal
+                <i data-lucide="users"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Personal</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Staff y turnos</div>
+                </span>
             </a>
             <a href="historial_pedidos.html" class="sidebar__link">
-                <i data-lucide="history"></i> Historial
+                <i data-lucide="history"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Historial</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Pedidos y acciones</div>
+                </span>
             </a>
         </nav>
 
@@ -68,6 +105,7 @@
     <main class="main-content">
         <header class="kds-header">
             <div class="kds-header__info">
+                <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
                 <h1 class="header__title">Cola de Producción KDS</h1>
                 <p class="header__subtitle">Seguimiento de pedidos en vivo para la cocina.</p>
             </div>
@@ -77,82 +115,17 @@
 
             <section class="kds-column">
                 <h2 class="kds-column__title">Nuevo</h2>
-                <div class="kds-column__list">
-                    <article class="order-card">
-                        <div class="order-card__header">
-                            <div class="order-card__meta">
-                                <span class="order-card__id">Mesa 14</span>
-                                <span class="order-card__timer">Temporizador: 02:15</span>
-                            </div>
-                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En
-                                Restaurante</span>
-                        </div>
-                        <ul class="order-card__items">
-                            <li><strong>2x</strong> Hamburguesa Clásica</li>
-                            <li><strong>1x</strong> Ensalada César</li>
-                            <li><strong>1x</strong> Papas Fritas</li>
-                        </ul>
-                        <button class="btn btn--primary btn--full">EMPEZAR</button>
-                    </article>
-
-                    <article class="order-card order-card--delayed">
-                        <div class="order-card__header">
-                            <div class="order-card__meta">
-                                <span class="order-card__id">Pedido #512</span>
-                                <span class="order-card__timer">Temporizador: 01:30</span>
-                            </div>
-                            <span class="order-type order-type--delivery"><i data-lucide="shopping-bag"></i> Para
-                                Llevar</span>
-                        </div>
-                        <ul class="order-card__items">
-                            <li><strong>1x</strong> Sándwich Pollo Picante</li>
-                            <li><strong>1x</strong> Aros de Cebolla</li>
-                        </ul>
-                        <button class="btn btn--primary btn--full">EMPEZAR</button>
-                    </article>
-                </div>
+                <div class="kds-column__list" id="kds-col-new"></div>
             </section>
 
             <section class="kds-column">
                 <h2 class="kds-column__title">Cocinando</h2>
-                <div class="kds-column__list">
-                    <article class="order-card">
-                        <div class="order-card__header">
-                            <div class="order-card__meta">
-                                <span class="order-card__id">Pedido #489</span>
-                                <span class="order-card__timer">Temporizador: 08:45</span>
-                            </div>
-                            <span class="order-type order-type--external"><i data-lucide="truck"></i> A Domicilio</span>
-                        </div>
-                        <ul class="order-card__items">
-                            <li><strong>1x</strong> Pizza Vegetariana</li>
-                            <li><strong>1x</strong> Pan de Ajo</li>
-                            <li><strong>2x</strong> Refresco</li>
-                        </ul>
-                        <button class="btn btn--primary btn--full">LISTO</button>
-                    </article>
-                </div>
+                <div class="kds-column__list" id="kds-col-cooking"></div>
             </section>
 
             <section class="kds-column">
                 <h2 class="kds-column__title">Listo</h2>
-                <div class="kds-column__list">
-                    <article class="order-card order-card--ready">
-                        <div class="order-card__header">
-                            <div class="order-card__meta">
-                                <span class="order-card__id">Mesa 5</span>
-                                <span class="order-card__timer">Completado: 14:28</span>
-                            </div>
-                            <span class="order-type order-type--dine-in"><i data-lucide="utensils"></i> En
-                                Restaurante</span>
-                        </div>
-                        <ul class="order-card__items">
-                            <li><strong>1x</strong> Filete de Salmón</li>
-                            <li><strong>1x</strong> Ensalada</li>
-                        </ul>
-                        <button class="btn btn--success btn--full"><i data-lucide="check-circle"></i> RECOGIDO</button>
-                    </article>
-                </div>
+                <div class="kds-column__list" id="kds-col-ready"></div>
             </section>
 
         </div>
@@ -184,6 +157,7 @@
     </div>
 
     <script>lucide.createIcons();</script>
+    <script type="module" src="./js/sidebar.js"></script>
     <script type="module" src="./js/kds.js"></script>
 </body>
 

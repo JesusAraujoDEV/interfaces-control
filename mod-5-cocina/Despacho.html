@@ -15,38 +15,75 @@
 
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <!-- Placeholder logo or avatar -->
-            <div class="sidebar__avatar"></div>
-            <div class="sidebar__info">
-                <p class="sidebar__user">Admin Cocina</p>
-                <p class="sidebar__role">Gerente</p>
+            <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
             </div>
+            <div class="min-w-0">
+                <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
+                <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
+            </div>
+            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800">
+                <span aria-hidden="true">←</span>
+                <span>Volver a Admin</span>
+            </a>
         </div>
 
         <nav class="sidebar__nav">
             <a href="index.html" class="sidebar__link">
-                <i data-lucide="layout-dashboard"></i> Dashboard
+                <i data-lucide="layout-dashboard"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Dashboard</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Resumen</div>
+                </span>
             </a>
             <a href="kds.html" class="sidebar__link">
-                <i data-lucide="monitor"></i> KDS
+                <i data-lucide="monitor"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">KDS</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Cola de producción</div>
+                </span>
             </a>
             <a href="Despacho.html" class="sidebar__link sidebar__link--active">
-                <i data-lucide="truck"></i> Despacho
+                <i data-lucide="truck"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Despacho</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Entregas a camareros</div>
+                </span>
             </a>
             <a href="rec-pro.html" class="sidebar__link">
-                <i data-lucide="chef-hat"></i> Recetas
+                <i data-lucide="chef-hat"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Recetas</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Maestro de productos</div>
+                </span>
             </a>
             <a href="inv.html" class="sidebar__link">
-                <i data-lucide="package"></i> Inventario
+                <i data-lucide="package"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Inventario</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Consumibles y stock</div>
+                </span>
             </a>
             <a href="activos.html" class="sidebar__link">
-                <i data-lucide="box"></i> Activos
+                <i data-lucide="box"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Activos</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Equipos y utensilios</div>
+                </span>
             </a>
             <a href="personal.html" class="sidebar__link">
-                <i data-lucide="users"></i> Personal
+                <i data-lucide="users"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Personal</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Staff y turnos</div>
+                </span>
             </a>
             <a href="historial_pedidos.html" class="sidebar__link">
-                <i data-lucide="history"></i> Historial
+                <i data-lucide="history"></i>
+                <span class="link-text min-w-0">
+                    <div class="text-sm font-semibold leading-5">Historial</div>
+                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Pedidos y acciones</div>
+                </span>
             </a>
         </nav>
 
@@ -68,6 +105,7 @@
         <div class="dispatch-layout">
             <header class="dispatch-header">
                 <div class="dispatch-header__top">
+                    <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
                     <div class="brand">
                         <i data-lucide="utensils" class="brand__icon"></i>
                         <span class="brand__name">Charlotte KOS</span>
@@ -134,6 +172,7 @@
                 document.getElementById('closeAuthModal').addEventListener('click', () => closeModal('authModal'));
                 document.getElementById('cancelAuthBtn').addEventListener('click', () => closeModal('authModal'));
             </script>
+            <script type="module" src="./js/sidebar.js"></script>
             <script>lucide.createIcons();</script>
             <script type="module" src="./js/despacho.js"></script>
     </main>
