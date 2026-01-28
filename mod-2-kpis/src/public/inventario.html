@@ -2,39 +2,43 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Charlotte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-
-    <div class="main-layout">
-        <aside class="sidebar">
-            <div class="sidebar__logo">
-                <span class="icon">☕</span> CHARLOTTE
-            </div>
-
-            <nav class="sidebar__nav">
-                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
-                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
-                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item sidebar__menu-item--active"><i>📦</i> Inventario</a>
-                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item"><i>⏱️</i> Eficiencia</a>
-                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
-            </nav>
-
-            <div class="sidebar__profile-footer">
-                <a href="#" class="sidebar__menu-item"><i>❓</i> Ayuda</a>
-            </div>
-        </aside>
-
-        <main class="content">
             <header class="header-top">
-                <div>
-                    <h1 class="header-top__title">Inteligencia de Inventario</h1>
-                    <p class="header-top__subtitle">Análisis de stock y rendimiento del menú.</p>
+                <div class="flex-1 min-w-0">
+                    <div class="inline-flex items-center gap-2 text-xs text-slate-500 mb-1">
+                      <a class="hover:text-slate-800" href="/admin">Admin</a>
+                      <span aria-hidden="true">/</span>
+                      <span class="text-slate-700">Indicadores y KPIs</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">Inteligencia de Inventario</h1>
+                    <p class="mt-1 text-sm text-slate-600">Análisis de stock y rendimiento del menú.</p>
                 </div>
-                <button class="btn-primary">📤 Exportar Reporte</button>
+                <div class="flex items-center gap-4">
+                    <div class="date-badge" id="current-date-badge" style="
+                          background: var(--white);
+                          padding: 8px 15px;
+                          border-radius: var(--border-radius);
+                          border: 1px solid var(--border-color);
+                          font-size: 0.875rem;
+                          box-shadow: var(--shadow-light);
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                        ">
+                      <span id="header-date">Cargando fecha...</span>
+                    </div>
+                    <button class="btn-primary">📤 Exportar Reporte</button>
+                </div>
             </header>
 
             <div class="tabs-container">
@@ -50,9 +54,11 @@
                 <div class="flex flex-col md:flex-row gap-6">
                 <!-- Gráfico de Pareto -->
                 <div class="flex-1">
-                    <h2 class="text-lg font-semibold mb-2">Gráfico de Pareto</h2>
-                    <div id="pareto-chart" class="w-full h-96 bg-gray-50 rounded-lg flex items-end justify-center relative">
-                        <!-- Aquí se renderizará el gráfico SVG -->
+                    <h2 class="text-lg font-semibold mb-2" style="color: var(--primary-color);">Gráfico de Pareto</h2>
+                    <div class="chart-container" style="min-height: 400px;">
+                        <div id="pareto-chart" class="w-full h-full bg-gray-50 rounded-lg flex items-end justify-center relative">
+                            <!-- Aquí se renderizará el gráfico SVG -->
+                        </div>
                     </div>
                 </div>
                 </div>
@@ -65,8 +71,6 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
     <script>
         let allParetoData = []; // Almacenar todos los datos sin filtrar
 
@@ -511,6 +515,22 @@
                     });
                 });
          }
+    </script>
+    <script>
+        function updateDate() {
+            const dateEl = document.getElementById('header-date');
+            if (dateEl) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateEl.textContent = now.toLocaleDateString('es-ES', options);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateDate);
+    </script>
+    <script type="module">
+        import { initKpiLayout, mountKpiSidebar } from '/mod-2-kpis/src/components/sidebar.js';
+        initKpiLayout();
+        mountKpiSidebar();
     </script>
 </body>
 </html>
