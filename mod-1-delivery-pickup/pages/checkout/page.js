@@ -151,8 +151,144 @@ function formatPrice(value) {
   return '$' + num.toFixed(2);
 }
 
+// --- Helpers / KITCHEN URL (paralelo a shared menu) --------------------------------
+const KITCHEN_URL = (window.__APP_CONFIG__ && window.__APP_CONFIG__.KITCHEN_URL) || localStorage.getItem('KITCHEN_URL') || 'https://charlotte-cocina.onrender.com';
+
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function cartTotal(cart) {
   return (cart.items || []).reduce((acc, it) => acc + parsePrice(it.price) * (it.qty || 0), 0);
+}
+
+function updateQty(productId, delta) {
+  const cart = readCart();
+  const items = cart.items || [];
+  const item = items.find(it => it.id === productId);
+  if (!item) return;
+  item.qty = (item.qty || 0) + delta;
+  cart.items = items.filter(it => (it.qty || 0) > 0);
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  renderCartModal();
+}
+
+function removeItem(productId) {
+  const cart = readCart();
+  cart.items = (cart.items || []).filter(it => it.id !== productId);
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  renderCartModal();
+}
+
+async function fetchProductRecipe(productId) {
+  try {
+    const res = await fetch(`${KITCHEN_URL}/api/kitchen/products/${productId}/recipe`, { method: 'GET', headers: { Accept: 'application/json' } });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json) ? json : json.items || json.data || [];
+  } catch { return []; }
+}
+
+function ensureIngredientsModal() {
+  let modal = document.getElementById('ingredientsModal');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'ingredientsModal';
+  modal.className = 'hidden fixed inset-0 z-50';
+  modal.innerHTML = `
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-lg bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-3">
+            <h2 id="ingredientsModalTitle" class="text-lg font-extrabold text-gray-900">Ingredientes</h2>
+            <button id="ingredientsModalClose" type="button" class="text-sm text-gray-600 hover:text-gray-900">Cerrar</button>
+          </div>
+          <p id="ingredientsModalProduct" class="mt-2 text-sm text-gray-600"></p>
+          <div id="ingredientsList" class="mt-4 max-h-64 overflow-auto space-y-2"></div>
+          <div class="mt-5 flex items-center justify-end gap-3">
+            <button id="ingredientsModalCancel" type="button" class="bg-white border border-gray-200 text-gray-900 px-4 py-2 rounded-xl">Cancelar</button>
+            <button id="ingredientsModalConfirm" type="button" class="bg-brand-800 text-white px-4 py-2 rounded-xl">Aplicar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('ingredientsModalClose')?.addEventListener('click', () => modal.classList.add('hidden'));
+  document.getElementById('ingredientsModalCancel')?.addEventListener('click', () => modal.classList.add('hidden'));
+  return modal;
+}
+
+async function openIngredientsForAdd(product, onConfirm, existingExcludedIds) {
+  const modal = ensureIngredientsModal();
+  const title = document.getElementById('ingredientsModalTitle');
+  const prodLabel = document.getElementById('ingredientsModalProduct');
+  const list = document.getElementById('ingredientsList');
+  modal.classList.remove('hidden');
+  title.textContent = 'Ingredientes';
+  prodLabel.textContent = product.name || '';
+  list.innerHTML = '<div class="text-sm text-gray-500">Cargando ingredientes…</div>';
+  const recipe = await fetchProductRecipe(product.id);
+  if (!recipe || !recipe.length) {
+    list.innerHTML = '<div class="text-sm text-gray-600">No hay receta/ingredientes disponibles.</div>';
+    document.getElementById('ingredientsModalConfirm').onclick = () => { modal.classList.add('hidden'); onConfirm([], []); };
+    return;
+  }
+  const normalized = recipe.map(r => ({
+    id: String(r.id ?? r.recipe_id ?? r.recipeId ?? r._id ?? ''),
+    name: String(r.ingredientName ?? r.name ?? r.title ?? r.label ?? 'Ingrediente'),
+    qty: r.qty ?? r.quantity ?? r.amount ?? null,
+    unit: r.unit ?? null,
+    scope: r.scope ?? null,
+    isMandatory: !!(r.isMandatory || r.mandatory || r.required)
+  })).filter(r => r.id);
+  const existingSet = new Set(Array.isArray(existingExcludedIds) ? existingExcludedIds : []);
+  list.innerHTML = normalized
+    .map((r, idx) => {
+      const disabled = r.isMandatory ? 'disabled' : '';
+      const mandatoryBadge = r.isMandatory ? '<span class="ml-2 text-xs font-semibold text-red-600">(Obligatorio)</span>' : '';
+      const meta = (r.qty || r.unit || r.scope) ? `<div class="text-xs text-gray-500">${escapeHtml(String(r.qty || ''))}${r.unit ? ' ' + escapeHtml(String(r.unit)) : ''}${r.scope ? ' · ' + escapeHtml(String(r.scope)) : ''}</div>` : '';
+      const isChecked = r.isMandatory ? true : !existingSet.has(r.id);
+      return `
+        <label class="flex items-center gap-3 text-sm">
+          <input data-idx="${idx}" type="checkbox" ${isChecked ? 'checked' : ''} class="w-4 h-4" ${disabled} />
+          <div>
+            <div class="text-sm text-gray-800">${escapeHtml(r.name)}${mandatoryBadge}</div>
+            ${meta}
+          </div>
+        </label>
+      `;
+    }).join('');
+  document.getElementById('ingredientsModalConfirm').onclick = () => {
+    const checks = Array.from(list.querySelectorAll('input[type="checkbox"]'));
+    const excludedIds = [];
+    const excludedNames = [];
+    checks.forEach((ch, i) => {
+      const r = normalized[i];
+      if (r.isMandatory) return;
+      const ok = ch.checked;
+      if (!ok) { excludedIds.push(r.id); excludedNames.push(r.name); }
+    });
+    modal.classList.add('hidden');
+    onConfirm(excludedIds, excludedNames);
+  };
+}
+
+function updateCartItemExcluded(productId, excludedIds, excludedNames) {
+  const cart = readCart();
+  const items = cart.items || [];
+  const item = items.find(it => it.id === productId);
+  if (!item) return;
+  item.excluded_recipe_ids = excludedIds || [];
+  item.excluded_recipe_names = excludedNames || [];
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  renderCartModal();
 }
 
 function renderCartModal() {
@@ -174,23 +310,24 @@ function renderCartModal() {
     .map(it => {
       const qty = it.qty || 0;
       const lineTotal = parsePrice(it.price) * qty;
-      const notes = String(it.notes ?? '');
+      const excluded = Array.isArray(it.excluded_recipe_names) ? it.excluded_recipe_names.join(', ') : '';
       return `
         <div class="py-4 flex items-start justify-between gap-4">
           <div class="min-w-0">
-            <div class="font-semibold text-gray-900 truncate">${it.name ?? 'Producto'}</div>
+            <div class="font-semibold text-gray-900 truncate">${escapeHtml(it.name ?? 'Producto')}</div>
             <div class="text-sm text-gray-600 mt-0.5">${formatPrice(it.price)} · x${qty}</div>
             <div class="mt-2">
-              <label class="block text-xs text-gray-500">Notas por ítem (opcional)</label>
-              <textarea
-                data-note-id="${it.id}"
-                rows="2"
-                class="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                placeholder="Ej: sin cebolla, mucha aura…"
-              >${notes.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')}</textarea>
+              <label class="block text-xs text-gray-500">Ingredientes excluidos</label>
+              <div class="text-sm text-gray-600 mt-1">${escapeHtml(excluded || '—')}</div>
+              <button data-action="edit-ingredients" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
             </div>
+            <button data-action="remove" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
           </div>
-          <div class="shrink-0 text-sm font-extrabold text-gray-900">${formatPrice(lineTotal)}</div>
+          <div class="shrink-0 flex items-center gap-2">
+            <button data-action="dec" data-id="${it.id}" type="button" class="w-10 h-10 rounded-full bg-gray-100 text-gray-800 font-bold">−</button>
+            <div class="w-8 text-center font-semibold text-gray-900">${qty}</div>
+            <button data-action="inc" data-id="${it.id}" type="button" class="w-10 h-10 rounded-full bg-brand-800 text-white font-bold">+</button>
+          </div>
         </div>
       `;
     })
@@ -240,6 +377,25 @@ document.getElementById('cartModalItems')?.addEventListener('input', e => {
   const id = el.getAttribute('data-note-id');
   if (!id) return;
   updateCartItemNotes(id, el.value);
+});
+
+// Click handlers dentro del modal de carrito: inc/dec/remove/edit-ingredients
+document.getElementById('cartModal')?.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  const id = btn.getAttribute('data-id');
+  if (!id) return;
+  if (action === 'inc') updateQty(id, 1);
+  else if (action === 'dec') updateQty(id, -1);
+  else if (action === 'remove') removeItem(id);
+  else if (action === 'edit-ingredients') {
+    const cart = readCart();
+    const item = (cart.items || []).find(it => it.id === id);
+    if (!item) return;
+    const product = { id: item.id, name: item.name };
+    openIngredientsForAdd(product, (excludedIds, excludedNames) => updateCartItemExcluded(id, excludedIds, excludedNames), item.excluded_recipe_ids || []);
+  }
 });
 // Payment modals bindings
 const paymentMethodModal = document.getElementById('paymentMethodModal');
@@ -380,7 +536,7 @@ function calcularDesgloseVuelto(totalPagar, montoEfectivo) {
 
 // live update change when user types efectivo
 document.getElementById('pcCashAmount')?.addEventListener('input', () => {
-  const total = cartTotal(readCart());
+  const total = cartTotal(readCart()) + currentShippingCost();
   const val = document.getElementById('pcCashAmount')?.value || '';
   const summary = document.getElementById('pcChangeSummary');
   if (!summary) return;
