@@ -61,3 +61,7 @@ body {
     color: var(--verde-oscuro);
     font-weight: 600;
 }
+
+.contenido-principal {
+    overflow-y: auto;
+}
