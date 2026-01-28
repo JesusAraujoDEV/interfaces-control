@@ -23,6 +23,26 @@
         .flatpickr-current-month { font-weight: 700; color: var(--text-dark); }
         .flatpickr-weekday { color: var(--text-muted); font-weight: 600; }
         #date-picker-inline { margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */ }
+        
+        /* Contenedor del calendario para evitar overflow */
+        .filter-group {
+            overflow: visible;
+            position: relative;
+        }
+        
+        .flatpickr-custom {
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .flatpickr-calendar {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .flatpickr-innerContainer {
+            overflow-x: auto;
+        }
     </style>
 </head>
 
@@ -138,6 +158,18 @@
         const countLabel = document.getElementById('record-count');
         const searchInput = document.getElementById('global-search');
         const applyBtn = document.getElementById('apply-filters-btn');
+        
+        // Add event listener to apply filters button
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                // Hacer nueva petición al servidor
+                fetchTransactions();
+                // Después de cargar los datos, aplicar filtros
+                setTimeout(() => {
+                    filterData();
+                }, 500);
+            });
+        }
 
         const ROW_HEIGHT = 51; 
     let allData = [];
@@ -157,7 +189,7 @@
 
         countLabel.innerText = "Sincronizando con servidor...";
         
-        fetch(url)
+        return fetch(url)
             .then(res => {
                 if (!res.ok) {
                     if (res.status === 404) {
@@ -175,37 +207,36 @@
             .then(response => {
                 if (!response) return; // Skip if already handled in error
                 allData = response.queue || [];
-                filterData(); // Filter locally after fetching
+                // No filtrar automáticamente aquí, esperar a que el usuario aplique filtros
+                countLabel.innerText = `Datos cargados: ${allData.length} registros totales`;
+                return allData; // Retornar datos para poder encadenar
             })
             .catch(error => {
                 console.error('Error fetching transactions:', error);
                 countLabel.innerText = "Error al cargar los datos. Intente nuevamente.";
                 allData = [];
                 filterData();
+                throw error; // Propagar error para que el .then() no se ejecute
             });
     };
 
     // New function to filter data locally (by search and dates)
     const filterData = () => {
         let tempData = allData;
-
+        console.log(selectedStartDate)
         // Filter by dates if selected
         if (selectedStartDate && selectedEndDate) {
-            const start = new Date(selectedStartDate);
-            const end = new Date(selectedEndDate);
-            end.setHours(23, 59, 59, 999); // Include the entire end day
             tempData = tempData.filter(item => {
-                const itemDate = new Date(item.createdAt);
-                return itemDate >= start && itemDate <= end;
+                const itemDate = item.createdAt.split('T')[0]; // Extraer YYYY-MM-DD de createdAt
+                return itemDate >= selectedStartDate && itemDate <= selectedEndDate;
             });
         } else if (selectedStartDate) {
-            const start = new Date(selectedStartDate);
             tempData = tempData.filter(item => {
-                const itemDate = new Date(item.createdAt);
-                return itemDate >= start;
+                const itemDate = item.createdAt.split('T')[0]; // Extraer YYYY-MM-DD de createdAt
+                return itemDate >= selectedStartDate;
             });
         }
-
+        console.log(tempData);
         // Filter by search
         if (currentSearch.trim() !== "") {
             tempData = tempData.filter(item => 
@@ -251,8 +282,8 @@
                 const fecha = createdDate.toLocaleDateString('es-ES');
                 const hora = createdDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                 const camarero = item.customerName || item.displayLabel || 'N/A';
-                const cantidad = item.quantity;
-                let duracion = item.status;
+                const cantidad = item.quantity || 0;
+                let duracion = item.status || 'N/A';
                 if (item.startedAt && item.finishedAt) {
                     const diffMs = new Date(item.finishedAt) - new Date(item.startedAt);
                     const diffMin = Math.round(diffMs / 1000 / 60);
@@ -260,7 +291,7 @@
                 }
                 rowsHtml += `
                     <tr style="height: ${ROW_HEIGHT}px;" class="hover:bg-emerald-50 transition-colors">
-                        <td class="data-table__td" style="width: 15%;">${item.externalOrderId}</td>
+                        <td class="data-table__td" style="width: 15%;">${item.externalOrderId || item.id || 'N/A'}</td>
                         <td class="data-table__td" style="width: 15%;">${fecha}</td>
                         <td class="data-table__td" style="width: 10%;">${hora}</td>
                         <td class="data-table__td" style="width: 25%; font-weight: 500;">${camarero}</td>
@@ -285,10 +316,7 @@
             searchInput.addEventListener('input', (e) => {
                 currentSearch = e.target.value;
                 clearTimeout(searchTimeout);
-                // Debounce searching to reduce operations
-                searchTimeout = setTimeout(() => {
-                    filterData();
-                }, 400);
+                // No filtrar automáticamente, esperar al botón de aplicar filtros
             });
         }
 
@@ -328,7 +356,7 @@
                 instance.setDate([start, end], false);
             }
             
-            filterData(); // Filter locally instead of fetching
+            filterData(); // Apply filter when button is clicked
         });
     });
 
@@ -348,7 +376,7 @@
                 selectedStartDate = inst.formatDate(selectedDates[0], "Y-m-d");
                 selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
             }
-            filterData(); // Filter locally
+            // No filtrar automáticamente aquí, esperar al botón de aplicar filtros
         }
     });
 
@@ -365,13 +393,35 @@
             const d = new Date();
             d.setDate(d.getDate() - 30);
             start = instance.formatDate(d, "Y-m-d");
-        } // Add other ranges if needed, but since it's initial, assume 30days
+        } else if (range === 'week') {
+            const d = new Date();
+            const day = d.getDay() || 7;
+            d.setHours(-24 * (day - 1));
+            start = instance.formatDate(d, "Y-m-d");
+        } else if (range === 'month') {
+            const d = new Date(today.getFullYear(), today.getMonth(), 1);
+            start = instance.formatDate(d, "Y-m-d");
+        } else if (range === 'year') {
+            const d = new Date(today.getFullYear(), 0, 1);
+            start = instance.formatDate(d, "Y-m-d");
+        }
 
         selectedStartDate = start;
         selectedEndDate = end;
+        
+        // Update Flatpickr visual selection
+        if (instance) {
+            instance.setDate([start, end], false);
+        }
     }
 
-    fetchTransactions();
+    // Cargar datos y aplicar filtro inicial
+    fetchTransactions().then(() => {
+        // Aplicar filtro inicial después de cargar los datos
+        setTimeout(() => {
+            filterData();
+        }, 500);
+    });
 
     // 6. Export Logic with POLLING (Restored from previous version)
     const exportBtn = document.querySelector('.header-top .btn-primary');
@@ -392,18 +442,27 @@
             const data = await res.json().catch(() => null);
             if (!data) throw new Error('Respuesta vacía del servidor');
 
-            if (data.status === 'COMPLETED' && data.download_url) {
-                const a = document.createElement('a');
-                a.href = data.download_url;
-                a.target = '_blank';
-                a.rel = 'noopener';
-                a.download = '';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-
+            if (data.status === 'COMPLETED' && data.download_endpoint) {
+                console.log(data)
+                
                 Swal.close();
-                Swal.fire({ icon: 'success', title: '¡Reporte Listo!', text: 'Se ha generado el archivo.', confirmButtonColor: '#387652' });
+                Swal.fire({
+                    icon: 'success', 
+                    title: '¡Reporte Listo!', 
+                    text: 'Se ha generado el archivo exitosamente.',
+                    confirmButtonText: 'Descargar Reporte',
+                    confirmButtonColor: '#387652',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cerrar',
+                    preConfirm: () => {
+                        window.open("https://charlotte-indicadores-kpi.onrender.com"+data.download_endpoint, '_blank');
+                        return false;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.open("https://charlotte-indicadores-kpi.onrender.com"+data.download_endpoint, '_blank');
+                    }
+                });
 
                 exportBtn.disabled = false;
                 exportBtn.dataset.exporting = '0';
