@@ -55,7 +55,7 @@
 
 /* Contenido Principal */
 .contenido-principal {
-    margin-left: 260px;
+    /* margin-left: 260px; */
     flex-grow: 1;
     padding: 40px;
 }
