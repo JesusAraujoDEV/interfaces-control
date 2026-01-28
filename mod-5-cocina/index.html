@@ -151,8 +151,14 @@
 
     <main class="main-content">
         <header class="header">
+            <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
             <div>
-                <h1 class="header__title">Panel General - Cocina</h1>
+                <div class="inline-flex items-center gap-2 text-xs text-slate-500">
+                    <a class="hover:text-slate-800" href="/admin">Admin</a>
+                    <span aria-hidden="true">/</span>
+                    <span class="text-slate-700">Cocina</span>
+                </div>
+                <h1 class="header__title">Panel General — Cocina</h1>
                 <p style="color: var(--text-muted);">Gestiona todas las operaciones del área de producción.</p>
             </div>
         </header>
@@ -237,6 +243,7 @@
         </div>
     </main>
 
+    <script type="module" src="./js/sidebar.js"></script>
     <script>
         lucide.createIcons();
     </script>

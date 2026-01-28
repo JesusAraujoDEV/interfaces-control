@@ -32,7 +32,7 @@
     --success-bg: #dcfce7;
     --warning-bg: #fef9c3;
 
-    --sidebar-width: 290px;        /* Ancho sidebar */
+    --sidebar-width: 255px;        /* Ancho sidebar (reducido) */
 }
 
 /* BASE */
@@ -77,8 +77,8 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 .sidebar__link:hover { background: #fbfafa; color: #334155; }
-.sidebar__link i { width: 16px; height: 16px; color: #6B7280; transition: color 0.2s ease; }
-.sidebar__link svg { width: 16px; height: 16px; color: #6B7280; transition: color 0.2s ease; }
+.sidebar__link i { width: 18px; height: 18px; color: #6B7280; transition: color 0.2s ease; }
+.sidebar__link svg { width: 18px; height: 18px; color: #6B7280; transition: color 0.2s ease; }
 .sidebar__link:hover i, .sidebar__link:hover svg { color: #334155; }
 .sidebar__link--active { background: var(--primary-light); color: var(--primary) !important; border-radius: 12px; }
 .sidebar__link--active i, .sidebar__link--active svg { color: var(--primary) !important; }
@@ -208,12 +208,12 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 
 /* COMPONENTES: BOTONES */
 .btn {
-    padding: 0.6rem 1.2rem;
+    padding: 0.75rem 1.4rem; /* botones ligeramente más grandes */
     border-radius: var(--radius);
     border: none;
     font-weight: 600;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.92rem;
 }
 .btn--primary { background: var(--primary); color: var(--white); }
 .btn--secondary { background: var(--secondary); color: var(--text-main); }
@@ -255,6 +255,128 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
     .app-container { flex-direction: column; }
     .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
     .main-content { padding: 1rem; }
+}
+
+/* GAP ENTRE 980px y 1024px: aplicar off-canvas y mostrar hamburguer */
+@media (min-width: 981px) and (max-width: 1024px) {
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; overflow-y: auto; width: var(--sidebar-width); padding: 1rem 0; transform: translateX(-100%); transition: transform .25s ease; z-index: 1100; border-right: 1px solid var(--border-color); border-bottom: none; }
+    .sidebar.sidebar--open { transform: translateX(0); }
+    .sidebar__profile { padding: 0 1rem; }
+
+    .sidebar-toggle { display: inline-flex !important; margin-right: 0.5rem; }
+    .sidebar-toggle i, .sidebar-toggle svg { width: 18px; height: 18px; }
+
+    .header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-start; }
+    .header__actions { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    .sidebar__link { padding: 14px 16px; gap: 1rem; font-size: 1rem; }
+    .sidebar__link i, .sidebar__link svg { width: 18px; height: 18px; }
+    .sidebar__link--active { border-radius: 10px; }
+    .atc-nav-desc { display: block; }
+
+    .main-content { padding: 1rem; height: auto; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table { min-width: 720px; }
+
+    .logout-link { padding: 14px 16px; font-size: 1rem; }
+    .logout-link svg { width: 18px; height: 18px; }
+}
+
+/* TABLET GRANDE: aplicar comportamiento off-canvas también entre 980px y 780px */
+@media (max-width: 980px) {
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; overflow-y: auto; width: var(--sidebar-width); padding: 1rem 0; transform: translateX(-100%); transition: transform .25s ease; z-index: 1100; border-right: 1px solid var(--border-color); border-bottom: none; }
+    .sidebar.sidebar--open { transform: translateX(0); }
+    .sidebar__profile { padding: 0 1rem; }
+
+    /* Mostrar botón de apertura en headers */
+    .sidebar-toggle { display: inline-flex !important; margin-right: 0.5rem; }
+    .sidebar-toggle i, .sidebar-toggle svg { width: 18px; height: 18px; }
+    .header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-start; }
+    .header__actions { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    /* Enlaces de navegación y descripciones visibles */
+    .sidebar__link { padding: 14px 16px; gap: 1rem; font-size: 1rem; }
+    .sidebar__link i, .sidebar__link svg { width: 18px; height: 18px; }
+    .sidebar__link--active { border-radius: 10px; }
+    .atc-nav-desc { display: block; }
+
+    /* Contenido compacto y tabla con scroll */
+    .main-content { padding: 1rem; height: auto; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table { min-width: 720px; }
+
+    /* Logout proporcional */
+    .logout-link { padding: 14px 16px; font-size: 1rem; }
+    .logout-link svg { width: 18px; height: 18px; }
+}
+
+/* Botón toggle del sidebar (aparece en pantallas pequeñas) */
+.sidebar-toggle { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid var(--border-color); background: var(--white); border-radius: 10px; color: #334155; }
+.sidebar-toggle i, .sidebar-toggle svg { width: 18px; height: 18px; }
+
+/* OVERLAY para sidebar móvil */
+.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s ease; }
+.sidebar-overlay--visible { opacity: 1; visibility: visible; }
+
+/* TABLET/MOBILE: Off-canvas sidebar */
+@media (max-width: 768px) {
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; overflow-y: auto; width: var(--sidebar-width); padding: 1rem 0; transform: translateX(-100%); transition: transform .25s ease; z-index: 1100; border-right: 1px solid var(--border-color); }
+    .sidebar.sidebar--open { transform: translateX(0); }
+    .sidebar__profile { padding: 0 1rem; }
+
+    /* Mostrar botón de apertura en headers */
+    .sidebar-toggle { display: inline-flex !important; margin-right: 0.5rem; }
+    .sidebar-toggle i, .sidebar-toggle svg { width: 18px; height: 18px; }
+    .header, .kds-header .kds-header__info, .dispatch-header__top { display: flex; align-items: center; gap: 0.75rem; }
+    .header { flex-wrap: wrap; justify-content: flex-start; }
+    .header__actions { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    /* Enlaces de navegación más grandes en mobile/tablet */
+    .sidebar__link { padding: 14px 16px; gap: 1rem; font-size: 1rem; }
+    .sidebar__link i, .sidebar__link svg { width: 18px; height: 18px; }
+    .sidebar__link--active { border-radius: 10px; }
+
+    /* Descripciones visibles en tablet, ocultas en mobile (más abajo) */
+    .atc-nav-desc { display: block; }
+
+    /* Contenido principal más compacto y con altura auto */
+    .main-content { padding: 1rem; height: auto; }
+
+    /* Botón de logout coherente */
+    .logout-link { padding: 14px 16px; font-size: 1rem; }
+    .logout-link svg { width: 18px; height: 18px; }
+
+    /* Tablas: permitir scroll horizontal en pantallas pequeñas */
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table { min-width: 720px; }
+}
+
+/* MOBILE: Compactar al máximo sin perder claridad */
+@media (max-width: 640px) {
+    .sidebar { padding: 0.75rem 0; }
+    .sidebar__profile { padding: 0 0.75rem; row-gap: 0.2rem; }
+
+    .sidebar__link { padding: 14px 16px; gap: 1rem; font-size: 1rem; }
+    .sidebar__link i, .sidebar__link svg { width: 18px; height: 18px; }
+    .atc-nav-desc { display: block; }
+
+    .main-content { padding: 0.75rem 1rem; }
+    .header__title { font-size: 1.5rem; }
+
+    .logout-link { padding: 14px 16px; font-size: 1rem; }
+    .logout-link svg { width: 18px; height: 18px; }
+
+    /* Tablas: mantener scroll horizontal en móviles */
+    .table-container { overflow-x: auto; }
+    .table { min-width: 720px; }
+}
+
+/* MOBILE XS: Ajustes finos para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    /* Mantener tamaños grandes también en móviles muy pequeños */
+    .sidebar__link { padding: 14px 16px; gap: 1rem; font-size: 1rem; }
+    .sidebar__link i, .sidebar__link svg { width: 18px; height: 18px; }
+    .atc-nav-desc { display: block; }
 }
 
 /* --- NUEVAS SECCIONES PARA CATÁLOGO COCINA --- */
@@ -732,7 +854,7 @@ input:checked + .switch__slider:before { transform: translateX(20px); }
 
 .dispatch-header__top {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; /* alinear a la izquierda */
     align-items: center;
     position: relative;
     padding-bottom: 1rem;

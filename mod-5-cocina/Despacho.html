@@ -105,6 +105,7 @@
         <div class="dispatch-layout">
             <header class="dispatch-header">
                 <div class="dispatch-header__top">
+                    <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
                     <div class="brand">
                         <i data-lucide="utensils" class="brand__icon"></i>
                         <span class="brand__name">Charlotte KOS</span>
@@ -171,6 +172,7 @@
                 document.getElementById('closeAuthModal').addEventListener('click', () => closeModal('authModal'));
                 document.getElementById('cancelAuthBtn').addEventListener('click', () => closeModal('authModal'));
             </script>
+            <script type="module" src="./js/sidebar.js"></script>
             <script>lucide.createIcons();</script>
             <script type="module" src="./js/despacho.js"></script>
     </main>

@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial de Pedidos - Kitchen OS</title>
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -121,6 +122,23 @@
             color: var(--danger);
             background: var(--danger-bg);
         }
+
+        /* Responsive específico para esta vista */
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            .filters .filter-group,
+            .filters .filter-input,
+            .filters select,
+            .filters button {
+                width: 100%;
+            }
+            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .table { min-width: 720px; }
+        }
     </style>
     <script src="/config.js"></script>
     <script src="/js/api.js"></script>
@@ -218,6 +236,7 @@
     </aside>
     <main class="main-content">
         <header class="header">
+            <button class="sidebar-toggle" aria-label="Abrir menú"><i data-lucide="menu"></i></button>
             <h1 class="header__title">Historial de Pedidos</h1>
         </header>
 
@@ -283,6 +302,7 @@
         </div>
     </div>
 
+    <script type="module" src="./js/sidebar.js"></script>
     <script type="module" src="./js/historial_pedidos.js"></script>
     <script>lucide.createIcons();</script>
 </body>
