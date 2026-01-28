@@ -16,7 +16,8 @@
     <aside class="sidebar">
         <div class="sidebar__profile">
             <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain"
+                    loading="eager">
             </div>
             <div class="min-w-0">
                 <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
@@ -105,6 +106,8 @@
         <header class="header">
             <h1 class="header__title">Inventario de Consumibles</h1>
             <div class="header__actions">
+                <input type="text" id="searchInventory" placeholder="Buscar ítems..."
+                    style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-right: 1rem;">
                 <button class="btn btn--primary" id="newItemBtn">Nuevo Ítem</button>
                 <button class="btn btn--secondary" id="inboundBtn">Entrada (+)</button>
                 <button class="btn btn--secondary" id="outboundBtn">Salida (-)</button>
@@ -597,9 +600,28 @@
             }
         });
 
+        // Función de búsqueda para inventario
+        function filterInventory() {
+            const searchTerm = document.getElementById('searchInventory').value.toLowerCase();
+            const filtered = inventoryData.filter(item =>
+                (item.name || '').toLowerCase().includes(searchTerm) ||
+                (item.type || '').toLowerCase().includes(searchTerm) ||
+                (item.unitMeasure || '').toLowerCase().includes(searchTerm)
+            );
+            renderInventory(filtered);
+        }
+
         // Init
         document.addEventListener('DOMContentLoaded', loadInventory);
-        document.addEventListener('DOMContentLoaded', () => { if (window.lucide) window.lucide.createIcons(); });
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) window.lucide.createIcons();
+
+            // Event listener para búsqueda
+            const searchInput = document.getElementById('searchInventory');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterInventory);
+            }
+        });
     </script>
 </body>
 

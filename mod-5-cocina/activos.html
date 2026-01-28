@@ -16,7 +16,8 @@
     <aside class="sidebar">
         <div class="sidebar__profile">
             <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain"
+                    loading="eager">
             </div>
             <div class="min-w-0">
                 <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
@@ -106,6 +107,8 @@
         <header class="header">
             <h1 class="header__title">Gestión de Activos Fijos</h1>
             <div class="header__actions">
+                <input type="text" id="searchAssets" placeholder="Buscar activos..."
+                    style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-right: 1rem;">
                 <button class="btn btn--primary" id="addAssetBtn">Añadir Nuevo Activo</button>
             </div>
         </header>
@@ -280,6 +283,7 @@
         }
 
         // --- Assets Logic ---
+        let allAssetsData = [];
 
         async function loadAssets() {
             const container = document.getElementById('assetsGrid');
@@ -291,18 +295,35 @@
                 });
                 if (!resp.ok) throw new Error(`Error: ${resp.status}`);
                 const data = await resp.json();
-                const assets = Array.isArray(data) ? data : (data.data || []);
+                allAssetsData = Array.isArray(data) ? data : (data.data || []);
 
-                if (assets.length === 0) {
-                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">No hay activos registrados.</p>';
-                    return;
-                }
-
-                assets.forEach(a => addAssetCard(a));
+                renderAssets(allAssetsData);
             } catch (err) {
                 console.error('Error cargando activos:', err);
                 container.innerHTML = '<p style="color:red;">Error cargando activos. Revisa la conexión.</p>';
             }
+        }
+
+        function renderAssets(assets) {
+            const container = document.getElementById('assetsGrid');
+            container.innerHTML = '';
+
+            if (assets.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">No hay activos que coincidan con la búsqueda.</p>';
+                return;
+            }
+
+            assets.forEach(a => addAssetCard(a));
+        }
+
+        function filterAssets() {
+            const searchTerm = document.getElementById('searchAssets').value.toLowerCase();
+            const filtered = allAssetsData.filter(asset =>
+                (asset.name || '').toLowerCase().includes(searchTerm) ||
+                (asset.status || '').toLowerCase().includes(searchTerm) ||
+                (asset.notes || '').toLowerCase().includes(searchTerm)
+            );
+            renderAssets(filtered);
         }
 
         function addAssetCard(asset) {
@@ -377,6 +398,12 @@
         document.addEventListener('DOMContentLoaded', loadAssets);
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) window.lucide.createIcons();
+
+            // Event listener para búsqueda
+            const searchInput = document.getElementById('searchAssets');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterAssets);
+            }
         });
 
         // --- New Asset Modal ---
