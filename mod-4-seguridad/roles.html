@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles - DP Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./shared/styles/global.css">
+    <link rel="stylesheet" href="./shared/styles/dp-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-brand-50 font-inter text-slate-900">
+
+    <div class="flex min-h-screen">
+        
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-6 fixed h-full">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 flex-shrink-0">
+                    <img src="./shared/charlotte_logo.png" alt="Charlotte Logo" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h4 class="text-sm font-extrabold text-slate-900 leading-tight">Charlotte</h4>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-user-group w-5"></i> Usuarios
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 dp-tab--active transition-colors">
+                    <i class="fa-solid fa-user-shield w-5"></i> Roles
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-key w-5"></i> Permisos
+                </a>
+            </nav>
+        </aside>
+
+        <main class="ml-64 flex-1 p-10">
+            
+            <header class="flex justify-between items-end mb-10">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Roles del Sistema</h1>
+                    <p class="text-slate-500 text-sm">Gestiona los niveles de acceso y responsabilidades de tu equipo.</p>
+                </div>
+                <button class="px-6 py-2.5 bg-brand-700 text-white rounded-xl font-bold hover:bg-brand-800 transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nuevo Rol
+                </button>
+            </header>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="px-6 py-4">Nombre del Rol</th>
+                            <th class="px-6 py-4 w-1/2">Descripción</th>
+                            <th class="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-slate-700">
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="dp-badge dp-badge--blue font-bold uppercase tracking-wider">Administrador</span>
+                            </td>
+                            <td class="px-6 py-4 text-slate-500">
+                                Acceso total a todas las configuraciones, reportes y gestión de personal.
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button class="dp-icon-btn"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button class="dp-icon-btn text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="dp-badge dp-badge--purple font-bold uppercase tracking-wider">Cajero</span>
+                            </td>
+                            <td class="px-6 py-4 text-slate-500">
+                                Gestión de facturación, cierre de caja y procesamiento de pagos.
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button class="dp-icon-btn"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button class="dp-icon-btn text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="dp-badge dp-badge--green font-bold uppercase tracking-wider">Mesero</span>
+                            </td>
+                            <td class="px-6 py-4 text-slate-500">
+                                Toma de pedidos, gestión de mesas y visualización de menú.
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button class="dp-icon-btn"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button class="dp-icon-btn text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <footer class="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                    <span class="text-xs text-slate-400 font-medium italic">Mostrando 3 roles definidos</span>
+                    <div class="flex gap-1">
+                        <button class="dp-icon-btn !w-8 !h-8"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+                        <button class="dp-tab dp-tab--active !py-1 !px-3 text-xs">1</button>
+                        <button class="dp-tab !py-1 !px-3 text-xs">2</button>
+                        <button class="dp-icon-btn !w-8 !h-8"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

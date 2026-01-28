@@ -1,0 +1,107 @@
+/* Shared DP components: badges, icon buttons, tabs, and toggle.
+ * Usage: include this after `/shared/styles/global.css` in admin DP views.
+ * Keep view-specific tweaks in each `page.css`; this provides consistent bases.
+ */
+
+/* Icon button */
+.dp-icon-btn {
+	width: 38px;
+	height: 38px;
+	border-radius: 12px;
+	border: 1px solid rgb(226 232 240);
+	background: #fff;
+	color: rgb(51 65 85);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+	flex: 0 0 auto;
+}
+.dp-icon-btn:hover {
+	background: rgb(248 250 252);
+	border-color: rgb(203 213 225);
+	color: rgb(15 23 42);
+}
+
+/* Badges */
+.dp-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	border-radius: 9999px;
+	padding: 0.25rem 0.65rem;
+	font-size: 0.75rem;
+	font-weight: 800;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+/* Common status variants */
+.dp-badge--muted { background: rgb(241 245 249); border-color: rgb(226 232 240); color: rgb(51 65 85); }
+.dp-badge--yellow { background: rgba(234, 179, 8, 0.14); border-color: rgba(234, 179, 8, 0.25); color: rgb(133, 77, 14); }
+.dp-badge--blue { background: rgba(37, 99, 235, 0.12); border-color: rgba(37, 99, 235, 0.24); color: rgb(30, 64, 175); }
+.dp-badge--green { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.24); color: rgb(21, 128, 61); }
+.dp-badge--purple { background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.24); color: rgb(107, 33, 168); }
+.dp-badge--red { background: rgba(244, 63, 94, 0.12); border-color: rgba(244, 63, 94, 0.22); color: rgb(159, 18, 57); }
+/* Audit variants */
+.dp-badge--info { background: rgba(59,130,246,0.10); border-color: rgba(59,130,246,0.18); color: rgb(29,78,216); }
+.dp-badge--warning { background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.25); color: rgb(146,64,14); }
+.dp-badge--error { background: rgba(244,63,94,0.10); border-color: rgba(244,63,94,0.18); color: rgb(190,18,60); }
+.dp-badge--critical { background: rgba(2,6,23,0.90); border-color: rgba(2,6,23,0.90); color: #fff; }
+.dp-badge--debug { background: rgba(100,116,139,0.10); border-color: rgba(100,116,139,0.22); color: rgb(51,65,85); }
+
+/* Tabs */
+.dp-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.dp-tab {
+	border: 1px solid rgb(226 232 240);
+	background: white;
+	border-radius: 0.9rem;
+	padding: 0.45rem 0.8rem;
+	font-size: 0.875rem;
+	color: rgb(71 85 105);
+	transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.dp-tab:hover { background: rgb(248 250 252); border-color: rgb(203 213 225); color: rgb(15 23 42); }
+.dp-tab--active {
+	background: rgba(19, 83, 42, 0.08);
+	border-color: rgba(19, 83, 42, 0.15);
+	color: rgb(15, 74, 34);
+	font-weight: 700;
+}
+.dp-tab-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.6rem;
+	height: 1.35rem;
+	padding: 0 0.45rem;
+	border-radius: 9999px;
+	font-size: 0.75rem;
+	font-weight: 800;
+	background: rgb(241 245 249);
+	color: rgb(51 65 85);
+	border: 1px solid rgb(226 232 240);
+}
+
+/* Toggle */
+.toggle-input { display: none; }
+.toggle {
+	width: 44px;
+	height: 26px;
+	background: #d1d5db;
+	border-radius: 9999px;
+	position: relative;
+	transition: background 200ms;
+}
+.toggle-dot {
+	width: 20px;
+	height: 20px;
+	background: #fff;
+	border-radius: 50%;
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+	transition: transform 200ms;
+}
+.toggle-input:checked + .toggle { background: #13532a; }
+.toggle-input:checked + .toggle .toggle-dot { transform: translateX(18px); }
