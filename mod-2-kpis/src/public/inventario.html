@@ -78,8 +78,8 @@
             const data = await response.json();
             console.log('Datos del Pareto recibidos:', data);
             if (data.success) {
-                allParetoData = data.data.data; // Asumir que incluye 'date' en formato YYYY-MM-DD
-                renderParetoChart(allParetoData); // Renderizar por defecto con todos los datos
+                allParetoData = data.data; // La respuesta de la API devuelve 'data' como el array de resultados
+                renderParetoChart(allParetoData.data); // Renderizar por defecto con todos los datos
             } else {
                 console.error('Respuesta no exitosa de la API');
             }
@@ -125,7 +125,7 @@
         }
 
         // Filtrar datos por fecha (asumir propiedad 'date' en formato YYYY-MM-DD)
-        const filtered = allParetoData.filter(item => {
+        const filtered = allParetoData.data.filter(item => {
             console.log(item.last_sale_date)
             const itemDate = new Date(item.last_sale_date);
             console.log(startDate);
@@ -151,7 +151,8 @@
                 const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts'); 
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
-                renderAlertsPanel(data.alerts);
+                console.log('Datos de alertas recibidos:', data);
+                renderAlertsPanel(data);
             } catch (error) {
                 console.error('Error al obtener datos de alertas:', error);
                 document.getElementById('alerts-panel').innerHTML = '<p class="text-red-500">Error al cargar alertas.</p>';
@@ -178,6 +179,7 @@
             }
 
             // Ordenar por revenue descendente
+            console.log(products)
             products.sort((a, b) => b.revenue_generated - a.revenue_generated);
 
             // Configurable: mostrar solo los N mejores + "Otros"
@@ -312,11 +314,14 @@
         }
 
         // Función para renderizar el panel de alertas
-        function renderAlertsPanel(alerts) {
+        function renderAlertsPanel(alertsData) {
             const panel = document.getElementById('alerts-panel');
             panel.innerHTML = '';
 
-            const criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
+            // Extraer datos de la respuesta de la API
+            const criticalCount = alertsData.critical_count || 0;
+            const alerts = alertsData.alerts || [];
+
             const criticalHeader = document.createElement('div');
             criticalHeader.className = `mb-4 p-3 rounded-xl border flex items-center justify-between ${criticalCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`;
             criticalHeader.innerHTML = `
@@ -335,25 +340,27 @@
                     }`;
                     item.innerHTML = `
                         <div class="flex justify-between items-start mb-2">
-                            <span class="font-bold text-slate-800">${alert.item}</span>
+                            <span class="font-bold text-slate-800">${alert.item_name}</span>
                             <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${
                                 alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-600' : 'text-amber-600 bg-amber-100'
                             }">${alert.severity}</span>
                         </div>
                         <div class="w-full bg-slate-100 h-2 rounded-full mb-3">
-                            <div class="h-full rounded-full ${alert.stock < 15 ? 'bg-red-500' : 'bg-amber-500'}" style="width: ${alert.stock}%"></div>
+                            <div class="h-full rounded-full ${alert.current_level_pct < 15 ? 'bg-red-500' : 'bg-amber-500'}" style="width: ${alert.current_level_pct}%"></div>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-slate-500 cursor-help underline decoration-dotted" 
-                                  onclick="showItemDetails('${alert.id}')">Stock: ${alert.stock}%</span>
-                            <button onclick="handleRestockRequest('${alert.item}', this)" 
+                                  onclick="showItemDetails('${alert.item_name}')">Stock: ${alert.current_level_pct}%</span>
+                            <button onclick="handleRestockRequest('${alert.item_name}', this)" 
                                 class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
-                                <span class="mr-1">➕</span> Reponer
+                                <span class="mr-1">➕</span> ${alert.action_required}
                             </button>
                         </div>
                     `;
                     panel.appendChild(item);
                 });
+            } else {
+                panel.innerHTML += '<p class="text-center text-slate-500 py-4">No hay alertas activas</p>';
             }
         }
 
