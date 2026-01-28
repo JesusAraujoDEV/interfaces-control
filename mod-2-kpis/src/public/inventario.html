@@ -54,7 +54,6 @@
                     <div id="pareto-chart" class="w-full h-96 bg-gray-50 rounded-lg flex items-end justify-center relative">
                         <!-- Aquí se renderizará el gráfico SVG -->
                     </div>
-                    <p class="text-sm text-gray-600 mt-2">Datos obtenidos de la API. El producto campeón está resaltado en rojo.</p>
                 </div>
                 </div>
                 
@@ -152,7 +151,7 @@
                 const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts'); 
                 if (!response.ok) throw new Error('Error en la API');
                 const data = await response.json();
-                renderAlertsPanel(data);
+                renderAlertsPanel(data.alerts);
             } catch (error) {
                 console.error('Error al obtener datos de alertas:', error);
                 document.getElementById('alerts-panel').innerHTML = '<p class="text-red-500">Error al cargar alertas.</p>';

@@ -434,7 +434,6 @@
       if (!el) return;
       const cfg = getStockLimits();
       const lines = [];
-      lines.push('<div><strong>Límite por defecto:</strong> ' + cfg.default + '%</div>');
       const keys = Object.keys(cfg.items || {});
       if (keys.length) {
         lines.push('<div style="margin-top:6px"><strong>Límites por ítem:</strong></div>');
@@ -496,7 +495,7 @@
       const payload = { goal: newGoal.goal, target: newGoal.target };
       const endpoints = [
         '/configuration/goals/quarterly',
-        'http://localhost:3000/api/v1/kpi/configuration/goals/quarterly'
+        'https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/quarterly'
       ];
       let patched = false;
       for (const ep of endpoints) {
