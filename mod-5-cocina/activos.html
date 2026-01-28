@@ -152,6 +152,71 @@
         </div>
     </div>
 
+    <!-- Modal para Editar Activo -->
+    <div id="editAssetModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Editar Activo</h2>
+                <button class="modal__close" id="closeEditAssetModal">&times;</button>
+            </div>
+            <form id="editAssetForm" class="modal__form">
+                <input type="hidden" id="editAssetId" name="id">
+                <div class="form-group">
+                    <label for="editAssetName">Nombre del Activo</label>
+                    <input type="text" id="editAssetName" name="name" required minlength="1">
+                </div>
+                <div class="form-group">
+                    <label for="editAssetStatus">Estado</label>
+                    <select id="editAssetStatus" name="status" required>
+                        <option value="OPERATIONAL">Operativo</option>
+                        <option value="UNDER_MAINTENANCE">En Mantenimiento</option>
+                        <option value="DAMAGED">Dañado</option>
+                        <option value="LOST">Perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editAssetNotes">Notas</label>
+                    <textarea id="editAssetNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelEditAssetBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Registrar Entrada (Recuperación/Compra) -->
+    <div id="entryAssetModal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Registrar Entrada</h2>
+                <button class="modal__close" id="closeEntryModal">&times;</button>
+            </div>
+            <form id="entryAssetForm" class="modal__form">
+                <input type="hidden" id="entryAssetId" name="asset_id">
+                <div class="form-group">
+                    <label for="entryQuantity">Cantidad a Ingresar</label>
+                    <input type="number" id="entryQuantity" name="quantity" min="1" required placeholder="ej. 5">
+                </div>
+                <div class="form-group">
+                    <label for="entryReason">Motivo</label>
+                    <input type="text" id="entryReason" name="reason" required
+                        placeholder="Ej. Compra nueva, Reparación finalizada">
+                </div>
+                <div class="form-group">
+                    <label for="entryPin">PIN del Responsable</label>
+                    <input type="password" id="entryPin" name="entry_pin" required placeholder="Ingrese su PIN"
+                        minlength="4" maxlength="6">
+                </div>
+                <div class="modal__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelEntryBtn">Cancelar</button>
+                    <button type="submit" class="btn btn--primary">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // --- Modals Logic with Animation ---
         function openModal(modalId) {
@@ -247,12 +312,20 @@
                         ${asset.notes ? `<p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic;">${asset.notes}</p>` : ''}
                     </div>
 
-                    <div style="display: flex; gap: 0.5rem; margin-top: auto;">
-                        <button class="btn btn--small report-incident-btn" data-id="${asset.id}" style="flex:1;">
-                            <i data-lucide="alert-triangle" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Reportar
+                    <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
+                        <button class="btn btn--small btn--primary entry-asset-btn" data-id="${asset.id}" style="flex:1;" title="Entrada">
+                            <i data-lucide="plus-circle" style="width:14px; margin-right:4px;"></i> In
                         </button>
-                        <button class="btn btn--small view-history-btn" data-id="${asset.id}" style="flex:1;">
-                             <i data-lucide="history" style="width:14px; margin-right:4px; vertical-align: text-bottom;"></i> Historial
+                        <button class="btn btn--small report-incident-btn" data-id="${asset.id}" style="flex:1;" title="Salida/Incidente">
+                            <i data-lucide="minus-circle" style="width:14px; margin-right:4px;"></i> Out
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button class="btn btn--small btn--secondary edit-asset-btn" data-id="${asset.id}" style="flex:1;" title="Editar">
+                             <i data-lucide="edit-3" style="width:14px; margin-right:4px;"></i> Editar
+                        </button>
+                        <button class="btn btn--small view-history-btn" data-id="${asset.id}" style="flex:1;" title="Historial">
+                             <i data-lucide="history" style="width:14px; margin-right:4px;"></i> Historial
                         </button>
                     </div>
                 </div>
@@ -321,10 +394,131 @@
                 openReportModal(assetId);
             }
 
+            const entryBtn = e.target.closest('.entry-asset-btn');
+            if (entryBtn) {
+                const assetId = entryBtn.dataset.id;
+                openEntryModal(assetId);
+            }
+
+            const editBtn = e.target.closest('.edit-asset-btn');
+            if (editBtn) {
+                const assetId = editBtn.dataset.id;
+                // Find asset data to populate form
+                // Ideally we should have the object, but we can fetch it or read from DOM if simple.
+                // Or we can just reload it. Since we don't have the object handy in closure easily without refactor,
+                // we'll fetch details or simpler: store basic data in attributes? No, let's fetch single asset or find in memory if we kept it.
+                // We'll just fetch it for editing to be safe detailed.
+                openEditModal(assetId);
+            }
+
             const histBtn = e.target.closest('.view-history-btn');
             if (histBtn) {
                 const assetId = histBtn.dataset.id;
                 window.location.href = `auditoria.html?assetId=${assetId}`;
+            }
+        });
+
+        // --- Edit Asset Logic ---
+        const editAssetModal = document.getElementById('editAssetModal');
+        const editAssetForm = document.getElementById('editAssetForm');
+
+        async function openEditModal(assetId) {
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}`, { headers: getCommonHeaders() });
+                if (!resp.ok) throw new Error('Error fetching asset details');
+                const asset = await resp.json();
+
+                document.getElementById('editAssetId').value = asset.id;
+                document.getElementById('editAssetName').value = asset.name;
+                document.getElementById('editAssetStatus').value = asset.status;
+                document.getElementById('editAssetNotes').value = asset.notes || '';
+
+                openModal('editAssetModal');
+            } catch (error) {
+                console.error(error);
+                alert('No se pudieron cargar los detalles del activo.');
+            }
+        }
+
+        document.getElementById('closeEditAssetModal').addEventListener('click', () => closeModalFn('editAssetModal'));
+        document.getElementById('cancelEditAssetBtn').addEventListener('click', () => closeModalFn('editAssetModal'));
+
+        editAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(editAssetForm);
+            const assetId = formData.get('id');
+            const payload = {
+                name: formData.get('name'),
+                status: formData.get('status'),
+                notes: formData.get('notes')
+            };
+
+            try {
+                const resp = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}`, {
+                    method: 'PATCH',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error(resp.status);
+
+                loadAssets(); // Refresh grid
+                closeModalFn('editAssetModal');
+            } catch (err) {
+                console.error(err);
+                alert('Error al actualizar activo');
+            }
+        });
+
+
+        // --- Entry Asset Logic ---
+        const entryAssetModal = document.getElementById('entryAssetModal');
+        const entryAssetForm = document.getElementById('entryAssetForm');
+
+        function openEntryModal(assetId) {
+            document.getElementById('entryAssetId').value = assetId;
+            document.getElementById('entryPin').value = '';
+            document.getElementById('entryQuantity').value = '';
+            document.getElementById('entryReason').value = '';
+            openModal('entryAssetModal');
+        }
+
+        document.getElementById('closeEntryModal').addEventListener('click', () => closeModalFn('entryAssetModal'));
+        document.getElementById('cancelEntryBtn').addEventListener('click', () => closeModalFn('entryAssetModal'));
+
+        entryAssetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(entryAssetForm);
+            const assetId = formData.get('asset_id');
+            const quantity = parseInt(formData.get('quantity'));
+            const pin = formData.get('entry_pin');
+
+            // 1. Validate PIN
+            const staff = await validateWorkerPin(pin);
+            if (!staff) {
+                alert('PIN inválido o usuario no autorizado.');
+                return;
+            }
+
+            // 2. Report Log (Positive Quantity)
+            const payload = {
+                quantityChange: quantity, // Positive
+                reason: formData.get('reason'),
+                reportedBy: staff.id
+            };
+
+            try {
+                const response = await fetch(`${KITCHEN_URL}/api/kitchen/assets/${assetId}/logs`, {
+                    method: 'POST',
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(response.status);
+
+                loadAssets(); // Refresh grid
+                closeModalFn('entryAssetModal');
+            } catch (error) {
+                console.error(error);
+                alert('Error al registrar entrada.');
             }
         });
 

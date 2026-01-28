@@ -170,6 +170,11 @@
                         <option value="PURCHASE">Compra</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="inboundPin">PIN del Responsable</label>
+                    <input type="password" name="pin" id="inboundPin" required placeholder="****" maxlength="6"
+                        pattern="\d{6}">
+                </div>
                 <div class="modal__actions">
                     <button type="button" class="btn btn--secondary" data-close="inboundModal">Cancelar</button>
                     <button type="submit" class="btn btn--primary">Registrar</button>
@@ -205,6 +210,11 @@
                     <select name="movementType" id="outboundType" required>
                         <option value="WASTE">Desperdicio (Merma)</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="outboundPin">PIN del Responsable</label>
+                    <input type="password" name="pin" id="outboundPin" required placeholder="****" maxlength="4"
+                        pattern="\d{4}">
                 </div>
                 <div class="modal__actions">
                     <button type="button" class="btn btn--secondary" data-close="outboundModal">Cancelar</button>
@@ -292,6 +302,27 @@
 
         // --- Core Inventory Logic ---
         let inventoryData = [];
+
+        async function validatePin(pin) {
+            if (!pin) return null;
+            try {
+                const res = await fetch(`${KITCHEN_URL}/api/kitchen/staff/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }, // No auth headers usually for PIN validation or maybe yes?
+                    // Assuming existing pattern. If KITCHEN_URL/api needs auth token, it might be in getCommonHeaders
+                    // but for PIN validation, often it's open or uses device token. 
+                    // Let's use getCommonHeaders() to be safe if it includes auth.
+                    headers: getCommonHeaders(),
+                    body: JSON.stringify({ workerCode: pin })
+                });
+                if (!res.ok) throw new Error('PIN inválido');
+                return await res.json(); // Returns staff object with id
+            } catch (err) {
+                console.error(err);
+                alert('PIN inválido o error de verificación');
+                return null;
+            }
+        }
 
         async function loadInventory() {
             const tbody = document.getElementById('inventoryBody');
@@ -461,13 +492,19 @@
         document.getElementById('inboundForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
+            const pin = fd.get('pin');
+
+            const staff = await validatePin(pin);
+            if (!staff) return;
+
             // Payload matches inboundSchema
             const payload = {
                 itemId: fd.get('itemId'),
                 quantityChange: parseFloat(fd.get('quantityChange')),
                 costAtTime: parseFloat(fd.get('costAtTime')),
                 movementType: fd.get('movementType'),
-                reason: fd.get('reason')
+                reason: fd.get('reason'),
+                staffId: staff.id
             };
 
             try {
@@ -482,10 +519,10 @@
 
                 closeModal('inboundModal');
                 loadInventory();
-                alert('Entrada registrada');
+                alert(`Entrada registrada por ${staff.role} (ID: ${staff.workerCode})`);
             } catch (err) {
                 console.error(err);
-                alert('Error al registrar entrada');
+                alert('Error al registrar entrada: ' + err.message);
             }
         });
 
@@ -493,12 +530,18 @@
         document.getElementById('outboundForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
+            const pin = fd.get('pin');
+
+            const staff = await validatePin(pin);
+            if (!staff) return;
+
             // Payload matches outboundSchema
             const payload = {
                 itemId: fd.get('itemId'),
                 quantityChange: parseFloat(fd.get('quantityChange')),
                 movementType: fd.get('movementType'),
-                reason: fd.get('reason')
+                reason: fd.get('reason'),
+                staffId: staff.id
             };
 
             try {
@@ -511,10 +554,10 @@
 
                 closeModal('outboundModal');
                 loadInventory();
-                alert('Salida registrada');
+                alert(`Salida registrada por ${staff.role} (ID: ${staff.workerCode})`);
             } catch (err) {
                 console.error(err);
-                alert('Error al registrar salida');
+                alert('Error al registrar salida: ' + err.message);
             }
         });
 

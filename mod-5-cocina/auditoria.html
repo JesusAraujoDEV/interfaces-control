@@ -139,7 +139,7 @@
             } catch (e) {
                 console.warn('Error cargando nombres de staff:', e);
             }
-        } git
+        }
 
         async function loadLogs() {
             // Cargar nombres de staff antes de logs
@@ -245,19 +245,26 @@
 
                 // 5. USUARIO
                 let user = '';
-                // Intentar resolver nombre usando el mapa cargado
-                const reporterId = (log.reporter && log.reporter.id) ? log.reporter.id : (typeof log.reportedBy === 'string' ? log.reportedBy : null);
-
-                if (reporterId && staffMap[reporterId]) {
-                    user = staffMap[reporterId];
-                } else if (log.reporter) {
-                    // Si viene populado el objeto reporter
-                    user = log.reporter.workerCode || log.reporter.name || 'Staff';
-                } else if (log.reportedBy) {
-                    // Si solo viene el ID
-                    user = 'Staff ID: ' + log.reportedBy.substring(0, 8);
+                // Check if provided by backend relation
+                const staffObj = log.staff || log.reporter;
+                if (staffObj) {
+                    // Try to get name from Map using ID
+                    const mapName = staffMap[staffObj.id];
+                    if (mapName) {
+                        user = mapName; // Real Name
+                    } else {
+                        // Fallback to workerCode or Role
+                        user = `${staffObj.role} (${staffObj.workerCode})`;
+                    }
                 } else {
-                    user = log.user || log.username || 'Sistema';
+                    // Fallback to raw ID if valid
+                    const rawId = log.staffId || log.reportedBy;
+                    if (rawId) {
+                        if (staffMap[rawId]) user = staffMap[rawId];
+                        else user = 'ID: ' + rawId.substring(0, 8) + '...';
+                    } else {
+                        user = 'Sistema';
+                    }
                 }
 
                 // 6. RAZÓN

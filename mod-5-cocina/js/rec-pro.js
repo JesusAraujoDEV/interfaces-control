@@ -211,7 +211,6 @@ function renderProducts() {
                         <span class="slider"></span>
                     </label>
                 </div>
-                <button class="action-btn btn-delete" title="Borrar Permanente" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
                 <button class="action-btn" title="Receta" onclick="openRecipeModal('${p.id}')"><i class="fas fa-scroll"></i></button>
             </div>
              <div style="padding: 10px; border-top: 1px solid #eee;">
@@ -476,9 +475,24 @@ async function loadRecipeIngredients(prodId) {
         tbody.innerHTML = '';
         if(Array.isArray(recipes) && recipes.length > 0) {
             recipes.forEach(r => {
+                const isMandatory = (r.isMandatory === undefined || r.isMandatory === true);
+                // Switch HTML
+                const switchHtml = `
+                    <label class="switch" style="transform: scale(0.8);">
+                        <input type="checkbox" ${isMandatory ? 'checked' : ''} onchange="toggleRecipeMandatory('${r.id}', this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                    <span style="font-size: 0.8em; margin-left: 5px; vertical-align: middle;">
+                        ${isMandatory ? '(Obligatorio)' : '(Opcional)'}
+                    </span>
+                `;
+
                 tbody.innerHTML += `
                     <tr>
-                        <td>${r ? r.ingredientName : 'Item Inventario'}</td>
+                        <td>
+                            ${r ? r.ingredientName : 'Item Inventario'}
+                            <div style="margin-top: 5px;">${switchHtml}</div>
+                        </td>
                         <td>${r.qty} ${r ? r.unit : ''}</td>
                         <td><button onclick="deleteRecipeItem('${r.id}')" style="color:red">X</button></td>
                     </tr>`;
@@ -493,6 +507,8 @@ window.loadRecipeIngredients = loadRecipeIngredients;
 async function addIngredientToRecipe() {
     const invId = document.getElementById('ingredientSelect').value;
     const qty = document.getElementById('ingredientQty').value;
+    const isMandatory = document.getElementById('ingredientMandatory').checked;
+
     if(!invId || !qty) return;
 
     try {
@@ -503,13 +519,39 @@ async function addIngredientToRecipe() {
                 productId: currentRecipeProductId,
                 inventoryItemId: invId,
                 quantityRequired: Number(qty),
+                isMandatory: isMandatory,
                 applyOn: 'ALL'
             })
         });
+        
+        document.getElementById('ingredientQty').value = '';
+        document.getElementById('ingredientMandatory').checked = true;
         loadRecipeIngredients(currentRecipeProductId);
     } catch(e) { showToast('Error agregando', 'error'); }
 }
 window.addIngredientToRecipe = addIngredientToRecipe;
+
+window.toggleRecipeMandatory = async function(recipeId, isChecked) {
+    try {
+        const res = await fetch(`${getApiBase()}/recipes/${recipeId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type':'application/json', ...getCommonHeaders()},
+            body: JSON.stringify({ isMandatory: isChecked })
+        });
+        if(res.ok) {
+            showToast('Actualizado correctamente', 'success');
+            loadRecipeIngredients(currentRecipeProductId); // Recargar para actualizar etiquetas si es necesario
+        } else {
+            showToast('Error al actualizar', 'error');
+            // Revertir el toggle si falló (opcional, requeriría lógica más compleja de UI o simplemente recargar)
+            loadRecipeIngredients(currentRecipeProductId);
+        }
+    } catch(e) {
+        console.error(e);
+        showToast('Error de conexión', 'error');
+        loadRecipeIngredients(currentRecipeProductId);
+    }
+};
 
 window.deleteRecipeItem = async function(id) {
     try {
