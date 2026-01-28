@@ -566,6 +566,9 @@ function buildOrderPayload() {
         unit_price: parsePrice(it.price)
       };
       if (notes) row.notes = notes;
+      if (Array.isArray(it.excluded_recipe_ids) && it.excluded_recipe_ids.length) {
+        row.excluded_recipe_ids = it.excluded_recipe_ids;
+      }
       return row;
     });
 
