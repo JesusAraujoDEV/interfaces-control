@@ -268,10 +268,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const inactiveClass = "text-gray-400 hover:text-gray-600 font-medium";
             const indicator = isActive ? `<div class="absolute top-0 w-8 h-0.5 bg-primary rounded-b-full"></div>` : '';
 
+            const badge = link.id === 'cart' 
+                ? `<span id="cart-badge-mobile" class="absolute top-1 right-4 min-w-[18px] h-4 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center hidden">0</span>`
+                : '';
+
             return `
                 <a href="${link.url}" class="flex-1 py-3 flex flex-col items-center justify-center relative transition-colors ${isActive ? activeClass : inactiveClass}">
                     <span class="material-icons-outlined text-2xl mb-0.5">${link.icon}</span>
                     <span class="text-[10px]">${link.name}</span>
+                    ${badge}
                     ${indicator}
                 </a>
             `;
@@ -329,10 +334,15 @@ document.addEventListener("DOMContentLoaded", () => {
              const activeClass = "text-white bg-primary px-3 py-2 rounded-lg shadow-sm";
              const inactiveClass = "text-gray-600 hover:text-primary font-medium transition px-3 py-2";
              
+             const badge = link.id === 'cart' 
+                ? `<span id="cart-badge-desktop" class="ml-1 min-w-[18px] h-4 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center hidden">0</span>`
+                : '';
+
              return `
-                <a href="${link.url}" class="${isActive ? activeClass : inactiveClass} flex items-center gap-2">
+                <a href="${link.url}" class="${isActive ? activeClass : inactiveClass} flex items-center gap-2 relative">
                     <span class="material-icons-outlined">${link.icon}</span> 
                     ${link.name}
+                    ${badge}
                 </a>`;
         }).join('');
 
@@ -368,4 +378,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initSmoothNav(mobileContainer);
     initSmoothNav(document.getElementById('desktop-nav-container'));
+
+    // =============================
+    // Cart Badge - actualización
+    // =============================
+    function getCartCount() {
+        try {
+            const saved = localStorage.getItem('charlotte_cart');
+            const items = saved ? JSON.parse(saved) : [];
+            // Contar cantidad total (sumar quantity)
+            return items.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0);
+        } catch (e) { return 0; }
+    }
+
+    function renderCartBadge() {
+        const count = getCartCount();
+        const mobileBadge = document.getElementById('cart-badge-mobile');
+        const desktopBadge = document.getElementById('cart-badge-desktop');
+        const apply = (el) => {
+            if (!el) return;
+            if (count > 0) {
+                el.textContent = String(count > 99 ? '99+' : count);
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        };
+        apply(mobileBadge);
+        apply(desktopBadge);
+    }
+
+    // Exponer método público
+    window.Navbar = window.Navbar || {};
+    window.Navbar.updateCartBadge = renderCartBadge;
+    // Render inicial
+    renderCartBadge();
 });
