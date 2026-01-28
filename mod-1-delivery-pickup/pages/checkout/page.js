@@ -87,6 +87,16 @@ function getSelectedZone() {
   };
 }
 
+function currentShippingCost() {
+  try {
+    const zone = getSelectedZone();
+    if (!zone || !zone.shipping_cost) return 0;
+    return parsePrice(zone.shipping_cost);
+  } catch {
+    return 0;
+  }
+}
+
 function updateCoverageFromSelectedChip() {
   const selected = zoneChips.find(btn => btn.classList.contains('bg-brand-800'));
   if (!selected) return;
@@ -152,7 +162,8 @@ function renderCartModal() {
 
   const cart = readCart();
   const items = cart.items || [];
-  totalEl.textContent = formatPrice(cartTotal(cart));
+  const shipping = currentShippingCost();
+  totalEl.textContent = formatPrice(cartTotal(cart) + shipping);
 
   if (!items.length) {
     itemsEl.innerHTML = '<div class="py-4 text-sm text-gray-600">Tu carrito está vacío.</div>';
@@ -250,7 +261,7 @@ function openPaymentDetailsModal() {
   // populate basic info
   const name = document.getElementById('fullName')?.value.trim() || '-';
   const phone = document.getElementById('phone')?.value.trim() || '-';
-  const amount = formatPrice(cartTotal(readCart()));
+  const amount = formatPrice(cartTotal(readCart()) + currentShippingCost());
   document.getElementById('pdName').textContent = name;
   document.getElementById('pdPhone').textContent = phone;
   document.getElementById('pdAmount').textContent = amount;
@@ -302,7 +313,7 @@ function openPaymentCashModal() {
   const m = document.getElementById('paymentCashModal');
   if (!m) return;
   // populate dynamic fields
-  const total = cartTotal(readCart());
+  const total = cartTotal(readCart()) + currentShippingCost();
   document.getElementById('pcTotal').textContent = formatPrice(total);
   // conditions depend on mode
   const cond = document.getElementById('pcConditions');
@@ -381,7 +392,7 @@ document.getElementById('pcCashAmount')?.addEventListener('input', () => {
 document.getElementById('pcCancel')?.addEventListener('click', () => closePaymentCashModal());
 document.getElementById('pcConfirm')?.addEventListener('click', () => {
   const val = Number(document.getElementById('pcCashAmount')?.value || 0);
-  const total = Number(cartTotal(readCart()));
+  const total = Number(cartTotal(readCart()) + currentShippingCost());
   if (!val || val < total) {
     alert('El monto en efectivo debe ser igual o mayor al total a pagar.');
     return;
