@@ -179,7 +179,8 @@
         console.log('Fetched alerts:', alertsJson);
         console.log('Fetched pareto:', paretoJson);
         const summary = summaryJson.data || summaryJson || {};
-        const alerts = alertsJson.alerts || alertsJson || [];
+        const alerts = alertsJson.alerts || [];
+        const criticalCount = alertsJson.critical_count || 0;
         const paretoData = paretoJson.data || paretoJson || [];
         console.log('Dashboard summary:', summary);
         // Ingresos (mapear a ambos conjuntos de IDs para evitar duplicados)
@@ -228,67 +229,8 @@
         // Initial render (Day view)
         updateChartPeriod('day');
 
-        // Alertas de inventario
-        const alertsList = document.getElementById('alertsList');
-        alertsList.innerHTML = '';
-        const cfg = getStockLimits();
-        const defaultLimit = Number(cfg.default ?? 30);
-        const perItem = cfg.items || {};
-        (alerts || []).forEach(item => {
-          const percent = item.percent ?? item.level ?? 0;
-          const name = item.name || item.item || 'Sin nombre';
-          const limit = Number(perItem[name] ?? defaultLimit);
-          const isCritical = percent <= limit;
-
-          const div = document.createElement('div');
-          div.className = 'stock-item';
-          div.style.cursor = item.url ? 'pointer' : 'default';
-          div.style.display = 'flex';
-          div.style.justifyContent = 'space-between';
-          div.style.alignItems = 'center';
-          div.style.padding = '6px 0';
-
-          const left = document.createElement('div');
-          left.innerHTML = '<span class="stock-item__name">' + escapeHtml(name) + '</span>';
-
-          const right = document.createElement('div');
-          right.style.display = 'flex';
-          right.style.gap = '10px';
-          right.style.alignItems = 'center';
-
-          const bar = document.createElement('div');
-          bar.style.display = 'flex';
-          bar.style.alignItems = 'center';
-          bar.innerHTML = '<div class="progress-bar" style="width:160px;margin-right:8px"><div class="progress-bar__fill ' + getFillClass(percent) + '" style="width:' + percent + '%"></div></div><span class="stock-item__percent">' + percent + '%</span>';
-
-          const badge = document.createElement('span');
-          badge.style.fontSize = '0.8rem';
-          badge.style.padding = '4px 8px';
-          badge.style.borderRadius = '6px';
-          badge.style.background = isCritical ? 'rgba(255,99,71,0.12)' : 'transparent';
-          badge.style.color = isCritical ? '#c53030' : 'var(--text-muted)';
-          badge.textContent = isCritical ? 'Crítico (' + limit + '%)' : 'Límite ' + limit + '%';
-
-          const editBtn = document.createElement('button');
-          editBtn.textContent = 'Editar límite';
-          editBtn.className = 'icon-btn';
-          editBtn.onclick = (ev) => { ev.stopPropagation(); showEditLimitForItem(name, perItem[name]); };
-
-          right.appendChild(bar);
-          right.appendChild(badge);
-          right.appendChild(editBtn);
-
-          if (item.url) div.onclick = () => window.location.href = item.url;
-
-          div.appendChild(left);
-          div.appendChild(right);
-          alertsList.appendChild(div);
-        });
-
-        // si no hay alertas mostrar mensaje
-        if (!alerts.length) {
-          alertsList.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Sin alertas críticas</div>';
-        }
+        // Alertas de inventario - usar mismo formato que inventario.html
+        renderAlertsPanel(alertsJson);
 
         // Wire settings button and render stored limits
         const settingsBtn = document.getElementById('stock-settings-btn');
@@ -410,6 +352,90 @@
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // Función para renderizar el panel de alertas (misma lógica que inventario.html)
+    function renderAlertsPanel(alertsData) {
+      const alertsList = document.getElementById('alertsList');
+      alertsList.innerHTML = '';
+
+      // Extraer datos de la respuesta de la API
+      const criticalCount = alertsData.critical_count || 0;
+      const alerts = alertsData.alerts || [];
+
+      const criticalHeader = document.createElement('div');
+      criticalHeader.className = `mb-4 p-3 rounded-xl border flex items-center justify-between ${criticalCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`;
+      criticalHeader.innerHTML = `
+        <span class="font-bold">Alertas Críticas</span>
+        <span class="bg-current text-white px-2 py-0.5 rounded-full text-xs">${criticalCount}</span>
+      `;
+      alertsList.appendChild(criticalHeader);
+
+      if (alerts && alerts.length > 0) {
+        alerts.forEach(alert => {
+          const item = document.createElement('div');
+          item.className = `p-4 border rounded-xl mb-3 shadow-sm transition-all hover:shadow-md ${
+            alert.severity === 'CRITICAL' ? 'bg-white border-l-4 border-l-red-500' :
+            alert.severity === 'WARNING' ? 'bg-white border-l-4 border-l-amber-500' :
+            'bg-white border-l-4 border-l-emerald-500'
+          }`;
+          item.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+              <span class="font-bold text-slate-800">${alert.item_name}</span>
+              <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${
+                alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-600' : 'text-amber-600 bg-amber-100'
+              }">${alert.severity}</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full mb-3">
+              <div class="h-full rounded-full ${alert.current_level_pct < 15 ? 'bg-red-500' : 'bg-amber-500'}" style="width: ${alert.current_level_pct}%"></div>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-500 cursor-help underline decoration-dotted" 
+                    onclick="showItemDetails('${alert.item_name}')">Stock: ${alert.current_level_pct}%</span>
+              <button onclick="handleRestockRequest('${alert.item_name}', this)" 
+                class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
+                <span class="mr-1">➕</span> ${alert.action_required}
+              </button>
+            </div>
+          `;
+          alertsList.appendChild(item);
+        });
+      } else {
+        alertsList.innerHTML += '<p class="text-center text-slate-500 py-4">No hay alertas activas</p>';
+      }
+    }
+
+    // Función para manejar solicitudes de reposición
+    async function handleRestockRequest(itemName, btn) {
+      const { isConfirmed } = await Swal.fire({
+        title: '¿Solicitar reposición?',
+        text: `Se enviará una orden de compra para: ${itemName}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, solicitar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (isConfirmed) {
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⌛...';
+        
+        setTimeout(() => {
+          Swal.fire({
+            title: '¡Solicitud enviada!',
+            text: `La reposición de ${itemName} ha sido procesada.`,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+          });
+          btn.innerHTML = '✅ OK';
+        }, 1000);
+      }
     }
 
     // Stock limits persisted in localStorage under key 'stockLimits'

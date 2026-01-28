@@ -4,39 +4,23 @@
     <meta charset="UTF-8">
     <title>Eficiencia Operacional - Charlotte</title>
     <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles/tailwind.css">
+    <link rel="stylesheet" href="/shared/styles/global.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-gray-100 p-4" id="body">
 
-    <div class="main-layout">
-        <aside class="sidebar">
-            <div class="sidebar__logo">
-                <span class="icon">☕</span> CHARLOTTE
-                <p style="font-size: 0.625rem; font-weight: normal; margin-top: calc(var(--spacing-unit) * -1.25); /* -5px */">Sweet & Coffee</p>
-            </div>
-
-            <nav class="sidebar__nav">
-                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
-                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
-                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item"><i>📦</i> Inventario</a>
-                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
-                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
-            </nav>
-
-            <div class="sidebar__profile-footer">
-                <div class="sidebar__avatar" style="background-color: #ccc;"></div>
-                <div class="sidebar__logout" style="border:none; padding:0;"></div>
-            </div>
-        </aside>
-
-        <main class="content">
-            <header class="header-top">
-                <div>
-                    <h1 class="header-top__title" style="color: var(--primary-color);">Eficiencia Operacional</h1>
-                    <p class="header-top__subtitle">Tiempo y Personal</p>
-                </div>
-            </header>
+<body>
+    <header class="header-top">
+      <div class="flex-1 min-w-0">
+        <div class="inline-flex items-center gap-2 text-xs text-slate-500 mb-1">
+          <a class="hover:text-slate-800" href="/admin">Admin</a>
+          <span aria-hidden="true">/</span>
+          <span class="text-slate-700">Indicadores y KPIs</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">Eficiencia Operacional</h1>
+        <p class="mt-1 text-sm text-slate-600">Tiempo y Personal</p>
+      </div>
+    </header>
 
             <div id="app" class="container mx-auto p-4">
                 <!-- El contenido se renderizará aquí con JavaScript -->
@@ -363,5 +347,13 @@
             });
     }
   </script>
+    <script type="module">
+      import {
+        initKpiLayout,
+        mountKpiSidebar,
+      } from "/mod-2-kpis/src/components/sidebar.js";
+      initKpiLayout();
+      mountKpiSidebar();
+    </script>
 </body>
 </html>
