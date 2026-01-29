@@ -432,10 +432,10 @@
     function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
 
     async function pollExportJob(jobId, attempt = 0) {
-        const MAX_ATTEMPTS = 600;
-        const INTERVAL = 3000;
+        const MAX_ATTEMPTS = 10000;
+        const INTERVAL = 5000;
         if (pollController.stopped) return;
-
+        console.log(attempt)
         try {
             const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/jobs/${jobId}`, { headers: { 'Accept': 'application/json' } });
             if (!res.ok) throw new Error(`Estado de consulta inválido (${res.status})`);
