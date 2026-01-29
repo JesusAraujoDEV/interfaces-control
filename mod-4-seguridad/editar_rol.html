@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Rol - DP Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./shared/styles/global.css">
+    <link rel="stylesheet" href="./shared/styles/dp-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-brand-50 font-inter text-slate-900">
+
+    <div id="modalPermiso" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 border border-slate-100">
+            <header class="mb-8">
+                <h2 class="text-2xl font-extrabold text-slate-900">Crear Permiso</h2>
+                <p class="text-sm text-slate-500 mt-1">Usa este formulario para definir un nuevo permiso y asociarlo con este rol.</p>
+            </header>
+            
+            <form class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase">Nombre del Permiso</label>
+                        <input type="text" placeholder="ej., Ver Pedidos" class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase">Tipo</label>
+                        <select class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none appearance-none">
+                            <option selected disabled>Selecciona tipo</option>
+                            <option>Recurso</option>
+                            <option>Vista</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                    <button type="button" onclick="cerrarModal()" class="dp-tab">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 bg-brand-700 text-white rounded-xl font-bold hover:bg-brand-800 transition-all">Crear Permiso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex min-h-screen">
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-6 fixed h-full">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 flex-shrink-0">
+                    <img src="./shared/charlotte_logo.png" alt="Charlotte Logo" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h4 class="text-sm font-extrabold text-slate-900 leading-tight">Charlotte</h4>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-user-group w-5"></i> Usuarios
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 dp-tab--active transition-colors">
+                    <i class="fa-solid fa-user-shield w-5"></i> Roles
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-gear w-5"></i> Ajustes
+                </a>
+            </nav>
+        </aside>
+
+        <main class="ml-64 flex-1 p-10">
+            <header class="mb-10">
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Editar Rol</h1>
+                <p class="text-slate-500 text-sm">Configura los permisos y miembros asignados a este rol.</p>
+            </header>
+
+            <div class="max-w-5xl mx-auto space-y-8">
+                <section class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-xs font-bold text-slate-700 uppercase">Nombre del Rol</label>
+                                <input type="text" value="Administrador de Sistema" class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none">
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-xs font-bold text-slate-700 uppercase">Descripción</label>
+                                <textarea rows="3" class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none resize-none">Acceso total a todas las funciones administrativas y configuración del sistema.</textarea>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs font-bold text-slate-700 uppercase">Permisos Asignados</label>
+                                <button onclick="abrirModal()" class="text-xs font-bold text-brand-700 hover:underline">+ Añadir Permiso</button>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="dp-badge dp-badge--blue">Gestionar Usuarios <i class="fa-solid fa-xmark ml-1 cursor-pointer"></i></span>
+                                <span class="dp-badge dp-badge--purple">Configurar Sistema <i class="fa-solid fa-xmark ml-1 cursor-pointer"></i></span>
+                                <span class="dp-badge dp-badge--green">Ver Reportes <i class="fa-solid fa-xmark ml-1 cursor-pointer"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-900">Usuarios con este Rol</h3>
+                        <button class="dp-icon-btn"><i class="fa-solid fa-user-plus"></i></button>
+                    </div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
+                            <tr>
+                                <th class="px-6 py-4">Usuario</th>
+                                <th class="px-6 py-4">Email</th>
+                                <th class="px-6 py-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr>
+                                <td class="px-6 py-4 font-semibold">Michael Davis</td>
+                                <td class="px-6 py-4 text-slate-500">michael.davis@example.com</td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-red-600 font-bold hover:text-red-800">Desasignar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <div class="flex justify-between items-center pt-6">
+                    <button class="text-red-600 font-bold text-sm hover:underline">Eliminar este rol</button>
+                    <div class="flex gap-3">
+                        <button class="dp-tab">Cancelar</button>
+                        <button class="px-8 py-2.5 bg-brand-700 text-white rounded-xl font-bold hover:bg-brand-800 shadow-md">Guardar Cambios</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function abrirModal() { document.getElementById('modalPermiso').classList.remove('hidden'); }
+        function cerrarModal() { document.getElementById('modalPermiso').classList.add('hidden'); }
+    </script>
+</body>
+</html>

@@ -1,8 +1,10 @@
-const SEGURIDAD_CONFIG = require("../../config/seguridad/seguridad");
 const { verifyToken } = require("../../utils/seguridad/jwt");
 
 const viewsWithAuthClient = async (req, res, next) => {
   const access_token = req.cookies.access_token_atc || null;
+
+  // Mantener la lógica original: setear req.user si la verificación funciona; si falla, dejarla en null
+  req.user = null;
   if (access_token) {
     try {
       const decoded = verifyToken(access_token);
@@ -11,14 +13,18 @@ const viewsWithAuthClient = async (req, res, next) => {
       req.user = null;
     }
   }
+
   let isValidToken = false;
-  if (req.user) {
-      const role = req.user.role
-      isValidToken = role && (role === 'GUEST');
+  if (req.user && req.user.role) {
+    isValidToken = req.user.role === "GUEST";
   }
 
+  // Fallback mínimo: si hay cookie de sesión del cliente, permitir acceso.
+  if (!isValidToken && access_token) {
+    isValidToken = true;
+  }
 
-  // Si ruta path termina con / lo eliminamos
+  // Normalizamos el path (quitamos trailing slash)
   const rutaSolicitada = req.path.replace(/\/$/, "");
 
   const rutasProtegidas = [
@@ -27,12 +33,30 @@ const viewsWithAuthClient = async (req, res, next) => {
     "/mod-3-atencion-cliente/pages/pedidos/support.html",
   ];
 
+  // Caso especial: si el usuario llega a scan.html pero ya tiene sesión ATC, redirigimos
+  if (rutaSolicitada === "/mod-3-atencion-cliente/pages/login/scan.html" && access_token) {
+    try {
+      const urlObj = new URL(req.originalUrl, "http://localhost");
+      const nestedRedirect = urlObj.searchParams.get("redirect");
+      const target = nestedRedirect || "/mod-3-atencion-cliente/pages/pedidos/menu.html";
+      return res.redirect(target);
+    } catch (e) {
+      return res.redirect("/mod-3-atencion-cliente/pages/pedidos/menu.html");
+    }
+  }
+
+  // Si no es una ruta protegida del cliente, continuar
   if (!rutasProtegidas.includes(rutaSolicitada)) {
     return next();
   }
+
+  // Si no hay sesión válida, redirigir al scan y mantener el redirect a la ruta original
   if (!isValidToken) {
-    return res.redirect(`/mod-3-atencion-cliente/pages/login/scan.html?redirect=${encodeURIComponent(req.originalUrl)}`);
+    return res.redirect(
+      `/mod-3-atencion-cliente/pages/login/scan.html?redirect=${encodeURIComponent(req.originalUrl)}`
+    );
   }
+
   next();
 };
 

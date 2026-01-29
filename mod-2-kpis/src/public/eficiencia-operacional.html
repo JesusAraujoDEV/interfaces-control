@@ -2,39 +2,39 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eficiencia Operacional - Charlotte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-gray-100 p-4" id="body">
-
-    <div class="main-layout">
-        <aside class="sidebar">
-            <div class="sidebar__logo">
-                <span class="icon">☕</span> CHARLOTTE
-                <p style="font-size: 0.625rem; font-weight: normal; margin-top: calc(var(--spacing-unit) * -1.25); /* -5px */">Sweet & Coffee</p>
-            </div>
-
-            <nav class="sidebar__nav">
-                <a href="/mod-2-kpis/src/public/dashboard.html" class="sidebar__menu-item"><i>🏠</i> Dashboard</a>
-                <a href="/mod-2-kpis/src/public/bussines-intelligence.html" class="sidebar__menu-item"><i>📊</i> Reportes</a>
-                <a href="/mod-2-kpis/src/public/inventario.html" class="sidebar__menu-item"><i>📦</i> Inventario</a>
-                <a href="/mod-2-kpis/src/public/eficiencia-operacional.html" class="sidebar__menu-item sidebar__menu-item--active"><i>⏱️</i> Eficiencia Operacional</a>
-                <a href="#" class="sidebar__menu-item" onclick="showAlertsHistory()"><i>🔔</i> Alertas</a>
-            </nav>
-
-            <div class="sidebar__profile-footer">
-                <div class="sidebar__avatar" style="background-color: #ccc;"></div>
-                <div class="sidebar__logout" style="border:none; padding:0;"></div>
-            </div>
-        </aside>
-
-        <main class="content">
+<body>
             <header class="header-top">
-                <div>
-                    <h1 class="header-top__title" style="color: var(--primary-color);">Eficiencia Operacional</h1>
-                    <p class="header-top__subtitle">Tiempo y Personal</p>
+                <div class="flex-1 min-w-0">
+                    <div class="inline-flex items-center gap-2 text-xs text-slate-500 mb-1">
+                      <a class="hover:text-slate-800" href="/admin">Admin</a>
+                      <span aria-hidden="true">/</span>
+                      <span class="text-slate-700">Indicadores y KPIs</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">Eficiencia Operacional</h1>
+                    <p class="mt-1 text-sm text-slate-600">Tiempo y Personal</p>
+                </div>
+                <div class="date-badge" id="current-date-badge" style="
+                      background: var(--white);
+                      padding: 8px 15px;
+                      border-radius: var(--border-radius);
+                      border: 1px solid var(--border-color);
+                      font-size: 0.875rem;
+                      box-shadow: var(--shadow-light);
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                    ">
+                  <span id="header-date">Cargando fecha...</span>
                 </div>
             </header>
 
@@ -47,7 +47,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h1 class="text-2xl font-bold">Ranking de Meseros</h1>
                     <input type="text" id="staff-search" placeholder="🔍 Buscar mesero..." 
-                           class="px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+                           class="filter-input" style="max-width: 300px;">
                 </div>
                 <div id="shift-indicator" class="mb-4 text-center font-semibold"></div>
                 <table id="ranking-table" class="w-full table-auto border-collapse">
@@ -83,8 +83,6 @@
                     </div>
                 </section>
             </div>
-        </main>
-    </div>
     <script>
         function updateGauge(current, target) {
             const percentage = Math.min((current / target) * 100, 100); // Máximo 100%
@@ -363,5 +361,21 @@
             });
     }
   </script>
+    <script>
+        function updateDate() {
+            const dateEl = document.getElementById('header-date');
+            if (dateEl) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateEl.textContent = now.toLocaleDateString('es-ES', options);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateDate);
+    </script>
+    <script type="module">
+        import { initKpiLayout, mountKpiSidebar } from '/mod-2-kpis/src/components/sidebar.js';
+        initKpiLayout();
+        mountKpiSidebar();
+    </script>
 </body>
 </html>

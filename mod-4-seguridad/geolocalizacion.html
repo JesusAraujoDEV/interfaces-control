@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocalización - DP Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./shared/styles/global.css">
+    <link rel="stylesheet" href="./shared/styles/dp-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="bg-brand-50 font-inter text-slate-900">
+
+    <div class="flex min-h-screen">
+        
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-6 fixed h-full">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 flex-shrink-0">
+                    <img src="./shared/charlotte_logo.png" alt="Charlotte Logo" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h4 class="text-sm font-extrabold text-slate-900 leading-tight">Charlotte</h4>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-user-group w-5"></i> Usuarios
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 dp-tab--active transition-colors">
+                    <i class="fa-solid fa-location-dot w-5"></i> Geolocalización
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-gear w-5"></i> Ajustes
+                </a>
+            </nav>
+        </aside>
+
+        <main class="ml-64 flex-1 p-10">
+            <header class="mb-10">
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Geolocalización</h1>
+                <p class="text-slate-500 text-sm">Configura la ubicación del restaurante y el radio de entrega a domicilio.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="space-y-6">
+                    <section class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-brand-700"></i> Datos de Ubicación
+                        </h3>
+                        <form class="space-y-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dirección</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-house absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                    <input type="text" value="Av. Principal, Edif. Charlotte" 
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none transition-all text-sm">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Latitud</label>
+                                    <input type="text" value="40.7128" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Longitud</label>
+                                    <input type="text" value="-74.0060" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none">
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Radio de entrega (km)</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-circle-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                    <input type="number" value="5" 
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none text-sm">
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex flex-col gap-2">
+                                <button type="submit" class="w-full py-2.5 bg-brand-700 text-white rounded-xl font-bold hover:bg-brand-800 transition-all shadow-sm">
+                                    Actualizar Ubicación
+                                </button>
+                                <button type="button" class="dp-tab w-full">Restablecer mapa</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <section class="bg-white p-2 rounded-3xl border border-slate-100 shadow-sm h-[600px] overflow-hidden">
+                        <div id="mapa" class="w-full h-full rounded-2xl z-10"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const lat = 40.7128;
+        const lng = -74.0060;
+
+        var map = L.map('mapa').setView([lat, lng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        var marcador = L.marker([lat, lng]).addTo(map)
+            .bindPopup('<b>Restaurante Charlotte</b><br>Sede Principal.')
+            .openPopup();
+
+        var circulo = L.circle([lat, lng], {
+            color: '#13532a', // Color brand-700
+            fillColor: '#13532a',
+            fillOpacity: 0.15,
+            radius: 2000 
+        }).addTo(map);
+    </script>
+</body>
+</html>

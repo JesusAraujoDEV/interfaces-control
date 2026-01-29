@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear o editar Permiso - DP Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./shared/styles/global.css">
+    <link rel="stylesheet" href="./shared/styles/dp-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-brand-50 font-inter text-slate-900">
+
+    <div class="flex min-h-screen">
+        
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-6 fixed h-full">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 flex-shrink-0">
+                    <img src="./shared/charlotte_logo.png" alt="" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h4 class="text-sm font-extrabold text-slate-900 leading-tight">Charlotte</h4>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-users w-5"></i> Usuarios
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-user-shield w-5"></i> Roles
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 dp-tab--active transition-colors">
+                    <i class="fa-solid fa-key w-5"></i> Permisos
+                </a>
+            </nav>
+
+            <div class="mt-auto space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50">
+                    <i class="fa-solid fa-gear w-5"></i> Ajustes
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-red-600 font-semibold hover:bg-red-50 rounded-xl">
+                    <i class="fa-solid fa-right-from-bracket w-5"></i> Salir
+                </a>
+            </div>
+        </aside>
+
+        <main class="ml-64 flex-1 p-10">
+            
+            <nav class="flex gap-2 text-xs font-medium text-slate-400 mb-4 uppercase tracking-widest">
+                <span>Charlotte</span> / <span>Permisos</span> / <span class="text-brand-700">crear o editar</span>
+            </nav>
+
+            <header class="mb-10">
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Crear o editar Permiso</h1>
+                <p class="text-slate-500 text-sm">Usa este formulario para definir un nuevo permiso y asociarlo a un rol.</p>
+            </header>
+
+            <section class="max-w-4xl bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                <form class="space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-bold text-slate-700 uppercase">Nombre del Permiso</label>
+                            <input type="text" placeholder="ej., Ver Pedidos" 
+                                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none transition-all">
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-bold text-slate-700 uppercase">Tipo</label>
+                            <select class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none transition-all appearance-none">
+                                <option>Selecciona un tipo</option>
+                                <option>Recurso</option>
+                                <option>Vista</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-bold text-slate-700 uppercase">Recurso</label>
+                            <select class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none transition-all appearance-none">
+                                <option>Selecciona un recurso</option>
+                                <option>Orden</option>
+                                <option>Mesa</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-bold text-slate-700 uppercase">Método</label>
+                            <select class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-brand-700 outline-none transition-all appearance-none">
+                                <option>Selecciona un método</option>
+                                <option>Crear</option>
+                                <option>Leer</option>
+                                <option>Actualizar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase">Rol Asociado</label>
+                        <div class="w-full p-2 bg-slate-50 border border-slate-100 rounded-xl flex flex-wrap gap-2 items-center min-h-[52px]">
+                            <span class="dp-badge dp-badge--green">
+                                Mesero <i class="fa-solid fa-xmark ml-1 cursor-pointer"></i>
+                            </span>
+                            <input type="text" class="flex-1 bg-transparent border-none outline-none text-sm px-2" placeholder="Añadir rol...">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
+                        <button type="button" class="dp-tab">Cancelar</button>
+                        <button type="submit" class="px-6 py-2.5 bg-brand-700 text-white rounded-xl font-bold hover:bg-brand-800 transition-all shadow-sm">
+                            Crear Permiso
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

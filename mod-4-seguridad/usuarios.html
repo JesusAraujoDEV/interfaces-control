@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - DP Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./shared/styles/global.css">
+    <link rel="stylesheet" href="./shared/styles/dp-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-brand-50 font-inter text-slate-900">
+
+    <div class="flex min-h-screen">
+        
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-6 fixed h-full">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-12 h-12 flex-shrink-0">
+                    <img src="./shared/charlotte_logo.png" alt="Charlotte Logo" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h4 class="text-sm font-extrabold text-slate-900 leading-tight">Charlotte</h4>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider">Restaurant OS</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-receipt w-5"></i> Pedidos
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 dp-tab--active transition-colors">
+                    <i class="fa-solid fa-user-group w-5"></i> Usuarios
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-gear w-5"></i> Ajustes
+                </a>
+            </nav>
+        </aside>
+
+        <main class="ml-64 flex-1 p-10">
+            
+            <header class="flex justify-between items-end mb-10">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Usuarios</h1>
+                    <p class="text-slate-500 text-sm">Administra el personal, sus roles y accesos al sistema.</p>
+                </div>
+                <button class="px-6 py-2.5 bg-brand-700 text-white rounded-xl font-bold hover:bg-brand-800 transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+                </button>
+            </header>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6 flex gap-4">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" placeholder="Buscar por nombre o correo..." class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:bg-white focus:border-brand-700 transition-all text-sm">
+                </div>
+                <button class="dp-tab flex items-center gap-2">
+                    <i class="fa-solid fa-filter"></i> Filtros
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="px-6 py-4">Usuario</th>
+                            <th class="px-6 py-4">Rol Principal</th>
+                            <th class="px-6 py-4">Estado</th>
+                            <th class="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-slate-700">
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-900">John Doe</span>
+                                    <span class="text-xs text-slate-500 italic">john.doe@ejemplo.com</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="dp-badge dp-badge--blue text-[10px]">Administrador</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="flex items-center gap-1.5 text-green-600 font-bold text-[11px]">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Activo
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button class="dp-icon-btn text-xs"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="dp-icon-btn text-xs text-red-500 hover:border-red-200 hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-900">James Smith</span>
+                                    <span class="text-xs text-slate-500 italic">james.s@ejemplo.com</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1">
+                                    <span class="dp-badge dp-badge--yellow text-[10px]">Mesero</span>
+                                    <span class="text-[10px] text-slate-400 font-bold">Host</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="flex items-center gap-1.5 text-green-600 font-bold text-[11px]">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Activo
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button class="dp-icon-btn text-xs"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="dp-icon-btn text-xs text-red-500 hover:border-red-200 hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <footer class="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                    <span class="text-xs text-slate-500 font-medium">Mostrando 2 usuarios</span>
+                    <div class="flex gap-1.5">
+                        <button class="dp-icon-btn !w-8 !h-8"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+                        <button class="dp-tab dp-tab--active !py-1 !px-3 text-xs">1</button>
+                        <button class="dp-tab !py-1 !px-3 text-xs text-slate-400">2</button>
+                        <button class="dp-icon-btn !w-8 !h-8"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

@@ -50,8 +50,6 @@
     </header>
 
     <main class="flex-grow container mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-10">
-        
-        <h1 class="hidden md:block text-[30px] leading-8 font-bold text-gray-900 mb-8">Gestión de Pedidos</h1>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
@@ -65,7 +63,7 @@
                         <button onclick="clearCart()" id="btn-clear" class="text-xs text-red-500 font-medium hover:underline hidden">Limpiar Todo</button>
                     </div>
                     
-                    <div id="cart-items-container" class="p-4 space-y-4 min-h-[150px]">
+                    <div id="cart-items-container" class="p-4 space-y-4 min-h-[200px] md:min-h-[260px] lg:min-h-[300px] max-h-[260px] md:max-h-[300px] lg:max-h-[340px] overflow-y-auto custom-scrollbar">
                         <div class="text-center py-8">
                             <span class="animate-spin material-icons-outlined text-gray-400">refresh</span>
                         </div>
@@ -203,6 +201,7 @@
     <script src="/mod-3-atencion-cliente/components/navbar.js"></script>
     <script src="/mod-3-atencion-cliente/api/base.js"></script>
     <script src="/mod-3-atencion-cliente/api/client.js"></script>
+    <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
     
     <script>
         // === ESTADO ===
@@ -235,13 +234,17 @@
 
             if (cart.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-10">
-                        <span class="material-icons-outlined text-gray-300 text-5xl mb-2">shopping_bag</span>
-                        <p class="text-gray-400 text-sm">Your cart is empty</p>
+                    <div class="w-full min-h-[200px] md:min-h-[260px] lg:min-h-[300px] grid place-items-center">
+                        <div class="text-center">
+                            <span class="material-icons-outlined text-gray-300 text-8xl mb-2">shopping_bag</span>
+                            <p class="text-gray-400 text-lg">Your cart is empty</p>
+                        </div>
                     </div>`;
                 totalEl.textContent = '$0.00';
                 btnCheckout.disabled = true;
                 btnClear.classList.add('hidden');
+                // quitar scroll si no hay ítems
+                container.classList.remove('max-h-[260px]', 'md:max-h-[300px]', 'lg:max-h-[340px]', 'overflow-y-auto', 'custom-scrollbar');
                 return;
             }
 
@@ -253,7 +256,9 @@
                 const itemTotal = item.price * item.quantity;
                 subtotal += itemTotal;
                 const img = item.image || 'https://placehold.co/100x100?text=Food';
-                const removed = Array.isArray(item.removedIngredients) ? item.removedIngredients : [];
+                const removedNames = Array.isArray(item.removedIngredientNames)
+                    ? item.removedIngredientNames
+                    : (Array.isArray(item.removedIngredients) ? item.removedIngredients : []);
 
                 return `
                 <div class="flex gap-4 items-start border-b border-gray-50 pb-4 last:border-0 last:pb-0">
@@ -263,8 +268,8 @@
                             <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
                             <span class="font-bold text-gray-900 text-sm">$${itemTotal.toFixed(2)}</span>
                         </div>
-                        ${removed.length 
-                            ? `<p class="text-xs text-red-500 mt-1">Sin: ${removed.join(', ')}</p>`
+                        ${removedNames.length 
+                            ? `<p class="text-xs text-red-500 mt-1">Sin: ${removedNames.join(', ')}</p>`
                             : `<p class="text-xs text-gray-500 line-clamp-1">${item.notes || 'No instrucciones especiales'}</p>`}
                         <div class="flex justify-between items-center mt-2">
                             <div class="flex items-center gap-3">
@@ -281,6 +286,14 @@
                 </div>`;
             }).join('');
             totalEl.textContent = `$${subtotal.toFixed(2)}`;
+
+            // Scroll interno cuando hay más de 3 ítems (alturas más bajas para forzar overflow)
+            const addScrollClasses = ['max-h-[260px]', 'md:max-h-[300px]', 'lg:max-h-[340px]', 'overflow-y-auto', 'custom-scrollbar'];
+            if (cart.length > 3) {
+                container.classList.add(...addScrollClasses);
+            } else {
+                container.classList.remove(...addScrollClasses);
+            }
         }
 
         function updateQuantity(index, change) {
@@ -302,6 +315,11 @@
         function saveCart() {
             localStorage.setItem('charlotte_cart', JSON.stringify(cart));
             renderCart();
+            try {
+                if (window.Navbar && typeof window.Navbar.updateCartBadge === 'function') {
+                    window.Navbar.updateCartBadge();
+                }
+            } catch (e) { /* noop */ }
         }
 
         // ==========================================
@@ -558,12 +576,13 @@
             const btn = document.getElementById('btn-confirm-send');
             const originalContent = btn.innerHTML;
             const orderPayload = {
-                notes: "", 
+                notes: "",
                 items: cart.map(item => ({
                     product_id: item.productId,
                     quantity: item.quantity,
                     unit_price: item.price,
-                    special_instructions: item.notes || ""
+                    special_instructions: item.notes || "",
+                    excluded_recipe_ids: Array.isArray(item.removedRecipeIds) ? item.removedRecipeIds : []
                 }))
             };
             btn.innerHTML = `<span class="material-icons-outlined animate-spin mr-2">refresh</span> Enviando...`;
@@ -705,29 +724,54 @@
             return unique;
         }
 
-        function openIngredientsModal(index) {
+        async function openIngredientsModal(index) {
             currentItemIndexForIngredients = index;
             const item = cart[index];
             const ingredientsOverlay = document.getElementById('ingredientsOverlay');
             const listEl = document.getElementById('ingredients-list');
             const titleEl = document.getElementById('ingredients-title');
-            const ingredients = parseIngredients(item?.description || '');
             titleEl.textContent = `Personalizar: ${item?.name || 'Plato'}`;
-            if (!ingredients.length) {
-                listEl.innerHTML = `<div class="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4 text-center">
-                    <p class="text-xs text-gray-500">Este producto no tiene ingredientes detallados para personalizar.</p>
+
+            listEl.innerHTML = `<div class="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4 text-center">
+                <p class="text-xs text-gray-500">Cargando ingredientes...</p>
+            </div>`;
+
+            try {
+                const recipeRes = await window.KitchenApi.getProductRecipe(item.productId);
+                const recipe = Array.isArray(recipeRes) ? recipeRes : (recipeRes?.data || []);
+
+                const applicable = recipe.filter(r => {
+                    const scope = (r.scope || 'ALL').toUpperCase();
+                    return scope === 'ALL' || scope === 'DINE_IN';
+                });
+
+                if (!applicable.length) {
+                    listEl.innerHTML = `<div class="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4 text-center">
+                        <p class="text-xs text-gray-500">Este producto no tiene ingredientes personalizables.</p>
+                    </div>`;
+                } else {
+                    const removedIds = Array.isArray(item.removedRecipeIds) ? item.removedRecipeIds : [];
+                    listEl.innerHTML = applicable.map(ing => {
+                        const isMandatory = !!ing.isMandatory;
+                        const id = ing.id;
+                        const name = ing.ingredientName || 'Ingrediente';
+                        const keepChecked = !removedIds.includes(id);
+                        const disabledAttr = isMandatory ? 'disabled' : '';
+                        const checkedAttr = keepChecked ? 'checked' : '';
+                        return `
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-primary/40 hover:bg-green-50 transition">
+                            <input type="checkbox" value="${id}" data-name="${name}" ${checkedAttr} ${disabledAttr} class="accent-primary w-4 h-4">
+                            <span class="text-sm text-gray-700">${name}${isMandatory ? ' • obligatorio' : ''}</span>
+                        </label>`;
+                    }).join('');
+                }
+            } catch (e) {
+                console.error('Error cargando receta:', e);
+                listEl.innerHTML = `<div class="bg-red-50 border border-dashed border-red-200 rounded-xl p-4 text-center">
+                    <p class="text-xs text-red-500">No se pudo cargar la receta. Intenta más tarde.</p>
                 </div>`;
-            } else {
-                const removed = Array.isArray(item.removedIngredients) ? item.removedIngredients : [];
-                listEl.innerHTML = ingredients.map(ing => {
-                    const checked = removed.includes(ing) ? '' : 'checked';
-                    return `
-                    <label class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-primary/40 hover:bg-green-50 transition">
-                        <input type="checkbox" value="${ing}" ${checked} class="accent-primary w-4 h-4">
-                        <span class="text-sm text-gray-700">${ing}</span>
-                    </label>`;
-                }).join('');
             }
+
             ingredientsOverlay.classList.remove('hidden');
         }
 
@@ -741,11 +785,20 @@
             if (currentItemIndexForIngredients === null) return;
             const listEl = document.getElementById('ingredients-list');
             const inputs = listEl.querySelectorAll('input[type="checkbox"]');
-            const all = [];
-            const kept = [];
-            inputs.forEach(inp => { all.push(inp.value); if (inp.checked) kept.push(inp.value); });
-            const removed = all.filter(x => !kept.includes(x));
-            cart[currentItemIndexForIngredients].removedIngredients = removed;
+            const removedIds = [];
+            const removedNames = [];
+            inputs.forEach(inp => {
+                const id = inp.value;
+                const name = inp.getAttribute('data-name') || '';
+                const isChecked = inp.checked;
+                const isDisabled = inp.disabled;
+                if (!isChecked && !isDisabled) {
+                    removedIds.push(id);
+                    if (name) removedNames.push(name);
+                }
+            });
+            cart[currentItemIndexForIngredients].removedRecipeIds = removedIds;
+            cart[currentItemIndexForIngredients].removedIngredientNames = removedNames;
             saveCart();
             renderCart();
             closeIngredientsModal();
