@@ -134,6 +134,10 @@
       selectedCategoryId: 'all'
     };
 
+    function generateUid() {
+      return 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+    }
+
     function formatPrice(value) {
       const num = parsePrice(value);
       if (Number.isFinite(num)) return '$' + num.toFixed(2);
@@ -234,10 +238,10 @@
       return (cart.items || []).reduce((acc, it) => acc + money(it.price) * (it.qty || 0), 0);
     }
 
-    function updateQty(productId, delta) {
+    function updateQty(cartItemUid, delta) {
       const cart = readCart();
       const items = cart.items || [];
-      const item = items.find(it => it.id === productId);
+      const item = items.find(it => it.uid === cartItemUid);
       if (!item) return;
 
       item.qty = (item.qty || 0) + delta;
@@ -246,17 +250,17 @@
       setCartUI();
     }
 
-    function removeItem(productId) {
+    function removeItem(cartItemUid) {
       const cart = readCart();
-      cart.items = (cart.items || []).filter(it => it.id !== productId);
+      cart.items = (cart.items || []).filter(it => it.uid !== cartItemUid);
       writeCart(cart);
       setCartUI();
     }
 
-    function updateItemNotes(productId, notes) {
+    function updateItemNotes(cartItemUid, notes) {
       const cart = readCart();
       const items = cart.items || [];
-      const item = items.find(it => it.id === productId);
+      const item = items.find(it => it.uid === cartItemUid);
       if (!item) return;
       item.notes = String(notes ?? '');
       writeCart(cart);
@@ -269,6 +273,12 @@
       if (!itemsEl || !totalEl) return;
 
       const items = cart.items || [];
+      // Ensure each item has a uid (for older carts that may lack it)
+      let changed = false;
+      items.forEach(it => {
+        if (!it.uid) { it.uid = generateUid(); changed = true; }
+      });
+      if (changed) { cart.items = items; writeCart(cart); }
       totalEl.textContent = formatPrice(cartTotal(cart));
 
       if (!items.length) {
@@ -286,14 +296,14 @@
                   <div class="mt-2">
                     <label class="block text-xs text-gray-500">Ingredientes excluidos</label>
                     <div class="text-sm text-gray-600 mt-1">${escapeHtml((it.excluded_recipe_names || []).join(', ') || '—')}</div>
-                    <button data-action="edit-ingredients" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
+                    <button data-action="edit-ingredients" data-id="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
                   </div>
-                  <button data-action="remove" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
+                  <button data-action="remove" data-id="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
                 </div>
                 <div class="shrink-0 flex items-center gap-2">
-                  <button data-action="dec" data-id="${it.id}" type="button" class="w-10 h-10 rounded-full bg-gray-100 text-gray-800 font-bold">-</button>
+                  <button data-action="dec" data-id="${it.uid}" type="button" class="w-10 h-10 rounded-full bg-gray-100 text-gray-800 font-bold">-</button>
                   <div class="w-8 text-center font-semibold text-gray-900">${it.qty}</div>
-                  <button data-action="inc" data-id="${it.id}" type="button" class="w-10 h-10 rounded-full bg-brand-800 text-white font-bold">+</button>
+                  <button data-action="inc" data-id="${it.uid}" type="button" class="w-10 h-10 rounded-full bg-brand-800 text-white font-bold">+</button>
                 </div>
               </div>
             `
@@ -307,18 +317,14 @@
       const prevCount = cartCount(cart);
       const items = cart.items || [];
 
-      const existing = items.find(it => it.id === product.id);
+      // Merge only when neither existing item nor the new product carry exclusions
+      const canMerge = !Array.isArray(product.excluded_recipe_ids) || product.excluded_recipe_ids.length === 0;
+      const existing = items.find(it => it.id === product.id && (!it.excluded_recipe_ids || it.excluded_recipe_ids.length === 0) && canMerge);
       if (existing) {
         existing.qty += 1;
-        // si el producto pasado trae exclusiones, unirlas
-        if (Array.isArray(product.excluded_recipe_ids) && product.excluded_recipe_ids.length) {
-          existing.excluded_recipe_ids = Array.from(new Set([...(existing.excluded_recipe_ids||[]), ...product.excluded_recipe_ids]));
-        }
-        if (Array.isArray(product.excluded_recipe_names) && product.excluded_recipe_names.length) {
-          existing.excluded_recipe_names = Array.from(new Set([...(existing.excluded_recipe_names||[]), ...product.excluded_recipe_names]));
-        }
       } else {
         items.push({
+          uid: generateUid(),
           id: product.id,
           name: product.name,
           price: product.price,
@@ -903,11 +909,10 @@
       else if (action === 'dec') updateQty(id, -1);
       else if (action === 'remove') removeItem(id);
       else if (action === 'edit-ingredients') {
-        // Abrir modal para editar exclusiones del item en carrito
+        // Abrir modal para editar exclusiones del item en carrito (usamos uid)
         const cart = readCart();
-        const item = (cart.items || []).find(it => it.id === id);
+        const item = (cart.items || []).find(it => it.uid === id);
         if (!item) return;
-        // construir objeto mínimo producto
         const product = { id: item.id, name: item.name, excluded_recipe_ids: item.excluded_recipe_ids || [], excluded_recipe_names: item.excluded_recipe_names || [] };
         openIngredientsForAdd(product, (excludedIds, excludedNames) => updateCartItemExcluded(id, excludedIds, excludedNames), product.excluded_recipe_ids);
       }
@@ -927,19 +932,6 @@
 
         // Abrir modal de ingredientes; al confirmar, agregar al carrito con exclusiones
         openIngredientsForAdd(product, (excludedIds, excludedNames) => {
-          const cart = readCart();
-          const existing = (cart.items || []).find(it => it.id === product.id);
-          if (existing) {
-            existing.qty += 1;
-            // merge excluded ids if any (prefer union)
-            existing.excluded_recipe_ids = Array.from(new Set([...(existing.excluded_recipe_ids||[]), ...(excludedIds||[])]));
-            existing.excluded_recipe_names = Array.from(new Set([...(existing.excluded_recipe_names||[]), ...(excludedNames||[])]));
-            writeCart(cart);
-            setCartUI();
-            return;
-          }
-
-          // Si no existía, usar addToCart para crear
           addToCart({ ...product, excluded_recipe_ids: excludedIds || [], excluded_recipe_names: excludedNames || [] });
         });
       },

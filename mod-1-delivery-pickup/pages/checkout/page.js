@@ -167,10 +167,10 @@ function cartTotal(cart) {
   return (cart.items || []).reduce((acc, it) => acc + parsePrice(it.price) * (it.qty || 0), 0);
 }
 
-function updateQty(productId, delta) {
+function updateQty(itemUid, delta) {
   const cart = readCart();
   const items = cart.items || [];
-  const item = items.find(it => it.id === productId);
+  const item = items.find(it => it.uid === itemUid);
   if (!item) return;
   item.qty = (item.qty || 0) + delta;
   cart.items = items.filter(it => (it.qty || 0) > 0);
@@ -178,9 +178,9 @@ function updateQty(productId, delta) {
   renderCartModal();
 }
 
-function removeItem(productId) {
+function removeItem(itemUid) {
   const cart = readCart();
-  cart.items = (cart.items || []).filter(it => it.id !== productId);
+  cart.items = (cart.items || []).filter(it => it.uid !== itemUid);
   try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
   renderCartModal();
 }
@@ -280,10 +280,10 @@ async function openIngredientsForAdd(product, onConfirm, existingExcludedIds) {
   };
 }
 
-function updateCartItemExcluded(productId, excludedIds, excludedNames) {
+function updateCartItemExcluded(itemUid, excludedIds, excludedNames) {
   const cart = readCart();
   const items = cart.items || [];
-  const item = items.find(it => it.id === productId);
+  const item = items.find(it => it.uid === itemUid);
   if (!item) return;
   item.excluded_recipe_ids = excludedIds || [];
   item.excluded_recipe_names = excludedNames || [];
@@ -295,9 +295,20 @@ function renderCartModal() {
   const itemsEl = document.getElementById('cartModalItems');
   const totalEl = document.getElementById('cartModalTotal');
   if (!itemsEl || !totalEl) return;
-
   const cart = readCart();
   const items = cart.items || [];
+
+  // Ensure every cart item has a stable `uid` so buttons reference existant ids.
+  let normalized = false;
+  items.forEach(it => {
+    if (!it.uid) {
+      it.uid = 'uid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+      normalized = true;
+    }
+  });
+  if (normalized) {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  }
   const shipping = currentShippingCost();
   totalEl.textContent = formatPrice(cartTotal(cart) + shipping);
 
@@ -319,14 +330,14 @@ function renderCartModal() {
             <div class="mt-2">
               <label class="block text-xs text-gray-500">Ingredientes excluidos</label>
               <div class="text-sm text-gray-600 mt-1">${escapeHtml(excluded || '—')}</div>
-              <button data-action="edit-ingredients" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
+              <button data-action="edit-ingredients" data-uid="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
             </div>
-            <button data-action="remove" data-id="${it.id}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
+            <button data-action="remove" data-uid="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
           </div>
           <div class="shrink-0 flex items-center gap-2">
-            <button data-action="dec" data-id="${it.id}" type="button" class="w-10 h-10 rounded-full bg-gray-100 text-gray-800 font-bold">−</button>
+            <button data-action="dec" data-uid="${it.uid}" type="button" class="w-10 h-10 rounded-full bg-gray-100 text-gray-800 font-bold">−</button>
             <div class="w-8 text-center font-semibold text-gray-900">${qty}</div>
-            <button data-action="inc" data-id="${it.id}" type="button" class="w-10 h-10 rounded-full bg-brand-800 text-white font-bold">+</button>
+            <button data-action="inc" data-uid="${it.uid}" type="button" class="w-10 h-10 rounded-full bg-brand-800 text-white font-bold">+</button>
           </div>
         </div>
       `;
@@ -334,10 +345,10 @@ function renderCartModal() {
     .join('');
 }
 
-function updateCartItemNotes(productId, notes) {
+function updateCartItemNotes(itemUid, notes) {
   const cart = readCart();
   const items = cart.items || [];
-  const item = items.find(it => it.id === productId);
+  const item = items.find(it => it.uid === itemUid);
   if (!item) return;
   item.notes = String(notes ?? '');
   try {
@@ -374,7 +385,7 @@ document.addEventListener('keydown', e => {
 document.getElementById('cartModalItems')?.addEventListener('input', e => {
   const el = e.target;
   if (!(el instanceof HTMLTextAreaElement)) return;
-  const id = el.getAttribute('data-note-id');
+  const id = el.getAttribute('data-note-uid') || el.getAttribute('data-note-id');
   if (!id) return;
   updateCartItemNotes(id, el.value);
 });
@@ -384,17 +395,17 @@ document.getElementById('cartModal')?.addEventListener('click', e => {
   const btn = e.target.closest('button[data-action]');
   if (!btn) return;
   const action = btn.getAttribute('data-action');
-  const id = btn.getAttribute('data-id');
-  if (!id) return;
-  if (action === 'inc') updateQty(id, 1);
-  else if (action === 'dec') updateQty(id, -1);
-  else if (action === 'remove') removeItem(id);
+  const uid = btn.getAttribute('data-uid') || btn.getAttribute('data-id');
+  if (!uid) return;
+  if (action === 'inc') updateQty(uid, 1);
+  else if (action === 'dec') updateQty(uid, -1);
+  else if (action === 'remove') removeItem(uid);
   else if (action === 'edit-ingredients') {
     const cart = readCart();
-    const item = (cart.items || []).find(it => it.id === id);
+    const item = (cart.items || []).find(it => it.uid === uid || it.id === uid);
     if (!item) return;
     const product = { id: item.id, name: item.name };
-    openIngredientsForAdd(product, (excludedIds, excludedNames) => updateCartItemExcluded(id, excludedIds, excludedNames), item.excluded_recipe_ids || []);
+    openIngredientsForAdd(product, (excludedIds, excludedNames) => updateCartItemExcluded(uid, excludedIds, excludedNames), item.excluded_recipe_ids || []);
   }
 });
 // Payment modals bindings
