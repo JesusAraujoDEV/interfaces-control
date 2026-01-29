@@ -160,6 +160,31 @@
                     </div>
                 </div>
                 <div id="ingredients-list" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar"></div>
+                <!-- Alcance de aplicación de preferencias -->
+                <div id="apply-scope-wrapper" class="mt-4 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-700">Aplicar preferencias a</span>
+                        <span id="apply-max-hint" class="text-[10px] text-gray-400">Máx: 1 unidad</span>
+                    </div>
+                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-primary/40 hover:bg-green-50 transition">
+                            <input type="radio" name="apply-scope" id="apply-scope-all" value="all" class="accent-primary w-4 h-4" checked>
+                            <span class="text-sm text-gray-700">Todas las unidades</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-primary/40 hover:bg-green-50 transition">
+                            <input type="radio" name="apply-scope" id="apply-scope-some" value="some" class="accent-primary w-4 h-4">
+                            <span class="text-sm text-gray-700">Cantidad específica</span>
+                        </label>
+                    </div>
+                    <div id="apply-count-wrapper" class="mt-2 hidden">
+                        <div class="flex items-center gap-2">
+                            <button id="apply-count-dec" type="button" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">-</button>
+                            <input id="apply-count-input" type="number" min="1" value="1" class="w-16 h-8 text-center border border-gray-200 rounded-lg">
+                            <button id="apply-count-inc" type="button" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">+</button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">Entre 1 y <span id="apply-count-max">1</span></p>
+                    </div>
+                </div>
                 <div class="mt-6 grid grid-cols-2 gap-3">
                     <button onclick="saveIngredientsSelection()" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-800 transition flex items-center justify-center gap-2">
                         <span class="material-icons-outlined text-sm">check</span> Guardar preferencias
@@ -439,14 +464,19 @@
                             Cancelada automáticamente por tiempo de espera
                         </div>
                     ` : ''}
-                    <div class="space-y-1 mb-3">
-                        ${order.items.map(item => `
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-700"><span class="font-bold text-gray-900">${item.quantity}x</span> ${item.name}</span>
-                                <span class="text-gray-500 text-xs">$${(item.unitPrice * item.quantity).toFixed(2)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
+                        <div class="space-y-1 mb-3">
+                            ${order.items.map(item => `
+                                <div class="space-y-0.5">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-700"><span class="font-bold text-gray-900">${item.quantity}x</span> ${item.name}</span>
+                                        <span class="text-gray-500 text-xs">$${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                    ${ (Array.isArray(item.removedIngredientNames) && item.removedIngredientNames.length)
+                                        ? `<p class="text-[11px] text-red-500">Sin: ${item.removedIngredientNames.join(', ')}</p>`
+                                        : (item.notes ? `<p class="text-[11px] text-gray-500">Notas: ${item.notes}</p>` : '') }
+                                </div>
+                            `).join('')}
+                        </div>
                     ${isPending ? `
                         <button onclick="cancelOrder('${order.id}')" class="w-full mt-1 py-1.5 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1">
                             <span class="material-icons-outlined text-sm">close</span> Cancelar Orden
@@ -597,7 +627,13 @@
                     id: response.id,
                     status: 'PENDING', 
                     sentAt: new Date().toISOString(),
-                    items: cart.map(c => ({ name: c.name, quantity: c.quantity, unitPrice: c.price }))
+                    items: cart.map(c => ({
+                        name: c.name,
+                        quantity: c.quantity,
+                        unitPrice: c.price,
+                        removedIngredientNames: Array.isArray(c.removedIngredientNames) ? c.removedIngredientNames : [],
+                        notes: c.notes || ''
+                    }))
                 };
                 activeOrders.unshift(newOrder);
                 saveActiveOrders();
@@ -694,6 +730,7 @@
         // ==========================================
         let currentItemIndexForIngredients = null;
 
+        /*
         function parseIngredients(description) {
             if (!description || typeof description !== 'string') return [];
             let text = description.trim();
@@ -723,6 +760,7 @@
             }
             return unique;
         }
+        */
 
         async function openIngredientsModal(index) {
             currentItemIndexForIngredients = index;
@@ -731,6 +769,46 @@
             const listEl = document.getElementById('ingredients-list');
             const titleEl = document.getElementById('ingredients-title');
             titleEl.textContent = `Personalizar: ${item?.name || 'Plato'}`;
+
+            // Configurar controles de alcance de aplicación
+            const applyWrapper = document.getElementById('apply-scope-wrapper');
+            const maxHint = document.getElementById('apply-max-hint');
+            const countWrapper = document.getElementById('apply-count-wrapper');
+            const radioAll = document.getElementById('apply-scope-all');
+            const radioSome = document.getElementById('apply-scope-some');
+            const countInput = document.getElementById('apply-count-input');
+            const incBtn = document.getElementById('apply-count-inc');
+            const decBtn = document.getElementById('apply-count-dec');
+            const countMaxEl = document.getElementById('apply-count-max');
+            if (item.quantity > 1) {
+                applyWrapper.classList.remove('hidden');
+                maxHint.textContent = `Máx: ${item.quantity} unidades`;
+                countMaxEl.textContent = item.quantity;
+                countInput.min = 1; 
+                countInput.max = item.quantity; 
+                countInput.value = 1;
+                radioAll.checked = true;
+                radioSome.checked = false;
+                countWrapper.classList.add('hidden');
+                const toggleCount = () => {
+                    if (radioSome.checked) countWrapper.classList.remove('hidden');
+                    else countWrapper.classList.add('hidden');
+                };
+                radioAll.onchange = toggleCount;
+                radioSome.onchange = toggleCount;
+                incBtn.onclick = () => {
+                    let v = parseInt(countInput.value || '1', 10);
+                    v = Math.min(item.quantity, v + 1);
+                    countInput.value = v;
+                };
+                decBtn.onclick = () => {
+                    let v = parseInt(countInput.value || '1', 10);
+                    v = Math.max(1, v - 1);
+                    countInput.value = v;
+                };
+            } else {
+                applyWrapper.classList.add('hidden');
+            }
 
             listEl.innerHTML = `<div class="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4 text-center">
                 <p class="text-xs text-gray-500">Cargando ingredientes...</p>
@@ -797,8 +875,57 @@
                     if (name) removedNames.push(name);
                 }
             });
-            cart[currentItemIndexForIngredients].removedRecipeIds = removedIds;
-            cart[currentItemIndexForIngredients].removedIngredientNames = removedNames;
+            // Si la línea tiene cantidad > 1, permitir aplicar a todas o separar una unidad
+            const item = cart[currentItemIndexForIngredients];
+            const originalQty = item.quantity;
+
+            if (originalQty > 1) {
+                const radioAll = document.getElementById('apply-scope-all');
+                const radioSome = document.getElementById('apply-scope-some');
+                const countInput = document.getElementById('apply-count-input');
+                if (radioAll && radioAll.checked) {
+                    item.removedRecipeIds = removedIds;
+                    item.removedIngredientNames = removedNames;
+                    saveCart();
+                    renderCart();
+                    closeIngredientsModal();
+                    showToast('Preferencias aplicadas a todas las unidades', 'success');
+                    return;
+                }
+                if (radioSome && radioSome.checked) {
+                    const n = Number.parseInt(countInput.value, 10);
+                    if (Number.isNaN(n)) { showToast('Cantidad inválida', 'error'); return; }
+                    if (n < 1 || n > originalQty) { showToast(`El número debe estar entre 1 y ${originalQty}`, 'error'); return; }
+                    if (n === originalQty) {
+                        item.removedRecipeIds = removedIds;
+                        item.removedIngredientNames = removedNames;
+                        saveCart();
+                        renderCart();
+                        closeIngredientsModal();
+                        showToast('Preferencias aplicadas a todas las unidades', 'success');
+                        return;
+                    }
+                    const customizedItem = { 
+                        ...item, 
+                        quantity: n, 
+                        removedRecipeIds: removedIds, 
+                        removedIngredientNames: removedNames 
+                    };
+                    item.quantity = originalQty - n;
+                    item.removedRecipeIds = [];
+                    item.removedIngredientNames = [];
+                    cart.splice(currentItemIndexForIngredients + 1, 0, customizedItem);
+                    saveCart();
+                    renderCart();
+                    closeIngredientsModal();
+                    showToast(`Preferencias aplicadas a ${n} unidad(es)`, 'success');
+                    return;
+                }
+            }
+
+            // Caso cantidad = 1: aplicar directamente
+            item.removedRecipeIds = removedIds;
+            item.removedIngredientNames = removedNames;
             saveCart();
             renderCart();
             closeIngredientsModal();
