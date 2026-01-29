@@ -65,3 +65,7 @@ body {
 .contenido-principal {
     overflow-y: auto;
 }
+
+.overflow-tabla {
+    overflow: auto;
+}

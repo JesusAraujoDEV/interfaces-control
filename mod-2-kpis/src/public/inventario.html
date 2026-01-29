@@ -238,6 +238,17 @@
             color: #f87171;
         }
         
+        /* Mobile-specific tooltip improvements */
+        @media (max-width: 768px) {
+            .chart-tooltip {
+                font-size: 11px;
+                padding: 6px 10px;
+                max-width: 200px;
+                white-space: normal;
+                line-height: 1.3;
+            }
+        }
+        
         /* Responsive tabs container */
         .tabs-container {
             display: flex;
@@ -437,7 +448,6 @@
             }
         }
 
-        // Función para renderizar el gráfico de Pareto (sin cambios en la lógica SVG, solo en el acceso a revenue)
         // Función para renderizar el gráfico de Pareto (Mejorado con interactividad)
         function renderParetoChart(products) {
             const chartContainer = document.getElementById('pareto-chart');
@@ -589,6 +599,73 @@
             `;
             chartContainer.appendChild(tooltip);
 
+            // Variable para controlar el estado del tooltip en mobile
+            let tooltipTimeout = null;
+
+            // Funciones helper para el tooltip (compatibles con mouse y touch)
+            function showTooltip(e, product, rev) {
+                // Limpiar timeout existente si hay uno
+                if (tooltipTimeout) {
+                    clearTimeout(tooltipTimeout);
+                    tooltipTimeout = null;
+                }
+                
+                const productName = getDisplayName(product.name);
+                const revenue = rev.toFixed(2);
+                const quantity = product.quantity_sold || 0;
+                const percentage = (rev / totalRevenue * 100 || 0).toFixed(1);
+                
+                tooltip.querySelector('.product-name').textContent = productName;
+                tooltip.querySelector('.revenue').textContent = `💰 Ingresos: $${revenue}`;
+                tooltip.querySelector('.quantity').textContent = `📦 Cantidad: ${quantity}`;
+                tooltip.querySelector('.percentage').textContent = `📊 Porcentaje: ${percentage}%`;
+                
+                tooltip.classList.add('show');
+                updateTooltipPosition(e);
+            }
+
+            function updateTooltipPosition(e) {
+                const containerRect = chartContainer.getBoundingClientRect();
+                
+                // Obtener coordenadas del evento (mouse o touch)
+                let clientX, clientY;
+                if (e.touches && e.touches.length > 0) {
+                    // Touch event
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    // Mouse event
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                let left = clientX - containerRect.left + 10;
+                let top = clientY - containerRect.top - 40;
+                
+                // Ajustar posición si se sale de los límites
+                if (left + 200 > containerRect.width) {
+                    left = containerRect.width - 210;
+                }
+                if (top < 0) {
+                    top = clientY - containerRect.top + 20;
+                }
+                
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+            }
+
+            function hideTooltip() {
+                tooltip.classList.remove('show');
+            }
+
+            function hideTooltipWithDelay() {
+                // Ocultar tooltip después de un breve retraso para permitir lectura
+                tooltipTimeout = setTimeout(() => {
+                    hideTooltip();
+                    tooltipTimeout = null;
+                }, 1500);
+            }
+
             const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             g.setAttribute('transform', `translate(${margin.left}, ${margin.top})`);
             svg.appendChild(g);
@@ -636,43 +713,34 @@
                 rect.setAttribute('class', 'cursor-pointer hover:opacity-80');
                 rect.style.transition = 'opacity 0.2s';
                 
-                // Eventos para el tooltip
+                // Eventos para el tooltip (desktop y mobile)
                 rect.addEventListener('mouseenter', (e) => {
-                    const productName = getDisplayName(product.name);
-                    const revenue = rev.toFixed(2);
-                    const quantity = product.quantity_sold || 0;
-                    const percentage = (rev / totalRevenue * 100 || 0).toFixed(1);
-                    
-                    tooltip.querySelector('.product-name').textContent = productName;
-                    tooltip.querySelector('.revenue').textContent = `💰 Ingresos: $${revenue}`;
-                    tooltip.querySelector('.quantity').textContent = `📦 Cantidad: ${quantity}`;
-                    tooltip.querySelector('.percentage').textContent = `📊 Porcentaje: ${percentage}%`;
-                    
-                    tooltip.classList.add('show');
+                    showTooltip(e, product, rev);
                 });
                 
                 rect.addEventListener('mousemove', (e) => {
-                    const containerRect = chartContainer.getBoundingClientRect();
-                    const svgRect = svg.getBoundingClientRect();
-                    
-                    let left = e.clientX - containerRect.left + 10;
-                    let top = e.clientY - containerRect.top - 40;
-                    
-                    // Ajustar posición si se sale de los límites
-                    if (left + 200 > containerRect.width) {
-                        left = containerRect.width - 210;
-                    }
-                    if (top < 0) {
-                        top = e.clientY - containerRect.top + 20;
-                    }
-                    
-                    tooltip.style.left = `${left}px`;
-                    tooltip.style.top = `${top}px`;
+                    updateTooltipPosition(e);
                 });
                 
                 rect.addEventListener('mouseleave', () => {
-                    tooltip.classList.remove('show');
+                    hideTooltip();
                 });
+
+                // Eventos táctiles para mobile
+                rect.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // Prevenir scroll momentáneo
+                    showTooltip(e, product, rev);
+                }, { passive: false });
+                
+                rect.addEventListener('touchmove', (e) => {
+                    e.preventDefault(); // Prevenir scroll mientras se muestra tooltip
+                    updateTooltipPosition(e);
+                }, { passive: false });
+                
+                rect.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    hideTooltipWithDelay();
+                }, { passive: false });
                 
                 g.appendChild(rect);
 
@@ -831,10 +899,6 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-slate-500 cursor-help underline decoration-dotted" 
                                   onclick="showItemDetails('${alert.item_name}')">Stock: ${alert.current_level_pct}%</span>
-                            <button onclick="handleRestockRequest('${alert.item_name}', this)" 
-                                class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center">
-                                <span class="mr-1">➕</span> ${alert.action_required}
-                            </button>
                         </div>
                     `;
                     panel.appendChild(item);
@@ -868,38 +932,6 @@
                 });
             } catch (e) {
                 Swal.fire('Error', 'No se pudo cargar el detalle del ítem', 'error');
-            }
-        }
-
-        async function handleRestockRequest(itemName, btn) {
-            const { isConfirmed } = await Swal.fire({
-                title: '¿Solicitar reposición?',
-                text: `Se enviará una orden de compra para: ${itemName}`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, solicitar',
-                cancelButtonText: 'Cancelar'
-            });
-
-            if (isConfirmed) {
-                const originalContent = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '⌛...';
-                
-                setTimeout(() => {
-                    Swal.fire({
-                        title: '¡Solicitud enviada!',
-                        text: `La reposición de ${itemName} ha sido procesada.`,
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
-                    });
-                    btn.innerHTML = '✅ OK';
-                }, 1000);
             }
         }
 

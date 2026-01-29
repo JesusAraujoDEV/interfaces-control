@@ -49,17 +49,46 @@ function renderStaffGrid(staffList) {
         grid.innerHTML = '<p class="col-span-full text-center text-muted">No hay personal asignado.</p>';
         return;
     }
+    // Obtiene el localStorage el objeto administrative_user
+    const adminUser = JSON.parse(localStorage.getItem('administrative_user'));
+    const permissions = adminUser ? adminUser.permissions : [];
+    let showKitchenStaff = false;
+    let showWaiterStaff = false;
+    const isUserAdmin = adminUser ? adminUser.isAdmin : false;
+    const isUserChef = permissions.includes('CocinaChef_view');
+    const isUserWaiter = permissions.includes('AtcSupervisorSala_view') || permissions.includes('AtcMaitre_view');
+        
+    if (isUserAdmin || isUserChef) {
+        showKitchenStaff = true;
+    }
+    if (isUserAdmin || isUserWaiter) {
+        showWaiterStaff = true;
+    }
 
-    staffList.forEach(staff => {
+    const roleMap = {
+        'CHEF': 'Chef',
+        'HEAD_CHEF': 'Jefe de Cocina',
+        'WAITER': 'Mesero',
+        'HEAD_WAITER': 'Jefe de Meseros'
+    };
+
+    // Arma la staffList en funcion de los condicionales
+    let newStaffList = staffList.filter(staff => {
+        const isKitchenRole = staff.role === 'CHEF' || staff.role === 'HEAD_CHEF';
+        const isWaiterRole = staff.role === 'WAITER' || staff.role === 'HEAD_WAITER';
+
+        // Muestra si tienes permiso de cocina Y el rol es de cocina
+        // O si tienes permiso de meseros Y el rol es de meseros
+        return (showKitchenStaff && isKitchenRole) || (showWaiterStaff && isWaiterRole);
+    });
+
+
+    newStaffList.forEach(staff => {
+
         const card = document.createElement('div');
         card.className = 'staff-card-item';
         
-        const roleMap = {
-            'CHEF': 'Chef',
-            'HEAD_CHEF': 'Jefe de Cocina',
-            'WAITER': 'Mesero',
-            'HEAD_WAITER': 'Jefe de Meseros'
-        };
+        
 
         const isActive = staff.isActive;
         const statusColor = isActive ? 'green' : 'red';
@@ -110,7 +139,15 @@ async function loadExternalUsers() {
         const users = await response.json();
         
         select.innerHTML = '<option value="">Seleccione un usuario...</option>';
-        users.forEach(user => {
+        // solo se queda con aquellos users con isActive en true
+        const activeUsers = users.filter(user => user.isActive);
+        
+        if (activeUsers.length === 0) {
+            select.innerHTML = '<option>No hay usuarios disponibles</option>';
+            return;
+        }
+
+        activeUsers.forEach(user => {
             const option = document.createElement('option');
             option.value = user.id;
             option.textContent = `${user.name} ${user.lastName} (${user.email})`;
@@ -124,6 +161,53 @@ async function loadExternalUsers() {
 }
 
 function setupEventListeners() {
+    const adminUser = JSON.parse(localStorage.getItem('administrative_user'));
+    const permissions = adminUser ? adminUser.permissions : [];
+    let showKitchenStaff = false;
+    let showWaiterStaff = false;
+    const isUserAdmin = adminUser ? adminUser.isAdmin : false;
+    const isUserChef = permissions.includes('CocinaChef_view');
+    const isUserWaiter = permissions.includes('AtcSupervisorSala_view') || permissions.includes('AtcMaitre_view');
+
+    // Determina qué tipos de personal puede gestionar el usuario
+    if (isUserAdmin || isUserChef) {
+        showKitchenStaff = true;
+    }
+    if (isUserAdmin || isUserWaiter) {
+        showWaiterStaff = true;
+    }
+
+    // Poblar el selector de roles según permisos
+    const selectRole = document.getElementById('role-select');
+    if (selectRole) {
+        // Reinicia opciones para evitar duplicados si se llama varias veces
+        selectRole.innerHTML = '';
+        // const placeholder = document.createElement('option');
+        // placeholder.value = '';
+        // placeholder.textContent = 'Seleccione un rol...';
+        // selectRole.appendChild(placeholder);
+
+        if (showKitchenStaff) {
+            const optChef = document.createElement('option');
+            optChef.value = 'CHEF';
+            optChef.textContent = 'Chef';
+            selectRole.appendChild(optChef);
+
+            const optHeadChef = document.createElement('option');
+            optHeadChef.value = 'HEAD_CHEF';
+            optHeadChef.textContent = 'Cocinero';
+            selectRole.appendChild(optHeadChef);
+        }
+
+        if (showWaiterStaff) {
+            const optWaiter = document.createElement('option');
+            optWaiter.value = 'WAITER';
+            optWaiter.textContent = 'Mesero';
+            selectRole.appendChild(optWaiter);
+        }
+    }
+
+
     const addBtn = document.getElementById('add-staff-btn');
     if (addBtn) {
         addBtn.addEventListener('click', () => {
