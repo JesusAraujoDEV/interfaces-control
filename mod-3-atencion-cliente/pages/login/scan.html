@@ -513,7 +513,7 @@
                 const response = await window.ClientApi.login(payload);
                 console.log("Respuesta login:", response);
                 if (response.session_token) {
-                    localStorage.setItem('access_token', response.session_token);
+                    localStorage.setItem('access_token_atc', response.session_token);
                     if (response.client) localStorage.setItem('user_client', JSON.stringify(response.client));
                     alert("¡Bienvenido a Charlotte! Puedes comenzar a ordenar.");
                     window.location.href = '/mod-3-atencion-cliente/pages/pedidos/menu.html'; 
