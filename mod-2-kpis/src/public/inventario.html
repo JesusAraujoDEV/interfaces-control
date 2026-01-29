@@ -114,7 +114,7 @@
                 startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         }
 
-        // Filtrar datos por fecha (asumir propiedad 'date' en formato YYYY-MM-DD)
+        // Filtrar datos por fecha (asumir propiedad 'last_sale_date' en formato YYYY-MM-DD)
         const filtered = allParetoData.data.filter(item => {
             console.log(item.last_sale_date)
             const itemDate = new Date(item.last_sale_date);
@@ -160,12 +160,9 @@
                 return;
             }
 
-            // Helper: convierte nombres técnicos a uno legible
-            function humanizeName(name) {
-                if (!name) return '';
-                let s = String(name).replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
-                s = s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-                return s.length > 24 ? s.slice(0, 21) + '...' : s;
+            // Helper: ya no necesitamos formatear nombres, vienen bien formateados de la API
+            function getDisplayName(name) {
+                return name || '';
             }
 
             // Ordenar por revenue descendente
@@ -231,7 +228,7 @@
                 rect.setAttribute('height', barHeight);
                 rect.setAttribute('fill', fillColor);
                 rect.setAttribute('class', 'cursor-pointer');
-                rect.setAttribute('title', `${humanizeName(product.name)}: $${rev.toFixed(2)} (Cant: ${product.quantity_sold || 0}) — ${(rev / totalRevenue * 100 || 0).toFixed(1)}%`);
+                rect.setAttribute('title', `${getDisplayName(product.name)}: $${rev.toFixed(2)} (Cant: ${product.quantity_sold || 0}) — ${(rev / totalRevenue * 100 || 0).toFixed(1)}%`);
                 g.appendChild(rect);
 
                 // Etiqueta legible abajo (rotar si es necesario)
@@ -240,7 +237,7 @@
                 text.setAttribute('y', innerHeight + 24);
                 text.setAttribute('text-anchor', 'middle');
                 text.setAttribute('class', 'text-xs fill-gray-700');
-                text.textContent = humanizeName(product.name);
+                text.textContent = getDisplayName(product.name);
                 g.appendChild(text);
 
                 // Porcentaje acumulado respecto al total real
