@@ -1,7 +1,15 @@
 /* global KITCHEN_URL, getCommonHeaders, lucide */
 
+let LOCAL_STAFF = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     initPersonal();
+    
+    // Bind refresh
+    document.addEventListener('refreshAttendance', () => {
+        const sel = document.getElementById('staff-select');
+        loadAttendance(sel ? sel.value : '');
+    });
 });
 
 const EXTERNAL_USERS_URL = 'https://charlotte-seguridad.onrender.com/api/seguridad/users';
@@ -9,6 +17,8 @@ const EXTERNAL_USERS_URL = 'https://charlotte-seguridad.onrender.com/api/segurid
 async function initPersonal() {
     await loadStaff();
     setupEventListeners();
+    // Load initial attendance (All active)
+    loadAttendance('');
     if (window.lucide) lucide.createIcons();
 }
 
@@ -29,7 +39,9 @@ async function loadStaff() {
         if (!response.ok) throw new Error('Error cargando personal');
         
         const staffList = await response.json();
+        LOCAL_STAFF = staffList; // Cache
         renderStaffGrid(staffList);
+        populateStaffSelect(staffList);
         
     } catch (error) {
         console.error(error);
@@ -39,6 +51,124 @@ async function loadStaff() {
         grid.style.display = 'grid'; // grid display
         grid.classList.remove('hidden');
     }
+}
+
+function populateStaffSelect(list) {
+    const select = document.getElementById('staff-select');
+    if(!select) return;
+    
+    select.innerHTML = '<option value="">Todos los empleados</option>';
+    
+    // Sort by name
+    const sorted = [...list].sort((a,b) => (a.externalName || '').localeCompare(b.externalName || ''));
+    
+    sorted.forEach(s => {
+         const opt = document.createElement('option');
+         opt.value = s.id;
+         opt.textContent = `${s.externalName || 'Sin Nombre'} (${s.role})`;
+         select.appendChild(opt);
+    });
+    
+    select.onchange = (e) => loadAttendance(e.target.value);
+}
+
+async function loadAttendance(staffId) {
+    const tbody = document.getElementById('attendance-table-body');
+    const loading = document.getElementById('attendance-loading');
+    if(!tbody || !loading) return;
+    
+    tbody.innerHTML = '';
+    loading.style.display = 'block';
+
+    try {
+        let records = [];
+        let targets = [];
+
+        if(staffId) {
+             targets = LOCAL_STAFF.filter(s => s.id === staffId);
+        } else {
+             // If ALL, limit to avoid spam, or parallel fetch all.
+             // For MVP, fetch all is acceptable if list is small (< 50).
+             targets = LOCAL_STAFF;
+        }
+
+        const promises = targets.map(async s => {
+            try {
+                const res = await fetch(`${KITCHEN_URL}/api/kitchen/staff/${s.id}/shifts`, {
+                    headers: getCommonHeaders()
+                });
+                if(!res.ok) return [];
+                const shifts = await res.json();
+                return shifts.map(sh => ({ ...sh, staffName: s.externalName, staffRole: s.role }));
+            } catch(e) {
+                return [];
+            }
+        });
+
+        const results = await Promise.all(promises);
+        records = results.flat();
+
+        // Filter empty or sort
+        records.sort((a, b) => new Date(b.shiftStart) - new Date(a.shiftStart));
+        
+        renderAttendanceTable(records);
+
+    } catch(e) {
+        console.error("Attendance load error", e);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-red-500">Error cargando datos de asistencia.</td></tr>';
+    } finally {
+        loading.style.display = 'none';
+    }
+}
+
+function renderAttendanceTable(records) {
+    const tbody = document.getElementById('attendance-table-body');
+    if(!tbody) return;
+    
+    if(records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-500">No hay registros de asistencia encontrados.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = records.map(r => {
+        const start = new Date(r.shiftStart);
+        const end = r.shiftEnd ? new Date(r.shiftEnd) : null;
+        
+        const dateStr = start.toLocaleDateString() + ' ' + start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const endStr = end ? end.toLocaleDateString() + ' ' + end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '<span class="text-green-600 font-bold">Activo</span>';
+        
+        let duration = '-';
+        if (start instanceof Date && !isNaN(start)) {
+            if (end instanceof Date && !isNaN(end)) {
+                const diffMs = Math.max(0, end.getTime() - start.getTime());
+                const hours = Math.floor(diffMs / 3600000);
+                const mins = Math.floor((diffMs % 3600000) / 60000);
+                duration = `${hours}h ${mins}m`;
+            } else {
+                // Calc current duration
+                const now = new Date();
+                const diffMs = Math.max(0, now.getTime() - start.getTime());
+                const hours = Math.floor(diffMs / 3600000);
+                const mins = Math.floor((diffMs % 3600000) / 60000);
+                duration = `<span class="text-green-600">${hours}h ${mins}m (Actual)</span>`;
+            }
+        }
+
+        return `
+            <tr class="table__row">
+                <td><strong>${r.staffName}</strong></td>
+                <td style="color: var(--text-muted);">${r.staffRole}</td>
+                <td>${dateStr}</td>
+                <td>${endStr}</td>
+                <td>${duration}</td>
+                <td>
+                    <span class="badge ${!end ? 'badge--success' : ''}" style="${!end ? '' : 'background: #f1f5f9; color: #64748b;'}">
+                        ${!end ? 'En Turno' : 'Finalizado'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderStaffGrid(staffList) {

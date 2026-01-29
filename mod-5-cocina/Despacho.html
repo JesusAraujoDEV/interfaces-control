@@ -16,7 +16,8 @@
     <aside class="sidebar">
         <div class="sidebar__profile">
             <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain"
+                    loading="eager">
             </div>
             <div class="min-w-0">
                 <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
@@ -90,7 +91,7 @@
         <div class="sidebar__footer">
             <div id="dp-sidebar-toggle-slot" class="sidebar__footer-slot"></div>
             <div class="sidebar__footer-action">
-                    <a href="/seguridad/login" aria-label="Cerrar sesión" class="logout-link">
+                <a href="/seguridad/login" aria-label="Cerrar sesión" class="logout-link">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -115,8 +116,20 @@
                     </div>
                 </div>
                 <div class="dispatch-header__main">
-                    <h1 class="header__title">Vista de Despacho de Camareros</h1>
-                    <p class="header__subtitle">Feed en vivo de todos los pedidos listos para despachar.</p>
+                    <div>
+                        <h1 class="header__title">Vista de Despacho de Camareros</h1>
+                        <p class="header__subtitle">Feed en vivo de todos los pedidos listos para despachar.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn--secondary" onclick="window.openAuthModal('ATTENDANCE_IN')"
+                        style="background-color: #16a34a; border-color: #15803d; color: #ffffff; font-weight: 600;">
+                        <i data-lucide="clock"></i> Fichar Entrada
+                    </button>
+                    <button class="btn btn--secondary" onclick="window.openAuthModal('ATTENDANCE_OUT')"
+                        style="background-color: #dc2626; border-color: #b91c1c; color: #ffffff; font-weight: 600;">
+                        <i data-lucide="log-out"></i> Fichar Salida
+                    </button>
                 </div>
             </header>
 
@@ -174,7 +187,7 @@
             </script>
             <script type="module" src="./js/sidebar.js"></script>
             <script>lucide.createIcons();</script>
-                <script src="./js/admin-auth.js"></script>
+            <script src="./js/admin-auth.js"></script>
             <script type="module" src="./js/despacho.js"></script>
     </main>
 </body>
