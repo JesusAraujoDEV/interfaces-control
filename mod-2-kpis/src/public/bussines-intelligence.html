@@ -542,7 +542,7 @@
             if (currentSearch) payload.search = currentSearch;
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 20000);
+            const timeoutId = setTimeout(() => controller.abort(), 200000000);
 
             try {
                 const res = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/reports/export', {
