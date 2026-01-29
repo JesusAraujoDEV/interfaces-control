@@ -251,10 +251,10 @@ async function openIngredientsForAdd(product, onConfirm, existingExcludedIds) {
   const existingSet = new Set(Array.isArray(existingExcludedIds) ? existingExcludedIds : []);
   list.innerHTML = normalized
     .map((r, idx) => {
-      const disabled = r.isMandatory ? 'disabled' : '';
-      const mandatoryBadge = r.isMandatory ? '<span class="ml-2 text-xs font-semibold text-red-600">(Obligatorio)</span>' : '';
+      const disabled = (r.isMandatory || String(r.scope ?? '').toUpperCase() === 'DELIVERY') ? 'disabled' : '';
+      const mandatoryBadge = r.isMandatory ? '<span class="ml-2 text-xs font-semibold text-red-600">(Obligatorio)</span>' : (String(r.scope ?? '').toUpperCase() === 'DELIVERY' ? '<span class="ml-2 text-xs font-semibold text-gray-600">(No editable - DELIVERY)</span>' : '');
       const meta = (r.qty || r.unit || r.scope) ? `<div class="text-xs text-gray-500">${escapeHtml(String(r.qty || ''))}${r.unit ? ' ' + escapeHtml(String(r.unit)) : ''}${r.scope ? ' · ' + escapeHtml(String(r.scope)) : ''}</div>` : '';
-      const isChecked = r.isMandatory ? true : !existingSet.has(r.id);
+      const isChecked = (r.isMandatory || String(r.scope ?? '').toUpperCase() === 'DELIVERY') ? true : !existingSet.has(r.id);
       return `
         <label class="flex items-center gap-3 text-sm">
           <input data-idx="${idx}" type="checkbox" ${isChecked ? 'checked' : ''} class="w-4 h-4" ${disabled} />
@@ -271,7 +271,7 @@ async function openIngredientsForAdd(product, onConfirm, existingExcludedIds) {
     const excludedNames = [];
     checks.forEach((ch, i) => {
       const r = normalized[i];
-      if (r.isMandatory) return;
+      if (r.isMandatory || String(r.scope ?? '').toUpperCase() === 'DELIVERY') return;
       const ok = ch.checked;
       if (!ok) { excludedIds.push(r.id); excludedNames.push(r.name); }
     });
@@ -321,7 +321,7 @@ function renderCartModal() {
     .map(it => {
       const qty = it.qty || 0;
       const lineTotal = parsePrice(it.price) * qty;
-      const excluded = Array.isArray(it.excluded_recipe_names) ? it.excluded_recipe_names.join(', ') : '';
+      const excluded = Array.isArray(it.excluded_recipe_names) ? it.excluded_recipe_names : [];
       return `
         <div class="py-4 flex items-start justify-between gap-4">
           <div class="min-w-0">
@@ -329,7 +329,7 @@ function renderCartModal() {
             <div class="text-sm text-gray-600 mt-0.5">${formatPrice(it.price)} · x${qty}</div>
             <div class="mt-2">
               <label class="block text-xs text-gray-500">Ingredientes excluidos</label>
-              <div class="text-sm text-gray-600 mt-1">${escapeHtml(excluded || '—')}</div>
+              <div class="text-sm mt-1">${(excluded.length) ? excluded.map(n => `<span class="text-red-600">${escapeHtml(n)}</span>`).join(', ') : '<span class="text-gray-600">—</span>'}</div>
               <button data-action="edit-ingredients" data-uid="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
             </div>
             <button data-action="remove" data-uid="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>

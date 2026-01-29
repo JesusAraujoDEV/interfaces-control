@@ -57,7 +57,7 @@
             <div class="font-bold text-gray-900">Tu carrito</div>
           </div>
 
-          <div id="cartScroll" class="flex-1 overflow-y-auto no-scrollbar">
+          <div id="cartScroll" class="flex-1 overflow-y-auto">
             <div id="cartItems" class="divide-y divide-gray-100 p-2"></div>
           </div>
 
@@ -295,7 +295,11 @@
                   <div class="text-sm text-gray-600 mt-0.5">${formatPrice(it.price)}</div>
                   <div class="mt-2">
                     <label class="block text-xs text-gray-500">Ingredientes excluidos</label>
-                    <div class="text-sm text-gray-600 mt-1">${escapeHtml((it.excluded_recipe_names || []).join(', ') || '—')}</div>
+                    <div class="text-sm mt-1">
+                      ${(Array.isArray(it.excluded_recipe_names) && it.excluded_recipe_names.length)
+                        ? (it.excluded_recipe_names.map(n => `<span class="text-red-600">${escapeHtml(n)}</span>`).join(', '))
+                        : '<span class="text-gray-600">—</span>'}
+                    </div>
                     <button data-action="edit-ingredients" data-id="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Editar ingredientes</button>
                   </div>
                   <button data-action="remove" data-id="${it.uid}" type="button" class="mt-2 text-xs text-gray-500 hover:text-gray-900">Eliminar</button>
@@ -427,11 +431,11 @@
       // Determinar chequeo inicial según exclusiones existentes (si se pasó)
       const existingSet = new Set(Array.isArray(existingExcludedIds) ? existingExcludedIds : []);
       list.innerHTML = normalized
-        .map((r, idx) => {
-          const disabled = r.isMandatory ? 'disabled' : '';
-          const mandatoryBadge = r.isMandatory ? '<span class="ml-2 text-xs font-semibold text-red-600">(Obligatorio)</span>' : '';
-          const meta = (r.qty || r.unit || r.scope) ? `<div class="text-xs text-gray-500">${escapeHtml(String(r.qty || ''))}${r.unit ? ' ' + escapeHtml(String(r.unit)) : ''}${r.scope ? ' · ' + escapeHtml(String(r.scope)) : ''}</div>` : '';
-          const isChecked = r.isMandatory ? true : !existingSet.has(r.id);
+          .map((r, idx) => {
+            const disabled = (r.isMandatory || String(r.scope ?? '').toUpperCase() === 'DELIVERY') ? 'disabled' : '';
+            const mandatoryBadge = r.isMandatory ? '<span class="ml-2 text-xs font-semibold text-red-600">(Obligatorio)</span>' : (String(r.scope ?? '').toUpperCase() === 'DELIVERY' ? '<span class="ml-2 text-xs font-semibold text-gray-600">(No editable - DELIVERY)</span>' : '');
+            const meta = (r.qty || r.unit || r.scope) ? `<div class="text-xs text-gray-500">${escapeHtml(String(r.qty || ''))}${r.unit ? ' ' + escapeHtml(String(r.unit)) : ''}${r.scope ? ' · ' + escapeHtml(String(r.scope)) : ''}</div>` : '';
+            const isChecked = (r.isMandatory || String(r.scope ?? '').toUpperCase() === 'DELIVERY') ? true : !existingSet.has(r.id);
           return `
             <label class="flex items-center gap-3 text-sm">
               <input data-idx="${idx}" type="checkbox" ${isChecked ? 'checked' : ''} class="w-4 h-4" ${disabled} />
@@ -448,24 +452,24 @@
         const excludedIds = [];
         const excludedNames = [];
         checks.forEach((ch, i) => {
-          const r = normalized[i];
-          // Nunca permitir excluir ingredientes obligatorios
-          if (r.isMandatory) return;
-          const ok = ch.checked;
-          if (!ok) {
-            excludedIds.push(r.id);
-            excludedNames.push(r.name);
-          }
-        });
+            const r = normalized[i];
+            // Nunca permitir excluir ingredientes obligatorios o con scope DELIVERY
+            if (r.isMandatory || String(r.scope ?? '').toUpperCase() === 'DELIVERY') return;
+            const ok = ch.checked;
+            if (!ok) {
+              excludedIds.push(r.id);
+              excludedNames.push(r.name);
+            }
+          });
         modal.classList.add('hidden');
         onConfirm(excludedIds, excludedNames);
       };
     }
 
-    function updateCartItemExcluded(productId, excludedIds, excludedNames) {
+    function updateCartItemExcluded(productUid, excludedIds, excludedNames) {
       const cart = readCart();
       const items = cart.items || [];
-      const item = items.find(it => it.id === productId);
+      const item = items.find(it => it.uid === productUid);
       if (!item) return;
       item.excluded_recipe_ids = excludedIds || [];
       item.excluded_recipe_names = excludedNames || [];
