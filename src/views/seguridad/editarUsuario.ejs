@@ -231,28 +231,15 @@
 
             // Configurar buscador de roles
             function configurarBuscadorRoles() {
-                inputBuscarRoles.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase().trim();
-                    
-                    if (query.length === 0) {
+                function renderDropdown(list) {
+                    if (!list || list.length === 0) {
                         listaRolesDropdown.classList.add('hidden');
+                        listaRolesDropdown.innerHTML = '';
                         return;
                     }
-
-                    const rolesFiltrados = rolesDisponibles.filter(rol => 
-                        !rolesSeleccionados.find(r => r.id === rol.id) &&
-                        rol.name.toLowerCase().includes(query)
-                    );
-
-                    if (rolesFiltrados.length === 0) {
-                        listaRolesDropdown.classList.add('hidden');
-                        return;
-                    }
-
                     listaRolesDropdown.innerHTML = '';
                     listaRolesDropdown.classList.remove('hidden');
-
-                    rolesFiltrados.forEach(rol => {
+                    list.forEach(rol => {
                         const item = document.createElement('div');
                         item.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
                         item.textContent = rol.name;
@@ -263,6 +250,29 @@
                         });
                         listaRolesDropdown.appendChild(item);
                     });
+                }
+
+                function getDisponiblesNoSeleccionados() {
+                    return rolesDisponibles.filter(rol => !rolesSeleccionados.find(r => r.id === rol.id));
+                }
+
+                inputBuscarRoles.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const baseList = getDisponiblesNoSeleccionados();
+                    const list = query.length === 0
+                        ? baseList
+                        : baseList.filter(rol => rol.name.toLowerCase().includes(query));
+                    renderDropdown(list);
+                });
+
+                // Mostrar todos los roles disponibles al enfocar si no hay texto
+                inputBuscarRoles.addEventListener('focus', () => {
+                    const query = inputBuscarRoles.value.toLowerCase().trim();
+                    const baseList = getDisponiblesNoSeleccionados();
+                    const list = query.length === 0
+                        ? baseList
+                        : baseList.filter(rol => rol.name.toLowerCase().includes(query));
+                    renderDropdown(list);
                 });
 
                 // Cerrar dropdown al hacer click fuera
