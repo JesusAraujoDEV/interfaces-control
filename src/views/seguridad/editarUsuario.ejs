@@ -363,6 +363,13 @@
                     if (!dniRegex.test(dni)) {
                         mostrarError('inputDni', 'El DNI debe tener prefijo V o E seguido de 6 a 8 dígitos');
                         esValido = false;
+                    } else {
+                        // Validación adicional: la parte numérica debe ser >= 100000
+                        const numeroDni = parseInt(dni.slice(1), 10);
+                        if (isNaN(numeroDni) || numeroDni < 100000) {
+                            mostrarError('inputDni', 'El número de DNI debe ser mayor o igual a 100000');
+                            esValido = false;
+                        }
                     }
                 }
 
