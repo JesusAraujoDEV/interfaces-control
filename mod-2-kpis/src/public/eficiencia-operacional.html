@@ -346,17 +346,61 @@
     window.showAlertsHistory = function() {
         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
         fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
-            .then(res => res.json())
-            .then(data => {
+            .then(res => {
+                if (!res.ok) throw new Error('Error al obtener historial de alertas');
+                return res.json();
+            })
+            .then(response => {
+                // Extraer datos del formato de respuesta de la API
+                const alerts = response.success && response.data ? response.data : [];
+                
                 Swal.fire({
                     title: '<span class="text-emerald-700">Historial de Alertas</span>',
                     html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
-                        ${data.map(alert => `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
-                            <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600">${alert.type}</span><span class="text-[10px] text-slate-400">${alert.date}</span></div>
-                            <p class="text-sm text-slate-700 font-medium">${alert.message}</p>
-                        </div>`).join('') || '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                        ${alerts.length > 0 ? alerts.map(alert => {
+                            // Formatear fecha del timestamp
+                            const date = alert.timestampCreacion ? 
+                                new Date(alert.timestampCreacion).toLocaleString('es-ES', {
+                                    day: '2-digit',
+                                    month: '2-digit', 
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : new Date().toLocaleDateString();
+                            
+                            // Determinar color según severidad
+                            const severityColor = alert.severidad === 'CRITICAL' ? 'text-red-600' : 
+                                               alert.severidad === 'HIGH' ? 'text-orange-600' : 
+                                               alert.severidad === 'MEDIUM' ? 'text-yellow-600' : 
+                                               'text-blue-600';
+                            
+                            return `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-bold ${severityColor}">${alert.tipoIncidencia || 'General'}</span>
+                                    <span class="text-[10px] text-slate-400">${date}</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-medium text-slate-600">${alert.itemAfectado || 'N/A'}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full ${
+                                        alert.estadoGestion === 'PENDIENTE' ? 'bg-red-100 text-red-700' : 
+                                        alert.estadoGestion === 'RESUELTA' ? 'bg-green-100 text-green-700' : 
+                                        'bg-gray-100 text-gray-700'
+                                    }">${alert.estadoGestion || 'N/A'}</span>
+                                </div>
+                                <p class="text-sm text-slate-700 font-medium">Valor: ${alert.valorRegistrado || 'N/A'}</p>
+                            </div>`;
+                        }).join('') : '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
                     </div>`,
-                    confirmButtonText: 'Entendido', confirmButtonColor: '#387652', width: '450px'
+                    confirmButtonText: 'Entendido', confirmButtonColor: '#10b981', width: '500px'
+                });
+            })
+            .catch(error => {
+                console.error('Error al obtener historial de alertas:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar el historial de alertas. Intente nuevamente.',
+                    confirmButtonColor: '#10b981'
                 });
             });
     }
