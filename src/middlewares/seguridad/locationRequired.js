@@ -80,7 +80,23 @@ const requireLocation = async (req, res, next) => {
             });
             return next();
         } else {
-            return res.redirect(`/seguridad/ubicacion?redirect=${encodeURIComponent(req.originalUrl)}`);
+            // Si el usuario ya tiene sesión de ATC y la ruta original era scan con un redirect interno,
+            // usamos el redirect interno para volver directamente a la vista de pedidos.
+            const accessTokenAtc = req.cookies.access_token_atc || null;
+            let redirectTarget = req.originalUrl;
+            try {
+                const rutaOriginal = req.path.replace(/\/$/, "");
+                if (accessTokenAtc && rutaOriginal === "/mod-3-atencion-cliente/pages/login/scan.html") {
+                    const urlObj = new URL(req.originalUrl, "http://localhost");
+                    const nestedRedirect = urlObj.searchParams.get("redirect");
+                    if (nestedRedirect) {
+                        redirectTarget = nestedRedirect;
+                    }
+                }
+            } catch (e) {
+                // Ignorar errores de parsing y usar originalUrl por defecto
+            }
+            return res.redirect(`/seguridad/ubicacion?redirect=${encodeURIComponent(redirectTarget)}`);
         }
 
     }
