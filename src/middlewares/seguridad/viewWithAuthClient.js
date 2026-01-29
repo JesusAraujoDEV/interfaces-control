@@ -33,6 +33,18 @@ const viewsWithAuthClient = async (req, res, next) => {
     "/mod-3-atencion-cliente/pages/pedidos/support.html",
   ];
 
+  // Caso especial: si el usuario llega a scan.html pero ya tiene sesión ATC, redirigimos
+  if (rutaSolicitada === "/mod-3-atencion-cliente/pages/login/scan.html" && access_token) {
+    try {
+      const urlObj = new URL(req.originalUrl, "http://localhost");
+      const nestedRedirect = urlObj.searchParams.get("redirect");
+      const target = nestedRedirect || "/mod-3-atencion-cliente/pages/pedidos/menu.html";
+      return res.redirect(target);
+    } catch (e) {
+      return res.redirect("/mod-3-atencion-cliente/pages/pedidos/menu.html");
+    }
+  }
+
   // Si no es una ruta protegida del cliente, continuar
   if (!rutasProtegidas.includes(rutaSolicitada)) {
     return next();
