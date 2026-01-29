@@ -570,7 +570,7 @@
                 if (!jobId) {
                     throw new Error('Respuesta inválida del servidor (sin job_id). Revise el endpoint y el payload enviado.');
                 }
-
+                console.log('Export Job ID:', jobId);
                 pollExportJob(jobId);
             } catch (err) {
                 pollController.stopped = true;
