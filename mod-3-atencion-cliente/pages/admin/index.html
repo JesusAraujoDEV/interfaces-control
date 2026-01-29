@@ -50,6 +50,11 @@
       .sidebar-transition { transition: transform 0.3s ease-in-out; }
       /* Ajuste tipografía H1 en Home */
       .theme-admin h1 { font-size: 30px !important; line-height: 1.2; }
+
+      /* Skeleton loader */
+      .skeleton { position: relative; overflow: hidden; background: #e5e7eb; border-radius: 10px; }
+      .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(229,231,235,0) 0%, rgba(255,255,255,0.6) 50%, rgba(229,231,235,0) 100%); animation: shimmer 1.4s infinite; border-radius: inherit; }
+      @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
   </head>
   <body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
@@ -72,12 +77,21 @@
                 <span class="text-slate-700">Atención al Cliente</span>
               </div>
               <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold">Dashboard — Atención al Cliente</h1>
-              <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas.</p>
+              <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas. <span id="last-updated" class="text-xs text-slate-500 ml-2">Actualizado ahora</span></p>
             </div>
           </div>
         </header>
 
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Skeleton inicial para tarjetas -->
+        <section id="cards-skeleton" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="skeleton h-28"></div>
+          <div class="skeleton h-28"></div>
+          <div class="skeleton h-28"></div>
+          <div class="skeleton h-28"></div>
+        </section>
+
+        <!-- Tarjetas reales, ocultas hasta que termine la carga inicial -->
+        <section id="cards-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 hidden">
           <a class="atc-card" href="./tables.html">
             <div class="atc-card-icon">🍽️</div>
             <div class="atc-card-title">Inventario de Mesas</div>
@@ -110,6 +124,30 @@
         sidebar.classList.toggle('-translate-x-full');
         overlay.classList.toggle('hidden');
       };
+
+      // Simula una carga inicial corta para mostrar skeletons y preparar UI
+      document.addEventListener('DOMContentLoaded', () => {
+        const sk = document.getElementById('cards-skeleton');
+        const sec = document.getElementById('cards-section');
+        // Breve retardo para suavizar transición del skeleton
+        setTimeout(() => {
+          if (sk) sk.classList.add('hidden');
+          if (sec) sec.classList.remove('hidden');
+        }, 250);
+
+        // Indicador de última actualización (visual)
+        const last = document.getElementById('last-updated');
+        const updateStamp = () => {
+          const d = new Date();
+          const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          if (last) last.textContent = `Actualizado ${t}`;
+        };
+        updateStamp();
+        setInterval(() => {
+          if (document.hidden) return;
+          updateStamp();
+        }, 15000);
+      });
     </script>
     <script src="/mod-3-atencion-cliente/components/admin-auth.js"></script>
     <script src="/mod-3-atencion-cliente/components/aside.js"></script>

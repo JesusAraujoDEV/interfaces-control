@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem('user_client');
         localStorage.removeItem('my_service_requests');
         localStorage.removeItem('restaurant_service_requests');
-        localStorage.removeItem('access_token');
+        localStorage.removeItem('access_token_atc');
 
         const storedQrUuid = localStorage.getItem('current_qr_uuid');
         if (storedQrUuid) {

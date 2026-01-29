@@ -62,6 +62,11 @@
           .table-compact th, .table-compact td { padding: 0.75rem !important; }
           .table-compact th { font-size: 11px; }
           .table-compact td { font-size: 13px; }
+
+                /* Skeleton loader */
+                .skeleton { position: relative; overflow: hidden; background: #e5e7eb; border-radius: 6px; }
+                .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(229,231,235,0) 0%, rgba(255,255,255,0.6) 50%, rgba(229,231,235,0) 100%); animation: shimmer 1.4s infinite; }
+                @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
 </head>
 <body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
@@ -277,8 +282,13 @@
         const restoreInputId = document.getElementById('restore_table_id');
 
         // --- INICIALIZACIÓN ---
+        let __tablesPoller = null;
         document.addEventListener('DOMContentLoaded', () => {
-            loadTablesData(); 
+            loadTablesData();
+            __tablesPoller = setInterval(() => {
+                if (document.hidden) return; // evita trabajo en pestaña oculta
+                loadTablesData();
+            }, 15000);
         });
 
         window.toggleSidebar = () => {
@@ -291,9 +301,26 @@
         // ==========================================
         // LOGICA 1: MESAS (CRUD)
         // ==========================================
+        function renderSkeletonRows(count = 8) {
+            const rows = Array.from({ length: count }).map(() => `
+                <tr class="border-b border-gray-100">
+                    <td class="p-4"><div class="skeleton h-4 w-10"></div></td>
+                    <td class="p-4"><div class="skeleton h-4 w-40"></div></td>
+                    <td class="p-4 text-center"><div class="inline-block skeleton h-4 w-8"></div></td>
+                    <td class="p-4"><div class="skeleton h-6 w-24 rounded-full"></div></td>
+                    <td class="p-4 text-right flex justify-end gap-2">
+                        <div class="skeleton h-6 w-6 rounded"></div>
+                        <div class="skeleton h-6 w-6 rounded"></div>
+                        <div class="skeleton h-6 w-6 rounded"></div>
+                    </td>
+                </tr>
+            `).join('');
+            tableBody.innerHTML = rows;
+        }
+
         async function loadTablesData() {
             try {
-                tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Cargando...</td></tr>';
+                renderSkeletonRows();
                 const response = await window.TablesApi.getTables(currentPage, itemsPerPage, '', isArchivedMode);
 
                 if (response.success && response.data.length > 0) {
@@ -304,7 +331,7 @@
                     }
 
                 } else {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">Sin registros.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Sin registros.</td></tr>';
                     document.getElementById('pagination-container').innerHTML = '';
                 }
             } catch (error) {
