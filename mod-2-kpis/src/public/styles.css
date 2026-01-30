@@ -489,7 +489,6 @@ body {
   border-radius: calc(var(--spacing-unit) * 25) calc(var(--spacing-unit) * 25) 0
     0; /* 100px */
   transform-origin: center bottom;
-  transform: rotate(45deg);
   /* Ejemplo de valor */
 }
 
