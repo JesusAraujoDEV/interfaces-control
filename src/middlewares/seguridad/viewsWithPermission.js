@@ -106,7 +106,7 @@ const viewsWithPermission = async (req, res, next) => {
         resource = ["CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/personal.html":
-        resource = ["CocinaChef_view"];
+        resource = ["CocinaChef_view", "AtcSupervisorSala_view", "AtcMaitre_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/historial_pedidos.html":
         resource = ["CocinaChef_view"];

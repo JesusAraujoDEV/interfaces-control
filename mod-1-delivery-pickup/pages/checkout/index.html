@@ -101,10 +101,10 @@
                 <button type="button" data-zone="Trigal"
                   class="zone-chip px-3 py-1.5 rounded-full bg-white border border-gray-200 text-sm text-gray-700 hover:border-gray-300">Trigal</button>
                 <button type="button" data-zone="Viñeccdo"
-                  class="zone-chip px-3 py-1.5 rounded-full bg-white border border-gray-200 text-sm text-gray-700 hover:border-gray-300">Viñssssssedo</button>
+                  class="zone-chip px-3 py-1.5 rounded-full bg-white border border-gray-200 text-sm text-gray-700 hover:border-gray-300">Viñedo</button>
                 <button type="button" data-zone="La Granja"
                   class="zone-chip px-3 py-1.5 rounded-full bg-white border border-gray-200 text-sm text-gray-700 hover:border-gray-300">La
-                  Grssssssanja</button>
+                  Granja</button>
                 <button type="button" data-zone="Centro"
                   class="zone-chip px-3 py-1.5 rounded-full bg-white border border-gray-200 text-sm text-gray-700 hover:border-gray-300">Centro</button>
               </div>
@@ -201,8 +201,8 @@
           <p class="mt-1 text-sm text-gray-600">Confirma los datos y añade la referencia.</p>
 
           <div class="mt-4 space-y-3 text-sm text-gray-700">
-            <div>Nombre: <strong id="pdName">-</strong></div>
-            <div>Teléfono: <strong id="pdPhone">-</strong></div>
+            <div>Nombre: <strong id="pdName">Freddy Fazbear</strong></div>
+            <div>Teléfono: <strong id="pdPhone">0424 4165446</strong></div>
             <div>Banco: <strong id="pdBank">Bancamiga</strong></div>
             <div>Monto: <strong id="pdAmount">$0.00</strong></div>
           </div>
@@ -215,11 +215,108 @@
           </div>
 
           <div class="mt-4">
-            <label class="block text-sm font-medium">Banco (selecciona uno)</label>
-            <div class="mt-2 space-y-2 text-sm">
-              <label><input type="radio" name="pdBankChoice" value="Bancamiga" checked /> Bancamiga</label><br/>
-              <label><input type="radio" name="pdBankChoice" value="Mercantil" /> Mercantil</label><br/>
-              <label><input type="radio" name="pdBankChoice" value="Provincial" /> Provincial</label>
+            <label class="block text-sm font-medium mb-2">Banco (selecciona uno)</label>
+            <div id="pdBankList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto custom-scrollbar">
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0172 - BANCAMIGA BANCO UNIVERSAL" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0172</span> - Bancamiga Banco Universal</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0102- Banco de Venezuela" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0102</span> - Banco de Venezuela</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0104 - Venezolano de Crédito" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0104</span> - Venezolano de Crédito</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0105 - Mercantil" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0105</span> - Mercantil</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0108 - Provincial" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0108</span> - Provincial</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0114 - Bancaribe" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0114</span> - Bancaribe</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0115 - Banco Exterior" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0115</span> - Banco Exterior</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0128 - Banco Caroni" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0128</span> - Banco Caroni</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0134 - Banesco" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0134</span> - Banesco</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0137 - Banco Sofitasa" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0137</span> - Banco Sofitasa</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0138 - Banco Plaza" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0138</span> - Banco Plaza</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0146 - Bangente" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0146</span> - Bangente</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0151 - Fondo Comun" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0151</span> - Fondo Comun</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0156 - 100% Banco" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0156</span> - 100% Banco</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0157 - DelSur" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0157</span> - DelSur</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0163 - Banco del Tesoro" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0163</span> - Banco del Tesoro</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0168 - Bancrecer" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0168</span> - Bancrecer</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0169 - R4" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0169</span> - R4</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0171 - Banco Activo" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0171</span> - Banco Activo</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0174 - BanPlus" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0174</span> - BanPlus</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0175 - Banco Digital de los Trabajadores" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0175</span> - Banco Digital de los Trabajadores</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0177 - BanFANB" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0177</span> - BanFANB</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0178 - N58 Banco Digital" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0178</span> - N58 Banco Digital</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0191 - Banco Nacional de Credito" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0191</span> - Banco Nacional de Credito</span>
+              </label>
+              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
+                <input type="checkbox" name="pdBankChoice" value="0601 - Instituto Municipal de Credito Popular" class="accent-brand-800 w-4 h-4" />
+                <span class="text-sm"><span class="font-mono font-bold">0601</span> - Instituto Municipal de Credito Popular</span>
+              </label>
             </div>
           </div>
 

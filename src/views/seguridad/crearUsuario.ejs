@@ -108,7 +108,7 @@
                         <input type="text" id="inputBuscarRoles" placeholder="Buscar y añadir roles...">
                     </div>
 
-                    <div id="listaRolesDropdown" class="hidden absolute z-10 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto w-full mt-1"></div>
+                    <div id="listaRolesDropdown" class="hidden z-10 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto w-full mt-1"></div>
 
                     <div class="contenedor-tags" id="contenedorTagsRoles">
                         <!-- Los roles seleccionados se mostrarán aquí -->
@@ -183,28 +183,15 @@
 
             // Configurar buscador de roles
             function configurarBuscadorRoles() {
-                inputBuscarRoles.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase().trim();
-                    
-                    if (query.length === 0) {
+                function renderDropdown(list) {
+                    if (!list || list.length === 0) {
                         listaRolesDropdown.classList.add('hidden');
+                        listaRolesDropdown.innerHTML = '';
                         return;
                     }
-
-                    const rolesFiltrados = rolesDisponibles.filter(rol => 
-                        !rolesSeleccionados.find(r => r.id === rol.id) &&
-                        rol.name.toLowerCase().includes(query)
-                    );
-
-                    if (rolesFiltrados.length === 0) {
-                        listaRolesDropdown.classList.add('hidden');
-                        return;
-                    }
-
                     listaRolesDropdown.innerHTML = '';
                     listaRolesDropdown.classList.remove('hidden');
-
-                    rolesFiltrados.forEach(rol => {
+                    list.forEach(rol => {
                         const item = document.createElement('div');
                         item.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
                         item.textContent = rol.name;
@@ -215,6 +202,29 @@
                         });
                         listaRolesDropdown.appendChild(item);
                     });
+                }
+
+                function getDisponiblesNoSeleccionados() {
+                    return rolesDisponibles.filter(rol => !rolesSeleccionados.find(r => r.id === rol.id));
+                }
+
+                inputBuscarRoles.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const baseList = getDisponiblesNoSeleccionados();
+                    const list = query.length === 0
+                        ? baseList
+                        : baseList.filter(rol => rol.name.toLowerCase().includes(query));
+                    renderDropdown(list);
+                });
+
+                // Mostrar todos los roles disponibles al enfocar si no hay texto
+                inputBuscarRoles.addEventListener('focus', () => {
+                    const query = inputBuscarRoles.value.toLowerCase().trim();
+                    const baseList = getDisponiblesNoSeleccionados();
+                    const list = query.length === 0
+                        ? baseList
+                        : baseList.filter(rol => rol.name.toLowerCase().includes(query));
+                    renderDropdown(list);
                 });
 
                 // Cerrar dropdown al hacer click fuera
@@ -307,6 +317,13 @@
                     if (!dniRegex.test(dni)) {
                         mostrarError('inputDni', 'El DNI debe tener prefijo V o E seguido de 6 a 8 dígitos');
                         esValido = false;
+                    } else {
+                        // Validación adicional: la parte numérica debe ser >= 100000
+                        const numeroDni = parseInt(dni.slice(1), 10);
+                        if (isNaN(numeroDni) || numeroDni < 100000) {
+                            mostrarError('inputDni', 'El número de DNI debe ser mayor o igual a 100000');
+                            esValido = false;
+                        }
                     }
                 }
 

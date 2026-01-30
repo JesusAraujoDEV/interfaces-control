@@ -429,8 +429,6 @@ function openPaymentDetailsModal() {
   const name = document.getElementById('fullName')?.value.trim() || '-';
   const phone = document.getElementById('phone')?.value.trim() || '-';
   const amount = formatPrice(cartTotal(readCart()) + currentShippingCost());
-  document.getElementById('pdName').textContent = name;
-  document.getElementById('pdPhone').textContent = phone;
   document.getElementById('pdAmount').textContent = amount;
   m.classList.remove('hidden');
 }
@@ -461,12 +459,29 @@ document.getElementById('paymentMethodOverlay')?.addEventListener('click', () =>
 document.getElementById('pdCancel')?.addEventListener('click', () => {
   closePaymentDetailsModal();
 });
+// Solo permitir un checkbox seleccionado en la lista de bancos
+const pdBankList = document.getElementById('pdBankList');
+if (pdBankList) {
+  pdBankList.addEventListener('change', (e) => {
+    if (e.target && e.target.type === 'checkbox') {
+      // Desmarcar todos menos el actual
+      Array.from(pdBankList.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
+        if (cb !== e.target) cb.checked = false;
+      });
+    }
+  });
+}
+
 document.getElementById('pdConfirm')?.addEventListener('click', () => {
   const ref = String(document.getElementById('pdRef')?.value || '').trim();
-  const bankChoice = document.querySelector('input[name="pdBankChoice"]:checked');
+  const bankChoice = Array.from(document.querySelectorAll('input[name="pdBankChoice"]')).find(cb => cb.checked);
   const bank = bankChoice ? bankChoice.value : '';
   if (!ref) {
     alert('Por favor ingresa los últimos dígitos de la referencia.');
+    return;
+  }
+  if (!bank) {
+    alert('Por favor selecciona un banco.');
     return;
   }
   pendingPayment = { payment_type: 'DIGITAL', payment_reference: `${ref} - ${bank}`, payment_received: true, payment_bank: bank };
