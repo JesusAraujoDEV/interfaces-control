@@ -17,26 +17,26 @@
                 <p id="modalSubtitle" class="text-sm text-gray-500 mt-1">Usa este formulario para crear un permiso asociado a este rol</p>
             </header>
             <div class="space-y-6">
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-6">
                     <div class="campo">
                         <label>Nombre del Permiso</label>
                         <input type="text" id="nombrePermiso" placeholder="ej., Ver Pedidos">
                     </div>
-                    <div class="campo">
+                    <div class="campo hidden">
                         <label>Tipo</label>
                         <select id="tipoPermiso" class="select-personalizado">
                             <option selected disabled>Selecciona un tipo</option>
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="campo">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="campo ">
                         <label>Recurso</label>
                         <select id="recursoPermiso" class="select-personalizado">
                             <option selected disabled>Selecciona un recurso</option>
                         </select>
                     </div>
-                    <div class="campo">
+                    <div class="campo hidden">
                         <label>Método</label>
                         <select id="metodoPermiso" class="select-personalizado">
                             <option selected disabled>Selecciona un método</option>
@@ -78,7 +78,7 @@
     <div class="flex min-h-screen">
         <%- include('../partials/aside.ejs') %>
 
-        <main class="flex-grow p-12 contenido-principal">
+        <main class="flex-grow p-12 contenido-principal h-[100dvh]">
             <header class="mb-8">
                 <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Dashboard / Roles / Editar Rol </p>
                 <h1 id="roleMainTitle" class="text-3xl font-bold text-gray-900">Editar Rol</h1>
