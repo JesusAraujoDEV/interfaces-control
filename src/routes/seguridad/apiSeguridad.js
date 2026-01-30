@@ -708,6 +708,12 @@ function createApiSeguridadRouter() {
         req.cookies.access_token;
       const { id } = req.params;
       const bodyData = req.body;
+      console.log(bodyData);
+      const body = {
+        name: bodyData.name,
+        description: bodyData.description,
+        new_permissions: bodyData.permissions
+      };
 
       const response = await fetch(
         `${URL_BASE_API_SEGURIDAD}/api/seguridad/roles/${id}`,
@@ -717,7 +723,7 @@ function createApiSeguridadRouter() {
             "Content-Type": "application/json",
             ...(access_token && { Authorization: `Bearer ${access_token}` }),
           },
-          body: JSON.stringify(bodyData),
+          body: JSON.stringify(body),
         }
       );
 

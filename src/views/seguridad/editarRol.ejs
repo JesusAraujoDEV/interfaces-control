@@ -137,6 +137,7 @@
     <%- include('../partials/inyectarHelpersJs.ejs') %>
 
     <script>
+        let dataRole = {};
         const roleId = <%= roleId %>;
         let assignedPermissions = [];
         let isEditingExisting = false;
@@ -165,6 +166,7 @@
                     
                     if (response.ok) {
                         const data = await response.json();
+                        dataRole = data.role[0];
                         console.log(data);
                         let role = Array.isArray(data.role) ? data.role[0] : data.role;
                         
@@ -418,14 +420,20 @@
 
         // GUARDAR ROL (NOMBRE Y DESC)
         document.getElementById('saveRole').onclick = async () => {
+            const idsPermission = assignedPermissions.map(p => p.id);
+
+            // Ahora obtiene de dataRole.permissions los permisos correspondientes a idsPermission
+            const permissions = dataRole.permissions.filter(permission => idsPermission.includes(permission.id));
+            const body = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                permissions: permissions
+            };
+            console.log(body);
             const res = await fetch(`/api/seguridad/roles/${roleId}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(), // Agregado token
-                body: JSON.stringify({
-                    name: document.getElementById('name').value,
-                    description: document.getElementById('description').value,
-                    permissions: assignedPermissions.map(p => p.id)
-                })
+                body: JSON.stringify(body)
             });
             if (res.ok) {
                 window.seguridad_notyf.success("Rol guardado");
