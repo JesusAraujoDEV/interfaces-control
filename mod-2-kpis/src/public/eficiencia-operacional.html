@@ -80,15 +80,105 @@
                         <p style="font-size: 0.875rem; margin-top: calc(var(--spacing-unit) * 3.75); /* 15px */ color: var(--text-muted);">
                             <span class="dot dot--danger" style="width: calc(var(--spacing-unit) * 1.5); /* 6px */ height: calc(var(--spacing-unit) * 1.5); /* 6px */"></span> Meta: <span id="target-value">Cargando...</span>
                         </p>
+                        <button id="update-target-btn" class="btn-outline" style="margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */">
+                            ⚙️ Actualizar Meta
+                        </button>
                     </div>
                 </section>
             </div>
     <script>
+        // Función para obtener la meta desde LocalStorage o usar la predeterminada
+        function getTargetRotation() {
+            const saved = localStorage.getItem('rotationTarget');
+            return saved ? parseFloat(saved) : 1.7;
+        }
+
+        // Función para guardar la meta en LocalStorage
+        function saveTargetRotation(target) {
+            localStorage.setItem('rotationTarget', target.toString());
+        }
+
         function updateGauge(current, target) {
             const percentage = Math.min((current / target) * 100, 100); // Máximo 100%
             document.documentElement.style.setProperty('--percentage', percentage);
             document.getElementById('current-value').textContent = current.toFixed(1);
             document.getElementById('target-value').textContent = target.toFixed(1);
+            
+            const fillElement = document.querySelector('.gauge-placeholder__fill');
+            if (fillElement) {
+                // Si la rotación actual es igual o mayor a la meta, mostrar el gauge completamente lleno (0°)
+                if (current >= target) {
+                    fillElement.style.transform = 'rotate(0deg)'; // 0° es el máximo (lleno)
+                } else {
+                    // Calcular el ángulo inverso: 180° - (180° * porcentaje/100)
+                    const angle = 180 - (percentage * 1.8); // 180° de rango total * porcentaje/100
+                    fillElement.style.transform = `rotate(${angle}deg)`;
+                }
+                console.log(`Current: ${current}, Target: ${target}, Angle: ${current >= target ? '0deg (full)' : (180 - (percentage * 1.8)) + 'deg'}`);
+            }
+        }
+
+        // Función de prueba para verificar el gauge
+        function testGauge() {
+            console.log('=== PRUEBA DE GAUGE ===');
+            updateGauge(1, 1); // Debería mostrar 100%
+            setTimeout(() => {
+                updateGauge(0.5, 1); // Debería mostrar 50%
+                setTimeout(() => {
+                    updateGauge(0, 1); // Debería mostrar 0%
+                }, 2000);
+            }, 2000);
+        }
+
+        // Función para mostrar el modal de actualización de meta
+        function showUpdateTargetModal() {
+            const currentTarget = getTargetRotation();
+            
+            Swal.fire({
+                title: 'Actualizar Meta de Rotación',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-4 text-sm text-gray-600">Ingrese el nuevo valor para la meta de rotación de personal:</p>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Meta Actual:</label>
+                            <div class="text-lg font-bold text-emerald-600">${currentTarget.toFixed(1)}</div>
+                        </div>
+                        <div>
+                            <label for="new-target" class="block text-sm font-medium text-gray-700 mb-2">Nueva Meta:</label>
+                            <input id="new-target" type="number" step="0.1" min="0.1" max="10" value="${currentTarget}" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Meta',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#10b981',
+                preConfirm: () => {
+                    const newTarget = parseFloat(document.getElementById('new-target').value);
+                    if (isNaN(newTarget) || newTarget <= 0) {
+                        Swal.showValidationMessage('Por favor ingrese un valor válido mayor a 0');
+                        return false;
+                    }
+                    return newTarget;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const newTarget = result.value;
+                    saveTargetRotation(newTarget);
+                    
+                    // Actualizar el gauge con la nueva meta
+                    fetchRotationData();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Meta Actualizada',
+                        text: `La meta de rotación ha sido actualizada a ${newTarget.toFixed(1)}`,
+                        confirmButtonColor: '#10b981'
+                    });
+                }
+            });
         }
 
     // Función para hacer fetch a la API
@@ -97,19 +187,21 @@
             const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking');
             if (!response.ok) throw new Error('Error en la API');
             const data = await response.json();
+            const target = getTargetRotation(); // Obtener la meta desde LocalStorage
             if (Array.isArray(data.data) && data.data.length > 0) {
                 // Calcular el promedio de efficiency_score como "rotación actual"
                 const totalScore = data.data.reduce((sum, item) => sum + item.efficiency_score, 0);
                 console.log('Puntaje total de eficiencia:', totalScore);
                 const averageScore = totalScore / data.data.length;
                 const mockRotation = (averageScore / 100) * 2; // Simular un valor alrededor de 1.2
-                updateGauge(mockRotation, 1.7);
+                updateGauge(mockRotation, target);
             } else {
-                updateGauge(0, 1.7);
+                updateGauge(0, target);
             }
         } catch (error) {
             console.error('Error al cargar datos:', error);
-            updateGauge(0, 1.7);
+            const target = getTargetRotation(); // Obtener la meta desde LocalStorage
+            updateGauge(0, target);
         }
     }
 
@@ -122,13 +214,13 @@
         }
 
         // Función para mapear estado
-        function mapStatus(status) {
-            return status === 'ACTIVE' ? 'Activo' : 'Descanso';
+        function mapStatus(current_status) {
+            return current_status === 'ACTIVE' ? 'Activo' : 'Descanso';
         }
 
         // Función para obtener clase del badge
-        function getStatusClass(status) {
-            return status === 'Activo' ? 'active' : 'rest';
+        function getStatusClass(current_status) {
+            return current_status === 'Activo' ? 'active' : 'rest';
         }
 
     // --- Lógica de Ranking y Staff ---
@@ -169,7 +261,7 @@
                 <td class="px-4 py-3 text-slate-600">${item.avg_time_minutes}</td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
-                        ${item.status === 'ACTIVE' ? 'Activo' : 'Descanso'}
+                        ${item.current_status === 'ACTIVE' ? 'Activo' : 'Descanso'}
                     </span>
                 </td>
             `;
@@ -302,7 +394,7 @@
                     });
                     const exportBtn = document.querySelector(".header-top .btn-primary");
                     exportBtn.disabled = false;
-                    exportBtn.innerText = "📤 Exportar Reporte";
+                    exportBtn.innerText = "📤 Exportar Hoja de Calculo";
                 } else {
                     setTimeout(() => pollExportJob(jobId), 2000);
                 }
@@ -319,6 +411,12 @@
         loadRanking();
         fetchRotationData();
         fetchData();
+        
+        // Agregar event listener al botón de actualizar meta
+        const updateTargetBtn = document.getElementById('update-target-btn');
+        if (updateTargetBtn) {
+            updateTargetBtn.addEventListener('click', showUpdateTargetModal);
+        }
         
         // Export Logic con POLLING
         const exportBtn = document.querySelector(".header-top .btn-primary");
@@ -342,7 +440,7 @@
                     .catch(() => {
                         Swal.fire('Error', 'No se pudo iniciar la exportación operacional.', 'error');
                         exportBtn.disabled = false;
-                        exportBtn.innerText = "📤 Exportar Reporte";
+                        exportBtn.innerText = "📤 Exportar Hoja de Calculo";
                     });
             });
         }

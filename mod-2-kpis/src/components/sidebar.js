@@ -358,4 +358,27 @@ export function mountKpiSidebar() {
 
   ensureKpiSidebarControls();
   syncKpiTogglePlacement(document.getElementById("kpi-shell"));
+
+  // Añadir evento de clic al sidebar para expandir/colapsar cuando no se hace clic en opciones
+  sidebarHost.addEventListener('click', (e) => {
+    // Verificar si el clic no fue en un enlace, botón o elemento interactivo
+    const clickedElement = e.target;
+    const isInteractiveElement = 
+      clickedElement.closest('a') || 
+      clickedElement.closest('button') || 
+      clickedElement.closest('input') || 
+      clickedElement.closest('select') || 
+      clickedElement.closest('textarea') ||
+      clickedElement.closest('#kpi-sidebar-toggle-slot');
+
+    if (!isInteractiveElement && !isMobileViewport()) {
+      // Si no es un elemento interactivo y no es móvil, expandir/colapsar el sidebar
+      const shell = document.getElementById("kpi-shell");
+      if (shell) {
+        const next = !shell.classList.contains(KPI_SHELL_COLLAPSED_CLASS);
+        setCollapsed(shell, next);
+        writeCollapsedPref(next);
+      }
+    }
+  });
 }
