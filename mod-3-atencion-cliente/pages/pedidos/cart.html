@@ -555,6 +555,13 @@
                 if (response.success) {
                     console.log(`Mesa cerrada en servidor. Esperando ${waitTime/1000}s de simulación visual...`);
 
+                    // Cancelar solicitudes de soporte pendientes asociadas a esta sesión
+                    try {
+                        await cancelPendingSupportRequests();
+                    } catch (cleanupErr) {
+                        console.warn('Limpieza de solicitudes pendientes falló:', cleanupErr);
+                    }
+
                     // 7. Esperar el tiempo visual y redirigir
                     setTimeout(async () => {
                         await finishPaymentSession();
@@ -941,6 +948,29 @@
             icon.className = `material-icons-outlined ${type === 'success' ? 'text-green-400' : 'text-red-400'}`;
             toast.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        // Cancelar solicitudes de soporte PENDING de esta sesión
+        async function cancelPendingSupportRequests() {
+            const requestIds = JSON.parse(localStorage.getItem('my_service_requests') || '[]');
+            if (!Array.isArray(requestIds) || requestIds.length === 0) return;
+
+            const tasks = requestIds.map(async (id) => {
+                try {
+                    const res = await window.ClientApi.getServiceRequest(id);
+                    const req = res?.data || res;
+                    const status = req?.status;
+                    if (status === 'PENDING') {
+                        await window.ClientApi.cancelServiceRequest(id);
+                    }
+                } catch (e) {
+                    console.warn('No se pudo cancelar solicitud', id, e);
+                }
+            });
+
+            await Promise.all(tasks);
+            // Limpiar historial local tras cancelar
+            localStorage.setItem('my_service_requests', JSON.stringify([]));
         }
     </script>
 </body>

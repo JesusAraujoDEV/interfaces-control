@@ -413,4 +413,50 @@ document.addEventListener("DOMContentLoaded", () => {
     window.Navbar.updateCartBadge = renderCartBadge;
     // Render inicial
     renderCartBadge();
+
+    // =============================
+    // Heartbeat de sesión del cliente
+    // =============================
+    let __hbTimer = null;
+    let __logoutInProgress = false;
+
+    async function checkClientSession() {
+        if (__logoutInProgress) return;
+        try {
+            const storedClient = localStorage.getItem('user_client');
+            if (!storedClient) return;
+            const client = JSON.parse(storedClient);
+            const clientId = client?.id;
+            if (!clientId || !window.ClientApi || !window.ClientApi.getClient) return;
+
+            const resp = await window.ClientApi.getClient(clientId);
+            // Soportar ambas formas de respuesta
+            const status = (resp && resp.success && resp.data && resp.data.status)
+                ? resp.data.status
+                : (resp && resp.status && typeof resp.status === 'string')
+                    ? resp.status
+                    : null;
+
+            if (status && status.toUpperCase() === 'CLOSED') {
+                __logoutInProgress = true;
+                // Cierre forzado detectado: salir sin guard/confirm
+                try { await proceedLogout(); } catch (_) {}
+            }
+        } catch (e) {
+            // Si el backend respondió 401, HttpClient ya limpia cookie y puede redirigir.
+            // No duplicamos acción aquí.
+        }
+    }
+
+    function startHeartbeat() {
+        // Solo aplicar en vistas de pedidos
+        if (!['home','cart','support'].includes(currentPage)) return;
+        if (__hbTimer) return;
+        __hbTimer = setInterval(() => {
+            if (document.hidden) return;
+            checkClientSession();
+        }, 10000);
+    }
+
+    startHeartbeat();
 });

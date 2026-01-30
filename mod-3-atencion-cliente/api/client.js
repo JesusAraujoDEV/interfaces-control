@@ -63,6 +63,18 @@ window.ClientApi = {
         return response;
     },
 
+    // Cierre forzado con limpieza (cliente + soporte + órdenes)
+    forceCloseClient: async (clientId) => {
+        const url = `${window.ClientApi.getBaseUrl()}/clients/${clientId}/force-close`;
+        const response = await window.HttpClient.request(url, {
+            method: 'POST'
+        });
+        if (response.error) {
+            throw new Error(response.error);
+        }
+        return response;
+    },
+
         /**
      * TAREA VISTA 4: Enviar Orden
      * Consumir POST /comandas
@@ -113,6 +125,14 @@ window.ClientApi = {
         if(response.error) {
             throw new Error(response.error);
         }
+        return response;
+    },
+
+    // Obtener detalle de cliente/sesión actual
+    getClient: async (clientId) => {
+        const baseUrl = window.ClientApi.getBaseUrl();
+        const url = `${baseUrl}/clients/${clientId}`;
+        const response = await window.HttpClient.request(url, { method: 'GET' });
         return response;
     },
 

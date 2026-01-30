@@ -41,6 +41,10 @@ window.HttpClient = {
                 // Si el token expiró o es inválido, a veces el backend redirige al login HTML
                 if (response.status === 401 || response.status === 403) {
                      localStorage.removeItem(tokenKey);
+                     // Intentar borrar cookie de cliente (HttpOnly) si estamos en ATC
+                     if (__isGuestView()) {
+                         try { await fetch('/api/atencion-cliente/logout', { method: 'POST' }); } catch (_) {}
+                     }
                      window.location.href = '/'; // Redirigir al login
                 }
                 throw new Error("Respuesta no válida del servidor (HTML recibido).");
@@ -53,6 +57,10 @@ window.HttpClient = {
                 if (response.status === 401) {
                     console.warn("Sesión expirada");
                     localStorage.removeItem(tokenKey);
+                    // Si es cliente ATC, solicitar al backend limpieza de cookie HttpOnly
+                    if (__isGuestView()) {
+                        try { await fetch('/api/atencion-cliente/logout', { method: 'POST' }); } catch (_) {}
+                    }
                     // Opcional: window.location.href = '/';
                 }
 
