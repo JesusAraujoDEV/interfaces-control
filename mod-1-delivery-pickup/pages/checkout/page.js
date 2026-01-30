@@ -429,8 +429,6 @@ function openPaymentDetailsModal() {
   const name = document.getElementById('fullName')?.value.trim() || '-';
   const phone = document.getElementById('phone')?.value.trim() || '-';
   const amount = formatPrice(cartTotal(readCart()) + currentShippingCost());
-  document.getElementById('pdName').textContent = name;
-  document.getElementById('pdPhone').textContent = phone;
   document.getElementById('pdAmount').textContent = amount;
   m.classList.remove('hidden');
 }
