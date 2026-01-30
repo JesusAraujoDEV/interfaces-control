@@ -75,10 +75,34 @@
 
           <div>
             <label class="block text-sm font-medium mb-2">Teléfono</label>
-            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required
-              placeholder="Ingresa tu teléfono" pattern="^[0-9+()\-\s]+$"
-              class="w-full rounded-md border border-gray-300 p-3 bg-white placeholder-gray-400 shadow-[0_1px_0_rgba(0,0,0,0.03)]" />
-            <p id="err-phone" class="mt-1 text-xs text-red-600 hidden">Por favor ingresa tu teléfono.</p>
+            <div class="phone-input-group">
+              <!-- Country Selector -->
+              <button type="button" id="countrySelectorTrigger" class="phone-country-selector">
+                <span id="countryFlag">🇻🇪</span>
+                <span id="countryCode">+58</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+
+              <!-- Area Code (Only for Venezuela +58) -->
+              <div id="areaCodeGroup" class="phone-area-group">
+                <select id="areaCode" class="phone-area-select">
+                  <option value="">Área</option>
+                  <option value="412">412</option>
+                  <option value="414">414</option>
+                  <option value="424">424</option>
+                  <option value="416">416</option>
+                  <option value="426">426</option>
+                </select>
+              </div>
+
+              <!-- Phone Number -->
+              <input type="tel" id="phoneNumber" name="phoneNumber" class="phone-number-input" placeholder="1234567"
+                maxlength="7" inputmode="numeric" pattern="[0-9]*" required />
+            </div>
+            <input type="hidden" id="phone" name="phone" />
+            <p id="err-phone" class="mt-1 text-xs text-red-600 hidden">Por favor ingresa tu teléfono completo.</p>
           </div>
 
           <div>
@@ -173,14 +197,17 @@
   <div id="paymentMethodModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
     <div id="paymentMethodOverlay" class="absolute inset-0 bg-black/40"></div>
     <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
-      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+      <div
+        class="w-full max-w-md bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
         <div class="p-6">
           <h2 id="paymentMethodTitle" class="text-lg font-extrabold text-gray-900">Método de pago</h2>
           <p class="mt-2 text-sm text-gray-600">Selecciona el método de pago para este pedido.</p>
 
           <div class="mt-6 space-y-3">
-            <button id="payCashBtn" type="button" class="w-full py-3 rounded-lg border border-gray-200 bg-white">Efectivo</button>
-            <button id="payDigitalBtn" type="button" class="w-full py-3 rounded-lg bg-brand-800 text-white">Digital</button>
+            <button id="payCashBtn" type="button"
+              class="w-full py-3 rounded-lg border border-gray-200 bg-white">Efectivo</button>
+            <button id="payDigitalBtn" type="button"
+              class="w-full py-3 rounded-lg bg-brand-800 text-white">Digital</button>
           </div>
 
           <div class="mt-6 flex justify-end">
@@ -195,7 +222,8 @@
   <div id="paymentDetailsModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
     <div id="paymentDetailsOverlay" class="absolute inset-0 bg-black/40"></div>
     <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
-      <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+      <div
+        class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
         <div class="p-6">
           <h2 class="text-lg font-extrabold text-gray-900">Datos de pago</h2>
           <p class="mt-1 text-sm text-gray-600">Confirma los datos y añade la referencia.</p>
@@ -214,115 +242,52 @@
             </div>
           </div>
 
-          <div class="mt-4">
-            <label class="block text-sm font-medium mb-2">Banco (selecciona uno)</label>
-            <div id="pdBankList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto custom-scrollbar">
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0172 - BANCAMIGA BANCO UNIVERSAL" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0172</span> - Bancamiga Banco Universal</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0102- Banco de Venezuela" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0102</span> - Banco de Venezuela</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0104 - Venezolano de Crédito" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0104</span> - Venezolano de Crédito</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0105 - Mercantil" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0105</span> - Mercantil</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0108 - Provincial" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0108</span> - Provincial</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0114 - Bancaribe" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0114</span> - Bancaribe</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0115 - Banco Exterior" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0115</span> - Banco Exterior</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0128 - Banco Caroni" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0128</span> - Banco Caroni</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0134 - Banesco" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0134</span> - Banesco</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0137 - Banco Sofitasa" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0137</span> - Banco Sofitasa</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0138 - Banco Plaza" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0138</span> - Banco Plaza</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0146 - Bangente" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0146</span> - Bangente</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0151 - Fondo Comun" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0151</span> - Fondo Comun</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0156 - 100% Banco" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0156</span> - 100% Banco</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0157 - DelSur" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0157</span> - DelSur</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0163 - Banco del Tesoro" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0163</span> - Banco del Tesoro</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0168 - Bancrecer" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0168</span> - Bancrecer</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0169 - R4" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0169</span> - R4</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0171 - Banco Activo" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0171</span> - Banco Activo</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0174 - BanPlus" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0174</span> - BanPlus</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0175 - Banco Digital de los Trabajadores" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0175</span> - Banco Digital de los Trabajadores</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0177 - BanFANB" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0177</span> - BanFANB</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0178 - N58 Banco Digital" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0178</span> - N58 Banco Digital</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0191 - Banco Nacional de Credito" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0191</span> - Banco Nacional de Credito</span>
-              </label>
-              <label class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-brand-50 transition">
-                <input type="checkbox" name="pdBankChoice" value="0601 - Instituto Municipal de Credito Popular" class="accent-brand-800 w-4 h-4" />
-                <span class="text-sm"><span class="font-mono font-bold">0601</span> - Instituto Municipal de Credito Popular</span>
+          <div class="mt-4 relative">
+            <label class="block text-sm font-medium mb-2">Banco</label>
+            <button type="button" id="bankSelectorTrigger" class="bank-selector-trigger">
+              <span class="bank-selector-icon">🏦</span>
+              <span id="bankSelectorText" class="bank-selector-text">Selecciona tu banco...</span>
+              <svg class="bank-selector-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div id="bankSelectorPanel" class="bank-selector-panel hidden">
+              <div class="bank-selector-search">
+                <input type="text" id="bankSearchInput" placeholder="Buscar banco..." autocomplete="off" />
+              </div>
+              <div id="bankSelectorList" class="bank-selector-list">
+                <!-- Banks will be rendered by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Cancellation Policy Checkbox -->
+          <div id="policyCheckboxContainer" class="policy-container">
+            <div class="policy-box">
+              <div class="policy-header">
+                <svg class="policy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                  </path>
+                </svg>
+                <h4 class="policy-title">Política de Cancelación</h4>
+              </div>
+              <label class="policy-label">
+                <input type="checkbox" id="policyCheckboxDigital" class="policy-checkbox" />
+                <span class="policy-text">
+                  Entiendo y acepto que <strong>una vez procesado el pedido, no se admiten cancelaciones ni
+                    reembolsos</strong> bajo ninguna circunstancia.
+                </span>
               </label>
             </div>
           </div>
 
           <div class="mt-6 flex items-center justify-end gap-3">
-            <button id="pdCancel" type="button" class="text-sm text-gray-600">Cancelar</button>
-            <button id="pdConfirm" type="button" class="bg-brand-800 text-white py-2 px-4 rounded-lg">Confirmar pago</button>
+            <button id="pdCancel" type="button" class="btn-cancel">Cerrar</button>
+            <button id="pdConfirm" type="button" class="btn-confirm" disabled>
+              <span class="btn-confirm-icon">✓</span>
+              <span>Confirmar Pago</span>
+            </button>
           </div>
         </div>
       </div>
@@ -332,10 +297,12 @@
   <div id="paymentCashModal" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
     <div id="paymentCashOverlay" class="absolute inset-0 bg-black/40"></div>
     <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
-      <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+      <div
+        class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
         <div class="p-6">
           <h2 class="text-lg font-extrabold text-gray-900">Pago en efectivo</h2>
-          <p class="mt-1 text-sm text-gray-600">Por favor lea las condiciones y declare el monto en efectivo disponible.</p>
+          <p class="mt-1 text-sm text-gray-600">Por favor lea las condiciones y declare el monto en efectivo disponible.
+          </p>
 
           <div id="pcConditions" class="mt-4 text-sm text-gray-700"></div>
 
@@ -345,13 +312,38 @@
               <div id="pcTotal" class="font-extrabold">$0.00</div>
             </div>
             <label class="block text-sm font-medium mt-3">Monto en efectivo que dispone</label>
-            <input id="pcCashAmount" type="number" min="0" step="1" placeholder="Ej: 250" class="w-full rounded-md border p-2 mt-2" />
+            <input id="pcCashAmount" type="number" min="0" step="1" placeholder="Ej: 250"
+              class="w-full rounded-md border p-2 mt-2" />
             <div id="pcChangeSummary" class="mt-2 text-sm text-gray-700"></div>
           </div>
 
+          <!-- Cancellation Policy Checkbox -->
+          <div class="policy-container">
+            <div class="policy-box">
+              <div class="policy-header">
+                <svg class="policy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                  </path>
+                </svg>
+                <h4 class="policy-title">Política de Cancelación</h4>
+              </div>
+              <label class="policy-label">
+                <input type="checkbox" id="policyCheckboxCash" class="policy-checkbox" />
+                <span class="policy-text">
+                  Entiendo y acepto que <strong>una vez procesado el pedido, no se admiten cancelaciones ni
+                    reembolsos</strong> bajo ninguna circunstancia.
+                </span>
+              </label>
+            </div>
+          </div>
+
           <div class="mt-6 flex items-center justify-end gap-3">
-            <button id="pcCancel" type="button" class="text-sm text-gray-600">Cancelar</button>
-            <button id="pcConfirm" type="button" class="bg-brand-800 text-white py-2 px-4 rounded-lg">Confirmar efectivo</button>
+            <button id="pcCancel" type="button" class="btn-cancel">Cerrar</button>
+            <button id="pcConfirm" type="button" class="btn-confirm" disabled>
+              <span class="btn-confirm-icon">✓</span>
+              <span>Confirmar Efectivo</span>
+            </button>
           </div>
         </div>
       </div>
