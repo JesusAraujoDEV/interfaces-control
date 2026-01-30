@@ -762,6 +762,9 @@ function buildOrderPayload() {
       if (Array.isArray(it.excluded_recipe_ids) && it.excluded_recipe_ids.length) {
         row.excluded_recipe_ids = it.excluded_recipe_ids;
       }
+      if (Array.isArray(it.excluded_recipe_names) && it.excluded_recipe_names.length) {
+        row.excluded_recipe_names = it.excluded_recipe_names;
+      }
       return row;
     });
 
@@ -809,6 +812,33 @@ function buildOrderPayload() {
   return payload;
 }
 
+async function enrichPayloadExcludedNames(payload) {
+  if (!payload || !Array.isArray(payload.items)) return payload;
+  // For each item that has excluded IDs but no names, try to fetch recipe and resolve names
+  await Promise.all(payload.items.map(async (it) => {
+    try {
+      const ids = Array.isArray(it.excluded_recipe_ids) ? it.excluded_recipe_ids : [];
+      const hasNames = Array.isArray(it.excluded_recipe_names) && it.excluded_recipe_names.length;
+      if (!ids.length || hasNames) return;
+      const productId = it.product_id || it.productId || it.productId || it.id || null;
+      if (!productId) return;
+      const recipe = await fetchProductRecipe(productId);
+      if (!Array.isArray(recipe) || !recipe.length) return;
+      const idToName = {};
+      for (const r of recipe) {
+        const rid = String(r.id ?? r.recipe_id ?? r._id ?? '');
+        const name = r.ingredientName ?? r.name ?? r.title ?? r.label ?? '';
+        if (rid) idToName[rid] = name;
+      }
+      const resolved = ids.map(i => idToName[String(i)]).filter(Boolean);
+      if (resolved.length) it.excluded_recipe_names = resolved;
+    } catch (e) {
+      // ignore per-item failures
+    }
+  }));
+  return payload;
+}
+
 // (payment modal state is declared above)
 
 async function submitOrderFlow(mode) {
@@ -851,6 +881,13 @@ async function createOrder() {
   const base = normalizeBaseUrl(getDpUrl());
   const url = base ? `${base}/api/dp/v1/orders` : '/api/dp/v1/orders';
   const payload = buildOrderPayload();
+
+  // Enrich payload with excluded ingredient names when possible
+  try {
+    await enrichPayloadExcludedNames(payload);
+  } catch (e) {
+    // non-fatal
+  }
 
   if (!payload.items.length) {
     throw new Error('Tu carrito está vacío. Agrega productos antes de continuar.');
