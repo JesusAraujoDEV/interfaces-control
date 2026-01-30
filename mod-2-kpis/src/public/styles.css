@@ -767,6 +767,74 @@ body {
     margin-top: calc(var(--spacing-unit) * 2);
 }
 
+/* TABLE ALIGNMENT FIX FOR SIDEBAR */
+.table-section {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.table-section .card {
+    width: 100%;
+}
+
+/* Ensure both header and body tables have identical structure */
+.table-section .data-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.table-section .data-table thead th {
+    width: 15%; /* ID TRANSACCIÓN */
+}
+
+.table-section .data-table thead th:nth-child(2) {
+    width: 15%; /* FECHA */
+    padding-left: 16px;
+}
+
+.table-section .data-table thead th:nth-child(3) {
+    width: 10%; /* HORA */
+}
+
+.table-section .data-table thead th:nth-child(4) {
+    width: 25%; /* CAMARERO */
+}
+
+.table-section .data-table thead th:nth-child(5) {
+    width: 15%; /* CANTIDAD */
+}
+
+.table-section .data-table thead th:nth-child(6) {
+    width: 20%; /* DURACIÓN TOTAL */
+}
+
+/* Body table should match header exactly */
+.table-section #table-container .data-table td:nth-child(1) {
+    width: 15%; /* ID TRANSACCIÓN */
+}
+
+.table-section #table-container .data-table td:nth-child(2) {
+    width: 15%; /* FECHA */
+    padding-left: 16px;
+}
+
+.table-section #table-container .data-table td:nth-child(3) {
+    width: 10%; /* HORA */
+}
+
+.table-section #table-container .data-table td:nth-child(4) {
+    width: 25%; /* CAMARERO */
+}
+
+.table-section #table-container .data-table td:nth-child(5) {
+    width: 15%; /* CANTIDAD */
+}
+
+.table-section #table-container .data-table td:nth-child(6) {
+    width: 20%; /* DURACIÓN TOTAL */
+}
+
 @media (max-width: 640px) {
     .chart-container {
         min-height: 250px;

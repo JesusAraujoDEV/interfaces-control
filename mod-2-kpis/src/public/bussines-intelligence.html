@@ -107,43 +107,42 @@
 
                 <section class="table-section">
                     <div class="tabs-container" style="margin-bottom: calc(var(--spacing-unit) * 3.75); /* 15px */">
-                        <button class="tab tab--active" data-range="30days">Últimos 30 días ▾</button>
+                        <button class="tab tab--active" data-range="30days">Últimos 30 días</button>
+                        <button class="tab" data-range="hour">Última Hora</button>
                         <button class="tab" data-range="week">Semana Actual</button>
                         <button class="tab" data-range="month">Mes Actual</button>
                         <button class="tab" data-range="year">Año Actual</button>
                     </div>
 
                     <div class="card"
-                        style="padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 500px;">
+                        style="padding: 0; overflow: hidden; display: flex; flex-direction: column; max-height: 600px;">
 
                         <!-- Header fijo -->
-                        <div style="background-color: var(--primary-color); color: var(--white); padding-right: calc(var(--spacing-unit) * 4.25); /* 17px */">
+                        <div style="background-color: var(--primary-color); color: var(--white); padding-right: calc(var(--spacing-unit) * 4.25); /* 17px */; position: sticky; top: 0; z-index: 10;">
                             <table class="data-table" style="margin-bottom: 0;">
                                 <thead class="data-table__thead">
                                     <tr>
-                                        <th class="data-table__th" style="width: 15%;">ID TRANSACCIÓN</th>
-                                        <th class="data-table__th" style="width: 15%;">FECHA</th>
-                                        <th class="data-table__th" style="width: 10%;">HORA</th>
-                                        <th class="data-table__th" style="width: 25%;">CAMARERO</th>
-                                        <th class="data-table__th" style="width: 15%;">CANTIDAD</th>
-                                        <th class="data-table__th" style="width: 20%;">DURACIÓN TOTAL</th>
+                                        <th class="data-table__th">ID TRANSACCIÓN</th>
+                                        <th class="data-table__th">FECHA</th>
+                                        <th class="data-table__th">HORA</th>
+                                        <th class="data-table__th">CAMARERO</th>
+                                        <th class="data-table__th">CANTIDAD</th>
+                                        <th class="data-table__th">DURACIÓN TOTAL</th>
                                     </tr>
                                 </thead>
                             </table>
                         </div>
 
-                        <!-- Contenedor con scroll (VIRTUALIZADO) -->
-                        <div id="virtual-scroller" style="flex-grow: 1; overflow-y: auto; position: relative;">
-                            <div id="ghost-height" style="height: 0;"></div>
-                            <table class="data-table" id="real-table"
-                                style="position: absolute; top: 0; left: 0; width: 100%;">
+                        <!-- Contenedor con scroll normal -->
+                        <div id="table-container" style="flex-grow: 1; overflow-y: auto; max-height: 400px;">
+                            <table class="data-table">
                                 <tbody id="table-body">
                                 </tbody>
                             </table>
                         </div>
 
                         <div
-                            style="padding: calc(var(--spacing-unit) * 2.5); /* 10px */ border-top: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-muted);">
+                            style="padding: calc(var(--spacing-unit) * 2.5); /* 10px */ border-top: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-muted); position: sticky; bottom: 0; background: white;">
                             <span id="record-count">Cargando transacciones...</span>
                         </div>
                     </div>
@@ -151,9 +150,7 @@
 
                 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const scroller = document.getElementById('virtual-scroller');
-        const ghost = document.getElementById('ghost-height');
-        const realTable = document.getElementById('real-table');
+        const tableContainer = document.getElementById('table-container');
         const tbody = document.getElementById('table-body');
         const countLabel = document.getElementById('record-count');
         const searchInput = document.getElementById('global-search');
@@ -162,26 +159,32 @@
         // Add event listener to apply filters button
         if (applyBtn) {
             applyBtn.addEventListener('click', () => {
-                // Hacer nueva petición al servidor
-                fetchTransactions();
-                // Después de cargar los datos, aplicar filtros
-                setTimeout(() => {
-                    filterData();
-                }, 500);
+                // Solo aplicar filtros a los datos ya cargados, no hacer nueva petición
+                filterData();
             });
         }
 
-        const ROW_HEIGHT = 51; 
-    let allData = [];
-    let filteredData = [];
-    let currentSearch = "";
-    let selectedStartDate = null;
-    let selectedEndDate = null;
+        let allData = [];
+        let filteredData = [];
+        let currentSearch = "";
+        let selectedStartDate = null;
+        let selectedEndDate = null;
+        let selectedStartTime = null;
 
-    // Function to update the ghost height for virtual scrolling
-    const updateScrollerHeight = () => {
-        ghost.style.height = `${filteredData.length * ROW_HEIGHT}px`;
-    };
+        // Update record count based on current data
+        const updateRecordCount = () => {
+            if (allData.length === 0) {
+                countLabel.innerText = "No hay transacciones disponibles.";
+            } else if (filteredData.length === 0 && (currentSearch.trim() !== "" || selectedStartDate || selectedEndDate)) {
+                countLabel.innerText = "No hay transacciones que coincidan con los filtros seleccionados. Presione 'Aplicar Filtros' para ver resultados.";
+            } else if (filteredData.length === 0) {
+                countLabel.innerText = `Datos cargados: ${allData.length} registros totales. Seleccione filtros y presione 'Aplicar Filtros' para comenzar.`;
+            } else if (currentSearch.trim() !== "" || selectedStartDate || selectedEndDate) {
+                countLabel.innerText = `Mostrando ${filteredData.length} de ${allData.length} registros filtrados`;
+            } else {
+                countLabel.innerText = `Mostrando ${filteredData.length} registros totales`;
+            }
+        };
 
     // 1. Unified Fetch Logic (Now fetches all data without date queries)
     const fetchTransactions = () => {
@@ -195,7 +198,8 @@
                     if (res.status === 404) {
                         // No data available, show message
                         allData = [];
-                        filterData();
+                        filteredData = [];
+                        updateRecordCount();
                         countLabel.innerText = "No hay transacciones para el rango seleccionado.";
                         return;
                     } else {
@@ -207,15 +211,19 @@
             .then(response => {
                 if (!response) return; // Skip if already handled in error
                 allData = response.queue || [];
+                filteredData = [...allData]; // Inicialmente mostrar todos los datos
                 // No filtrar automáticamente aquí, esperar a que el usuario aplique filtros
                 countLabel.innerText = `Datos cargados: ${allData.length} registros totales`;
+                updateRecordCount();
+                renderTable();
                 return allData; // Retornar datos para poder encadenar
             })
             .catch(error => {
                 console.error('Error fetching transactions:', error);
                 countLabel.innerText = "Error al cargar los datos. Intente nuevamente.";
                 allData = [];
-                filterData();
+                filteredData = [];
+                updateRecordCount();
                 throw error; // Propagar error para que el .then() no se ejecute
             });
     };
@@ -223,61 +231,75 @@
     // New function to filter data locally (by search and dates)
     const filterData = () => {
         let tempData = allData;
-        console.log(selectedStartDate)
-        // Filter by dates if selected
-        if (selectedStartDate && selectedEndDate) {
+        
+        // Special handling for hour range - check first before date filtering
+        if (selectedStartTime === 'hour') {
+            // Special handling for hour range - filter by datetime from exactly 1 hour ago
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000)); // Exactly 1 hour ago
+            
+            console.log('Hour range filtering:');
+            console.log('Current time:', now.toISOString());
+            console.log('One hour ago:', oneHourAgo.toISOString());
+            
             tempData = tempData.filter(item => {
-                const itemDate = item.createdAt.split('T')[0]; // Extraer YYYY-MM-DD de createdAt
-                return itemDate >= selectedStartDate && itemDate <= selectedEndDate;
+                const itemDateTime = new Date(item.createdAt);
+                const isWithinHour = itemDateTime >= oneHourAgo;
+                
+                // Log first few items for debugging
+                if (allData.indexOf(item) < 5) {
+                    console.log(`Item ${item.externalOrderId}: ${item.createdAt} -> ${isWithinHour}`);
+                }
+                
+                return isWithinHour;
             });
-        } else if (selectedStartDate) {
-            tempData = tempData.filter(item => {
-                const itemDate = item.createdAt.split('T')[0]; // Extraer YYYY-MM-DD de createdAt
-                return itemDate >= selectedStartDate;
-            });
+            
+            console.log(`Filtered to ${tempData.length} items from last hour`);
+        } else {
+            // Regular date filtering for non-hour ranges
+            if (selectedStartDate && selectedEndDate) {
+                tempData = tempData.filter(item => {
+                    const itemDate = item.createdAt.split('T')[0]; // Extraer YYYY-MM-DD de createdAt
+                    return itemDate >= selectedStartDate && itemDate <= selectedEndDate;
+                });
+            } else if (selectedStartDate) {
+                // Regular date filtering
+                tempData = tempData.filter(item => {
+                    const itemDate = item.createdAt.split('T')[0]; // Extraer YYYY-MM-DD de createdAt
+                    return itemDate >= selectedStartDate;
+                });
+            }
         }
-        console.log(tempData);
+
         // Filter by search
         if (currentSearch.trim() !== "") {
-            tempData = tempData.filter(item => 
-                item.externalOrderId && item.externalOrderId.toLowerCase().includes(currentSearch.toLowerCase())
-            );
+            tempData = tempData.filter(item => {
+                const transactionId = item.externalOrderId || '';
+                const waiterName = item.customerName || item.displayLabel || '';
+                const searchLower = currentSearch.toLowerCase();
+                
+                return transactionId.toLowerCase().includes(searchLower) || 
+                       waiterName.toLowerCase().includes(searchLower);
+            });
         }
 
         filteredData = tempData;
-        updateScrollerHeight();
-        scroller.scrollTop = 0;
-        renderSlice();
-
-        if (filteredData.length === 0) {
-            countLabel.innerText = "No hay transacciones para el rango seleccionado.";
-        } else if (currentSearch || selectedStartDate) {
-            countLabel.innerText = `Mostrando ${filteredData.length} resultados filtrados`;
-        } else {
-            countLabel.innerText = `Mostrando ${filteredData.length} registros (ID total sincronizado)`;
-        }
+        tableContainer.scrollTop = 0;
+        renderTable();
+        updateRecordCount();
     };
-        // 2. Virtual Scroll Logic
-        const renderSlice = () => {
-        const scrollTop = scroller.scrollTop;
-        const viewportHeight = scroller.clientHeight;
-
-        const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
-        const endIndex = Math.min(
-            filteredData.length,
-            Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5
-        );
-        
+        // 2. Simple Table Rendering Logic
+    const renderTable = () => {
         let rowsHtml = '';
+        
         if (filteredData.length === 0) {
             rowsHtml = `
-                <tr style="height: ${ROW_HEIGHT}px;">
-                    <td colspan="6" class="data-table__td text-center text-gray-500">No hay transacciones para el rango seleccionado.</td>
+                <tr>
+                    <td colspan="6" class="data-table__td text-center text-gray-500 py-8">No hay transacciones para el rango seleccionado.</td>
                 </tr>
             `;
         } else {
-            for (let i = startIndex; i < endIndex; i++) {
-                const item = filteredData[i];
+            filteredData.forEach(item => {
                 const createdDate = new Date(item.createdAt);
                 const fecha = createdDate.toLocaleDateString('es-ES');
                 const hora = createdDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -289,26 +311,22 @@
                     const diffMin = Math.round(diffMs / 1000 / 60);
                     duracion = `${diffMin} min`;
                 }
+                
                 rowsHtml += `
-                    <tr style="height: ${ROW_HEIGHT}px;" class="hover:bg-emerald-50 transition-colors">
-                        <td class="data-table__td" style="width: 15%;">${item.externalOrderId || item.id || 'N/A'}</td>
-                        <td class="data-table__td" style="width: 15%;">${fecha}</td>
-                        <td class="data-table__td" style="width: 10%;">${hora}</td>
-                        <td class="data-table__td" style="width: 25%; font-weight: 500;">${camarero}</td>
-                        <td class="data-table__td" style="width: 15%; font-weight: bold; color: #107c10;">${cantidad}</td>
-                        <td class="data-table__td" style="width: 20%;">${duracion}</td>
+                    <tr class="hover:bg-emerald-50 transition-colors">
+                        <td class="data-table__td" style="word-wrap: break-word; overflow-wrap: break-word;">${item.externalOrderId || item.id || 'N/A'}</td>
+                        <td class="data-table__td">${fecha}</td>
+                        <td class="data-table__td">${hora}</td>
+                        <td class="data-table__td" style="font-weight: 500; word-wrap: break-word; overflow-wrap: break-word;">${camarero}</td>
+                        <td class="data-table__td" style="font-weight: bold; color: #107c10;">${cantidad}</td>
+                        <td class="data-table__td">${duracion}</td>
                     </tr>
                 `;
-            }
+            });
         }
 
         tbody.innerHTML = rowsHtml;
-        realTable.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
     };
-
-        scroller.addEventListener('scroll', () => {
-            window.requestAnimationFrame(renderSlice);
-        });
 
         // 3. Reactive Filters
         let searchTimeout;
@@ -335,6 +353,10 @@
                 const d = new Date();
                 d.setDate(d.getDate() - 30);
                 start = instance.formatDate(d, "Y-m-d");
+            } else if (range === 'hour') {
+                // For hour range, don't set start date to avoid date filtering
+                // We'll use only selectedStartTime for hour filtering
+                start = null;
             } else if (range === 'week') {
                 const d = new Date();
                 const day = d.getDay() || 7;
@@ -351,12 +373,22 @@
             selectedStartDate = start;
             selectedEndDate = end;
             
+            // Reset selectedStartTime for all ranges
+            selectedStartTime = null;
+            
+            // Set selectedStartTime only for hour range
+            if (range === 'hour') {
+                selectedStartTime = 'hour'; // Special marker for hour range
+            }
+            
             // Update Flatpickr visual selection
             if (instance) {
                 instance.setDate([start, end], false);
             }
             
-            filterData(); // Apply filter when button is clicked
+            // Aplicar filtros automáticamente cuando se presiona un botón de rango
+            filterData();
+            updateRecordCount();
         });
     });
 
@@ -377,6 +409,7 @@
                 selectedEndDate = inst.formatDate(selectedDates[1], "Y-m-d");
             }
             // No filtrar automáticamente aquí, esperar al botón de aplicar filtros
+            updateRecordCount();
         }
     });
 
@@ -393,6 +426,10 @@
             const d = new Date();
             d.setDate(d.getDate() - 30);
             start = instance.formatDate(d, "Y-m-d");
+        } else if (range === 'hour') {
+            const d = new Date();
+            start = instance.formatDate(d, "Y-m-d");
+            // For hour range, we use today's date and special logic in filterData
         } else if (range === 'week') {
             const d = new Date();
             const day = d.getDay() || 7;
@@ -409,18 +446,24 @@
         selectedStartDate = start;
         selectedEndDate = end;
         
+        // Reset selectedStartTime for all ranges
+        selectedStartTime = null;
+        
+        // Set selectedStartTime only for hour range
+        if (range === 'hour') {
+            selectedStartTime = 'hour'; // Special marker for hour range
+        }
+        
         // Update Flatpickr visual selection
         if (instance) {
             instance.setDate([start, end], false);
         }
     }
 
-    // Cargar datos y aplicar filtro inicial
+    // Cargar datos iniciales sin aplicar filtros
     fetchTransactions().then(() => {
-        // Aplicar filtro inicial después de cargar los datos
-        setTimeout(() => {
-            filterData();
-        }, 500);
+        // No aplicar filtro inicial automáticamente - esperar al botón "Aplicar Filtros"
+        updateRecordCount();
     });
 
     // --- CONFIGURACIÓN DE EXPORTACIÓN ---
