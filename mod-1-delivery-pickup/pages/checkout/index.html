@@ -76,14 +76,11 @@
           <div>
             <label class="block text-sm font-medium mb-2">Teléfono</label>
             <div class="phone-input-group">
-              <!-- Country Selector -->
-              <button type="button" id="countrySelectorTrigger" class="phone-country-selector">
+              <!-- Country Indicator (Venezuela only) -->
+              <div class="phone-country-selector" style="cursor: default;">
                 <span id="countryFlag">🇻🇪</span>
                 <span id="countryCode">+58</span>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </button>
+              </div>
 
               <!-- Area Code (Only for Venezuela +58) -->
               <div id="areaCodeGroup" class="phone-area-group">
