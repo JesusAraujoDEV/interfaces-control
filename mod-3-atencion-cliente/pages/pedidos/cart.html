@@ -212,6 +212,8 @@
             </div>
             
             <p class="text-xs text-gray-400 font-medium">Validando el estado del pago...</p>
+            <p id="payment-total" class="text-sm text-gray-700 font-medium mt-2"></p>
+            <p id="payment-admin-hint" class="text-xs text-red-500 font-medium mt-2 hidden">Tu sesión fue cerrada por el administrador.</p>
         </div>
     </div>
 
@@ -492,6 +494,8 @@
         async function requestBill() {
             // 1. Confirmación visual inicial
             if (!confirm("¿Estás seguro de que deseas pedir la cuenta y cerrar la mesa?")) return;
+            // Pausar heartbeat para no interrumpir el flujo visual de cierre
+            window.__ATCHeartbeatPause = true;
 
             // 2. Obtener datos del cliente
             const clientStr = localStorage.getItem('user_client');
@@ -521,20 +525,47 @@
             const progressBar = document.getElementById('payment-progress-bar');
             const overlayTitle = overlay.querySelector('h2') || overlay.querySelector('.payment-title'); 
             const overlayText = overlay.querySelector('p') || overlay.querySelector('.payment-text');
+            const totalLabel = document.getElementById('payment-total');
+            const adminHint = document.getElementById('payment-admin-hint');
 
-            // 5. Configurar Tiempos y Textos
-            // Si Total es 0 -> Espera rápida de 3 segundos (Salir sin consumir)
-            // Si Total > 0 -> Espera de simulación de 30 segundos (Pago físico)
-            const waitTime = totalAmount === 0 ? 3000 : 30000;
+            // 5. Consultar estado actual del cliente (para detectar cierre administrativo previo)
+            let alreadyClosed = false;
+            try {
+                const current = await window.ClientApi.getClient(client.id);
+                const currentStatus = (current && current.success && current.data && current.data.status)
+                    ? current.data.status
+                    : (current && typeof current.status === 'string') ? current.status : null;
+                alreadyClosed = (currentStatus && currentStatus.toUpperCase() === 'CLOSED');
+            } catch (e) {
+                // Si falla la verificación, continuamos con el flujo normal
+            }
 
-            if (totalAmount === 0) {
-                if(overlayTitle) overlayTitle.textContent = "Cerrando Mesa...";
-                if(overlayText) overlayText.textContent = "Finalizando sesión y liberando mesa.";
-                progressBar.style.transition = "width 3s linear"; 
+            // 6. Configurar Tiempos y Textos
+            // - Si ya estaba CLOSED por admin -> espera corta 3s y mensaje específico
+            // - Si Total es 0 -> espera corta 3s
+            // - Si Total > 0 -> espera simulación 15s
+            let waitTime = 15000;
+            if (alreadyClosed || totalAmount === 0) {
+                waitTime = 3000;
+                if (overlayTitle) overlayTitle.textContent = alreadyClosed ? "Cierre detectado por administración" : "Cerrando Mesa...";
+                if (overlayText) overlayText.textContent = alreadyClosed ? "Finalizando sesión y liberando mesa." : "Finalizando sesión y liberando mesa.";
+                progressBar.style.transition = "width 3s linear";
             } else {
-                if(overlayTitle) overlayTitle.textContent = "Procesando Cierre...";
-                if(overlayText) overlayText.textContent = "Por favor dirígete a caja para realizar el pago. La sesión se cerrará automáticamente.";
-                progressBar.style.transition = "width 30s linear";
+                if (overlayTitle) overlayTitle.textContent = "Procesando Cierre...";
+                if (overlayText) overlayText.textContent = "Por favor dirígete a caja para realizar el pago. La sesión se cerrará automáticamente.";
+                progressBar.style.transition = "width 15s linear";
+            }
+
+            // Mostrar total estimado y aviso de cierre administrativo si aplica
+            if (totalLabel) {
+                const formattedTotal = `$${totalAmount.toFixed(2)}`;
+                totalLabel.textContent = totalAmount > 0 
+                    ? `Total estimado: ${formattedTotal}`
+                    : `Sin consumo, cierre inmediato.`;
+            }
+            if (adminHint) {
+                if (alreadyClosed) adminHint.classList.remove('hidden');
+                else adminHint.classList.add('hidden');
             }
 
             // Mostrar Overlay y arrancar animación
@@ -544,13 +575,16 @@
             progressBar.style.width = '100%';
 
             try {
-                // 6. Llamada a la API DIRECTA A CLOSED
+                // 7. Llamada a la API DIRECTA A CLOSED (solo si no estaba ya cerrado)
                 // Al haber quitado la validación en el backend, esto cerrará la mesa y la liberará
                 // sin importar si el usuario es GUEST.
-                const response = await window.ClientApi.updateClient(client.id, {
-                    total_amount: totalAmount,
-                    status: "CLOSED"
-                });
+                let response = { success: true };
+                if (!alreadyClosed) {
+                    response = await window.ClientApi.updateClient(client.id, {
+                        total_amount: totalAmount,
+                        status: "CLOSED"
+                    });
+                }
 
                 if (response.success) {
                     console.log(`Mesa cerrada en servidor. Esperando ${waitTime/1000}s de simulación visual...`);
@@ -562,7 +596,7 @@
                         console.warn('Limpieza de solicitudes pendientes falló:', cleanupErr);
                     }
 
-                    // 7. Esperar el tiempo visual y redirigir
+                    // 8. Esperar el tiempo visual y redirigir
                     setTimeout(async () => {
                         await finishPaymentSession();
                     }, waitTime);
@@ -580,6 +614,8 @@
                 progressBar.classList.remove('progress-bar-fill');
                 
                 alert("Error al cerrar: " + error.message);
+                // Reanudar heartbeat si hubo error
+                window.__ATCHeartbeatPause = false;
             }
         }
 
@@ -603,6 +639,8 @@
             
             // Redirigir a pantalla de éxito
             window.location.href = '/mod-3-atencion-cliente/pages/payment/payment-completed.html';
+            // Ya que se redirige fuera de vistas con heartbeat, limpiar bandera por si vuelve
+            window.__ATCHeartbeatPause = false;
         }
 
         // ==========================================

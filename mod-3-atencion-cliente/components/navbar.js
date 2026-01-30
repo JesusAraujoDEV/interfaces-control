@@ -454,8 +454,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (__hbTimer) return;
         __hbTimer = setInterval(() => {
             if (document.hidden) return;
+            if (window.__ATCHeartbeatPause) return;
             checkClientSession();
-        }, 10000);
+        }, 15000);
     }
 
     startHeartbeat();
