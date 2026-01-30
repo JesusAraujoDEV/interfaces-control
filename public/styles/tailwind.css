@@ -874,6 +874,10 @@ video {
   margin-left: 0.75rem;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .ml-64 {
   margin-left: 16rem;
 }
@@ -3984,10 +3988,6 @@ video {
 
   .lg\:-mt-8 {
     margin-top: -2rem;
-  }
-
-  .lg\:block {
-    display: block;
   }
 
   .lg\:hidden {
