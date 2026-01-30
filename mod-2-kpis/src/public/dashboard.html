@@ -132,7 +132,7 @@
                 font-size: 0.875rem; /* 14px */
               "
             >
-              <span>8 AM</span><span>12 PM</span><span>4 PM</span
+              <span>7 AM</span><span>12 PM</span><span>4 PM</span
               ><span>8 PM</span>
             </div>
           </div>
@@ -819,12 +819,12 @@
             now.getDate(),
           );
           const rangeStart = new Date(today);
-          rangeStart.setHours(8, 0, 0, 0);
+          rangeStart.setHours(7, 0, 0, 0);
           const rangeEnd = new Date(today);
           rangeEnd.setHours(20, 59, 59, 999);
 
           const hours = [];
-          for (let h = 8; h <= 20; h++) {
+          for (let h = 7; h <= 20; h++) {
             hours.push(
               new Date(
                 today.getFullYear(),
@@ -855,8 +855,8 @@
             return { label: `${hNum}:00`, value: grouped[hNum] || 0 };
           });
 
-          // Labels: 8 AM, 12 PM, 4 PM, 8 PM
-          labels = ["8 AM", "12 PM", "4 PM", "8 PM"];
+          // Labels: 7 AM, 12 PM, 4 PM, 8 PM
+          labels = ["7 AM", "12 PM", "4 PM", "8 PM"];
         } else if (period === "week") {
           // Last 7 days including today? Or current week? Let's do current week (Monday start)
           const currentDay = now.getDay(); // 0=Sun, 1=Mon

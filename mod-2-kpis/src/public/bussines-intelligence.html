@@ -72,7 +72,7 @@
                       <span id="header-date">Cargando fecha...</span>
                     </div>
                     <button class="btn-primary">
-                        <span>📥</span> Exportar a Excel (.CSV)
+                        <span>📥</span> Exportar Hoja de Calculo
                     </button>
                 </div>
             </header>
@@ -542,7 +542,7 @@
 
                 exportBtn.disabled = false;
                 exportBtn.dataset.exporting = '0';
-                exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+                exportBtn.innerHTML = '<span>📥</span> Exportar Hoja de Calculo';
                 pollController.stopped = true;
                 return;
             }
@@ -562,7 +562,7 @@
                 
                 exportBtn.disabled = false;
                 exportBtn.dataset.exporting = '0';
-                exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+                exportBtn.innerHTML = '<span>📥</span> Exportar Hoja de Calculo';
                 pollController.stopped = true;
                 return;
             }
@@ -570,7 +570,7 @@
             pollController.stopped = true;
             exportBtn.disabled = false;
             exportBtn.dataset.exporting = '0';
-            exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+            exportBtn.innerHTML = '<span>📥</span> Exportar Hoja de Calculo';
             
             let errorMessage = err.message || 'Error durante la exportación';
             if (err.name === 'AbortError') {
@@ -632,7 +632,7 @@
                 
                 exportBtn.disabled = false;
                 exportBtn.dataset.exporting = '0';
-                exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+                exportBtn.innerHTML = '<span>📥</span> Exportar Hoja de Calculo';
                 return;
             }
             
@@ -699,7 +699,7 @@
                 
                 exportBtn.disabled = false;
                 exportBtn.dataset.exporting = '0';
-                exportBtn.innerHTML = '<span>📥</span> Exportar a Excel (.CSV)';
+                exportBtn.innerHTML = '<span>📥</span> Exportar Hoja de Calculo';
             }
         });
     }
