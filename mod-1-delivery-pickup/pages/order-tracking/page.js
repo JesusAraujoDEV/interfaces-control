@@ -354,11 +354,19 @@ function renderOrder(order) {
           const qty = Number(it.quantity || 0);
           const unit = parseMoney(it.unit_price);
           const subtotal = it.subtotal != null ? parseMoney(it.subtotal) : unit * qty;
+
+          // Excluded ingredients
+          const excludedNames = Array.isArray(it.excluded_recipe_names) ? it.excluded_recipe_names : [];
+          const excludedHtml = excludedNames.length > 0
+            ? `<div class="text-xs mt-1" style="color: #dc2626;">Sin: ${excludedNames.join(', ')}</div>`
+            : '';
+
           return `
             <div class="py-4 flex items-start justify-between">
               <div>
                 <div class="font-medium text-gray-800">${it.product_name || 'Producto'}</div>
                 <div class="text-xs text-gray-400">${qty}x · ${formatPrice(unit)}</div>
+                ${excludedHtml}
               </div>
               <div class="text-gray-800">${formatPrice(subtotal)}</div>
             </div>
