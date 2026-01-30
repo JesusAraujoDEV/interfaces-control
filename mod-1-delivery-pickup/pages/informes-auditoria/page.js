@@ -517,8 +517,8 @@ export async function init() {
 
     if (!trimmed) {
       omniSearchClear.classList.remove('visible');
-      state.offset = 0;
-      loadLogs();
+      // Re-render table with all logs (instant reset)
+      renderTable(state.logs);
       return;
     }
 
