@@ -297,33 +297,29 @@
         class="w-full max-w-lg bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
         <div class="p-6">
           <h2 class="text-lg font-extrabold text-gray-900">Pago en efectivo</h2>
-          <p class="mt-1 text-sm text-gray-600">Por favor lea las condiciones y declare el monto en efectivo disponible.
-          </p>
+          <p class="mt-1 text-sm text-gray-600">Por favor, ten listo el monto exacto al momento de la entrega.</p>
 
-          <div id="pcConditions" class="mt-4 text-sm text-gray-700"></div>
+          <!-- Total to pay -->
+          <div class="mt-6 text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
+            <p class="text-gray-500 text-sm uppercase tracking-wide">Total a Pagar</p>
+            <p id="pcTotal" class="text-4xl font-bold text-brand-800">$0.00</p>
+          </div>
 
-          <div class="mt-4">
-            <div class="flex items-center justify-between">
-              <div class="text-sm">Monto a pagar</div>
-              <div id="pcTotal" class="font-extrabold">$0.00</div>
+          <!-- Exact payment notice -->
+          <div class="mt-4 bg-blue-50 border border-blue-200 p-4 rounded-lg flex gap-3">
+            <div class="text-2xl flex-shrink-0">💵</div>
+            <div>
+              <h4 class="font-bold text-blue-800 text-sm">Se requiere monto exacto</h4>
+              <p class="text-blue-700 text-xs mt-1 leading-relaxed">
+                Nuestros repartidores externos <strong>no manejan vuelto</strong>.
+                Por favor, entrega la cantidad justa al recibir tu pedido para una experiencia más rápida y segura.
+              </p>
             </div>
-            <label class="block text-sm font-medium mt-3">Monto en efectivo que dispone</label>
-            <input id="pcCashAmount" type="number" min="0" step="1" placeholder="Ej: 250"
-              class="w-full rounded-md border p-2 mt-2" />
-            <div id="pcChangeSummary" class="mt-2 text-sm text-gray-700"></div>
           </div>
 
           <!-- Cancellation Policy Checkbox -->
-          <div class="policy-container">
+          <div class="mt-4 policy-container">
             <div class="policy-box">
-              <div class="policy-header">
-                <svg class="policy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                  </path>
-                </svg>
-                <h4 class="policy-title">Política de Cancelación</h4>
-              </div>
               <label class="policy-label">
                 <input type="checkbox" id="policyCheckboxCash" class="policy-checkbox" />
                 <span class="policy-text">
@@ -338,7 +334,7 @@
             <button id="pcCancel" type="button" class="btn-cancel">Cerrar</button>
             <button id="pcConfirm" type="button" class="btn-confirm" disabled>
               <span class="btn-confirm-icon">✓</span>
-              <span>Confirmar Efectivo</span>
+              <span>Confirmar Pedido</span>
             </button>
           </div>
         </div>
