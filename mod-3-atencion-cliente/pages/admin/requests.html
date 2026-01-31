@@ -42,6 +42,11 @@
     .page-leave { opacity: 0 !important; transform: translateY(4px); transition: opacity .22s ease, transform .22s ease; }
     /* Ajuste tipografía H1 */
     #page-title { font-size: 30px !important; line-height: 1.2; }
+
+    /* Skeleton loader */
+    .skeleton { position: relative; overflow: hidden; background: #e5e7eb; border-radius: 6px; }
+    .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(229,231,235,0) 0%, rgba(255,255,255,0.6) 50%, rgba(229,231,235,0) 100%); animation: shimmer 1.4s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
   </style>
 </head>
 <body class="text-gray-800 h-screen overflow-hidden flex theme-admin">
@@ -99,8 +104,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadRequestsData();
-      // Auto-refresco cada 15 seg
-      requestInterval = setInterval(loadRequestsData, 15000);
+      // Auto-refresco cada 15 seg (evita trabajo en pestaña oculta)
+      requestInterval = setInterval(() => {
+        if (document.hidden) return;
+        loadRequestsData();
+      }, 15000);
     });
 
     window.toggleSidebar = () => {
@@ -125,10 +133,31 @@
       loadRequestsData();
     };
 
+    function renderSkeletonCards(count = 8) {
+      const requestsGrid = document.getElementById('requests-grid');
+      const cards = Array.from({ length: count }).map(() => `
+        <div class=\"card-enter bg-white rounded-lg shadow-sm border border-gray-200 p-4 surface\">
+          <div class=\"flex justify-between items-start mb-3\">
+            <div class=\"flex items-center gap-2\">
+              <div class=\"w-8 h-8 rounded-full skeleton\"></div>
+              <div>
+                <div class=\"skeleton h-4 w-40 mb-2\"></div>
+                <div class=\"skeleton h-3 w-24\"></div>
+              </div>
+            </div>
+            <div class=\"skeleton h-5 w-20 rounded\"></div>
+          </div>
+          <div class=\"skeleton h-16 w-full rounded mb-3\"></div>
+          <div class=\"skeleton h-9 w-full rounded\"></div>
+        </div>
+      `).join('');
+      requestsGrid.innerHTML = cards;
+    }
+
     async function loadRequestsData() {
       const requestsGrid = document.getElementById('requests-grid');
       if(requestsGrid.innerHTML === '') {
-        requestsGrid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">Cargando solicitudes...</div>';
+        renderSkeletonCards();
       }
       try {
         const response = await window.ServiceRequestApi.getRequests(1, 20, requestStatusFilter);

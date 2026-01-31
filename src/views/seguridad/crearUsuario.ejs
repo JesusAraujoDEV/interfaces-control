@@ -36,13 +36,13 @@
                     <form class="formulario-usuario" id="formCrearUsuario">
                         <div class="grupo">
                             <label>Nombre <span class="text-red-500">*</span></label>
-                            <input type="text" id="inputNombre" required>
+                            <input type="text" id="inputNombre" required pattern="[A-Za-z ]+" title="Solo letras (A-Z, a-z) y espacios">
                             <span class="error-message text-red-500 text-sm hidden"></span>
                         </div>
 
                         <div class="grupo">
                             <label>Apellido <span class="text-red-500">*</span></label>
-                            <input type="text" id="inputApellido" required>
+                            <input type="text" id="inputApellido" required pattern="[A-Za-z ]+" title="Solo letras (A-Z, a-z) y espacios">
                             <span class="error-message text-red-500 text-sm hidden"></span>
                         </div>
 
@@ -108,7 +108,7 @@
                         <input type="text" id="inputBuscarRoles" placeholder="Buscar y añadir roles...">
                     </div>
 
-                    <div id="listaRolesDropdown" class="hidden absolute z-10 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto w-full mt-1"></div>
+                    <div id="listaRolesDropdown" class="hidden z-10 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto w-full mt-1"></div>
 
                     <div class="contenedor-tags" id="contenedorTagsRoles">
                         <!-- Los roles seleccionados se mostrarán aquí -->
@@ -183,28 +183,15 @@
 
             // Configurar buscador de roles
             function configurarBuscadorRoles() {
-                inputBuscarRoles.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase().trim();
-                    
-                    if (query.length === 0) {
+                function renderDropdown(list) {
+                    if (!list || list.length === 0) {
                         listaRolesDropdown.classList.add('hidden');
+                        listaRolesDropdown.innerHTML = '';
                         return;
                     }
-
-                    const rolesFiltrados = rolesDisponibles.filter(rol => 
-                        !rolesSeleccionados.find(r => r.id === rol.id) &&
-                        rol.name.toLowerCase().includes(query)
-                    );
-
-                    if (rolesFiltrados.length === 0) {
-                        listaRolesDropdown.classList.add('hidden');
-                        return;
-                    }
-
                     listaRolesDropdown.innerHTML = '';
                     listaRolesDropdown.classList.remove('hidden');
-
-                    rolesFiltrados.forEach(rol => {
+                    list.forEach(rol => {
                         const item = document.createElement('div');
                         item.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
                         item.textContent = rol.name;
@@ -215,6 +202,29 @@
                         });
                         listaRolesDropdown.appendChild(item);
                     });
+                }
+
+                function getDisponiblesNoSeleccionados() {
+                    return rolesDisponibles.filter(rol => !rolesSeleccionados.find(r => r.id === rol.id));
+                }
+
+                inputBuscarRoles.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const baseList = getDisponiblesNoSeleccionados();
+                    const list = query.length === 0
+                        ? baseList
+                        : baseList.filter(rol => rol.name.toLowerCase().includes(query));
+                    renderDropdown(list);
+                });
+
+                // Mostrar todos los roles disponibles al enfocar si no hay texto
+                inputBuscarRoles.addEventListener('focus', () => {
+                    const query = inputBuscarRoles.value.toLowerCase().trim();
+                    const baseList = getDisponiblesNoSeleccionados();
+                    const list = query.length === 0
+                        ? baseList
+                        : baseList.filter(rol => rol.name.toLowerCase().includes(query));
+                    renderDropdown(list);
                 });
 
                 // Cerrar dropdown al hacer click fuera
@@ -277,11 +287,17 @@
                 if (!nombre) {
                     mostrarError('inputNombre', 'El nombre es requerido');
                     esValido = false;
+                } else if (!/^[A-Za-z ]+$/.test(nombre)) {
+                    mostrarError('inputNombre', 'El nombre solo debe contener letras y espacios');
+                    esValido = false;
                 }
 
                 // Validar apellido
                 if (!apellido) {
                     mostrarError('inputApellido', 'El apellido es requerido');
+                    esValido = false;
+                } else if (!/^[A-Za-z ]+$/.test(apellido)) {
+                    mostrarError('inputApellido', 'El apellido solo debe contener letras y espacios');
                     esValido = false;
                 }
 
@@ -307,6 +323,13 @@
                     if (!dniRegex.test(dni)) {
                         mostrarError('inputDni', 'El DNI debe tener prefijo V o E seguido de 6 a 8 dígitos');
                         esValido = false;
+                    } else {
+                        // Validación adicional: la parte numérica debe ser >= 100000
+                        const numeroDni = parseInt(dni.slice(1), 10);
+                        if (isNaN(numeroDni) || numeroDni < 100000) {
+                            mostrarError('inputDni', 'El número de DNI debe ser mayor o igual a 100000');
+                            esValido = false;
+                        }
                     }
                 }
 
@@ -443,8 +466,59 @@
             document.addEventListener('DOMContentLoaded', () => {
                 cargarRoles();
                 cargarDataTypeOptions();
+                // Inicializar toggle de visibilidad para la contraseña
+                initPasswordToggle();
             });
+
+            // Utilidad: botón para mostrar/ocultar contraseña del input
+            function initPasswordToggle() {
+                const input = document.getElementById('inputPassword');
+                if (!input) return;
+
+                // Crear contenedor relativo para posicionar el botón
+                const group = input.parentElement;
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                // Asegura que el input no quede bajo el ícono
+                input.style.paddingRight = '2.25rem';
+
+                // Insertar wrapper antes del input y mover el input dentro
+                group.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                // Crear botón toggle
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'password-toggle';
+                btn.setAttribute('aria-label', 'Mostrar u ocultar contraseña');
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                btn.addEventListener('click', () => {
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    btn.innerHTML = isHidden
+                        ? '<i class="fa-solid fa-eye-slash"></i>'
+                        : '<i class="fa-solid fa-eye"></i>';
+                });
+
+                // Posicionar el botón en el extremo derecho dentro del wrapper
+                btn.style.position = 'absolute';
+                btn.style.right = '0.5rem';
+                btn.style.top = '50%';
+                btn.style.transform = 'translateY(-50%)';
+                btn.style.color = '#6b7280';
+                btn.style.background = 'transparent';
+                btn.style.border = 'none';
+                btn.style.cursor = 'pointer';
+                btn.style.padding = '0';
+
+                wrapper.appendChild(btn);
+            }
         })();
     </script>
+    <style>
+        /* Estilos mínimos para el toggle del password */
+        .password-toggle:focus { outline: none; }
+        .password-toggle i { font-size: 0.95rem; }
+    </style>
 </body>
 </html>

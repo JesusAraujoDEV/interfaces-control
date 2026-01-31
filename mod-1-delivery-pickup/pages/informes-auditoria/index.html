@@ -1,103 +1,130 @@
-
 <!doctype html>
 <html lang="es">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<title>Auditoría — Delivery & Pickup</title>
-		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
-		<link rel="stylesheet" href="/styles/tailwind.css" />
-		<link rel="stylesheet" href="/shared/styles/global.css" />
-		<link rel="stylesheet" href="/mod-1-delivery-pickup/pages/informes-auditoria/page.css" />
-	</head>
-	<body class="antialiased text-slate-900">
-		<header class="flex items-start sm:items-center justify-between gap-4">
-			<div>
-				<h1 class="text-2xl sm:text-3xl font-extrabold">Auditoría</h1>
-				<p class="mt-1 text-sm text-slate-600">Consola de logs operativos.</p>
-			</div>
-			<div class="flex items-center gap-2">
-				<button
-					id="dpAuditRefresh"
-					type="button"
-					class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-				>
-					Actualizar
-				</button>
-				<button
-					id="dpAuditExport"
-					type="button"
-					class="inline-flex items-center justify-center rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
-				>
-					Exportar
-				</button>
-			</div>
-		</header>
 
-		<main class="mt-5 grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-4">
-			<section class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 min-w-0">
-				<div class="flex flex-col gap-3">
-					<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-						<div class="dp-audit-bar">
-							<div class="dp-range">
-								<span class="dp-range__icon" aria-hidden="true">🕒</span>
-								<input id="dpAuditFrom" type="datetime-local" class="dp-range__input" />
-								<span class="dp-range__sep" aria-hidden="true">—</span>
-								<input id="dpAuditTo" type="datetime-local" class="dp-range__input" />
-							</div>
-							<select id="dpAuditStatus" class="dp-filter" aria-label="Estado">
-								<option value="">Status (Todos)</option>
-								<option value="PENDING_REVIEW">PENDING_REVIEW</option>
-								<option value="IN_KITCHEN">IN_KITCHEN</option>
-								<option value="READY_FOR_DISPATCH">READY_FOR_DISPATCH</option>
-								<option value="EN_ROUTE">EN_ROUTE</option>
-								<option value="DELIVERED">DELIVERED</option>
-								<option value="CANCELLED">CANCELLED</option>
-							</select>
-							<input id="dpAuditManagerId" type="text" class="dp-filter dp-mono" placeholder="manager_id (uuid)" />
-							<input id="dpAuditOrderId" type="text" class="dp-filter dp-mono" placeholder="order_id (uuid)" />
-							<select id="dpAuditLimit" class="dp-filter" aria-label="Límite">
-								<option value="50" selected>50</option>
-								<option value="100">100</option>
-								<option value="200">200</option>
-								<option value="500">500</option>
-							</select>
-							<div class="flex items-center gap-2">
-								<button id="dpAuditPrev" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">←</button>
-								<button id="dpAuditNext" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">→</button>
-							</div>
-						</div>
-						<div class="flex items-center justify-between lg:justify-end gap-3">
-							<div id="dpAuditMeta" class="text-xs text-slate-500"></div>
-						</div>
-					</div>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Audit Command Center — Delivery & Pickup</title>
+	<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+	<link rel="stylesheet" href="/styles/tailwind.css" />
+	<link rel="stylesheet" href="/shared/styles/global.css" />
+	<link rel="stylesheet" href="/mod-1-delivery-pickup/pages/informes-auditoria/page.css" />
+</head>
 
-					<div id="dpAuditError" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"></div>
+<body class="antialiased text-slate-900">
+	<header class="flex items-start sm:items-center justify-between gap-4">
+		<div>
+			<h1 class="text-2xl sm:text-3xl font-extrabold">🎯 Audit Command Center</h1>
+			<p class="mt-1 text-sm text-slate-600">Centro de comando de auditoría operativa.</p>
+		</div>
+		<div class="flex items-center gap-2">
+			<button id="dpAuditRefresh" type="button"
+				class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+				🔄 Actualizar
+			</button>
+			<button id="dpAuditExport" type="button"
+				class="inline-flex items-center justify-center rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">
+				📥 Exportar
+			</button>
+		</div>
+	</header>
+
+	<main class="mt-5">
+		<!-- Smart Omni-Search -->
+		<section class="mb-5">
+			<div class="omni-search-container">
+				<span class="omni-search-icon">🔍</span>
+				<input id="omniSearch" type="text" class="omni-search"
+					placeholder="Buscar por UUID, ID de orden (DL-####), o cualquier texto..." autocomplete="off" />
+				<button id="omniSearchClear" class="omni-search-clear" aria-label="Limpiar búsqueda">✕</button>
+			</div>
+		</section>
+
+		<!-- Tab Navigation -->
+		<nav class="audit-tabs">
+			<button class="audit-tab active" data-tab="orders">
+				<span class="audit-tab__icon">🍔</span>
+				<span class="audit-tab__label">Órdenes</span>
+			</button>
+			<button class="audit-tab" data-tab="zones">
+				<span class="audit-tab__icon">🗺️</span>
+				<span class="audit-tab__label">Zonas</span>
+			</button>
+			<button class="audit-tab" data-tab="thresholds">
+				<span class="audit-tab__icon">🛡️</span>
+				<span class="audit-tab__label">Umbrales</span>
+			</button>
+		</nav>
+
+		<!-- Filters Bar -->
+		<section class="mb-5">
+			<div class="filter-chips">
+				<!-- Status Filter (Only visible for Orders tab) -->
+				<select id="dpAuditStatus" class="dp-filter" aria-label="Estado" style="min-width: 200px;">
+					<option value="">📊 Todos los Estados</option>
+					<option value="PENDING_REVIEW">PENDING_REVIEW</option>
+					<option value="IN_KITCHEN">IN_KITCHEN</option>
+					<option value="READY_FOR_DISPATCH">READY_FOR_DISPATCH</option>
+					<option value="EN_ROUTE">EN_ROUTE</option>
+					<option value="DELIVERED">DELIVERED</option>
+					<option value="CANCELLED">CANCELLED</option>
+					<option value="ACTION">ACTION</option>
+				</select>
+				<div style="width: 1px; height: 24px; background: rgb(226 232 240); margin: 0 0.25rem;"></div>
+				<div class="dp-range">
+					<span class="dp-range__icon" aria-hidden="true">📅</span>
+					<input id="dpAuditFrom" type="datetime-local" class="dp-range__input" />
+					<span class="dp-range__sep" aria-hidden="true">—</span>
+					<input id="dpAuditTo" type="datetime-local" class="dp-range__input" />
+				</div>
+				<select id="dpAuditLimit" class="dp-filter" aria-label="Límite" style="min-width: 100px;">
+					<option value="50" selected>50</option>
+					<option value="100">100</option>
+					<option value="200">200</option>
+					<option value="500">500</option>
+				</select>
+				<div class="flex items-center gap-2">
+					<button id="dpAuditPrev" type="button" class="dp-icon-btn">←</button>
+					<button id="dpAuditNext" type="button" class="dp-icon-btn">→</button>
+				</div>
+			</div>
+		</section>
+
+		<!-- View Container -->
+		<div class="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-4">
+			<!-- MAIN TABLE VIEW -->
+			<section id="mainTableView"
+				class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 min-w-0">
+				<div class="flex items-center justify-between mb-4">
+					<h2 class="text-lg font-extrabold text-slate-900">📊 <span id="currentTabTitle">Órdenes</span></h2>
+					<div id="dpAuditMeta" class="text-xs text-slate-500"></div>
 				</div>
 
-				<div class="mt-4 dp-table-wrap">
+				<div id="dpAuditError"
+					class="hidden rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 mb-4"></div>
+
+				<div class="dp-table-wrap">
 					<table class="dp-table">
-						<thead>
-							<tr>
-								<th>Timestamp</th>
-								<th>Orden</th>
-								<th>Manager</th>
-								<th>Transición</th>
-								<th>Motivo</th>
-							</tr>
+						<thead id="tableHeader">
+							<!-- Headers will be dynamically updated based on active tab -->
 						</thead>
 						<tbody id="dpAuditTableBody"></tbody>
 					</table>
 				</div>
 			</section>
 
-			<aside class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 dp-detail" aria-live="polite">
+			<!-- DETAIL PANEL (Right Side) -->
+			<aside
+				class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 dp-detail"
+				aria-live="polite">
 				<div class="flex items-start justify-between gap-3">
 					<div>
-						<h2 class="text-lg font-extrabold text-slate-900">Detalle</h2>
-						<p id="dpAuditDetailHint" class="mt-1 text-sm text-slate-600">Selecciona un evento para inspeccionarlo.</p>
+						<h2 class="text-lg font-extrabold text-slate-900">🔍 Detalle</h2>
+						<p id="dpAuditDetailHint" class="mt-1 text-sm text-slate-600">Selecciona un evento para
+							inspeccionarlo.</p>
 					</div>
-					<button id="dpAuditDetailClose" type="button" class="hidden dp-icon-btn" aria-label="Cerrar">✕</button>
+					<button id="dpAuditDetailClose" type="button" class="hidden dp-icon-btn"
+						aria-label="Cerrar">✕</button>
 				</div>
 
 				<div id="dpAuditDetail" class="mt-4 hidden">
@@ -109,7 +136,7 @@
 						<div class="dp-detail-kv__k">log_id</div>
 						<div id="dpDetailLogId" class="dp-detail-kv__v dp-mono"></div>
 					</div>
-					<div class="dp-detail-kv">
+					<div id="dpDetailOrderRow" class="dp-detail-kv">
 						<div class="dp-detail-kv__k">order_id</div>
 						<div id="dpDetailOrderId" class="dp-detail-kv__v dp-mono"></div>
 					</div>
@@ -117,26 +144,56 @@
 						<div class="dp-detail-kv__k">Manager</div>
 						<div id="dpDetailManager" class="dp-detail-kv__v"></div>
 					</div>
-					<div class="dp-detail-kv">
+					<div id="dpDetailTransitionRow" class="dp-detail-kv">
 						<div class="dp-detail-kv__k">Estado</div>
 						<div id="dpDetailTransition" class="dp-detail-kv__v dp-mono"></div>
 					</div>
-					<div class="dp-detail-kv">
-						<div class="dp-detail-kv__k">Motivo</div>
-						<div id="dpDetailReason" class="dp-detail-kv__v"></div>
+					<div id="dpDetailResourceRow" class="dp-detail-kv hidden">
+						<div class="dp-detail-kv__k">Recurso</div>
+						<div id="dpDetailResource" class="dp-detail-kv__v"></div>
+					</div>
+					<div id="dpDetailActionRow" class="dp-detail-kv hidden">
+						<div class="dp-detail-kv__k">Acción</div>
+						<div id="dpDetailAction" class="dp-detail-kv__v"></div>
+					</div>
+
+					<div id="dpDetailOpenOrderBtn" class="mt-4 hidden">
+						<a id="dpDetailOpenOrder"
+							class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+							href="#">Ver pedido</a>
 					</div>
 
 					<div class="mt-4">
-						<a id="dpDetailOpenOrder" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50" href="#">Ver pedido</a>
-					</div>
-
-					<div class="mt-4">
-						<h3 class="text-sm font-extrabold text-slate-900">Evento (JSON)</h3>
-						<pre id="dpDetailJson" class="mt-2 dp-json"></pre>
+						<button id="dpDetailOpenJson"
+							class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800 w-full">
+							📄 Ver JSON Completo
+						</button>
 					</div>
 				</div>
 			</aside>
-		</main>
-		<script type="module" src="/mod-1-delivery-pickup/pages/informes-auditoria/page.js"></script>
-	</body>
+		</div>
+	</main>
+
+	<!-- JSON MODAL -->
+	<div id="jsonModal" class="json-modal">
+		<div class="json-modal-content">
+			<div class="json-modal-header">
+				<h3 class="json-modal-title">📄 Evento JSON</h3>
+				<div class="json-modal-actions">
+					<button id="jsonCopyBtn" class="json-copy-btn">
+						<span id="jsonCopyIcon">📋</span>
+						<span id="jsonCopyText">Copiar JSON</span>
+					</button>
+					<button id="jsonCloseBtn" class="json-close-btn">✕</button>
+				</div>
+			</div>
+			<div class="json-modal-body">
+				<pre id="jsonContent" class="dp-json"></pre>
+			</div>
+		</div>
+	</div>
+
+	<script type="module" src="/mod-1-delivery-pickup/pages/informes-auditoria/page.js"></script>
+</body>
+
 </html>

@@ -46,7 +46,7 @@
   <charlotte-header></charlotte-header>
 
   <main class="max-w-6xl mx-auto px-6 py-6" style="padding-top: 88px;">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <section class="lg:col-span-2">
         <h1 id="orderTitle" class="text-4xl font-extrabold text-gray-900">Seguimiento de Pedido</h1>
         <p id="orderSubtitle" class="text-sm text-gray-500 mt-2"></p>
@@ -63,9 +63,9 @@
         </div>
 
         <div class="mt-8 panel p-6">
-          <h3 class="text-lg font-semibold text-gray-900">Order Details</h3>
+          <h3 class="text-lg font-semibold text-gray-900">Dealles de la orden</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 mt-4 text-sm text-gray-600">
-            <div class="text-gray-500">Service Type</div>
+            <div class="text-gray-500">Tipo de Servicio</div>
             <div id="serviceType" class="text-left md:text-right">—</div>
             <div class="text-gray-500">Tiempo estimado</div>
             <div id="eta" class="text-left md:text-right">—</div>
@@ -87,10 +87,10 @@
             <div id="deliveryAddress" class="text-left md:text-right">—</div>
           </div>
 
-          <h4 class="mt-6 font-semibold text-gray-800">Order Items</h4>
+          <h4 class="mt-6 font-semibold text-gray-800">Ítems de la orden</h4>
           <div id="itemsWrap" class="divide-y divide-gray-100 mt-3"></div>
 
-          <h4 class="mt-6 font-semibold text-gray-800">Payment Details</h4>
+          <h4 class="mt-6 font-semibold text-gray-800">Detalles de Pago</h4>
           <div class="grid grid-cols-2 gap-y-2 gap-x-6 mt-3 text-sm text-gray-600">
             <div class="text-gray-500">Subtotal</div>
             <div id="subtotal" class="text-left md:text-right">$0.00</div>
@@ -110,18 +110,6 @@
           </div>
         </div>
       </section>
-
-      <aside class="hidden lg:block">
-        <div class="panel p-6 sticky top-24">
-          <div class="text-sm text-gray-500">¿Necesitas ayuda?</div>
-          <div class="mt-4 text-gray-800 font-semibold">Soporte disponible</div>
-          <p class="mt-2 text-sm text-gray-600">Estamos aquí si tienes preguntas sobre tu pedido.</p>
-          <div class="mt-6">
-            <button class="w-full bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-md">Ver
-              Pedido</button>
-          </div>
-        </div>
-      </aside>
     </div>
   </main>
   <script type="module" src="/shared/components/charlotte-header.js?v=2.0"></script>

@@ -16,8 +16,8 @@ function normalizeBaseUrl(url) {
 function getDpUrl() {
   return normalizeBaseUrl(
     (window.__APP_CONFIG__ && window.__APP_CONFIG__.DP_URL) ||
-      localStorage.getItem('DP_URL') ||
-      ''
+    localStorage.getItem('DP_URL') ||
+    ''
   );
 }
 
@@ -204,10 +204,18 @@ function renderItems(order) {
       const notesHtml = notes
         ? `<div class="mt-1 text-xs text-slate-500"><span class="font-semibold text-slate-600">Notas:</span> ${escapeHtml(notes)}</div>`
         : '';
+
+      // Excluded ingredients
+      const excludedNames = Array.isArray(it?.excluded_recipe_names) ? it.excluded_recipe_names : [];
+      const excludedHtml = excludedNames.length > 0
+        ? `<div class="mt-1 text-xs" style="color: #dc2626;"><span class="font-semibold">Sin:</span> ${escapeHtml(excludedNames.join(', '))}</div>`
+        : '';
+
       return `<tr class="border-t border-slate-100">
         <td class="py-3 pr-3">
           <div class="font-semibold text-slate-900">${escapeHtml(it.product_name ?? 'Producto')}</div>
           ${notesHtml}
+          ${excludedHtml}
         </td>
         <td class="py-3 pr-3 text-slate-700">${escapeHtml(it.quantity ?? '—')}</td>
         <td class="py-3 pr-3 text-slate-700">${escapeHtml(formatMoney(it.unit_price))}</td>

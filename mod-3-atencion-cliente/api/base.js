@@ -1,4 +1,19 @@
 
+// Helpers para segregar token entre Admin y Cliente (ATC)
+function __isGuestView() {
+    const p = window.location.pathname;
+    // Vistas de cliente (ATC): login/scan, pedidos (menu, cart, support), payment
+    return (
+        p.includes('/mod-3-atencion-cliente/pages/login/') ||
+        p.includes('/mod-3-atencion-cliente/pages/pedidos/') ||
+        p.includes('/mod-3-atencion-cliente/pages/payment/')
+    );
+}
+
+function __getAuthTokenKey() {
+    return __isGuestView() ? 'access_token_atc' : 'access_token';
+}
+
 window.HttpClient = {
    
     async request(fullUrl, options = {}) {
@@ -11,7 +26,8 @@ window.HttpClient = {
         };
 
         // 🔐 AUTOMÁTICO: Si tenemos token guardado, lo inyectamos
-        const token = localStorage.getItem('access_token');
+        const tokenKey = __getAuthTokenKey();
+        const token = localStorage.getItem(tokenKey);
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -24,7 +40,11 @@ window.HttpClient = {
             if (contentType && contentType.indexOf("application/json") === -1) {
                 // Si el token expiró o es inválido, a veces el backend redirige al login HTML
                 if (response.status === 401 || response.status === 403) {
-                     localStorage.removeItem('access_token');
+                     localStorage.removeItem(tokenKey);
+                     // Intentar borrar cookie de cliente (HttpOnly) si estamos en ATC
+                     if (__isGuestView()) {
+                         try { await fetch('/api/atencion-cliente/logout', { method: 'POST' }); } catch (_) {}
+                     }
                      window.location.href = '/'; // Redirigir al login
                 }
                 throw new Error("Respuesta no válida del servidor (HTML recibido).");
@@ -36,7 +56,11 @@ window.HttpClient = {
                 // Manejo de token expirado
                 if (response.status === 401) {
                     console.warn("Sesión expirada");
-                    localStorage.removeItem('access_token');
+                    localStorage.removeItem(tokenKey);
+                    // Si es cliente ATC, solicitar al backend limpieza de cookie HttpOnly
+                    if (__isGuestView()) {
+                        try { await fetch('/api/atencion-cliente/logout', { method: 'POST' }); } catch (_) {}
+                    }
                     // Opcional: window.location.href = '/';
                 }
 

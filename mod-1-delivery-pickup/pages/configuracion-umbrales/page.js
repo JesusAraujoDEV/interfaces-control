@@ -261,6 +261,26 @@ export async function init() {
     if (titleEl) titleEl.textContent = 'Editar threshold (selecciona una regla)';
   }
 
+  function populateMetricOptions() {
+    if (!metricEl) return;
+    const previous = String(metricEl.value || '').trim();
+    const metrics = Array.from(new Set(state.thresholds.map(t => String(t.metricAffected || '').trim()).filter(Boolean)));
+    metricEl.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = 'Seleccione una métrica…';
+    metricEl.appendChild(placeholder);
+    for (const m of metrics) {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      metricEl.appendChild(opt);
+    }
+    if (previous && metrics.includes(previous)) metricEl.value = previous;
+  }
+
   function renderEmpty(listEl, message) {
     listEl.innerHTML = '';
     const empty = document.createElement('li');
@@ -275,6 +295,7 @@ export async function init() {
 
     const activeCount = state.thresholds.filter(t => t.isActive === true).length;
     setText(metaEl, `${state.thresholds.length} reglas · ${activeCount} activas`);
+    populateMetricOptions();
 
     const handlers = {
       onToggleActive: async (rule, shouldBeActive) => {

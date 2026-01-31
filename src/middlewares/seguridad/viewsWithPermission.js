@@ -76,40 +76,40 @@ const viewsWithPermission = async (req, res, next) => {
 
     // Vistas de kpi 
     case rutaSolicitada === "/mod-2-kpis/src/public/dashboard.html":
-        resource = ["KpiSupervisor_view"];
+        resource = ["KpiGerente_view"];
         break;
     case rutaSolicitada === "/mod-2-kpis/src/public/bussines-intelligence.html":
-        resource = ["KpiSupervisor_view"];
+        resource = ["KpiGerente_view"];
         break;
     case rutaSolicitada === "/mod-2-kpis/src/public/eficiencia-operacional.html":
-        resource = ["KpiSupervisor_view"];
+        resource = ["KpiGerente_view"];
         break;
     case rutaSolicitada === "/mod-2-kpis/src/public/inventario.html":
-        resource = ["KpiSupervisor_view"];
+        resource = ["KpiGerente_view"];
         break;
 
     // Vistas de cocina
     case rutaSolicitada === "/mod-5-cocina/kds.html":
-        resource = ["CocinaSupervisor_view", "CocinaCocinero_view", "CocinaChef_view"];
+        resource = ["CocinaCocinero_view", "CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/Despacho.html":
-        resource = ["CocinaSupervisor_view", "CocinaCamarero_view", "AtcMaitre_view"];
+        resource = ["CocinaCamarero_view", "AtcMaitre_view"];
         break;
 
     case rutaSolicitada === "/mod-5-cocina/rec-pro.html":
-        resource = ["CocinaSupervisor_view", "CocinaChef_view"];
+        resource = ["CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/inv.html":
-        resource = ["CocinaSupervisor_view", "CocinaChef_view"];
+        resource = ["CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/activos.html":
-        resource = ["CocinaSupervisor_view", "CocinaChef_view"];
+        resource = ["CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/personal.html":
-        resource = ["CocinaSupervisor_view", "CocinaChef_view"];
+        resource = ["CocinaChef_view", "AtcSupervisorSala_view", "AtcMaitre_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/historial_pedidos.html":
-        resource = ["CocinaSupervisor_view", "CocinaChef_view"];
+        resource = ["CocinaChef_view"];
         break;
     default:
       return next();

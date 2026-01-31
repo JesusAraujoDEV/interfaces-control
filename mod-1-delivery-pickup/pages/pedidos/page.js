@@ -407,7 +407,6 @@ function renderOrders() {
 
           <div class="shrink-0 flex flex-col items-end gap-2">
             ${a ? `<button type="button" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold shadow-sm ${a.tone}" data-action="${a.key}" data-order-id="${escapeHtml(o.id)}">${escapeHtml(a.label)}</button>` : ''}
-            ${canCancel(o) ? `<button type="button" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold shadow-sm bg-rose-600 hover:bg-rose-700 text-white" data-action="cancel" data-order-id="${escapeHtml(o.id)}">Cancelar</button>` : ''}
           </div>
         </div>
       </article>
