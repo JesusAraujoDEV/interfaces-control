@@ -728,14 +728,37 @@ function closeSupportModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+
 // Event listeners
-document.getElementById('contactSupportBtn')?.addEventListener('click', openSupportModal);
-document.getElementById('closeSupportBtn')?.addEventListener('click', closeSupportModal);
+const contactBtn = document.getElementById('contactSupportBtn');
+const supportModal = document.getElementById('supportModal');
+
+if (contactBtn) {
+  contactBtn.addEventListener('click', openSupportModal);
+}
+
+// Use event delegation so buttons inserted later (modal HTML loaded after scripts)
+document.addEventListener('click', (e) => {
+  const target = e.target;
+  if (!target) return;
+  // Close support modal button
+  if (target.closest && target.closest('#closeSupportBtn')) {
+    closeSupportModal();
+    return;
+  }
+  // Contact support button (if not present earlier)
+  if (target.closest && target.closest('#contactSupportBtn')) {
+    openSupportModal();
+    return;
+  }
+});
 
 // Close on backdrop click
-document.getElementById('supportModal')?.addEventListener('click', (e) => {
-  if (e.target.id === 'supportModal') closeSupportModal();
-});
+if (supportModal) {
+  supportModal.addEventListener('click', (e) => {
+    if (e.target.id === 'supportModal') closeSupportModal();
+  });
+}
 
 // Close on ESC key
 document.addEventListener('keydown', (e) => {
