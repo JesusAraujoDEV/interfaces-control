@@ -193,8 +193,14 @@ function initKdsAuth() {
 
                 // 2. Validate Role for Kitchen Actions
                 const actionType = kdsState.pendingAction ? kdsState.pendingAction.type : null;
-                const isKitchenAction = ['START', 'DONE', 'REJECT', 'UNDO'].includes(actionType);
+                const isKitchenAction = ['START', 'FINISH', 'DONE', 'REJECT', 'UNDO'].includes(actionType);
                 const allowedKitchenRoles = ['CHEF', 'HEAD_CHEF', 'KITCHEN_PORTER'];
+
+                // 2.1 Validate Active Status
+                if (staff.isActive === false) {
+                    alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name || 'Personal'} no está activo.`);
+                    return;
+                }
 
                 if (isKitchenAction && !allowedKitchenRoles.includes(staff.role)) {
                     alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name} tiene el rol "${staff.role}".\nSolo personal de Cocina puede gestionar la producción.`);
@@ -205,7 +211,7 @@ function initKdsAuth() {
                 const isClockedIn = !!staff.currentShift;
 
                 if (isKitchenAction) {
-                     // NOTE: START/DONE usually imply work.
+                     // NOTE: START/FINISH/DONE/REJECT imply work.
                      if (!isClockedIn) {
                          alert(`⚠️ ACCESO DENEGADO\n\n${staff.name} no tiene turno activo.\nFiche entrada primero.`);
                          return;
