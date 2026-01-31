@@ -5,7 +5,7 @@ const MENU_DATA = {
     items: [
       {
         name: "Cheesy Buffalo",
-        price: "10,50€",
+        price: "10,50$",
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, cebolla, tomate, lechuga",
         spiceLevel: 3,
@@ -13,7 +13,7 @@ const MENU_DATA = {
       },
       {
         name: "Angry Bull",
-        price: "12,00€",
+        price: "12,00$",
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa chili cheese, jalapeño, pepinillo, cebolla, lechuga",
         spiceLevel: 3,
@@ -21,7 +21,7 @@ const MENU_DATA = {
       },
       {
         name: "Smokie Beefy BBQ",
-        price: "13,00€",
+        price: "13,00$",
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, aros de cebolla, cebolla tostada, salsa BBQ, tomate, lechuga",
         spiceLevel: 3,
@@ -29,7 +29,7 @@ const MENU_DATA = {
       },
       {
         name: "Blazing Nacho Beef",
-        price: "13,00€",
+        price: "13,00$",
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, jalapeño, nachos, salsa sriracha, tomate, lechuga",
         spiceLevel: 3,
@@ -37,7 +37,7 @@ const MENU_DATA = {
       },
       {
         name: "Cheese Burger",
-        price: "7,00€",
+        price: "7,00$",
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, cebolla, tomate, lechuga",
         spiceLevel: 1,
@@ -51,28 +51,28 @@ const MENU_DATA = {
     items: [
       {
         name: "Crunchy Chicken",
-        price: "8,50€",
+        price: "8,50$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Chrunchy-Chicken_8,50euros.webp",
       },
       {
         name: "Loaded Crunchy",
-        price: "9,00€",
+        price: "9,00$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, tomate, cebolla, pepinillo, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Loaded-Chrunchy_9euros.webp",
       },
       {
         name: "Crispy Ringer",
-        price: "10,00€",
+        price: "10,00$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, aros de cebolla, cebolla, tomate, lechuga",
         spiceLevel: 2,
         image: "https://foodiewagon.de/burgers/chicken/Crispy-Ringer_10euros.webp",
       },
       {
         name: "Mexican Cracker",
-        price: "11,00€",
+        price: "11,00$",
         description:
           "Pan brioche, tiras de pollo, queso, salsa de la casa, jalapeño, pepinillo, nachos, salsa sriracha, cebolla, lechuga",
         spiceLevel: 2,
@@ -80,14 +80,14 @@ const MENU_DATA = {
       },
       {
         name: "Flip Chicken Burger",
-        price: "6,00€",
+        price: "6,00$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, lechuga",
         spiceLevel: 1,
         image: "https://foodiewagon.de/burgers/chicken/Flip-Chicken-Burger_6euros.webp",
       },
       {
         name: "Foodie Bomber",
-        price: "13,00€",
+        price: "13,00$",
         description:
           "Pan brioche, tiras de pollo, queso, nuggets chili cheese, salsa chili cheese, cebolla, jalapeño, lechuga",
         spiceLevel: 2,
@@ -101,14 +101,14 @@ const MENU_DATA = {
     items: [
       {
         name: "Plant Power",
-        price: "9,00€",
+        price: "9,00$",
         description: "Pan brioche, falafel, queso, salsa de la casa, pepinillo, lechuga, cebolla, tomate",
         spiceLevel: 0,
         image: null,
       },
       {
         name: "Veggie BBQ",
-        price: "11,00€",
+        price: "11,00$",
         description:
           "Pan brioche, falafel, queso, salsa de la casa, pepinillo, aros de cebolla, cebolla tostada, salsa BBQ, tomate, lechuga",
         spiceLevel: 0,
@@ -122,22 +122,22 @@ const MENU_DATA = {
     items: [
       {
         name: "Coca Cola",
-        price: "2,50€",
+        price: "2,50$",
         description: "330ml Dose",
         image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg",
       },
       {
         name: "Coca Cola Zero",
-        price: "2,50€",
+        price: "2,50$",
         description: "330ml Dose",
         image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg",
       },
-      { name: "Fanta", price: "2,50€", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Sprite", price: "2,50€", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Capri Sonne", price: "1,50€", description: "200ml", image: "https://foodiewagon.de/graphics/caprisun.svg" },
-      { name: "Agua", price: "2,00€", description: "500ml", image: "https://foodiewagon.de/graphics/water.svg" },
-      { name: "Mezzo Mix", price: "2,50€", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Red Bull", price: "3,50€", description: "Lata 250ml", image: "https://foodiewagon.de/graphics/redbull.svg" },
+      { name: "Fanta", price: "2,50$", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
+      { name: "Sprite", price: "2,50$", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
+      { name: "Capri Sonne", price: "1,50$", description: "200ml", image: "https://foodiewagon.de/graphics/caprisun.svg" },
+      { name: "Agua", price: "2,00$", description: "500ml", image: "https://foodiewagon.de/graphics/water.svg" },
+      { name: "Mezzo Mix", price: "2,50$", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
+      { name: "Red Bull", price: "3,50$", description: "Lata 250ml", image: "https://foodiewagon.de/graphics/redbull.svg" },
     ],
   },
 }
