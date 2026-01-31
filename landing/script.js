@@ -9,7 +9,7 @@ const MENU_DATA = {
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, cebolla, tomate, lechuga",
         spiceLevel: 3,
-        image: "https://foodiewagon.de/burgers/beef/Cheesy-Buffalo_10,50euros.webp",
+        image: "./public/assets/Buffalo-Blue-Cheese-Burgers-2.jpg",
       },
       {
         name: "Angry Bull",
@@ -17,7 +17,7 @@ const MENU_DATA = {
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa chili cheese, jalapeño, pepinillo, cebolla, lechuga",
         spiceLevel: 3,
-        image: "https://foodiewagon.de/burgers/beef/Angry-Bull_12euros.webp",
+        image: "./public/assets/crispy-comte-cheesburgers-FT-RECIPE0921-6166c6552b7148e8a8561f7765ddf20b.jpg",
       },
       {
         name: "Smokie Beefy BBQ",
@@ -33,7 +33,7 @@ const MENU_DATA = {
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, jalapeño, nachos, salsa sriracha, tomate, lechuga",
         spiceLevel: 3,
-        image: "https://foodiewagon.de/burgers/beef/Blazing-Nacho-Beef_13euros.webp",
+        image: "./public/assets/Paulig_Pro_Nacho_Burger.jpg",
       },
       {
         name: "Cheese Burger",
@@ -41,7 +41,7 @@ const MENU_DATA = {
         description:
           "Pan brioche, carne de res casera 140g, queso, salsa de la casa, pepinillo, cebolla, tomate, lechuga",
         spiceLevel: 1,
-        image: "https://foodiewagon.de/burgers/beef/Cheese-Burger_7euros.webp",
+        image: "./public/assets/cheese-burger.webp",
       },
     ],
   },
@@ -54,21 +54,21 @@ const MENU_DATA = {
         price: "8,50$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, lechuga",
         spiceLevel: 2,
-        image: "https://foodiewagon.de/burgers/chicken/Chrunchy-Chicken_8,50euros.webp",
+        image: "./public/assets/Crispiest-buttermilk-fried-chicken-burgers-90854e5.jpg",
       },
       {
         name: "Loaded Crunchy",
         price: "9,00$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, tomate, cebolla, pepinillo, lechuga",
         spiceLevel: 2,
-        image: "https://foodiewagon.de/burgers/chicken/Loaded-Chrunchy_9euros.webp",
+        image: "./public/assets/Crispy-Chicken-Burger-square-FS-4518.jpg",
       },
       {
         name: "Crispy Ringer",
         price: "10,00$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, aros de cebolla, cebolla, tomate, lechuga",
         spiceLevel: 2,
-        image: "https://foodiewagon.de/burgers/chicken/Crispy-Ringer_10euros.webp",
+        image: "./public/assets/crispy_ringer.jpg",
       },
       {
         name: "Mexican Cracker",
@@ -76,14 +76,14 @@ const MENU_DATA = {
         description:
           "Pan brioche, tiras de pollo, queso, salsa de la casa, jalapeño, pepinillo, nachos, salsa sriracha, cebolla, lechuga",
         spiceLevel: 2,
-        image: "https://foodiewagon.de/burgers/chicken/Mexican-Cracker_11euros.webp",
+        image: "./public/assets/Mexican-Burger-with-Chorizo.webp",
       },
       {
         name: "Flip Chicken Burger",
         price: "6,00$",
         description: "Pan brioche, tiras de pollo, queso, salsa de la casa, lechuga",
         spiceLevel: 1,
-        image: "https://foodiewagon.de/burgers/chicken/Flip-Chicken-Burger_6euros.webp",
+        image: "./public/assets/flip_chicken_burger.webp",
       },
       {
         name: "Foodie Bomber",
@@ -91,7 +91,7 @@ const MENU_DATA = {
         description:
           "Pan brioche, tiras de pollo, queso, nuggets chili cheese, salsa chili cheese, cebolla, jalapeño, lechuga",
         spiceLevel: 2,
-        image: "https://foodiewagon.de/burgers/chicken/Foodie-Bomber-13euros.webp",
+        image: "./public/assets/foodie_bomber.jpg",
       },
     ],
   },
@@ -104,7 +104,7 @@ const MENU_DATA = {
         price: "9,00$",
         description: "Pan brioche, falafel, queso, salsa de la casa, pepinillo, lechuga, cebolla, tomate",
         spiceLevel: 0,
-        image: null,
+        image: "./public/assets/plant_power.webp",
       },
       {
         name: "Veggie BBQ",
@@ -112,7 +112,7 @@ const MENU_DATA = {
         description:
           "Pan brioche, falafel, queso, salsa de la casa, pepinillo, aros de cebolla, cebolla tostada, salsa BBQ, tomate, lechuga",
         spiceLevel: 0,
-        image: null,
+        image: "./public/assets/veggie_bbq.jpeg",
       },
     ],
   },
@@ -124,20 +124,20 @@ const MENU_DATA = {
         name: "Coca Cola",
         price: "2,50$",
         description: "330ml Dose",
-        image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg",
+        image: "./public/assets/bebidas/coca_cola.jpeg",
       },
       {
         name: "Coca Cola Zero",
         price: "2,50$",
         description: "330ml Dose",
-        image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg",
+        image: "./public/assets/bebidas/coca_cola_zero.webp",
       },
-      { name: "Fanta", price: "2,50$", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Sprite", price: "2,50$", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Capri Sonne", price: "1,50$", description: "200ml", image: "https://foodiewagon.de/graphics/caprisun.svg" },
-      { name: "Agua", price: "2,00$", description: "500ml", image: "https://foodiewagon.de/graphics/water.svg" },
-      { name: "Mezzo Mix", price: "2,50$", description: "Lata 330ml", image: "https://foodiewagon.de/graphics/cold%20drinks%20sprite%20cola%20fanta.svg" },
-      { name: "Red Bull", price: "3,50$", description: "Lata 250ml", image: "https://foodiewagon.de/graphics/redbull.svg" },
+      { name: "Fanta", price: "2,50$", description: "Lata 330ml", image: "./public/assets/bebidas/fanta.webp" },
+      { name: "Sprite", price: "2,50$", description: "Lata 330ml", image: "./public/assets/bebidas/sprite.webp" },
+      { name: "Capri Sonne", price: "1,50$", description: "200ml", image: "./public/assets/bebidas/capri_sun.png" },
+      { name: "Agua", price: "2,00$", description: "500ml", image: "./public/assets/bebidas/agua.jpeg" },
+      { name: "Mezzo Mix", price: "2,50$", description: "Lata 330ml", image: "./public/assets/bebidas/mezzo_mix.jpg" },
+      { name: "Red Bull", price: "3,50$", description: "Lata 250ml", image: "./public/assets/bebidas/red_bull.webp" },
     ],
   },
 }
@@ -277,7 +277,7 @@ function renderMenuItems(activeKey) {
 
       const aura = document.createElement("img")
       aura.className = "menu-item__halal"
-      aura.src = "https://foodiewagon.de/graphics/aura%20logo.svg"
+      aura.src = "./public/assets/burger_icon.webp"
       aura.alt = "100% aura"
       aura.loading = "lazy"
       media.appendChild(aura)
