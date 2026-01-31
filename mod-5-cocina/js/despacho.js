@@ -74,6 +74,12 @@ function initModal() {
                 const isOperational = ['ASSIGN', 'SERVE'].includes(actionType);
                 const allowedRoles = ['WAITER', 'HEAD_WAITER'];
 
+                // 2.1 Validate Active Status
+                if (staff.isActive === false) {
+                    alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name || 'Personal'} no está activo.`);
+                    return;
+                }
+
                 if (isOperational && !allowedRoles.includes(staff.role)) {
                     alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name} tiene el rol "${staff.role}".\nSolo personal de servicio (Meseros) puede despachar pedidos.`);
                     return;
