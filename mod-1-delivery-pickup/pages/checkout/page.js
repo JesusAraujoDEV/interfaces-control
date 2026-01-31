@@ -738,6 +738,43 @@ function openPaymentCashModal() {
   const total = cartTotal(readCart()) + currentShippingCost();
   document.getElementById('pcTotal').textContent = formatPrice(total);
 
+  // Dynamic message based on service type
+  const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
+  const isDelivery = mode.toLowerCase() === 'delivery';
+  const infoBox = document.getElementById('cashInfoMessage');
+
+  if (infoBox) {
+    if (isDelivery) {
+      // DELIVERY: External delivery company
+      infoBox.innerHTML = `
+        <div class="text-2xl flex-shrink-0">🛵</div>
+        <div>
+          <h4 class="font-bold text-blue-800 text-sm uppercase">Requerimos Monto Exacto</h4>
+          <p class="text-blue-900 text-xs mt-2 leading-relaxed text-justify">
+            Para brindarte la mejor experiencia, <strong>necesitamos que cuentes con la cantidad exacta</strong>.
+            <br><br>
+            Charlotte Bistró no maneja valores durante el traslado; utilizamos una empresa de delivery externa que, por seguridad y logística, <strong>no cuenta con efectivo para dar vuelto</strong>.
+            <br><br>
+            Te agradecemos tener el pago justo listo para agilizar tu entrega.
+          </p>
+        </div>
+      `;
+    } else {
+      // PICKUP: Fast service, digital cash
+      infoBox.innerHTML = `
+        <div class="text-2xl flex-shrink-0">⚡</div>
+        <div>
+          <h4 class="font-bold text-blue-800 text-sm uppercase">Retiro Express (Pick & Go)</h4>
+          <p class="text-blue-900 text-xs mt-2 leading-relaxed text-justify">
+            Queremos que tu paso por el local sea inmediato. Por protocolos de seguridad y agilidad, <strong>nuestra caja no mantiene efectivo para cambios</strong>.
+            <br><br>
+            Por favor, <strong>abona el monto exacto</strong> al retirar. Así evitamos esperas administrativas y te entregamos tu pedido al instante.
+          </p>
+        </div>
+      `;
+    }
+  }
+
   m.classList.remove('hidden');
 }
 function closePaymentCashModal() {
