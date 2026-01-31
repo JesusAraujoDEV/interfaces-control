@@ -100,6 +100,19 @@
             <div id="total" class="text-left md:text-right font-semibold">$0.00</div>
           </div>
 
+          <!-- PDF Download Button (only shows when DELIVERED/CANCELLED) -->
+          <div id="pdfButtonContainer" class="mt-6 hidden">
+            <button id="downloadPdfBtn"
+              class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 font-semibold">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+              </svg>
+              Descargar Nota de Entrega
+            </button>
+          </div>
+
           <h4 class="mt-6 font-semibold text-gray-800">Historial</h4>
           <div id="logsWrap" class="divide-y divide-gray-100 mt-3"></div>
 
@@ -112,6 +125,11 @@
       </section>
     </div>
   </main>
+
+  <!-- jsPDF + autoTable for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
   <script type="module" src="/shared/components/charlotte-header.js?v=2.0"></script>
   <script type="module" src="/landing/script.js"></script>
   <script type="module" src="/shared/components/app-header.js"></script>

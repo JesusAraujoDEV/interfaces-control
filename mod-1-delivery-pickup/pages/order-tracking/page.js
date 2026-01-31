@@ -416,6 +416,231 @@ function renderOrder(order) {
 
   // If user reloads/returns and order is final, show the modal.
   showEndStateModal(st);
+
+  // Show/hide PDF button and bind event
+  const pdfContainer = document.getElementById('pdfButtonContainer');
+  const pdfBtn = document.getElementById('downloadPdfBtn');
+
+  if (st === 'DELIVERED' || st === 'CANCELLED') {
+    if (pdfContainer) pdfContainer.classList.remove('hidden');
+
+    // Update button color based on status
+    if (pdfBtn) {
+      pdfBtn.className = st === 'DELIVERED'
+        ? 'w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 font-semibold'
+        : 'w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 font-semibold';
+    }
+
+    // Bind PDF generation (only once)
+    if (pdfBtn && !pdfBtn.dataset.bound) {
+      pdfBtn.dataset.bound = '1';
+      pdfBtn.addEventListener('click', () => generateDeliveryNotePDF(order));
+    }
+  } else {
+    if (pdfContainer) pdfContainer.classList.add('hidden');
+  }
+}
+
+// Generate epic PDF delivery note
+function generateDeliveryNotePDF(order) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  const readableId = order.readable_id || order.readableId || 'N/A';
+  const orderStatus = normalizeStatus(order.current_status || order.status);
+  const isDelivered = orderStatus === 'DELIVERED';
+
+  // Colors
+  const brandGreen = [15, 74, 34]; // #0f4a22
+  const textGray = [55, 65, 81]; // gray-700
+  const lightGray = [156, 163, 175]; // gray-400
+
+  // Header - Brand
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...brandGreen);
+  doc.text('Charlotte Bistró', 105, 20, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(...lightGray);
+  doc.text('DONDE EL SABOR TOMA LA RUTA', 105, 26, { align: 'center' });
+
+  // Title - NOTA DE ENTREGA
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...textGray);
+  doc.text('NOTA DE ENTREGA', 105, 40, { align: 'center' });
+
+  // Control Number
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...brandGreen);
+  doc.text(readableId, 105, 48, { align: 'center' });
+
+  // Emission date and status
+  const emissionDate = formatDateTime(order.timestamp_closure || order.timestamp_approved || order.timestamp_creation);
+  const statusText = isDelivered ? 'ENTREGADO' : 'CANCELADO';
+  const statusColor = isDelivered ? [22, 163, 74] : [220, 38, 38]; // green-600 : red-600
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+  doc.text(`Fecha de Emisión: ${emissionDate}`, 20, 58);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...statusColor);
+  doc.text(`Estado: ${statusText}`, 20, 64);
+
+  // Client information box
+  doc.setDrawColor(...lightGray);
+  doc.setFillColor(249, 250, 251); // gray-50
+  doc.roundedRect(20, 72, 170, 30, 3, 3, 'FD');
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...brandGreen);
+  doc.text('Datos del Cliente', 25, 79);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+  doc.text(`Cliente: ${order.customer_name || '—'}`, 25, 85);
+  doc.text(`Teléfono: ${order.customer_phone || '—'}`, 25, 90);
+  doc.text(`Dirección: ${order.delivery_address || '—'}`, 25, 95);
+  doc.text(`Zona: ${(order.zone && order.zone.zone_name) || '—'}`, 25, 100);
+
+  // Items table
+  const items = Array.isArray(order.items) ? order.items : [];
+  const tableData = items.map(it => {
+    const qty = Number(it.quantity || 0);
+    const unit = parseMoney(it.unit_price);
+    const subtotal = it.subtotal != null ? parseMoney(it.subtotal) : unit * qty;
+
+    let description = it.product_name || 'Producto';
+    if (it.notes && it.notes.trim()) {
+      description += `\n(${it.notes})`;
+    }
+    if (Array.isArray(it.excluded_recipe_names) && it.excluded_recipe_names.length > 0) {
+      description += `\nSin: ${it.excluded_recipe_names.join(', ')}`;
+    }
+
+    return [
+      qty.toString(),
+      description,
+      formatPrice(unit),
+      formatPrice(subtotal)
+    ];
+  });
+
+  doc.autoTable({
+    startY: 108,
+    head: [['Cant.', 'Descripción', 'Unitario', 'Total']],
+    body: tableData,
+    theme: 'striped',
+    headStyles: {
+      fillColor: brandGreen,
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: 'bold',
+      halign: 'left'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: textGray
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 20 },
+      1: { halign: 'left', cellWidth: 90 },
+      2: { halign: 'right', cellWidth: 30 },
+      3: { halign: 'right', cellWidth: 30 }
+    },
+    margin: { left: 20, right: 20 }
+  });
+
+  // Totals
+  const finalY = doc.lastAutoTable.finalY + 10;
+  const shipping = parseMoney(order.monto_costo_envio);
+  const total = parseMoney(order.monto_total);
+  const subtotal = items.reduce((acc, it) => {
+    const qty = Number(it.quantity || 0);
+    const unit = parseMoney(it.unit_price);
+    const st = it.subtotal != null ? parseMoney(it.subtotal) : unit * qty;
+    return acc + st;
+  }, 0);
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+
+  const rightX = 190;
+  doc.text(`Subtotal: ${formatPrice(subtotal)}`, rightX, finalY, { align: 'right' });
+  doc.text(`Envío: ${formatPrice(shipping)}`, rightX, finalY + 6, { align: 'right' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`TOTAL: ${formatPrice(total)}`, rightX, finalY + 14, { align: 'right' });
+
+  // Payment method
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Método de Pago: ${order.payment_type || '—'}`, rightX, finalY + 20, { align: 'right' });
+
+  // Footer
+  const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(8);
+  doc.setTextColor(...lightGray);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Gracias por tu preferencia. ¡Vuelve pronto!', 105, pageHeight - 15, { align: 'center' });
+  doc.text('Charlotte Bistró - Donde el sabor toma la ruta', 105, pageHeight - 10, { align: 'center' });
+
+  // Save PDF
+  const filename = `Nota_Entrega_${readableId.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+  doc.save(filename);
+}
+
+// Global polling state
+let pollingInterval = null;
+let currentOrderData = null;
+
+// Start smart polling (stops when DELIVERED/CANCELLED)
+function startPolling(orderKey) {
+  // Clear any existing interval
+  if (pollingInterval) clearInterval(pollingInterval);
+
+  const POLL_INTERVAL_MS = 12000; // 12 seconds
+
+  pollingInterval = setInterval(async () => {
+    try {
+      const order = await loadOrder(orderKey);
+      const newStatus = normalizeStatus(order.current_status || order.status);
+      const oldStatus = currentOrderData ? normalizeStatus(currentOrderData.current_status || currentOrderData.status) : null;
+
+      // If status changed, update the UI with smooth animations
+      if (newStatus !== oldStatus) {
+        renderOrder(order);
+      }
+
+      // Update current data
+      currentOrderData = order;
+
+      // Stop polling if order reached final state
+      if (newStatus === 'DELIVERED' || newStatus === 'CANCELLED') {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    } catch (err) {
+      console.error('Error polling order:', err);
+      // Don't stop polling on error, just skip this iteration
+    }
+  }, POLL_INTERVAL_MS);
+}
+
+function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
 }
 
 (async function init() {
@@ -431,8 +656,15 @@ function renderOrder(order) {
   setText('status', 'Cargando orden…');
   try {
     const order = await loadOrderWithFallback(primaryId, fallbackId);
+    currentOrderData = order;
     setText('status', '');
     renderOrder(order);
+
+    // Start live polling if not in final state
+    const st = normalizeStatus(order.current_status || order.status);
+    if (st !== 'DELIVERED' && st !== 'CANCELLED') {
+      startPolling(primaryId || fallbackId);
+    }
   } catch (err) {
     setText('status', err && err.message ? err.message : 'No se pudo cargar la orden.');
   }
