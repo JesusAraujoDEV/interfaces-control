@@ -33,13 +33,13 @@
                     <form id="formEditarPerfil" class="formulario-usuario">
                         <div class="grupo">
                             <label>Nombre</label>
-                            <input id="inputNombre" type="text" required>
+                            <input id="inputNombre" type="text" required pattern="[A-Za-z ]+" title="Solo letras (A-Z, a-z) y espacios">
                             <span class="error-message" id="errorNombre"></span>
                         </div>
 
                         <div class="grupo">
                             <label>Apellido</label>
-                            <input id="inputApellido" type="text" required>
+                            <input id="inputApellido" type="text" required pattern="[A-Za-z ]+" title="Solo letras (A-Z, a-z) y espacios">
                             <span class="error-message" id="errorApellido"></span>
                         </div>
 
@@ -230,14 +230,21 @@
                 const apellido = document.getElementById('inputApellido').value.trim();
                 const dni = document.getElementById('inputDni').value.trim();
                 const email = document.getElementById('inputEmail').value.trim();
+                const telefono = document.getElementById('inputTelefono').value.trim();
 
                 if (!nombre) {
                     mostrarError('inputNombre', 'El nombre es requerido');
+                    esValido = false;
+                } else if (!/^[A-Za-z ]+$/.test(nombre)) {
+                    mostrarError('inputNombre', 'El nombre solo debe contener letras y espacios');
                     esValido = false;
                 }
 
                 if (!apellido) {
                     mostrarError('inputApellido', 'El apellido es requerido');
+                    esValido = false;
+                } else if (!/^[A-Za-z ]+$/.test(apellido)) {
+                    mostrarError('inputApellido', 'El apellido solo debe contener letras y espacios');
                     esValido = false;
                 }
 
@@ -252,6 +259,15 @@
                 } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                     mostrarError('inputEmail', 'El correo electrónico no es válido');
                     esValido = false;
+                }
+
+                // Validar teléfono (opcional pero si se proporciona debe ser válido)
+                if (telefono) {
+                    const telefonoRegex = /^(0414|0412|0426|0422|0424|0416)\d{7}$/;
+                    if (!telefonoRegex.test(telefono)) {
+                        mostrarError('inputTelefono', 'El teléfono debe tener formato venezolano válido (ej: 04129876543)');
+                        esValido = false;
+                    }
                 }
 
                 return esValido;

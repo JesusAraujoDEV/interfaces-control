@@ -35,31 +35,42 @@
 			<div class="omni-search-container">
 				<span class="omni-search-icon">🔍</span>
 				<input id="omniSearch" type="text" class="omni-search"
-					placeholder="Buscar por UUID, ID de orden (DL-####), manager, o cualquier texto..."
-					autocomplete="off" />
+					placeholder="Buscar por UUID, ID de orden (DL-####), o cualquier texto..." autocomplete="off" />
 				<button id="omniSearchClear" class="omni-search-clear" aria-label="Limpiar búsqueda">✕</button>
 			</div>
 		</section>
 
-		<!-- Filter Chips -->
+		<!-- Tab Navigation -->
+		<nav class="audit-tabs">
+			<button class="audit-tab active" data-tab="orders">
+				<span class="audit-tab__icon">🍔</span>
+				<span class="audit-tab__label">Órdenes</span>
+			</button>
+			<button class="audit-tab" data-tab="zones">
+				<span class="audit-tab__icon">🗺️</span>
+				<span class="audit-tab__label">Zonas</span>
+			</button>
+			<button class="audit-tab" data-tab="thresholds">
+				<span class="audit-tab__icon">🛡️</span>
+				<span class="audit-tab__label">Umbrales</span>
+			</button>
+		</nav>
+
+		<!-- Filters Bar -->
 		<section class="mb-5">
 			<div class="filter-chips">
-				<button class="filter-chip filter-chip--alert" data-filter="alert">
-					<span class="filter-chip__icon">🔴</span>
-					<span>Alertas</span>
-				</button>
-				<button class="filter-chip filter-chip--order active" data-filter="order">
-					<span class="filter-chip__icon">🍔</span>
-					<span>Órdenes</span>
-				</button>
-				<button class="filter-chip filter-chip--config" data-filter="config">
-					<span class="filter-chip__icon">⚙️</span>
-					<span>Configuración</span>
-				</button>
-				<div style="width: 1px; height: 24px; background: rgb(226 232 240); margin: 0 0.25rem;"></div>
-				<select id="dpAuditManagerFilter" class="dp-filter" aria-label="Manager" style="min-width: 200px;">
-					<option value="">👤 Todos los Managers</option>
+				<!-- Status Filter (Only visible for Orders tab) -->
+				<select id="dpAuditStatus" class="dp-filter" aria-label="Estado" style="min-width: 200px;">
+					<option value="">📊 Todos los Estados</option>
+					<option value="PENDING_REVIEW">PENDING_REVIEW</option>
+					<option value="IN_KITCHEN">IN_KITCHEN</option>
+					<option value="READY_FOR_DISPATCH">READY_FOR_DISPATCH</option>
+					<option value="EN_ROUTE">EN_ROUTE</option>
+					<option value="DELIVERED">DELIVERED</option>
+					<option value="CANCELLED">CANCELLED</option>
+					<option value="ACTION">ACTION</option>
 				</select>
+				<div style="width: 1px; height: 24px; background: rgb(226 232 240); margin: 0 0.25rem;"></div>
 				<div class="dp-range">
 					<span class="dp-range__icon" aria-hidden="true">📅</span>
 					<input id="dpAuditFrom" type="datetime-local" class="dp-range__input" />
@@ -81,11 +92,11 @@
 
 		<!-- View Container -->
 		<div class="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-4">
-			<!-- LIVE FEED VIEW (Default) -->
-			<section id="liveFeedView"
+			<!-- MAIN TABLE VIEW -->
+			<section id="mainTableView"
 				class="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 min-w-0">
 				<div class="flex items-center justify-between mb-4">
-					<h2 class="text-lg font-extrabold text-slate-900">📊 Live Feed</h2>
+					<h2 class="text-lg font-extrabold text-slate-900">📊 <span id="currentTabTitle">Órdenes</span></h2>
 					<div id="dpAuditMeta" class="text-xs text-slate-500"></div>
 				</div>
 
@@ -94,51 +105,11 @@
 
 				<div class="dp-table-wrap">
 					<table class="dp-table">
-						<thead>
-							<tr>
-								<th style="width: 180px;">Timestamp</th>
-								<th style="width: 140px;">Orden</th>
-								<th>Manager</th>
-								<th>Transición</th>
-								<th>Motivo</th>
-								<th style="width: 80px;">JSON</th>
-							</tr>
+						<thead id="tableHeader">
+							<!-- Headers will be dynamically updated based on active tab -->
 						</thead>
 						<tbody id="dpAuditTableBody"></tbody>
 					</table>
-				</div>
-			</section>
-
-			<!-- ORDER TIMELINE VIEW -->
-			<section id="timelineView"
-				class="timeline-view bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 min-w-0">
-				<div class="flex items-center justify-between mb-4">
-					<h2 class="text-lg font-extrabold text-slate-900">📍 Order Timeline</h2>
-					<button id="closeTimelineView" class="dp-icon-btn">✕</button>
-				</div>
-
-				<!-- Timeline Header (Order Summary) -->
-				<div id="timelineHeader" class="timeline-header">
-					<!-- Will be populated by JS -->
-				</div>
-
-				<!-- Timeline Events -->
-				<div id="timelineContainer" class="timeline-container">
-					<div class="timeline-line"></div>
-					<!-- Events will be populated by JS -->
-				</div>
-			</section>
-
-			<!-- SYSTEM LOG VIEW -->
-			<section id="systemLogView"
-				class="system-log-view bg-white border border-slate-200 rounded-2xl shadow-[0_1px_0_rgba(16,24,40,0.03)] p-5 min-w-0">
-				<div class="flex items-center justify-between mb-4">
-					<h2 class="text-lg font-extrabold text-slate-900">⚙️ System Log</h2>
-					<button id="closeSystemLogView" class="dp-icon-btn">✕</button>
-				</div>
-
-				<div id="systemLogContainer">
-					<!-- Diff cards will be populated by JS -->
 				</div>
 			</section>
 
@@ -165,7 +136,7 @@
 						<div class="dp-detail-kv__k">log_id</div>
 						<div id="dpDetailLogId" class="dp-detail-kv__v dp-mono"></div>
 					</div>
-					<div class="dp-detail-kv">
+					<div id="dpDetailOrderRow" class="dp-detail-kv">
 						<div class="dp-detail-kv__k">order_id</div>
 						<div id="dpDetailOrderId" class="dp-detail-kv__v dp-mono"></div>
 					</div>
@@ -173,16 +144,20 @@
 						<div class="dp-detail-kv__k">Manager</div>
 						<div id="dpDetailManager" class="dp-detail-kv__v"></div>
 					</div>
-					<div class="dp-detail-kv">
+					<div id="dpDetailTransitionRow" class="dp-detail-kv">
 						<div class="dp-detail-kv__k">Estado</div>
 						<div id="dpDetailTransition" class="dp-detail-kv__v dp-mono"></div>
 					</div>
-					<div class="dp-detail-kv">
-						<div class="dp-detail-kv__k">Motivo</div>
-						<div id="dpDetailReason" class="dp-detail-kv__v"></div>
+					<div id="dpDetailResourceRow" class="dp-detail-kv hidden">
+						<div class="dp-detail-kv__k">Recurso</div>
+						<div id="dpDetailResource" class="dp-detail-kv__v"></div>
+					</div>
+					<div id="dpDetailActionRow" class="dp-detail-kv hidden">
+						<div class="dp-detail-kv__k">Acción</div>
+						<div id="dpDetailAction" class="dp-detail-kv__v"></div>
 					</div>
 
-					<div class="mt-4">
+					<div id="dpDetailOpenOrderBtn" class="mt-4 hidden">
 						<a id="dpDetailOpenOrder"
 							class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
 							href="#">Ver pedido</a>

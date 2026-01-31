@@ -111,40 +111,28 @@ function extractLogs(payload) {
 }
 
 function logId(log) {
-  return log?.id ?? log?._id ?? log?.log_id ?? log?.uuid ?? null;
+  return log?.log_id ?? log?.id ?? log?._id ?? log?.uuid ?? null;
 }
 
 function mapLogFromApi(log) {
   const orderId = log?.order_id ?? log?.orderId ?? null;
-  const managerId = log?.manager_id ?? log?.managerId ?? null;
-  const managerName =
-    log?.manager?.name ??
-    log?.manager?.full_name ??
-    log?.manager?.manager_name ??
-    log?.manager?.email ??
-    null;
-  const managerEmail = log?.manager?.email ?? null;
-  const readableId =
-    log?.readable_id ??
-    log?.readableId ??
-    log?.order?.readable_id ??
-    log?.order?.readableId ??
-    null;
+  const readableId = log?.order?.readable_id ?? log?.order?.readableId ?? log?.readable_id ?? log?.readableId ?? null;
+  const manager = log?.manager_display ?? log?.manager ?? null;
 
   return {
     raw: log,
     id: logId(log),
     orderId,
     readableId,
-    managerId,
-    managerName,
-    managerEmail,
-    timestamp: log?.timestamp_transition ?? log?.timestampTransition ?? null,
+    manager,
+    timestamp: log?.timestamp_transition ?? log?.timestampTransition ?? log?.timestamp ?? null,
     statusFrom: log?.status_from ?? log?.statusFrom ?? null,
     statusTo: log?.status_to ?? log?.statusTo ?? null,
     cancellationReason: log?.cancellation_reason ?? log?.cancellationReason ?? null,
-    resource: log?.resource ?? null,
+    resource: log?.resource ?? log?.logs_type ?? null,
     httpMethod: log?.http_method ?? log?.httpMethod ?? null,
+    path: log?.path ?? null,
+    order: log?.order ?? null,
   };
 }
 
@@ -187,6 +175,87 @@ function debounce(fn, waitMs) {
 }
 
 // ============================================
+// NIVEL DIOS: PHANTOM ENTITY & FORMATTING
+// ============================================
+
+/**
+ * Formatear nombres técnicos de métricas a formato legible
+ * TIEMPO_MAXIMO_COCINA_MINUTOS → Tiempo Max. Cocina (Min)
+ */
+function formatMetricName(metric) {
+  if (!metric) return '—';
+
+  return metric
+    .replace(/_/g, ' ')
+    .replace('TIEMPO MAXIMO', 'Tiempo Max.')
+    .replace('CAPACIDAD MAXIMA', 'Capacidad Max.')
+    .replace(/\b\w+/g, (word) => {
+      // Capitalize first letter of each word
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+}
+
+/**
+ * Obtener nombre de zona con fallback para entidades eliminadas (fantasmas 👻)
+ */
+function getZoneName(zoneId, zonesMap) {
+  if (!zoneId) return '—';
+  const name = zonesMap[zoneId];
+  if (name) return name;
+
+  // Phantom entity - zona eliminada
+  return `<span class="phantom-entity">Zona Eliminada (${zoneId.substring(0, 8)}...)</span>`;
+}
+
+/**
+ * Obtener nombre de threshold con fallback para entidades eliminadas
+ */
+function getThresholdName(thresholdId, thresholdsMap) {
+  if (!thresholdId) return '—';
+  const metric = thresholdsMap[thresholdId];
+  if (metric) return formatMetricName(metric);
+
+  // Phantom entity - threshold eliminado
+  return `<span class="phantom-entity">Umbral Eliminado (${thresholdId.substring(0, 8)}...)</span>`;
+}
+
+/**
+ * Extraer UUID de un path
+ * /api/dp/v1/zones/dbd1294d-1f92-43f5-a71d-27a1ab4fc9e6/activate → dbd1294d-1f92-43f5-a71d-27a1ab4fc9e6
+ */
+function extractResourceId(path, resourceType) {
+  if (!path) return null;
+  const pattern = new RegExp(`/${resourceType}/([a-f0-9-]{36})`, 'i');
+  const match = path.match(pattern);
+  return match ? match[1] : null;
+}
+
+/**
+ * Detectar acción desde path y http_method
+ */
+function detectAction(log, resourceType) {
+  const { path, httpMethod } = log;
+
+  if (!path) {
+    return { action: 'Modificación', badge: '⚙️', className: 'action-badge--modification' };
+  }
+
+  if (path.endsWith('/activate')) {
+    return { action: 'Activación', badge: '🟢', className: 'action-badge--activation' };
+  }
+
+  if (path.endsWith('/deactivate')) {
+    return { action: 'Desactivación', badge: '🔴', className: 'action-badge--deactivation' };
+  }
+
+  if (httpMethod === 'POST') {
+    return { action: 'Creación', badge: '🔵', className: 'action-badge--creation' };
+  }
+
+  return { action: 'Modificación', badge: '⚙️', className: 'action-badge--modification' };
+}
+
+// ============================================
 // UI COMPONENT CREATORS
 // ============================================
 
@@ -215,26 +284,6 @@ function getStatusBadgeClass(status) {
   if (s.includes('DELIVERED')) return 'dp-badge--delivered';
   if (s.includes('CANCEL')) return 'dp-badge--cancelled';
   return 'dp-badge--info';
-}
-
-function getTimelineNodeClass(status) {
-  if (!status) return 'timeline-node--created';
-  const s = String(status).toUpperCase();
-  if (s.includes('KITCHEN')) return 'timeline-node--kitchen';
-  if (s.includes('DISPATCH') || s.includes('READY')) return 'timeline-node--dispatch';
-  if (s.includes('DELIVERED')) return 'timeline-node--delivered';
-  if (s.includes('CANCEL')) return 'timeline-node--cancelled';
-  return 'timeline-node--created';
-}
-
-function getTimelineIcon(status) {
-  if (!status) return '📝';
-  const s = String(status).toUpperCase();
-  if (s.includes('KITCHEN')) return '🔥';
-  if (s.includes('DISPATCH') || s.includes('READY')) return '🛍️';
-  if (s.includes('DELIVERED')) return '🏁';
-  if (s.includes('CANCEL')) return '🚫';
-  return '📝';
 }
 
 function highlightJson(jsonString) {
@@ -268,18 +317,14 @@ export async function init() {
 
   const fromEl = byId('dpAuditFrom');
   const toEl = byId('dpAuditTo');
-  const managerFilterEl = byId('dpAuditManagerFilter');
+  const statusEl = byId('dpAuditStatus');
   const limitEl = byId('dpAuditLimit');
 
   const metaEl = byId('dpAuditMeta');
   const errorEl = byId('dpAuditError');
+  const tableHeader = byId('tableHeader');
   const tbody = byId('dpAuditTableBody');
-
-  const liveFeedView = byId('liveFeedView');
-  const timelineView = byId('timelineView');
-  const systemLogView = byId('systemLogView');
-  const closeTimelineView = byId('closeTimelineView');
-  const closeSystemLogView = byId('closeSystemLogView');
+  const currentTabTitle = byId('currentTabTitle');
 
   const detailWrap = byId('dpAuditDetail');
   const detailHint = byId('dpAuditDetailHint');
@@ -289,9 +334,17 @@ export async function init() {
   const dOrderId = byId('dpDetailOrderId');
   const dManager = byId('dpDetailManager');
   const dTransition = byId('dpDetailTransition');
-  const dReason = byId('dpDetailReason');
+  const dResource = byId('dpDetailResource');
+  const dAction = byId('dpDetailAction');
   const dOpenOrder = byId('dpDetailOpenOrder');
   const dOpenJson = byId('dpDetailOpenJson');
+
+  // Detail panel conditional rows
+  const dOrderRow = byId('dpDetailOrderRow');
+  const dTransitionRow = byId('dpDetailTransitionRow');
+  const dResourceRow = byId('dpDetailResourceRow');
+  const dActionRow = byId('dpDetailActionRow');
+  const dOpenOrderBtn = byId('dpDetailOpenOrderBtn');
 
   const jsonModal = byId('jsonModal');
   const jsonContent = byId('jsonContent');
@@ -300,7 +353,7 @@ export async function init() {
   const jsonCopyText = byId('jsonCopyText');
   const jsonCloseBtn = byId('jsonCloseBtn');
 
-  const filterChips = document.querySelectorAll('.filter-chip');
+  const tabButtons = document.querySelectorAll('.audit-tab');
 
   // State
   const state = {
@@ -310,30 +363,150 @@ export async function init() {
     selectedLog: null,
     limit: 50,
     offset: 0,
-    currentView: 'liveFeed', // 'liveFeed', 'timeline', 'systemLog'
-    activeFilters: {
-      context: 'order', // 'alert', 'order', 'config', 'all'
-    },
+    currentTab: 'orders', // 'orders', 'zones', 'thresholds'
+    zonesMap: {},
+    thresholdsMap: {},
+    catalogsLoaded: false,
   };
 
   // ============================================
-  // VIEW MANAGEMENT
+  // NIVEL DIOS: URL PERSISTENCE (Deep Linking)
   // ============================================
 
-  function switchView(viewName) {
-    state.currentView = viewName;
+  function getTabFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    return ['orders', 'zones', 'thresholds'].includes(tab) ? tab : 'orders';
+  }
 
-    liveFeedView.classList.toggle('hidden', viewName !== 'liveFeed');
-    timelineView.classList.toggle('active', viewName === 'timeline');
-    systemLogView.classList.toggle('active', viewName === 'systemLog');
+  function updateUrlTab(tab) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', tab);
+    window.history.replaceState(null, '', `?${params.toString()}`);
+  }
 
-    if (viewName === 'liveFeed') {
-      liveFeedView.classList.remove('hidden');
-      liveFeedView.style.gridColumn = '1 / -1';
-    } else {
-      liveFeedView.classList.add('hidden');
+  // ============================================
+  // NIVEL DIOS: PARALLEL CATALOG PRE-LOADING
+  // ============================================
+
+  async function preloadCatalogs() {
+    if (state.catalogsLoaded) return;
+
+    try {
+      console.log('🔄 Precargando catálogos de zonas y umbrales...');
+
+      const [zones, thresholds] = await Promise.all([
+        fetchJson(dpBase ? `${dpBase}/api/dp/v1/zones` : '/api/dp/v1/zones'),
+        fetchJson(dpBase ? `${dpBase}/api/dp/v1/thresholds` : '/api/dp/v1/thresholds'),
+      ]);
+
+      // Map zones
+      (zones || []).forEach(z => {
+        state.zonesMap[z.zone_id] = z.zone_name;
+      });
+
+      // Map thresholds
+      (thresholds || []).forEach(t => {
+        state.thresholdsMap[t.threshold_id] = t.metric_affected;
+      });
+
+      state.catalogsLoaded = true;
+      console.log(`✅ Catálogos cargados: ${Object.keys(state.zonesMap).length} zonas, ${Object.keys(state.thresholdsMap).length} umbrales`);
+    } catch (e) {
+      console.error('❌ Error cargando catálogos de auditoría:', e);
+      // Continue anyway - phantom handling will take care of missing mappings
     }
   }
+
+  // ============================================
+  // TAB MANAGEMENT
+  // ============================================
+
+  function switchTab(tabName) {
+    if (state.currentTab === tabName) return;
+
+    state.currentTab = tabName;
+    state.offset = 0; // Reset pagination
+
+    // Update URL
+    updateUrlTab(tabName);
+
+    // Update tab buttons
+    tabButtons.forEach(btn => {
+      if (btn.dataset.tab === tabName) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Update tab title
+    const titles = {
+      orders: 'Órdenes',
+      zones: 'Zonas',
+      thresholds: 'Umbrales',
+    };
+    if (currentTabTitle) currentTabTitle.textContent = titles[tabName] || 'Logs';
+
+    // Show/hide status filter (only for orders)
+    if (statusEl) {
+      statusEl.style.display = tabName === 'orders' ? '' : 'none';
+    }
+
+    // Update table headers
+    updateTableHeaders(tabName);
+
+    // Load data
+    loadLogs();
+  }
+
+  function updateTableHeaders(tabName) {
+    if (!tableHeader) return;
+
+    let headers = '';
+
+    if (tabName === 'orders') {
+      headers = `
+        <tr>
+          <th style="width: 180px;">Timestamp</th>
+          <th style="width: 140px;">Orden</th>
+          <th>Manager</th>
+          <th>Transición</th>
+          <th>Motivo</th>
+          <th style="width: 80px;">JSON</th>
+        </tr>
+      `;
+    } else if (tabName === 'zones') {
+      headers = `
+        <tr>
+          <th style="width: 180px;">Timestamp</th>
+          <th>Manager</th>
+          <th>Zona Afectada</th>
+          <th>Acción</th>
+          <th style="width: 80px;">JSON</th>
+        </tr>
+      `;
+    } else if (tabName === 'thresholds') {
+      headers = `
+        <tr>
+          <th style="width: 180px;">Timestamp</th>
+          <th>Manager</th>
+          <th>Umbral Afectado</th>
+          <th>Acción</th>
+          <th style="width: 80px;">JSON</th>
+        </tr>
+      `;
+    }
+
+    tableHeader.innerHTML = headers;
+  }
+
+  // Set up tab listeners
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchTab(btn.dataset.tab);
+    });
+  });
 
   // ============================================
   // SMART OMNI-SEARCH
@@ -344,23 +517,23 @@ export async function init() {
 
     if (!trimmed) {
       omniSearchClear.classList.remove('visible');
-      state.offset = 0;
-      loadLogs();
+      // Re-render table with all logs (instant reset)
+      renderTable(state.logs);
       return;
     }
 
     omniSearchClear.classList.add('visible');
 
-    // UUID Detection - Auto-switch to Timeline
+    // UUID Detection
     if (isUuidV4(trimmed)) {
-      loadOrderTimeline(trimmed);
+      // Could be order_id - try to filter
+      performTextSearch(trimmed);
       return;
     }
 
     // Readable ID Detection (DL-####)
     if (isReadableId(trimmed)) {
-      // Search for this readable_id
-      searchByReadableId(trimmed);
+      performTextSearch(trimmed);
       return;
     }
 
@@ -368,63 +541,17 @@ export async function init() {
     performTextSearch(trimmed);
   }
 
-  async function loadOrderTimeline(orderId) {
-    if (state.loading) return;
-    state.loading = true;
-
-    try {
-      setPageError('');
-      setMeta('Cargando timeline...');
-
-      const qs = new URLSearchParams({ limit: 100, offset: 0 }).toString();
-      const url = dpBase
-        ? `${dpBase}/api/dp/v1/logs/by-order/${encodeURIComponent(orderId)}?${qs}`
-        : `/api/dp/v1/logs/by-order/${encodeURIComponent(orderId)}?${qs}`;
-
-      const payload = await fetchJson(url, { method: 'GET' });
-      state.logs = extractLogs(payload).map(mapLogFromApi);
-
-      // Sort ASC for timeline
-      state.logs.sort((a, b) => {
-        const ta = new Date(a.timestamp).getTime();
-        const tb = new Date(b.timestamp).getTime();
-        if (!Number.isFinite(ta) || !Number.isFinite(tb)) return 0;
-        return ta - tb;
-      });
-
-      renderOrderTimeline(state.logs);
-      switchView('timeline');
-    } catch (e) {
-      setPageError(normalizeErrorMessage(e));
-    } finally {
-      state.loading = false;
-    }
-  }
-
-  async function searchByReadableId(readableId) {
-    // For now, just filter the current logs
-    // In a real implementation, you'd call an API endpoint
-    const filtered = state.logs.filter(log =>
-      log.readableId && log.readableId.toUpperCase() === readableId.toUpperCase()
-    );
-
-    if (filtered.length > 0 && filtered[0].orderId) {
-      loadOrderTimeline(filtered[0].orderId);
-    } else {
-      setPageError(`No se encontró la orden ${readableId}`);
-    }
-  }
-
   function performTextSearch(query) {
     const lowerQuery = query.toLowerCase();
     const filtered = state.logs.filter(log => {
       const searchText = [
         log.readableId,
-        log.managerName,
-        log.managerEmail,
+        log.manager,
         log.statusFrom,
         log.statusTo,
         log.cancellationReason,
+        log.id,
+        log.orderId,
       ].filter(Boolean).join(' ').toLowerCase();
 
       return searchText.includes(lowerQuery);
@@ -445,29 +572,6 @@ export async function init() {
   });
 
   // ============================================
-  // FILTER CHIPS
-  // ============================================
-
-  filterChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const filterType = chip.dataset.filter;
-
-      // Toggle active
-      filterChips.forEach(c => {
-        if (c.dataset.filter === filterType) {
-          c.classList.toggle('active');
-        } else {
-          c.classList.remove('active');
-        }
-      });
-
-      state.activeFilters.context = chip.classList.contains('active') ? filterType : 'all';
-      state.offset = 0;
-      loadLogs();
-    });
-  });
-
-  // ============================================
   // DATA LOADING
   // ============================================
 
@@ -483,16 +587,17 @@ export async function init() {
   function buildParams() {
     const from = toIsoFromDatetimeLocal(fromEl?.value);
     const to = toIsoFromDatetimeLocal(toEl?.value);
-    const manager_id = String(managerFilterEl?.value || '').trim();
+    const status = state.currentTab === 'orders' ? String(statusEl?.value || '').trim() : '';
 
     const limit = Number(String(limitEl?.value || state.limit).trim());
     const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(500, limit)) : 50;
     state.limit = safeLimit;
 
     return {
+      resource: state.currentTab,
+      status,
       from,
       to,
-      manager_id,
       limit: state.limit,
       offset: state.offset,
     };
@@ -500,16 +605,19 @@ export async function init() {
 
   function buildQueryString(params) {
     const q = new URLSearchParams();
-    if (params.manager_id) q.set('manager_id', params.manager_id);
+
+    // Resource parameter (required for filtering)
+    if (params.resource) q.set('resource', params.resource);
+
+    // Status (only for orders)
+    if (params.status) q.set('status', params.status);
+
     if (params.from) q.set('from', params.from);
     if (params.to) q.set('to', params.to);
     q.set('limit', String(params.limit ?? 50));
     q.set('offset', String(params.offset ?? 0));
-    return q.toString();
-  }
 
-  function hasAnyFilter(params) {
-    return Boolean(params.manager_id || params.from || params.to);
+    return q.toString();
   }
 
   async function loadLogs() {
@@ -521,25 +629,15 @@ export async function init() {
       setMeta('Cargando...');
 
       const params = buildParams();
+      const qs = buildQueryString(params);
+      const url = dpBase
+        ? `${dpBase}/api/dp/v1/logs?${qs}`
+        : `/api/dp/v1/logs?${qs}`;
 
-      let payload;
-      if (hasAnyFilter(params)) {
-        const qs = buildQueryString(params);
-        const url = dpBase
-          ? `${dpBase}/api/dp/v1/logs/search?${qs}`
-          : `/api/dp/v1/logs/search?${qs}`;
-        payload = await fetchJson(url, { method: 'GET' });
-      } else {
-        const qs = buildQueryString({ limit: params.limit, offset: params.offset });
-        const url = dpBase
-          ? `${dpBase}/api/dp/v1/logs?${qs}`
-          : `/api/dp/v1/logs?${qs}`;
-        payload = await fetchJson(url, { method: 'GET' });
-      }
-
+      const payload = await fetchJson(url, { method: 'GET' });
       state.logs = extractLogs(payload).map(mapLogFromApi);
 
-      // Sort DESC for live feed
+      // Sort DESC
       state.logs.sort((a, b) => {
         const ta = new Date(a.timestamp).getTime();
         const tb = new Date(b.timestamp).getTime();
@@ -547,14 +645,7 @@ export async function init() {
         return tb - ta;
       });
 
-      // Apply context filter
-      let filteredLogs = state.logs;
-      if (state.activeFilters.context !== 'all') {
-        filteredLogs = state.logs.filter(log => detectLogContext(log) === state.activeFilters.context);
-      }
-
-      renderTable(filteredLogs);
-      switchView('liveFeed');
+      renderTable(state.logs);
     } catch (e) {
       state.logs = [];
       renderTable([]);
@@ -562,13 +653,6 @@ export async function init() {
     } finally {
       state.loading = false;
     }
-  }
-
-  function detectLogContext(log) {
-    // Detect if log is alert, order, or config
-    if (log.statusTo && log.statusTo.includes('CANCEL')) return 'alert';
-    if (log.resource && (log.resource.includes('zones') || log.resource.includes('thresholds'))) return 'config';
-    return 'order';
   }
 
   // ============================================
@@ -599,66 +683,13 @@ export async function init() {
         tr.classList.add('is-selected');
       }
 
-      // Timestamp
-      const tdTime = document.createElement('td');
-      tdTime.innerHTML = `
-        <div class="audit-time-relative">${formatRelativeTime(log.timestamp)}</div>
-        <div class="audit-time-absolute">${formatTimestamp(log.timestamp)}</div>
-      `;
-
-      // Order
-      const tdOrder = document.createElement('td');
-      const orderDisplay = log.readableId || log.orderId || '—';
-      if (log.readableId || log.orderId) {
-        tdOrder.innerHTML = `<a href="/admin/dp/orders/${encodeURIComponent(orderDisplay)}" class="audit-order-link">${orderDisplay}</a>`;
-      } else {
-        tdOrder.textContent = orderDisplay;
-        tdOrder.className = 'dp-mono';
+      if (state.currentTab === 'orders') {
+        renderOrderRow(tr, log);
+      } else if (state.currentTab === 'zones') {
+        renderZoneRow(tr, log);
+      } else if (state.currentTab === 'thresholds') {
+        renderThresholdRow(tr, log);
       }
-
-      // Manager
-      const tdManager = document.createElement('td');
-      tdManager.innerHTML = `
-        <div class="audit-manager-cell">
-          ${createAvatar(log.managerName)}
-          <div class="audit-manager-info">
-            <div class="audit-manager-name">${log.managerName || 'System'}</div>
-            ${log.managerEmail ? `<div class="audit-manager-email">${log.managerEmail}</div>` : ''}
-          </div>
-        </div>
-      `;
-
-      // Transition
-      const tdTransition = document.createElement('td');
-      const fromBadge = log.statusFrom ? `<span class="dp-badge ${getStatusBadgeClass(log.statusFrom)}">${log.statusFrom}</span>` : '<span class="text-slate-400">—</span>';
-      const toBadge = log.statusTo ? `<span class="dp-badge ${getStatusBadgeClass(log.statusTo)}">${log.statusTo}</span>` : '<span class="text-slate-400">—</span>';
-      tdTransition.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-          ${fromBadge}
-          <span style="color: rgb(148 163 184);">→</span>
-          ${toBadge}
-        </div>
-      `;
-
-      // Reason
-      const tdReason = document.createElement('td');
-      tdReason.textContent = log.cancellationReason || '—';
-      tdReason.className = 'text-sm';
-
-      // JSON Button
-      const tdJson = document.createElement('td');
-      tdJson.innerHTML = '<button class="dp-icon-btn json-btn" title="Ver JSON">📄</button>';
-      tdJson.querySelector('.json-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        openJsonModal(log);
-      });
-
-      tr.appendChild(tdTime);
-      tr.appendChild(tdOrder);
-      tr.appendChild(tdManager);
-      tr.appendChild(tdTransition);
-      tr.appendChild(tdReason);
-      tr.appendChild(tdJson);
 
       tr.addEventListener('click', () => {
         state.selectedId = log.id || null;
@@ -671,13 +702,170 @@ export async function init() {
     }
 
     // Auto-select first if none selected
-    const selected = state.selectedId ? logs.find(l => String(l.id) === String(state.selectedId)) : null;
-    if (!selected && logs.length > 0) {
+    if (!state.selectedLog && logs.length > 0) {
       state.selectedLog = logs[0];
       renderDetail(logs[0]);
-    } else if (selected) {
-      renderDetail(selected);
     }
+  }
+
+  function renderOrderRow(tr, log) {
+    // Timestamp
+    const tdTime = document.createElement('td');
+    tdTime.innerHTML = `
+      <div class="audit-time-relative">${formatRelativeTime(log.timestamp)}</div>
+      <div class="audit-time-absolute">${formatTimestamp(log.timestamp)}</div>
+    `;
+
+    // Order
+    const tdOrder = document.createElement('td');
+    const orderDisplay = log.readableId || log.orderId || '—';
+    if (log.readableId || log.orderId) {
+      tdOrder.innerHTML = `<a href="/admin/dp/orders/${encodeURIComponent(orderDisplay)}" class="audit-order-link" onclick="event.stopPropagation()">${orderDisplay}</a>`;
+    } else {
+      tdOrder.textContent = orderDisplay;
+      tdOrder.className = 'dp-mono';
+    }
+
+    // Manager
+    const tdManager = document.createElement('td');
+    tdManager.innerHTML = `
+      <div class="audit-manager-cell">
+        ${createAvatar(log.manager)}
+        <div class="audit-manager-info">
+          <div class="audit-manager-name">${log.manager || 'System'}</div>
+        </div>
+      </div>
+    `;
+
+    // Transition
+    const tdTransition = document.createElement('td');
+    const fromBadge = log.statusFrom ? `<span class="dp-badge ${getStatusBadgeClass(log.statusFrom)}">${log.statusFrom}</span>` : '<span class="text-slate-400">—</span>';
+    const toBadge = log.statusTo ? `<span class="dp-badge ${getStatusBadgeClass(log.statusTo)}">${log.statusTo}</span>` : '<span class="text-slate-400">—</span>';
+    tdTransition.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        ${fromBadge}
+        <span style="color: rgb(148 163 184);">→</span>
+        ${toBadge}
+      </div>
+    `;
+
+    // Reason
+    const tdReason = document.createElement('td');
+    tdReason.textContent = log.cancellationReason || '—';
+    tdReason.className = 'text-sm';
+
+    // JSON Button
+    const tdJson = document.createElement('td');
+    tdJson.innerHTML = '<button class="dp-icon-btn json-btn" title="Ver JSON">📄</button>';
+    tdJson.querySelector('.json-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openJsonModal(log);
+    });
+
+    tr.appendChild(tdTime);
+    tr.appendChild(tdOrder);
+    tr.appendChild(tdManager);
+    tr.appendChild(tdTransition);
+    tr.appendChild(tdReason);
+    tr.appendChild(tdJson);
+  }
+
+  function renderZoneRow(tr, log) {
+    // Timestamp
+    const tdTime = document.createElement('td');
+    tdTime.innerHTML = `
+      <div class="audit-time-relative">${formatRelativeTime(log.timestamp)}</div>
+      <div class="audit-time-absolute">${formatTimestamp(log.timestamp)}</div>
+    `;
+
+    // Manager
+    const tdManager = document.createElement('td');
+    tdManager.innerHTML = `
+      <div class="audit-manager-cell">
+        ${createAvatar(log.manager)}
+        <div class="audit-manager-info">
+          <div class="audit-manager-name">${log.manager || 'System'}</div>
+        </div>
+      </div>
+    `;
+
+    // Zona Afectada (with phantom handling)
+    const tdZone = document.createElement('td');
+    const zoneId = extractResourceId(log.path, 'zones');
+    tdZone.innerHTML = getZoneName(zoneId, state.zonesMap);
+
+    // Acción
+    const tdAction = document.createElement('td');
+    const actionInfo = detectAction(log, 'zones');
+    tdAction.innerHTML = `
+      <div class="action-badge ${actionInfo.className}">
+        <span class="action-badge__icon">${actionInfo.badge}</span>
+        <span>${actionInfo.action}</span>
+      </div>
+    `;
+
+    // JSON Button
+    const tdJson = document.createElement('td');
+    tdJson.innerHTML = '<button class="dp-icon-btn json-btn" title="Ver JSON">📄</button>';
+    tdJson.querySelector('.json-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openJsonModal(log);
+    });
+
+    tr.appendChild(tdTime);
+    tr.appendChild(tdManager);
+    tr.appendChild(tdZone);
+    tr.appendChild(tdAction);
+    tr.appendChild(tdJson);
+  }
+
+  function renderThresholdRow(tr, log) {
+    // Timestamp
+    const tdTime = document.createElement('td');
+    tdTime.innerHTML = `
+      <div class="audit-time-relative">${formatRelativeTime(log.timestamp)}</div>
+      <div class="audit-time-absolute">${formatTimestamp(log.timestamp)}</div>
+    `;
+
+    // Manager
+    const tdManager = document.createElement('td');
+    tdManager.innerHTML = `
+      <div class="audit-manager-cell">
+        ${createAvatar(log.manager)}
+        <div class="audit-manager-info">
+          <div class="audit-manager-name">${log.manager || 'System'}</div>
+        </div>
+      </div>
+    `;
+
+    // Umbral Afectado (with phantom handling)
+    const tdThreshold = document.createElement('td');
+    const thresholdId = extractResourceId(log.path, 'thresholds');
+    tdThreshold.innerHTML = getThresholdName(thresholdId, state.thresholdsMap);
+
+    // Acción
+    const tdAction = document.createElement('td');
+    const actionInfo = detectAction(log, 'thresholds');
+    tdAction.innerHTML = `
+      <div class="action-badge ${actionInfo.className}">
+        <span class="action-badge__icon">${actionInfo.badge}</span>
+        <span>${actionInfo.action}</span>
+      </div>
+    `;
+
+    // JSON Button
+    const tdJson = document.createElement('td');
+    tdJson.innerHTML = '<button class="dp-icon-btn json-btn" title="Ver JSON">📄</button>';
+    tdJson.querySelector('.json-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openJsonModal(log);
+    });
+
+    tr.appendChild(tdTime);
+    tr.appendChild(tdManager);
+    tr.appendChild(tdThreshold);
+    tr.appendChild(tdAction);
+    tr.appendChild(tdJson);
   }
 
   function renderDetail(log) {
@@ -694,89 +882,52 @@ export async function init() {
 
     setText(dTimestamp, formatTimestamp(log.timestamp));
     setText(dLogId, log.id || '—');
-    setText(dOrderId, log.orderId || '—');
 
-    const manager = log.managerName
-      ? `${log.managerName}${log.managerId ? ` (${log.managerId.substring(0, 8)}...)` : ''}`
-      : (log.managerId ? log.managerId : 'System');
+    // Manager
+    const manager = log.manager || 'System';
     setText(dManager, manager);
 
-    const from = log.statusFrom ? String(log.statusFrom) : '—';
-    const to = log.statusTo ? String(log.statusTo) : '—';
-    setText(dTransition, `${from} → ${to}`);
-    setText(dReason, log.cancellationReason || '—');
+    // Conditional fields based on resource type
+    if (state.currentTab === 'orders') {
+      setHidden(dOrderRow, false);
+      setHidden(dTransitionRow, false);
+      setHidden(dResourceRow, true);
+      setHidden(dActionRow, true);
+      setHidden(dOpenOrderBtn, false);
 
-    if (dOpenOrder) {
-      const orderKey = log.readableId || log.orderId;
-      if (orderKey) {
-        dOpenOrder.href = `/admin/dp/orders/${encodeURIComponent(orderKey)}`;
-        dOpenOrder.classList.remove('hidden');
-      } else {
-        dOpenOrder.href = '#';
-        dOpenOrder.classList.add('hidden');
+      setText(dOrderId, log.orderId || '—');
+      const from = log.statusFrom ? String(log.statusFrom) : '—';
+      const to = log.statusTo ? String(log.statusTo) : '—';
+      setText(dTransition, `${from} → ${to}`);
+
+      if (dOpenOrder) {
+        const orderKey = log.readableId || log.orderId;
+        if (orderKey) {
+          dOpenOrder.href = `/admin/dp/orders/${encodeURIComponent(orderKey)}`;
+        } else {
+          dOpenOrder.href = '#';
+        }
       }
+    } else {
+      setHidden(dOrderRow, true);
+      setHidden(dTransitionRow, true);
+      setHidden(dResourceRow, false);
+      setHidden(dActionRow, false);
+      setHidden(dOpenOrderBtn, true);
+
+      // Resource name
+      if (state.currentTab === 'zones') {
+        const zoneId = extractResourceId(log.path, 'zones');
+        dResource.innerHTML = getZoneName(zoneId, state.zonesMap);
+      } else if (state.currentTab === 'thresholds') {
+        const thresholdId = extractResourceId(log.path, 'thresholds');
+        dResource.innerHTML = getThresholdName(thresholdId, state.thresholdsMap);
+      }
+
+      // Action
+      const actionInfo = detectAction(log, state.currentTab);
+      setText(dAction, `${actionInfo.badge} ${actionInfo.action}`);
     }
-  }
-
-  function renderOrderTimeline(logs) {
-    const timelineHeader = byId('timelineHeader');
-    const timelineContainer = byId('timelineContainer');
-
-    if (!logs.length) {
-      timelineHeader.innerHTML = '<p class="text-slate-600">No hay eventos para esta orden.</p>';
-      timelineContainer.innerHTML = '';
-      return;
-    }
-
-    // Header with order summary
-    const firstLog = logs[0];
-    const lastLog = logs[logs.length - 1];
-
-    timelineHeader.innerHTML = `
-      <div class="timeline-header-title">${firstLog.readableId || firstLog.orderId || 'Orden'}</div>
-      <div class="timeline-header-meta">
-        <div class="timeline-header-meta-item">
-          <span>👤</span>
-          <span>${firstLog.managerName || 'System'}</span>
-        </div>
-        <div class="timeline-header-meta-item">
-          <span>📊</span>
-          <span>Estado Actual: ${lastLog.statusTo || 'Desconocido'}</span>
-        </div>
-        <div class="timeline-header-meta-item">
-          <span>📅</span>
-          <span>${logs.length} eventos</span>
-        </div>
-      </div>
-    `;
-
-    // Timeline events
-    const eventsHtml = logs.map((log, index) => {
-      const nodeClass = getTimelineNodeClass(log.statusTo);
-      const icon = getTimelineIcon(log.statusTo);
-
-      return `
-        <div class="timeline-event">
-          <div class="timeline-node ${nodeClass}">${icon}</div>
-          <div class="timeline-event-title">
-            ${log.statusTo || 'Evento'}
-          </div>
-          <div class="timeline-event-time">${formatTimestamp(log.timestamp)}</div>
-          <div class="timeline-event-transition">
-            <span>${log.statusFrom || '—'}</span>
-            <span style="color: rgb(148 163 184);">→</span>
-            <span>${log.statusTo || '—'}</span>
-          </div>
-          ${log.cancellationReason ? `<div style="margin-top: 0.5rem; font-size: 0.875rem; color: rgb(100 116 139);">${log.cancellationReason}</div>` : ''}
-          <div class="timeline-event-author">
-            <span>por</span>
-            <strong>${log.managerName || 'System'}</strong>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    timelineContainer.innerHTML = `<div class="timeline-line"></div>${eventsHtml}`;
   }
 
   // ============================================
@@ -833,20 +984,6 @@ export async function init() {
   });
 
   // ============================================
-  // VIEW CONTROLS
-  // ============================================
-
-  closeTimelineView?.addEventListener('click', () => {
-    switchView('liveFeed');
-    loadLogs();
-  });
-
-  closeSystemLogView?.addEventListener('click', () => {
-    switchView('liveFeed');
-    loadLogs();
-  });
-
-  // ============================================
   // PAGINATION & ACTIONS
   // ============================================
 
@@ -858,7 +995,7 @@ export async function init() {
   refreshBtn?.addEventListener('click', () => loadLogs());
   exportBtn?.addEventListener('click', () => {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    downloadJson(`dp-audit-${stamp}.json`, state.logs.map((l) => l.raw));
+    downloadJson(`dp-audit-${state.currentTab}-${stamp}.json`, state.logs.map((l) => l.raw));
   });
 
   prevBtn?.addEventListener('click', () => {
@@ -873,7 +1010,7 @@ export async function init() {
 
   fromEl?.addEventListener('change', debouncedReload);
   toEl?.addEventListener('change', debouncedReload);
-  managerFilterEl?.addEventListener('change', debouncedReload);
+  statusEl?.addEventListener('change', debouncedReload);
   limitEl?.addEventListener('change', debouncedReload);
 
   detailClose?.addEventListener('click', () => renderDetail(null));
@@ -882,6 +1019,37 @@ export async function init() {
   // INITIALIZE
   // ============================================
 
+  // Preload catalogs in parallel
+  await preloadCatalogs();
+
+  // Get tab from URL (deep linking)
+  const initialTab = getTabFromUrl();
+  state.currentTab = initialTab;
+
+  // Set active tab
+  tabButtons.forEach(btn => {
+    if (btn.dataset.tab === initialTab) {
+      btn.classList.add('active');
+    }
+  });
+
+  // Update tab title
+  const titles = {
+    orders: 'Órdenes',
+    zones: 'Zonas',
+    thresholds: 'Umbrales',
+  };
+  if (currentTabTitle) currentTabTitle.textContent = titles[initialTab] || 'Logs';
+
+  // Show/hide status filter
+  if (statusEl) {
+    statusEl.style.display = initialTab === 'orders' ? '' : 'none';
+  }
+
+  // Update table headers
+  updateTableHeaders(initialTab);
+
+  // Load initial data
   await loadLogs();
 }
 

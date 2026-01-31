@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
-body { 
+body {
   background: transparent;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
@@ -14,7 +14,7 @@ body {
   --brand-50: #f2f7f1;
   --brand-700: #13532a;
   --brand-800: #0f4a22;
-  
+
   /* Estado Colors */
   --status-pending: #fef3c7;
   --status-pending-text: #854d0e;
@@ -47,13 +47,13 @@ body {
   font-size: 0.9375rem;
   color: rgb(15 23 42);
   transition: all 200ms ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .omni-search:focus {
   outline: none;
   border-color: var(--brand-700);
-  box-shadow: 0 0 0 3px rgba(19,83,42,0.12), 0 4px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 0 0 3px rgba(19, 83, 42, 0.12), 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .omni-search::placeholder {
@@ -130,7 +130,7 @@ body {
   border-color: rgb(203 213 225);
   background: rgb(248 250 252);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .filter-chip.active {
@@ -138,34 +138,164 @@ body {
   background: var(--brand-50);
   color: var(--brand-800);
   font-weight: 700;
-  box-shadow: 0 0 0 2px rgba(19,83,42,0.08);
+  box-shadow: 0 0 0 2px rgba(19, 83, 42, 0.08);
 }
 
 .filter-chip--alert.active {
   border-color: #dc2626;
   background: #fee2e2;
   color: #991b1b;
-  box-shadow: 0 0 0 2px rgba(220,38,38,0.08);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.08);
 }
 
 .filter-chip--order.active {
   border-color: var(--brand-700);
   background: var(--brand-50);
   color: var(--brand-800);
-  box-shadow: 0 0 0 2px rgba(19,83,42,0.08);
+  box-shadow: 0 0 0 2px rgba(19, 83, 42, 0.08);
 }
 
 .filter-chip--config.active {
   border-color: #2563eb;
   background: #dbeafe;
   color: #1e40af;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.08);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
 }
 
 .filter-chip__icon {
   font-size: 1rem;
   line-height: 1;
 }
+
+/* ============================================
+   TAB NAVIGATION
+   ============================================ */
+.audit-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid rgb(226 232 240);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.audit-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.audit-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: rgb(100 116 139);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  transition: all 200ms ease;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.audit-tab:hover {
+  color: rgb(51 65 85);
+  background: rgb(248 250 252);
+}
+
+.audit-tab.active {
+  color: var(--brand-800);
+  border-bottom-color: var(--brand-700);
+  background: transparent;
+}
+
+.audit-tab__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.audit-tab__label {
+  font-weight: 700;
+}
+
+.audit-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  background: rgb(226 232 240);
+  color: rgb(71 85 105);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.audit-tab.active .audit-tab__count {
+  background: var(--brand-700);
+  color: #fff;
+}
+
+/* ============================================
+   ACTION BADGES (for Zones/Thresholds)
+   ============================================ */
+.action-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.action-badge--activation {
+  background: #d1fae5;
+  border-color: rgba(6, 95, 70, 0.2);
+  color: #065f46;
+}
+
+.action-badge--deactivation {
+  background: #fee2e2;
+  border-color: rgba(153, 27, 27, 0.2);
+  color: #991b1b;
+}
+
+.action-badge--creation {
+  background: #dbeafe;
+  border-color: rgba(30, 64, 175, 0.2);
+  color: #1e40af;
+}
+
+.action-badge--modification {
+  background: rgb(241 245 249);
+  border-color: rgb(203 213 225);
+  color: rgb(71 85 105);
+}
+
+.action-badge__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ============================================
+   PHANTOM ENTITY (deleted zones/thresholds)
+   ============================================ */
+.phantom-entity {
+  color: rgb(148 163 184);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.phantom-entity::before {
+  content: '👻 ';
+}
+
 
 /* ============================================
    AUDIT TABLE (VITAMINIZED)
@@ -288,7 +418,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.02em;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .audit-manager-cell {
@@ -386,31 +516,31 @@ body {
 
 .dp-badge--pending {
   background: var(--status-pending);
-  border-color: rgba(133,77,14,0.2);
+  border-color: rgba(133, 77, 14, 0.2);
   color: var(--status-pending-text);
 }
 
 .dp-badge--kitchen {
   background: var(--status-kitchen);
-  border-color: rgba(154,52,18,0.2);
+  border-color: rgba(154, 52, 18, 0.2);
   color: var(--status-kitchen-text);
 }
 
 .dp-badge--dispatch {
   background: var(--status-dispatch);
-  border-color: rgba(30,64,175,0.2);
+  border-color: rgba(30, 64, 175, 0.2);
   color: var(--status-dispatch-text);
 }
 
 .dp-badge--delivered {
   background: var(--status-delivered);
-  border-color: rgba(6,95,70,0.2);
+  border-color: rgba(6, 95, 70, 0.2);
   color: var(--status-delivered-text);
 }
 
 .dp-badge--cancelled {
   background: var(--status-cancelled);
-  border-color: rgba(153,27,27,0.2);
+  border-color: rgba(153, 27, 27, 0.2);
   color: var(--status-cancelled-text);
 }
 
@@ -461,7 +591,7 @@ body {
   padding: 1.5rem;
   border-radius: 1rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .timeline-header-title {
@@ -507,12 +637,12 @@ body {
   background: #fff;
   border: 1px solid rgb(226 232 240);
   border-radius: 0.875rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: all 200ms ease;
 }
 
 .timeline-event:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateX(4px);
 }
 
@@ -524,7 +654,7 @@ body {
   height: 24px;
   border-radius: 50%;
   border: 3px solid #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -627,12 +757,12 @@ body {
   border-radius: 0.875rem;
   padding: 1.25rem;
   margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: all 200ms ease;
 }
 
 .diff-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateX(2px);
 }
 
@@ -744,6 +874,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -766,6 +897,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -986,29 +1118,29 @@ body {
   .omni-search-container {
     max-width: 100%;
   }
-  
+
   .filter-chips {
     width: 100%;
   }
-  
+
   .timeline-container {
     padding-left: 2rem;
   }
-  
+
   .timeline-node {
     left: -1.875rem;
   }
-  
+
   .audit-manager-cell {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .diff-card-header {
     flex-direction: column;
   }
-  
+
   .diff-card-meta {
     text-align: left;
   }

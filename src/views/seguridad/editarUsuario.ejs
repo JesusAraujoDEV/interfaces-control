@@ -35,13 +35,13 @@
                     <form class="formulario-usuario" id="formEditarUsuario">
                         <div class="grupo">
                             <label>Nombre <span class="text-red-500">*</span></label>
-                            <input type="text" id="inputNombre" required>
+                            <input type="text" id="inputNombre" required pattern="[A-Za-z ]+" title="Solo letras (A-Z, a-z) y espacios">
                             <span class="error-message text-red-500 text-sm hidden"></span>
                         </div>
 
                         <div class="grupo">
                             <label>Apellido <span class="text-red-500">*</span></label>
-                            <input type="text" id="inputApellido" required>
+                            <input type="text" id="inputApellido" required pattern="[A-Za-z ]+" title="Solo letras (A-Z, a-z) y espacios">
                             <span class="error-message text-red-500 text-sm hidden"></span>
                         </div>
 
@@ -333,11 +333,17 @@
                 if (!nombre) {
                     mostrarError('inputNombre', 'El nombre es requerido');
                     esValido = false;
+                } else if (!/^[A-Za-z ]+$/.test(nombre)) {
+                    mostrarError('inputNombre', 'El nombre solo debe contener letras y espacios');
+                    esValido = false;
                 }
 
                 // Validar apellido
                 if (!apellido) {
                     mostrarError('inputApellido', 'El apellido es requerido');
+                    esValido = false;
+                } else if (!/^[A-Za-z ]+$/.test(apellido)) {
+                    mostrarError('inputApellido', 'El apellido solo debe contener letras y espacios');
                     esValido = false;
                 }
 
@@ -507,8 +513,60 @@
                 await cargarRoles();
                 await cargarDataTypeOptions();
                 await cargarDatosUsuario();
+                // Inicializar toggle de visibilidad para la nueva contraseña
+                initPasswordToggle();
             });
+
+            // Utilidad: botón para mostrar/ocultar la nueva contraseña
+            function initPasswordToggle() {
+                const input = document.getElementById('inputNuevaContrasena');
+                if (!input) return;
+
+                // Crear contenedor relativo para posicionar el botón
+                const group = input.parentElement;
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+
+                // Asegura que el input no quede bajo el ícono
+                input.style.paddingRight = '2.25rem';
+
+                // Insertar wrapper antes del input y mover el input dentro
+                group.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                // Crear botón toggle
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'password-toggle';
+                btn.setAttribute('aria-label', 'Mostrar u ocultar contraseña');
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                btn.addEventListener('click', () => {
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    btn.innerHTML = isHidden
+                        ? '<i class="fa-solid fa-eye-slash"></i>'
+                        : '<i class="fa-solid fa-eye"></i>';
+                });
+
+                // Posicionar el botón en el extremo derecho dentro del wrapper
+                btn.style.position = 'absolute';
+                btn.style.right = '0.5rem';
+                btn.style.top = '50%';
+                btn.style.transform = 'translateY(-50%)';
+                btn.style.color = '#6b7280';
+                btn.style.background = 'transparent';
+                btn.style.border = 'none';
+                btn.style.cursor = 'pointer';
+                btn.style.padding = '0';
+
+                wrapper.appendChild(btn);
+            }
         })();
     </script>
+    <style>
+        /* Estilos mínimos para el toggle del password */
+        .password-toggle:focus { outline: none; }
+        .password-toggle i { font-size: 0.95rem; }
+    </style>
 </body>
 </html>

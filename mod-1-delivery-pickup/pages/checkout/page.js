@@ -9,42 +9,70 @@ const zoneInput = document.getElementById('zone');
 const zoneChipsWrap = document.getElementById('zoneChips');
 let zoneChips = Array.from(document.querySelectorAll('.zone-chip'));
 
-// Teléfono: permitir solo caracteres típicos de números telefónicos
-const phoneInput = document.getElementById('phone');
+// ============================================
+// INTELLIGENT PHONE INPUT COMPONENT
+// ============================================
+const phoneNumberInput = document.getElementById('phoneNumber');
+const areaCodeSelect = document.getElementById('areaCode');
+const areaCodeGroup = document.getElementById('areaCodeGroup');
+const countryCodeSpan = document.getElementById('countryCode');
+const phoneHiddenInput = document.getElementById('phone');
 
-function sanitizePhone(value) {
-  return String(value ?? '').replace(/[^0-9+()\-\s]/g, '');
+// For Venezuela (+58), show area code selector
+// For other countries, hide it and adjust validation
+function updatePhoneValidation() {
+  const currentCountry = countryCodeSpan ? countryCodeSpan.textContent : '+58';
+
+  if (currentCountry === '+58') {
+    // Venezuela: Show area code, 7 digits
+    if (areaCodeGroup) areaCodeGroup.classList.remove('hidden');
+    if (phoneNumberInput) {
+      phoneNumberInput.maxLength = 7;
+      phoneNumberInput.placeholder = '1234567';
+    }
+  } else {
+    // International: Hide area code, 7-15 digits
+    if (areaCodeGroup) areaCodeGroup.classList.add('hidden');
+    if (phoneNumberInput) {
+      phoneNumberInput.maxLength = 15;
+      phoneNumberInput.placeholder = '123456789';
+    }
+  }
 }
 
-if (phoneInput) {
-  phoneInput.addEventListener('input', () => {
-    const cleaned = sanitizePhone(phoneInput.value);
-    if (cleaned !== phoneInput.value) phoneInput.value = cleaned;
+// Assemble full phone number from parts
+function assembleFullPhone() {
+  const country = countryCodeSpan ? countryCodeSpan.textContent : '+58';
+  const area = (areaCodeSelect && country === '+58') ? areaCodeSelect.value : '';
+  const number = phoneNumberInput ? phoneNumberInput.value.trim() : '';
+
+  const fullPhone = country + area + number;
+  if (phoneHiddenInput) phoneHiddenInput.value = fullPhone;
+  return fullPhone;
+}
+
+// Numeric input only (Pro Tip #3: Mobile keyboard)
+if (phoneNumberInput) {
+  phoneNumberInput.addEventListener('input', () => {
+    const cleaned = phoneNumberInput.value.replace(/[^0-9]/g, '');
+    if (cleaned !== phoneNumberInput.value) phoneNumberInput.value = cleaned;
+    assembleFullPhone();
   });
 
-  phoneInput.addEventListener('keydown', e => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-    const allowedKeys = new Set([
-      'Backspace',
-      'Delete',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'Home',
-      'End',
-      'Tab',
-      'Enter'
-    ]);
-    if (allowedKeys.has(e.key)) return;
-
-    // Permite dígitos y símbolos comunes de teléfono
-    if (/^[0-9+()\-\s]$/.test(e.key)) return;
-
-    e.preventDefault();
+  phoneNumberInput.addEventListener('keydown', e => {
+    const allowedKeys = new Set(['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter']);
+    if (allowedKeys.has(e.key) || e.ctrlKey || e.metaKey) return;
+    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
   });
 }
+
+if (areaCodeSelect) {
+  areaCodeSelect.addEventListener('change', assembleFullPhone);
+}
+
+// Initialize
+updatePhoneValidation();
+assembleFullPhone();
 
 function normalizeBaseUrl(url) {
   const raw = String(url ?? '').trim();
@@ -174,14 +202,14 @@ function updateQty(itemUid, delta) {
   if (!item) return;
   item.qty = (item.qty || 0) + delta;
   cart.items = items.filter(it => (it.qty || 0) > 0);
-  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { }
   renderCartModal();
 }
 
 function removeItem(itemUid) {
   const cart = readCart();
   cart.items = (cart.items || []).filter(it => it.uid !== itemUid);
-  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { }
   renderCartModal();
 }
 
@@ -287,7 +315,7 @@ function updateCartItemExcluded(itemUid, excludedIds, excludedNames) {
   if (!item) return;
   item.excluded_recipe_ids = excludedIds || [];
   item.excluded_recipe_names = excludedNames || [];
-  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { }
   renderCartModal();
 }
 
@@ -302,12 +330,12 @@ function renderCartModal() {
   let normalized = false;
   items.forEach(it => {
     if (!it.uid) {
-      it.uid = 'uid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+      it.uid = 'uid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
       normalized = true;
     }
   });
   if (normalized) {
-    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { }
   }
   const shipping = currentShippingCost();
   totalEl.textContent = formatPrice(cartTotal(cart) + shipping);
@@ -425,11 +453,31 @@ function closePaymentMethodModal() {
 function openPaymentDetailsModal() {
   const m = document.getElementById('paymentDetailsModal');
   if (!m) return;
-  // populate basic info
-  const name = document.getElementById('fullName')?.value.trim() || '-';
-  const phone = document.getElementById('phone')?.value.trim() || '-';
+
+  // Pro Tip #1: Reset modal state
+  // Reset bank selector
+  selectedBank = null;
+  if (bankSelectorText) {
+    bankSelectorText.textContent = 'Selecciona tu banco...';
+    bankSelectorText.classList.remove('has-selection');
+  }
+  closeBankSelector();
+
+  // Reset policy checkbox
+  const policyCheckbox = document.getElementById('policyCheckboxDigital');
+  if (policyCheckbox) policyCheckbox.checked = false;
+
+  // Reset confirm button to disabled
+  if (pdConfirmBtn) pdConfirmBtn.disabled = true;
+
+  // Reset reference input
+  const pdRef = document.getElementById('pdRef');
+  if (pdRef) pdRef.value = '';
+
+  // Populate basic info
   const amount = formatPrice(cartTotal(readCart()) + currentShippingCost());
   document.getElementById('pdAmount').textContent = amount;
+
   m.classList.remove('hidden');
 }
 function closePaymentDetailsModal() {
@@ -455,27 +503,205 @@ document.getElementById('payDigitalBtn')?.addEventListener('click', () => {
 document.getElementById('paymentMethodClose')?.addEventListener('click', () => closePaymentMethodModal());
 document.getElementById('paymentMethodOverlay')?.addEventListener('click', () => closePaymentMethodModal());
 
-// Payment details handlers
-document.getElementById('pdCancel')?.addEventListener('click', () => {
-  closePaymentDetailsModal();
-});
-// Solo permitir un checkbox seleccionado en la lista de bancos
-const pdBankList = document.getElementById('pdBankList');
-if (pdBankList) {
-  pdBankList.addEventListener('change', (e) => {
-    if (e.target && e.target.type === 'checkbox') {
-      // Desmarcar todos menos el actual
-      Array.from(pdBankList.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
-        if (cb !== e.target) cb.checked = false;
-      });
+// ============================================
+// SMART BANK SELECTOR
+// ============================================
+const BANKS = [
+  { code: '0172', name: 'Bancamiga Banco Universal', value: '0172 - BANCAMIGA BANCO UNIVERSAL' },
+  { code: '0102', name: 'Banco de Venezuela', value: '0102 - Banco de Venezuela' },
+  { code: '0104', name: 'Venezolano de Crédito', value: '0104 - Venezolano de Crédito' },
+  { code: '0105', name: 'Mercantil', value: '0105 - Mercantil' },
+  { code: '0108', name: 'Provincial', value: '0108 - Provincial' },
+  { code: '0114', name: 'Bancaribe', value: '0114 - Bancaribe' },
+  { code: '0115', name: 'Banco Exterior', value: '0115 - Banco Exterior' },
+  { code: '0128', name: 'Banco Caroni', value: '0128 - Banco Caroni' },
+  { code: '0134', name: 'Banesco', value: '0134 - Banesco' },
+  { code: '0137', name: 'Banco Sofitasa', value: '0137 - Banco Sofitasa' },
+  { code: '0138', name: 'Banco Plaza', value: '0138 - Banco Plaza' },
+  { code: '0146', name: 'Bangente', value: '0146 - Bangente' },
+  { code: '0151', name: 'Fondo Comun', value: '0151 - Fondo Comun' },
+  { code: '0156', name: '100% Banco', value: '0156 - 100% Banco' },
+  { code: '0157', name: 'DelSur', value: '0157 - DelSur' },
+  { code: '0163', name: 'Banco del Tesoro', value: '0163 - Banco del Tesoro' },
+  { code: '0168', name: 'Bancrecer', value: '0168 - Bancrecer' },
+  { code: '0169', name: 'R4', value: '0169 - R4' },
+  { code: '0171', name: 'Banco Activo', value: '0171 - Banco Activo' },
+  { code: '0174', name: 'BanPlus', value: '0174 - BanPlus' },
+  { code: '0175', name: 'Banco Digital de los Trabajadores', value: '0175 - Banco Digital de los Trabajadores' },
+  { code: '0177', name: 'BanFANB', value: '0177 - BanFANB' },
+  { code: '0178', name: 'N58 Banco Digital', value: '0178 - N58 Banco Digital' },
+  { code: '0191', name: 'Banco Nacional de Credito', value: '0191 - Banco Nacional de Credito' },
+  { code: '0601', name: 'Instituto Municipal de Credito Popular', value: '0601 - Instituto Municipal de Credito Popular' }
+];
+
+let selectedBank = null;
+
+const bankSelectorTrigger = document.getElementById('bankSelectorTrigger');
+const bankSelectorPanel = document.getElementById('bankSelectorPanel');
+const bankSelectorText = document.getElementById('bankSelectorText');
+const bankSearchInput = document.getElementById('bankSearchInput');
+const bankSelectorList = document.getElementById('bankSelectorList');
+
+function renderBankList(banksToRender) {
+  if (!bankSelectorList) return;
+
+  if (banksToRender.length === 0) {
+    // Pro Tip #2: No results feedback
+    bankSelectorList.innerHTML = `
+      <div class="no-results">
+        No se encontraron bancos 😕
+      </div>
+    `;
+    return;
+  }
+
+  bankSelectorList.innerHTML = banksToRender.map(bank => `
+    <div class="bank-option ${selectedBank && selectedBank.code === bank.code ? 'selected' : ''}" data-code="${bank.code}">
+      <span class="bank-code">${bank.code}</span>
+      <span class="bank-name">${bank.name}</span>
+    </div>
+  `).join('');
+}
+
+function selectBank(bank) {
+  selectedBank = bank;
+  if (bankSelectorText) {
+    bankSelectorText.textContent = `${bank.code} - ${bank.name}`;
+    bankSelectorText.classList.add('has-selection');
+  }
+  closeBankSelector();
+}
+
+function openBankSelector() {
+  if (!bankSelectorPanel || !bankSelectorTrigger) return;
+  bankSelectorPanel.classList.remove('hidden');
+  bankSelectorPanel.classList.add('active');
+  bankSelectorTrigger.classList.add('active');
+  if (bankSearchInput) {
+    bankSearchInput.value = '';
+    bankSearchInput.focus();
+  }
+  renderBankList(BANKS);
+}
+
+function closeBankSelector() {
+  if (!bankSelectorPanel || !bankSelectorTrigger) return;
+  bankSelectorPanel.classList.remove('active');
+  setTimeout(() => {
+    bankSelectorPanel.classList.add('hidden');
+  }, 200);
+  bankSelectorTrigger.classList.remove('active');
+}
+
+// Trigger click
+if (bankSelectorTrigger) {
+  bankSelectorTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (bankSelectorPanel && bankSelectorPanel.classList.contains('active')) {
+      closeBankSelector();
+    } else {
+      openBankSelector();
     }
   });
 }
 
+// Search input
+if (bankSearchInput) {
+  bankSearchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    if (!query) {
+      renderBankList(BANKS);
+      return;
+    }
+    const filtered = BANKS.filter(b =>
+      b.code.toLowerCase().includes(query) ||
+      b.name.toLowerCase().includes(query)
+    );
+    renderBankList(filtered);
+  });
+}
+
+// Bank selection
+if (bankSelectorList) {
+  bankSelectorList.addEventListener('click', (e) => {
+    const option = e.target.closest('.bank-option');
+    if (!option) return;
+    const code = option.dataset.code;
+    const bank = BANKS.find(b => b.code === code);
+    if (bank) selectBank(bank);
+  });
+}
+
+// Click outside to close
+document.addEventListener('click', (e) => {
+  if (bankSelectorPanel &&
+    !bankSelectorPanel.contains(e.target) &&
+    !bankSelectorTrigger.contains(e.target) &&
+    bankSelectorPanel.classList.contains('active')) {
+    closeBankSelector();
+  }
+});
+
+// ============================================
+// POLICY CHECKBOXES (DIGITAL + CASH)
+// ============================================
+const policyCheckboxDigital = document.getElementById('policyCheckboxDigital');
+const pdConfirmBtn = document.getElementById('pdConfirm');
+
+const policyCheckboxCash = document.getElementById('policyCheckboxCash');
+const pcConfirmBtn = document.getElementById('pcConfirm');
+
+// Digital modal policy
+if (policyCheckboxDigital && pdConfirmBtn) {
+  policyCheckboxDigital.addEventListener('change', (e) => {
+    pdConfirmBtn.disabled = !e.target.checked;
+  });
+
+  // Shake animation if clicked while disabled
+  pdConfirmBtn.addEventListener('click', (e) => {
+    if (pdConfirmBtn.disabled) {
+      pdConfirmBtn.classList.add('shake-animation');
+      setTimeout(() => pdConfirmBtn.classList.remove('shake-animation'), 400);
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+}
+
+// Cash modal policy
+if (policyCheckboxCash && pcConfirmBtn) {
+  policyCheckboxCash.addEventListener('change', (e) => {
+    pcConfirmBtn.disabled = !e.target.checked;
+  });
+
+  // Shake animation if clicked while disabled
+  pcConfirmBtn.addEventListener('click', (e) => {
+    if (pcConfirmBtn.disabled) {
+      pcConfirmBtn.classList.add('shake-animation');
+      setTimeout(() => pcConfirmBtn.classList.remove('shake-animation'), 400);
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+}
+
+
+// Payment details handlers
+document.getElementById('pdCancel')?.addEventListener('click', () => {
+  closePaymentDetailsModal();
+});
+
+
 document.getElementById('pdConfirm')?.addEventListener('click', () => {
+  // Check policy checkbox first
+  if (pdConfirmBtn && pdConfirmBtn.disabled) {
+    alert('Debes aceptar la política de cancelación.');
+    return;
+  }
+
   const ref = String(document.getElementById('pdRef')?.value || '').trim();
-  const bankChoice = Array.from(document.querySelectorAll('input[name="pdBankChoice"]')).find(cb => cb.checked);
-  const bank = bankChoice ? bankChoice.value : '';
+  const bank = selectedBank ? selectedBank.value : '';
+
   if (!ref) {
     alert('Por favor ingresa los últimos dígitos de la referencia.');
     return;
@@ -484,7 +710,13 @@ document.getElementById('pdConfirm')?.addEventListener('click', () => {
     alert('Por favor selecciona un banco.');
     return;
   }
-  pendingPayment = { payment_type: 'DIGITAL', payment_reference: `${ref} - ${bank}`, payment_received: true, payment_bank: bank };
+
+  pendingPayment = {
+    payment_type: 'DIGITAL',
+    payment_reference: `${ref} - ${bank}`,
+    payment_received: true,
+    payment_bank: bank
+  };
   closePaymentDetailsModal();
   submitOrderFlow(pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery');
 });
@@ -494,10 +726,20 @@ document.getElementById('paymentDetailsOverlay')?.addEventListener('click', () =
 function openPaymentCashModal() {
   const m = document.getElementById('paymentCashModal');
   if (!m) return;
-  // populate dynamic fields
+
+  // Pro Tip #1: Reset modal state
+  // Reset policy checkbox
+  const policyCheckbox = document.getElementById('policyCheckboxCash');
+  if (policyCheckbox) policyCheckbox.checked = false;
+
+  // Reset confirm button to disabled
+  if (pcConfirmBtn) pcConfirmBtn.disabled = true;
+
+  // Populate dynamic fields
   const total = cartTotal(readCart()) + currentShippingCost();
   document.getElementById('pcTotal').textContent = formatPrice(total);
-  // conditions depend on mode
+
+  // Conditions depend on mode
   const cond = document.getElementById('pcConditions');
   const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
   if (cond) {
@@ -524,7 +766,7 @@ function openPaymentCashModal() {
     }
   }
 
-  // reset inputs
+  // Reset inputs
   const input = document.getElementById('pcCashAmount');
   if (input) input.value = '';
   const summary = document.getElementById('pcChangeSummary');
@@ -573,6 +815,12 @@ document.getElementById('pcCashAmount')?.addEventListener('input', () => {
 // cash modal actions
 document.getElementById('pcCancel')?.addEventListener('click', () => closePaymentCashModal());
 document.getElementById('pcConfirm')?.addEventListener('click', () => {
+  // Check policy checkbox first
+  if (pcConfirmBtn && pcConfirmBtn.disabled) {
+    alert('Debes aceptar la política de cancelación.');
+    return;
+  }
+
   const val = Number(document.getElementById('pcCashAmount')?.value || 0);
   const total = Number(cartTotal(readCart()) + currentShippingCost());
   if (!val || val < total) {

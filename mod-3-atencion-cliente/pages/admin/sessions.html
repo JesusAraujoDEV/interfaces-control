@@ -192,17 +192,18 @@
     }
 
     window.forceCloseSession = async (clientId) => {
-      if(confirm("¿Estás seguro de cerrar forzosamente esta sesión?")) {
-        try {
-          await window.ClientApi.updateClient(clientId, { status: "CLOSED" });
-          if (typeof showToast === 'function') {
-            showToast('Sesión cerrada correctamente.', 'success');
-          }
-          loadSessionsData();
-        } catch(e) {
-          if (typeof showToast === 'function') {
-            showToast(e.message || 'Error desconocido', 'error', 5000);
-          }
+      if(!confirm("¿Cerrar forzosamente esta sesión y limpiar órdenes/soporte?")) return;
+      try {
+        const resp = await window.ClientApi.forceCloseClient(clientId);
+        if (typeof showToast === 'function') {
+          const meta = resp?.data;
+          const details = meta ? ` (Órdenes canceladas: ${meta.cancelled_orders || 0}, Soporte cancelado: ${meta.cancelled_requests || 0})` : '';
+          showToast(`Sesión cerrada y limpiada${details}.`, 'success');
+        }
+        loadSessionsData();
+      } catch(e) {
+        if (typeof showToast === 'function') {
+          showToast(e.message || 'Error desconocido', 'error', 5000);
         }
       }
     };
@@ -215,5 +216,6 @@
   <script defer src="/mod-3-atencion-cliente/api/base.js"></script>
   <script defer src="/mod-3-atencion-cliente/api/auth.js"></script>
   <script defer src="/mod-3-atencion-cliente/api/client.js"></script>
+  <script defer src="/mod-3-atencion-cliente/api/service-request.js"></script>
 </body>
 </html>
