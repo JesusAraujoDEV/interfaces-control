@@ -190,9 +190,21 @@
         else bottomBar.classList.add('hidden');
       }
 
+      const isEmpty = count === 0;
+
       document.querySelectorAll('.js-pay-btn').forEach(btn => {
         btn.textContent = `Ir a Pagar (${count})`;
+        btn.disabled = isEmpty;
+        // Apply disabled styling
+        if (isEmpty) {
+          btn.classList.add('opacity-50', 'cursor-not-allowed');
+          btn.classList.remove('hover:bg-brand-700');
+        } else {
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btn.classList.add('hover:bg-brand-700');
+        }
       });
+
       document.querySelectorAll('.js-cart-btn').forEach(btn => {
         btn.textContent = `Carrito (${count})`;
       });
