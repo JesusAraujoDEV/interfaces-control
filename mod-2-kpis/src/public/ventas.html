@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario - Charlotte</title>
+    <title>Ventas - Charlotte</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -323,8 +323,8 @@
           <span aria-hidden="true">/</span>
           <span class="text-slate-700">Indicadores y KPIs</span>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">Inventario</h1>
-        <p class="mt-1 text-sm text-slate-600">Análisis de stock y rendimiento del menú.</p>
+        <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">Ventas</h1>
+        <p class="mt-1 text-sm text-slate-600">Análisis de ventas y rendimiento del menú.</p>
       </div>
       <button class="btn-primary">📤 Exportar Hoja de Calculo</button>
     </header>
@@ -926,7 +926,7 @@
             
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
             link.setAttribute('href', url);
-            link.setAttribute('download', `inventario_completo_${timestamp}.csv`);
+            link.setAttribute('download', `ventas_completas_${timestamp}.csv`);
             link.style.visibility = 'hidden';
             
             document.body.appendChild(link);
@@ -944,8 +944,8 @@
                     exportBtn.innerText = "Exportando...";
 
                     Swal.fire({
-                        title: 'Exportando Inventario',
-                        text: 'Preparando todos los datos del inventario...',
+                        title: 'Exportando Ventas',
+                        text: 'Preparando todos los datos de las ventas...',
                         allowOutsideClick: false,
                         didOpen: () => Swal.showLoading()
                     });
@@ -962,7 +962,7 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: '¡Exportación Completada!',
-                                text: 'Se han exportado todos los datos del inventario.',
+                                text: 'Se han exportado todos los datos de las ventas.',
                                 confirmButtonColor: '#10b981'
                             });
                         } else {
@@ -973,7 +973,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error de Exportación',
-                            text: 'No se pudo exportar el inventario. Intente nuevamente.',
+                            text: 'No se pudo exportar las ventas. Intente nuevamente.',
                             confirmButtonColor: '#10b981'
                         });
                     } finally {
