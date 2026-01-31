@@ -695,3 +695,54 @@ function stopPolling() {
     setText('status', err && err.message ? err.message : 'No se pudo cargar la orden.');
   }
 })();
+
+// ========================================
+// WhatsApp Support Modal
+// ========================================
+
+function openSupportModal() {
+  const modal = document.getElementById('supportModal');
+  if (!modal) return;
+
+  // Get current order data
+  const readableId = currentOrderData?.readable_id || currentOrderData?.readableId || 'N/A';
+
+  // Update order ID display
+  const orderIdEl = document.getElementById('supportOrderId');
+  if (orderIdEl) orderIdEl.textContent = readableId;
+
+  // Generate WhatsApp link with pre-filled message
+  const phoneNumber = '584244165446';
+  const message = `Hola Charlotte Bistró 👋, necesito ayuda con mi pedido *${readableId}*.`;
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  const whatsappLink = document.getElementById('whatsappLink');
+  if (whatsappLink) whatsappLink.href = whatsappUrl;
+
+  // Show modal
+  modal.classList.remove('hidden');
+}
+
+function closeSupportModal() {
+  const modal = document.getElementById('supportModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Event listeners
+document.getElementById('contactSupportBtn')?.addEventListener('click', openSupportModal);
+document.getElementById('closeSupportBtn')?.addEventListener('click', closeSupportModal);
+
+// Close on backdrop click
+document.getElementById('supportModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'supportModal') closeSupportModal();
+});
+
+// Close on ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('supportModal');
+    if (modal && !modal.classList.contains('hidden')) {
+      closeSupportModal();
+    }
+  }
+});
