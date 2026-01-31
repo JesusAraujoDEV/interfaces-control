@@ -465,6 +465,47 @@ async function ensureJsPDF() {
   return (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
 }
 
+async function ensureAutoTable() {
+  // Ensure jsPDF exists first
+  const jsPDFCtor = await ensureJsPDF();
+  if (!jsPDFCtor) return false;
+  // If autoTable already present on prototype or instance, we're good
+  try {
+    const inst = new jsPDFCtor();
+    if (typeof inst.autoTable === 'function') return true;
+  } catch (e) {
+    // ignore
+  }
+
+  const url = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js';
+  if (document.querySelector(`script[src="${url}"]`)) {
+    for (let i = 0; i < 50; i++) {
+      try {
+        const inst = new jsPDFCtor();
+        if (typeof inst.autoTable === 'function') return true;
+      } catch (e) { }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return false;
+  }
+
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load jspdf-autotable'));
+    document.head.appendChild(s);
+  }).catch(() => null);
+
+  try {
+    const inst = new jsPDFCtor();
+    return typeof inst.autoTable === 'function';
+  } catch (e) {
+    return false;
+  }
+}
+
 async function generateDeliveryNotePDF(order) {
   const jsPDFCtor = await ensureJsPDF();
   if (!jsPDFCtor) return alert('No se pudo cargar la librería jsPDF para generar el PDF.');
