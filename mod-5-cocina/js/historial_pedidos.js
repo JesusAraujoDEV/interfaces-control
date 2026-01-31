@@ -1,4 +1,28 @@
 let allOrders = [];
+let staffMap = {};
+
+function formatStaffName(staff) {
+    if (!staff) return null;
+    const first = staff.firstName || staff.firstname || staff.givenName || '';
+    const last = staff.lastName || staff.lastname || staff.surname || staff.familyName || '';
+    const full = `${first} ${last}`.trim();
+    return full || staff.externalName || staff.name || staff.displayName || staff.email || null;
+}
+
+async function loadStaffMap() {
+    try {
+        const resp = await fetch(`${KITCHEN_URL}/api/kitchen/staff`, {
+            headers: getCommonHeaders()
+        });
+        if (!resp.ok) return;
+        const list = await resp.json();
+        list.forEach(s => {
+            staffMap[s.id] = formatStaffName(s) || s.workerCode;
+        });
+    } catch (e) {
+        console.warn('No se pudo cargar staff:', e);
+    }
+}
 
 async function cargarHistorialPedidos() {
     try {
@@ -14,6 +38,8 @@ async function cargarHistorialPedidos() {
         if (status) params.append('status', status);
         
         url += params.toString();
+
+        await loadStaffMap();
 
         const res = await fetch(url, {
             headers: getCommonHeaders()
@@ -33,14 +59,32 @@ async function cargarHistorialPedidos() {
 }
 
 function getStatusBadge(status) {
-    const s = status.toUpperCase();
+    const safeStatus = status || 'UNKNOWN';
+    const s = safeStatus.toUpperCase();
     let className = 'badge';
     if (s === 'READY') className += ' status-ready';
     else if (s === 'SERVED') className += ' status-served';
     else if (s === 'REJECTED' || s === 'CANCELLED') className += ' status-rejected';
     else className += ' badge--warning';
     
-    return `<span class="${className}">${status}</span>`;
+    return `<span class="${className}">${safeStatus}</span>`;
+}
+
+function resolveStaffName(order, role) {
+
+console.log('Resolving staff name for role:', role, 'in order:', order);    // role: 'chef' | 'waiter'
+    const obj = order?.[role];
+    if (obj) {
+        return formatStaffName(obj) || obj.workerCode || obj.email;
+    }
+
+    const byName = order?.[`${role}Name`] || order?.[`${role}_name`];
+    if (byName) return byName;
+
+    const idField = order?.[`${role}Id`] || order?.[`${role}_id`] || order?.[`assigned${role.charAt(0).toUpperCase()}${role.slice(1)}Id`];
+    if (idField && staffMap[idField]) return staffMap[idField];
+
+    return null;
 }
 
 function renderizarHistorialPedidos(orders) {
@@ -52,19 +96,19 @@ function renderizarHistorialPedidos(orders) {
     orders.forEach(o => {
         const row = document.createElement('tr');
         row.className = 'table__row';
+        const productName = o.product?.name || o.productName || o.product_name || 'Producto no disponible';
+        const externalId = o.externalOrderId || o.external_id || o.id || 'N/A';
+        const createdAt = o.createdAt || o.created_at || o.timestamp || null;
+        const chefName = resolveStaffName(o, 'chef');
+
         row.innerHTML = `
-            <td>#${o.externalOrderId}</td>
-            <td font-weight: 600;>${o.product ? o.product.name : 'Unknown Product'}</td>
-            <td>${o.quantity}</td>
-            <td>${o.serviceMode}</td>
+            <td>#${externalId}</td>
+            <td style="font-weight: 600;">${productName}</td>
+            <td>${o.quantity ?? '-'}</td>
+            <td>${o.serviceMode || o.service_mode || '-'}</td>
             <td>${getStatusBadge(o.status)}</td>
-            <td>${new Date(o.createdAt).toLocaleString()}</td>
-            <td>${o.chef ? o.chef.name : '<span style="color: #94a3b8;">Sin asignar</span>'}</td>
-            <td>
-                <button class="btn btn--secondary btn-view" data-id="${o.id}">
-                    <i data-lucide="eye" style="width: 14px; margin-right: 4px;"></i> Detalles
-                </button>
-            </td>
+            <td>${createdAt ? new Date(createdAt).toLocaleString() : '-'}</td>
+            <td>${chefName || '<span style="color: #94a3b8;">Sin asignar</span>'}</td>
         `;
         pedidosBody.appendChild(row);
     });
@@ -91,11 +135,11 @@ function mostrarDetalles(order) {
     contenido.innerHTML = `
         <div class="detail-row">
             <span class="detail-label">Orden Externa ID:</span>
-            <span class="detail-value">#${order.externalOrderId}</span>
+            <span class="detail-value">#${order.externalOrderId || order.external_id || order.id || 'N/A'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Producto:</span>
-            <span class="detail-value" style="font-weight: bold; color: var(--primary);">${order.product ? order.product.name : 'N/A'}</span>
+            <span class="detail-value" style="font-weight: bold; color: var(--primary);">${order.product?.name || order.productName || order.product_name || 'N/A'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Cantidad:</span>
@@ -103,7 +147,7 @@ function mostrarDetalles(order) {
         </div>
         <div class="detail-row">
             <span class="detail-label">Modo de Servicio:</span>
-            <span class="detail-value">${order.serviceMode}</span>
+            <span class="detail-value">${order.serviceMode || order.service_mode || '-'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Estado Actual:</span>
@@ -111,19 +155,19 @@ function mostrarDetalles(order) {
         </div>
         <div class="detail-row">
             <span class="detail-label">Fecha Creación:</span>
-            <span class="detail-value">${new Date(order.createdAt).toLocaleString()}</span>
+            <span class="detail-value">${order.createdAt || order.created_at ? new Date(order.createdAt || order.created_at).toLocaleString() : '-'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Hora Despacho:</span>
-            <span class="detail-value">${order.servedAt ? new Date(order.servedAt).toLocaleString() : 'Pendiente'}</span>
+            <span class="detail-value">${order.servedAt || order.served_at ? new Date(order.servedAt || order.served_at).toLocaleString() : 'Pendiente'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Cocinero Asignado:</span>
-            <span class="detail-value">${order.chef ? order.chef.name : 'Ninguno'}</span>
+            <span class="detail-value">${resolveStaffName(order, 'chef') || 'Ninguno'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Mesero:</span>
-            <span class="detail-value">${order.waiter ? order.waiter.name : 'N/A'}</span>
+            <span class="detail-value">${resolveStaffName(order, 'waiter') || 'N/A'}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Notas:</span>

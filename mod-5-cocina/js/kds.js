@@ -191,7 +191,38 @@ function initKdsAuth() {
                     return;
                 }
 
-                // 2. Execute Action
+                // 2. Validate Role for Kitchen Actions
+                const actionType = kdsState.pendingAction ? kdsState.pendingAction.type : null;
+                const isKitchenAction = ['START', 'DONE', 'REJECT', 'UNDO'].includes(actionType);
+                const allowedKitchenRoles = ['CHEF', 'HEAD_CHEF', 'KITCHEN_PORTER'];
+
+                if (isKitchenAction && !allowedKitchenRoles.includes(staff.role)) {
+                    alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name} tiene el rol "${staff.role}".\nSolo personal de Cocina puede gestionar la producción.`);
+                    return;
+                }
+
+                // 3. Validate Shift
+                const isClockedIn = !!staff.currentShift;
+
+                if (isKitchenAction) {
+                     // NOTE: START/DONE usually imply work.
+                     if (!isClockedIn) {
+                         alert(`⚠️ ACCESO DENEGADO\n\n${staff.name} no tiene turno activo.\nFiche entrada primero.`);
+                         return;
+                     }
+                }
+
+                if (actionType === 'ATTENDANCE_OUT' && !isClockedIn) {
+                     alert('No tiene turno activo para cerrar.');
+                     return;
+                }
+                
+                if (actionType === 'ATTENDANCE_IN' && isClockedIn) {
+                     alert('Ya tiene un turno activo.');
+                     return;
+                }
+
+                // 3. Execute Action
                 if(kdsState.pendingAction) {
                     await executeKdsAction(kdsState.pendingAction, staff);
                 }
@@ -217,6 +248,15 @@ function initKdsAuth() {
             if(firstInput) {
                 firstInput.value = '';
                 firstInput.focus();
+            }
+            // Update Title Context (Optional)
+            const titleEl = kdsUi.modal.querySelector('.modal__header h2');
+            if (titleEl) {
+                if (actionType.startsWith('ATTENDANCE')) {
+                    titleEl.textContent = actionType === 'ATTENDANCE_IN' ? 'Fichar Entrada' : 'Fichar Salida';
+                } else {
+                    titleEl.textContent = 'Identificación Cocina';
+                }
             }
         }
     }
@@ -270,6 +310,22 @@ async function executeKdsAction(action, staff) {
             headers,
             body: JSON.stringify({ reason: 'Rechazado desde KDS pantalla' })
         });
+    }
+    // ATTENDANCE -> Check In/Out
+    else if(type === 'ATTENDANCE_IN' || type === 'ATTENDANCE_OUT') {
+        const bodyType = type === 'ATTENDANCE_IN' ? 'CHECK_IN' : 'CHECK_OUT';
+        const res = await fetch(`${KITCHEN_URL}/api/kitchen/staff/${staff.id}/shift`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ type: bodyType })
+        });
+        
+        if (res.ok) {
+            alert(`${bodyType === 'CHECK_IN' ? 'Entrada' : 'Salida'} registrada correctamente`);
+        } else {
+            const data = await res.json();
+            throw new Error(data.message || 'Error registrando asistencia');
+        }
     }
 }
 
