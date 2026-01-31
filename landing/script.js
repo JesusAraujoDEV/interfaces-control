@@ -332,6 +332,22 @@ function renderMenuItems(activeKey) {
     }
 
     article.append(media, body)
+
+    // Make item clickable - redirect to /menu
+    article.style.cursor = 'pointer'
+    article.setAttribute('role', 'button')
+    article.setAttribute('tabindex', '0')
+    article.addEventListener('click', () => {
+      window.location.href = '/menu'
+    })
+    // Support for Enter key when focused
+    article.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        window.location.href = '/menu'
+      }
+    })
+
     grid.appendChild(article)
   })
 
@@ -380,6 +396,49 @@ function init() {
   initAnchorOffsets()
 
   setActiveCategory(ACTIVE_CATEGORY)
+
+  // Make gallery-cards and dips clickable
+  initClickableCards()
+}
+
+function initClickableCards() {
+  // Make all gallery-card items clickable (ENTRANTES, POLLO FRITO)
+  const galleryCards = $all('.gallery-card')
+  galleryCards.forEach(card => {
+    card.style.cursor = 'pointer'
+    card.setAttribute('role', 'button')
+    card.setAttribute('tabindex', '0')
+
+    card.addEventListener('click', () => {
+      window.location.href = '/menu'
+    })
+
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        window.location.href = '/menu'
+      }
+    })
+  })
+
+  // Make all dip items clickable (SALSAS & DIPS)
+  const dips = $all('.dip')
+  dips.forEach(dip => {
+    dip.style.cursor = 'pointer'
+    dip.setAttribute('role', 'button')
+    dip.setAttribute('tabindex', '0')
+
+    dip.addEventListener('click', () => {
+      window.location.href = '/menu'
+    })
+
+    dip.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        window.location.href = '/menu'
+      }
+    })
+  })
 }
 
 init()
