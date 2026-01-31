@@ -306,7 +306,14 @@ export async function init() {
           const url = dpBase
             ? `${dpBase}/api/dp/v1/thresholds/${encodeURIComponent(rule.id)}/${action}`
             : `/api/dp/v1/thresholds/${encodeURIComponent(rule.id)}/${action}`;
-          await fetchJson(url, { method: 'PATCH' });
+          // Ensure the JWT from local storage / cookies is sent as Bearer token
+          const headers = withBearerToken({ 'Content-Type': 'application/json' });
+          const resp = await fetch(url, { method: 'PATCH', credentials: 'include', headers });
+          if (!resp.ok) {
+            let bodyText = '';
+            try { bodyText = await resp.text(); } catch (e) { /* ignore */ }
+            throw new Error(bodyText || `HTTP ${resp.status}`);
+          }
           await loadThresholds();
         } catch (e) {
           setPageError(normalizeErrorMessage(e));

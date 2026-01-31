@@ -4,9 +4,9 @@
  * IMPORTANTE: El header usa la clase 'container' para centrarse y tener ancho máximo
  */
 class CharlotteHeader extends HTMLElement {
-    connectedCallback() {
-        // Renderizar el header con container centrado
-        this.innerHTML = `
+  connectedCallback() {
+    // Renderizar el header con container centrado
+    this.innerHTML = `
       <header class="site-header" data-header style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
         <div class="header__inner header__row" style="width: min(var(--container,1120px), calc(100% - 32px)); margin-inline: auto; padding-inline: 16px;">
           <a class="brand" href="/" aria-label="Charlotte Bistró">
@@ -26,8 +26,8 @@ class CharlotteHeader extends HTMLElement {
 
           <nav class="nav nav--desktop" aria-label="Navegación principal">
             <a href="/menu">Menú</a>
-            <a href="#location">Ubicación</a>
-            <a href="#contact">Contacto</a>
+            <a href="/#location">Ubicación</a>
+            <a href="/#contact">Contacto</a>
             <span class="nav__pill" title="Standort">Carne Smash</span>
           </nav>
 
@@ -58,7 +58,7 @@ class CharlotteHeader extends HTMLElement {
         </nav>
       </header>
     `;
-    }
+  }
 }
 
 // Registrar el componente
