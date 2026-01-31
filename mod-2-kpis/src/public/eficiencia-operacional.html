@@ -290,41 +290,99 @@
         });
 
         try {
-            const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-metrics/${staff.id}`);
-            const metrics = await res.json();
+            const res = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-metrics/${staff.waiter_id}`);
+            const response = await res.json();
+
+            if (!response.success || !response.data || response.data.length === 0) {
+                throw new Error('No se encontraron datos del mesero');
+            }
+
+            const metrics = response.data[0];
+            const meta = response.meta;
 
             Swal.fire({
                 title: `<span class="text-emerald-700">${staff.name}</span>`,
                 html: `
-                    <div class="text-left space-y-3 mt-4">
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="font-semibold">Turno:</span> <span>${staff.turn}</span>
+                    <div class="text-left space-y-4 mt-4">
+                        <!-- Información Personal -->
+                        <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                            <p class="font-semibold text-emerald-800 mb-2">👤 Información Personal</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div><span class="font-medium">ID Usuario:</span> ${meta.waiter.userId}</div>
+                                <div><span class="font-medium">Rol:</span> ${meta.waiter.role}</div>
+                                <div><span class="font-medium">Email:</span> ${meta.waiter.externalEmail}</div>
+                                <div><span class="font-medium">Estado:</span> 
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${metrics.current_status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
+                                        ${metrics.current_status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="font-semibold">Eficiencia:</span> <span class="text-emerald-600 font-bold">${staff.efficiency_score}%</span>
+
+                        <!-- Métricas de Desempeño -->
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                            <p class="font-semibold text-blue-800 mb-2">📊 Métricas de Desempeño</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div><span class="font-medium">Pedidos Totales:</span> <span class="font-bold text-blue-600">${metrics.total_orders}</span></div>
+                                <div><span class="font-medium">Tiempo Promedio:</span> <span class="font-bold text-blue-600">${metrics.avg_time_minutes} min</span></div>
+                                <div><span class="font-medium">Puntaje Eficiencia:</span> 
+                                    <span class="px-2 py-1 rounded text-xs font-bold ${metrics.efficiency_score >= 80 ? 'bg-green-100 text-green-700' : metrics.efficiency_score >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}">
+                                        ${metrics.efficiency_score}%
+                                    </span>
+                                </div>
+                                <div><span class="font-medium">Estado Actual:</span> ${metrics.current_status}</div>
+                            </div>
                         </div>
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="font-semibold">Total Pedidos:</span> <span>${staff.total_orders}</span>
+
+                        <!-- Período de Análisis -->
+                        <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                            <p class="font-semibold text-amber-800 mb-2">📅 Período de Análisis</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div><span class="font-medium">Desde:</span> ${new Date(meta.date_from).toLocaleDateString('es-ES')}</div>
+                                <div><span class="font-medium">Hasta:</span> ${new Date(meta.date_to).toLocaleDateString('es-ES')}</div>
+                                <div><span class="font-medium">Granularidad:</span> ${meta.granularity === 'daily' ? 'Diaria' : meta.granularity}</div>
+                                <div><span class="font-medium">Total Items:</span> ${meta.total_items}</div>
+                            </div>
                         </div>
-                        <div class="mt-4">
-                            <p class="font-semibold mb-2">Historial Reciente:</p>
-                            <div class="text-xs bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                ${metrics.history.map(day => `
-                                    <div class="flex justify-between mb-1">
-                                        <span>${day.date}</span>
-                                        <span class="font-medium">Orders: ${day.orders} | Eff: ${day.efficiency}%</span>
-                                    </div>
-                                `).join('')}
+
+                        <!-- Comparación con Rendimiento General -->
+                        <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                            <p class="font-semibold text-purple-800 mb-2">🎯 Rendimiento</p>
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between">
+                                    <span>Velocidad de Atención:</span>
+                                    <span class="font-medium ${metrics.avg_time_minutes <= 2 ? 'text-green-600' : metrics.avg_time_minutes <= 5 ? 'text-yellow-600' : 'text-red-600'}">
+                                        ${metrics.avg_time_minutes <= 2 ? '⚡ Rápida' : metrics.avg_time_minutes <= 5 ? '🔄 Normal' : '🐌 Lenta'}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Nivel de Eficiencia:</span>
+                                    <span class="font-medium ${metrics.efficiency_score >= 80 ? 'text-green-600' : metrics.efficiency_score >= 60 ? 'text-yellow-600' : 'text-red-600'}">
+                                        ${metrics.efficiency_score >= 80 ? '🌟 Excelente' : metrics.efficiency_score >= 60 ? '✅ Bueno' : '⚠️ Necesita Mejora'}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Volumen de Pedidos:</span>
+                                    <span class="font-medium ${metrics.total_orders >= 10 ? 'text-green-600' : metrics.total_orders >= 5 ? 'text-yellow-600' : 'text-red-600'}">
+                                        ${metrics.total_orders >= 10 ? '🔥 Alto' : metrics.total_orders >= 5 ? '📊 Medio' : '📉 Bajo'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `,
                 confirmButtonText: 'Cerrar',
                 confirmButtonColor: '#10b981',
-                width: '450px'
+                width: '600px'
             });
         } catch (error) {
-            Swal.fire('Error', 'No se pudieron cargar las métricas detalladas', 'error');
+            console.error('Error al cargar métricas del staff:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar las métricas detalladas del mesero. Intente nuevamente.',
+                confirmButtonColor: '#10b981'
+            });
         }
     }
 

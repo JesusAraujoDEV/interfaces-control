@@ -336,7 +336,7 @@
                 <button class="tab">Año Actual</button>
             </div>
 
-            <h1 class="text-2xl font-bold mb-4 text-center ">Gráfico de Pareto y Alertas - Inventario de Cafetería</h1>
+            <h1 class="text-2xl font-bold mb-4 text-center ">Gráfico de Pareto y Alertas</h1>
             <div class="dashboard-main-grid">
     <!-- Gráfico de Pareto -->
     <div class="flex-1">
@@ -800,22 +800,8 @@
                 text.textContent = displayName;
                 g.appendChild(text);
 
-                // Porcentaje acumulado respecto al total real
-                cumulativePercent += (rev / totalRevenue) * 100;
-                points.push({ x: x + barWidth / 2, y: innerHeight - (cumulativePercent / 100) * innerHeight });
             });
 
-            // Línea acumulativa
-            if (points.length > 1) {
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                let d = `M ${points[0].x} ${points[0].y}`;
-                points.forEach(point => { d += ` L ${point.x} ${point.y}`; });
-                path.setAttribute('d', d);
-                path.setAttribute('stroke', '#10b981');
-                path.setAttribute('stroke-width', 2);
-                path.setAttribute('fill', 'none');
-                g.appendChild(path);
-            }
 
             // Eje Y izquierdo (ingresos) — ajustar etiquetas para móvil
             const yAxisLeft = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -839,26 +825,6 @@
             }
             g.appendChild(yAxisLeft);
 
-            // Eje Y derecho (porcentaje) - ajustar para móvil
-            const yAxisRight = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            for (let i = 0; i <= tickCount; i++) {
-                const y = innerHeight - (i / tickCount) * innerHeight;
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', innerWidth);
-                line.setAttribute('y1', y);
-                line.setAttribute('x2', innerWidth + 5);
-                line.setAttribute('y2', y);
-                line.setAttribute('stroke', '#ccc');
-                yAxisRight.appendChild(line);
-                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                label.setAttribute('x', innerWidth + 15);
-                label.setAttribute('y', y + 5);
-                label.setAttribute('text-anchor', 'start');
-                label.setAttribute('class', 'text-xs fill-gray-700');
-                label.textContent = `${Math.round((100 / tickCount) * i)}%`;
-                yAxisRight.appendChild(label);
-            }
-            g.appendChild(yAxisRight);
         }
 
         // Función para renderizar el panel de alertas
