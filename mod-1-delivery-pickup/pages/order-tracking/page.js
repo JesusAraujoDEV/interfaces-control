@@ -442,9 +442,35 @@ function renderOrder(order) {
 }
 
 // Generate epic PDF delivery note
-function generateDeliveryNotePDF(order) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
+async function ensureJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+  if (window.jsPDF) return window.jsPDF;
+  const url = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  if (document.querySelector(`script[src="${url}"]`)) {
+    for (let i = 0; i < 50; i++) {
+      if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+      if (window.jsPDF) return window.jsPDF;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return null;
+  }
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load jsPDF'));
+    document.head.appendChild(s);
+  }).catch(() => null);
+  return (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
+}
+
+async function generateDeliveryNotePDF(order) {
+  const jsPDFCtor = await ensureJsPDF();
+  if (!jsPDFCtor) return alert('No se pudo cargar la librería jsPDF para generar el PDF.');
+  const ok = await ensureAutoTable();
+  if (!ok) return alert('No se pudo cargar el plugin jspdf-autotable necesario para generar tablas en el PDF.');
+  const doc = new jsPDFCtor('p', 'mm', 'a4');
 
   const readableId = order.readable_id || order.readableId || 'N/A';
   const orderStatus = normalizeStatus(order.current_status || order.status);

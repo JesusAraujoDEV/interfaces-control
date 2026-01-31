@@ -380,6 +380,280 @@ function renderOrder(order) {
   renderItems(order);
   renderZone(order);
   renderLogs(order);
+
+  // Show/hide admin PDF button (only for DELIVERED/CANCELLED)
+  const pdfBtn = byId('dpAdminPdfBtn');
+  if (pdfBtn) {
+    const isFinalState = normalized === STATUS.DELIVERED || normalized === STATUS.CANCELLED;
+    setHidden(pdfBtn, !isFinalState);
+
+    // Bind PDF generation (only once)
+    if (isFinalState && !pdfBtn.dataset.bound) {
+      pdfBtn.dataset.bound = '1';
+      pdfBtn.addEventListener('click', () => generateAdminPDF(order));
+    }
+  }
+}
+
+// Generate Administrative PDF with blue theme
+async function ensureJsPDF() {
+  // Prefer UMD: window.jspdf && window.jspdf.jsPDF, else window.jsPDF
+  if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+  if (window.jsPDF) return window.jsPDF;
+  // Try to load from CDN
+  const url = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  if (document.querySelector(`script[src="${url}"]`)) {
+    // already loading; wait until available
+    for (let i = 0; i < 50; i++) {
+      if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+      if (window.jsPDF) return window.jsPDF;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return null;
+  }
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load jsPDF'));
+    document.head.appendChild(s);
+  }).catch(() => null);
+  return (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
+}
+
+async function ensureAutoTable() {
+  // Ensure jsPDF exists first
+  const jsPDFCtor = await ensureJsPDF();
+  if (!jsPDFCtor) return false;
+  // If autoTable already present on prototype or instance, we're good
+  try {
+    const inst = new jsPDFCtor();
+    if (typeof inst.autoTable === 'function') return true;
+  } catch (e) {
+    // ignore
+  }
+
+  const url = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js';
+  if (document.querySelector(`script[src="${url}"]`)) {
+    for (let i = 0; i < 50; i++) {
+      try {
+        const inst = new jsPDFCtor();
+        if (typeof inst.autoTable === 'function') return true;
+      } catch (e) {}
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return false;
+  }
+
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load jspdf-autotable'));
+    document.head.appendChild(s);
+  }).catch(() => null);
+
+  try {
+    const inst = new jsPDFCtor();
+    return typeof inst.autoTable === 'function';
+  } catch (e) {
+    return false;
+  }
+}
+
+async function generateAdminPDF(order) {
+  const jsPDFCtor = await ensureJsPDF();
+  if (!jsPDFCtor) return alert('No se pudo cargar la librería jsPDF para generar el PDF.');
+  const ok = await ensureAutoTable();
+  if (!ok) return alert('No se pudo cargar el plugin jspdf-autotable necesario para generar tablas en el PDF.');
+  const doc = new jsPDFCtor('p', 'mm', 'a4');
+
+  const readableId = order.readable_id || order.readableId || 'N/A';
+  const orderStatus = normalizeStatus(order.current_status || order.status);
+  const isDelivered = orderStatus === STATUS.DELIVERED;
+
+  // Colors (Blue Administrative Theme)
+  const adminBlue = [37, 99, 235]; // blue-600
+  const darkBlue = [30, 64, 175]; // blue-800
+  const textGray = [55, 65, 81]; // gray-700
+  const lightGray = [156, 163, 175]; // gray-400
+
+  // Watermark "COPIA ADMINISTRATIVA"
+  doc.setFontSize(60);
+  doc.setTextColor(220, 220, 220);
+  doc.setFont('helvetica', 'bold');
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  doc.saveGraphicsState();
+  doc.text('COPIA ADMINISTRATIVA', pageWidth / 2, pageHeight / 2, {
+    align: 'center',
+    angle: 45,
+    renderingMode: 'stroke'
+  });
+  doc.restoreGraphicsState();
+
+  // Header - Brand
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...darkBlue);
+  doc.text('CHARLOTTE BISTRÓ', 105, 20, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(...lightGray);
+  doc.text('DONDE EL SABOR TOMA LA RUTA', 105, 26, { align: 'center' });
+
+  // Title - COMPROBANTE DE CONTROL INTERNO
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...adminBlue);
+  doc.text('COMPROBANTE DE CONTROL INTERNO', 105, 38, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(...textGray);
+  doc.text('Documento de Uso Administrativo', 105, 44, { align: 'center' });
+
+  // Control Number
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...darkBlue);
+  doc.text(`Ref: ${readableId}`, 105, 52, { align: 'center' });
+
+  // Administrative metadata (2 columns)
+  const emissionDate = formatDateTime(order.timestamp_closure || order.timestamp_approved || order.timestamp_creation);
+  const statusText = isDelivered ? 'ENTREGADO' : 'CANCELADO';
+  const statusColor = isDelivered ? [22, 163, 74] : [220, 38, 38]; // green-600 : red-600
+  const now = new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+  doc.text(`Fecha de Emisión: ${emissionDate}`, 20, 60);
+  doc.text(`Generado: ${now}`, 20, 65);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...statusColor);
+  doc.text(`Estado: ${statusText}`, 20, 70);
+
+  // Manager info (right side)
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+  const managerName = 'Sistema Admin'; // You can get this from session if available
+  doc.text(`Impreso por: ${managerName}`, 120, 60);
+  doc.text(`Order ID: ${order.order_id || '—'}`, 120, 65);
+
+  // Client information box (blue theme)
+  doc.setDrawColor(...adminBlue);
+  doc.setFillColor(239, 246, 255); // blue-50
+  doc.roundedRect(20, 76, 170, 30, 3, 3, 'FD');
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...darkBlue);
+  doc.text('Datos del Cliente', 25, 83);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+  doc.text(`Cliente: ${order.customer_name || '—'}`, 25, 89);
+  doc.text(`Teléfono: ${order.customer_phone || '—'}`, 25, 94);
+  doc.text(`Dirección: ${order.delivery_address || '—'}`, 25, 99);
+  doc.text(`Zona: ${(order.zone && order.zone.zone_name) || '—'}`, 25, 104);
+
+  // Items table (blue theme)
+  const items = Array.isArray(order.items) ? order.items : [];
+  const tableData = items.map(it => {
+    const qty = Number(it.quantity || 0);
+    const unit = Number(it.unit_price || 0);
+    const subtotal = Number(it.subtotal || (unit * qty));
+
+    let description = it.product_name || 'Producto';
+    if (it.notes && String(it.notes).trim()) {
+      description += `\n(${it.notes})`;
+    }
+    if (Array.isArray(it.excluded_recipe_names) && it.excluded_recipe_names.length > 0) {
+      description += `\nSin: ${it.excluded_recipe_names.join(', ')}`;
+    }
+
+    return [
+      qty.toString(),
+      description,
+      formatMoney(unit),
+      formatMoney(subtotal)
+    ];
+  });
+
+  doc.autoTable({
+    startY: 112,
+    head: [['Cant.', 'Descripción', 'Unitario', 'Total']],
+    body: tableData,
+    theme: 'striped',
+    headStyles: {
+      fillColor: darkBlue,
+      textColor: [255, 255, 255],
+      fontSize: 9,
+      fontStyle: 'bold',
+      halign: 'left'
+    },
+    bodyStyles: {
+      fontSize: 8,
+      textColor: textGray
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 20 },
+      1: { halign: 'left', cellWidth: 90 },
+      2: { halign: 'right', cellWidth: 30 },
+      3: { halign: 'right', cellWidth: 30 }
+    },
+    margin: { left: 20, right: 20 }
+  });
+
+  // Totals
+  const finalY = doc.lastAutoTable.finalY + 10;
+  const shipping = Number(order.monto_costo_envio || 0);
+  const total = Number(order.monto_total || 0);
+  const subtotal = items.reduce((acc, it) => {
+    const qty = Number(it.quantity || 0);
+    const unit = Number(it.unit_price || 0);
+    const st = Number(it.subtotal || (unit * qty));
+    return acc + st;
+  }, 0);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...textGray);
+
+  const rightX = 190;
+  doc.text(`Subtotal: ${formatMoney(subtotal)}`, rightX, finalY, { align: 'right' });
+  doc.text(`Envío: ${formatMoney(shipping)}`, rightX, finalY + 5, { align: 'right' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(`TOTAL: ${formatMoney(total)}`, rightX, finalY + 12, { align: 'right' });
+
+  // Payment method
+  const paymentType = order.payment_type || '—';
+  const paymentReceived = order.payment_received ? 'Sí' : 'No';
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Método de Pago: ${paymentType} · Recibido: ${paymentReceived}`, rightX, finalY + 18, { align: 'right' });
+
+  // Administrative Footer
+  const footerY = pageHeight - 20;
+  doc.setFontSize(7);
+  doc.setTextColor(...lightGray);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Este documento es de uso interno administrativo.', 105, footerY, { align: 'center' });
+  doc.text('No válido como comprobante fiscal.', 105, footerY + 4, { align: 'center' });
+  doc.text('Charlotte Bistró - Sistema de Gestión de Órdenes', 105, footerY + 8, { align: 'center' });
+
+  // Save PDF with date
+  const dateStr = new Date().toISOString().split('T')[0];
+  const filename = `ADMIN_${readableId.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}.pdf`;
+  doc.save(filename);
 }
 
 let state = { loading: false, orderId: null };
