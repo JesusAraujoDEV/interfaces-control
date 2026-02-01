@@ -1,6 +1,7 @@
 /* global KITCHEN_URL, getCommonHeaders, lucide */
 
 let LOCAL_STAFF = [];
+let administrative_users = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initPersonal();
@@ -197,7 +198,7 @@ function renderStaffGrid(staffList) {
 
     const roleMap = {
         'CHEF': 'Chef',
-        'HEAD_CHEF': 'Jefe de Cocina',
+        'HEAD_CHEF': 'Cocinero',
         'WAITER': 'Mesero',
         'HEAD_WAITER': 'Jefe de Meseros'
     };
@@ -261,28 +262,49 @@ function renderStaffGrid(staffList) {
 async function loadExternalUsers() {
     const select = document.getElementById('user-select');
     select.innerHTML = '<option>Cargando...</option>';
+    const selectRol = document.getElementById('role-select');
+
     
     try {
         const response = await fetch(EXTERNAL_USERS_URL, {
             headers: getCommonHeaders()
         });
         const users = await response.json();
-        
-        select.innerHTML = '<option value="">Seleccione un usuario...</option>';
-        // solo se queda con aquellos users con isActive en true
-        const activeUsers = users.filter(user => user.isActive);
-        
-        if (activeUsers.length === 0) {
-            select.innerHTML = '<option>No hay usuarios disponibles</option>';
-            return;
+        administrative_users = users.map(user => {
+            const permissionsList = user.roles.flatMap(role =>
+                role.permissions.map(p => p.resource)
+            );
+
+            return {
+                ...user,
+                permissions: permissionsList
+            };
+        });
+        // Selecciona la primera option de selectRol para disparar el evento
+        if (selectRol.options.length > 0) {
+            // 1. Seleccionamos visualmente la primera opción (índice 0)
+            selectRol.selectedIndex = 0; 
+            
+            // 2. Creamos y disparamos el evento 'change' manualmente
+            const eventoChange = new Event('change');
+            selectRol.dispatchEvent(eventoChange);
         }
 
-        activeUsers.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.id;
-            option.textContent = `${user.name} ${user.lastName} (${user.email})`;
-            select.appendChild(option);
-        });
+        // select.innerHTML = '<option value="">Seleccione un usuario...</option>';
+        // // solo se queda con aquellos users con isActive en true
+        // const activeUsers = users.filter(user => user.isActive);
+        
+        // if (activeUsers.length === 0) {
+        //     select.innerHTML = '<option>No hay usuarios disponibles</option>';
+        //     return;
+        // }
+
+        // activeUsers.forEach(user => {
+        //     const option = document.createElement('option');
+        //     option.value = user.id;
+        //     option.textContent = `${user.name} ${user.lastName} (${user.email})`;
+        //     select.appendChild(option);
+        // });
         
     } catch (error) {
         console.error('Error loading users:', error);
@@ -307,8 +329,68 @@ function setupEventListeners() {
         showWaiterStaff = true;
     }
 
-    // Poblar el selector de roles según permisos
+
     const selectRole = document.getElementById('role-select');
+    
+    // Escucha cambios del select
+    selectRole.addEventListener('change', (e) => {
+        const selectedRole = e.target.value;
+        const selectUser = document.getElementById('user-select');
+        
+        let usuariosMap = new Map();
+
+        const agregarUsuario = (user) => {
+            if (!usuariosMap.has(user.id)) {
+                usuariosMap.set(user.id, user);
+            }
+        };
+
+        switch (selectedRole) {
+            case 'CHEF':
+                administrative_users.forEach(user => {
+                    if(user.permissions.includes('CocinaChef_view')) agregarUsuario(user);
+                });
+                break; // <--- ¡IMPORTANTE!
+
+            case 'HEAD_CHEF':
+                administrative_users.forEach(user => {
+                    if(user.permissions.includes('CocinaCocinero_view')) agregarUsuario(user);
+                });
+                break; // <--- ¡IMPORTANTE!
+
+            case 'WAITER':
+                administrative_users.forEach(user => {
+                    if(user.permissions.includes('AtcMaitre_view') || user.permissions.includes('CocinaCamarero_view')) {
+                        agregarUsuario(user);
+                    }
+                });
+                break; // <--- ¡IMPORTANTE!
+        }
+
+        administrative_users.forEach(user => {
+            if (user.isAdmin) {
+                agregarUsuario(user);
+            }
+        });
+
+        const usuariosFinales = Array.from(usuariosMap.values()).filter(user => user.isActive);
+
+        selectUser.innerHTML = '<option value="">Seleccione un usuario...</option>';
+
+        if (usuariosFinales.length === 0) {
+            selectUser.innerHTML = '<option>No hay usuarios disponibles para este rol</option>';
+            return;
+        }
+
+        usuariosFinales.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = `${user.name} ${user.lastName} (${user.email})`;
+            selectUser.appendChild(option);
+        });
+    });
+
+    // Poblar el selector de roles según permisos
     if (selectRole) {
         // Reinicia opciones para evitar duplicados si se llama varias veces
         selectRole.innerHTML = '';
