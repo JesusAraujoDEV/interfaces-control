@@ -184,13 +184,13 @@
           // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
           const [sRes, aRes, pRes] = await Promise.allSettled([
             fetch(
-              "http://localhost:3000/api/v1/kpi/dashboard/summary",
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary",
             ),
             fetch(
-              "http://localhost:3000/api/v1/kpi/inventory/alerts",
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts",
             ),
             fetch(
-              "http://localhost:3000/api/v1/kpi/inventory/pareto",
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/pareto",
             ),
           ]);
 
@@ -733,7 +733,7 @@
         const payload = { goal: newGoal.goal, target: newGoal.target };
         const endpoints = [
           "/configuration/goals/quarterly",
-          "http://localhost:3000/api/v1/kpi/configuration/goals/quarterly",
+          "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/configuration/goals/quarterly",
         ];
         let patched = false;
         for (const ep of endpoints) {
