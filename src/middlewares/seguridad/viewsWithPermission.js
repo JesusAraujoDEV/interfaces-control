@@ -82,7 +82,7 @@ const viewsWithPermission = async (req, res, next) => {
 
     // Vistas de kpi
     case rutaSolicitada === "/mod-2-kpis/src/public/index.html":
-        resource = ["KpiGerente_view"];
+        resource = ["KpiGerente_view", "CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-2-kpis/src/public/dashboard.html":
         resource = ["KpiGerente_view"];
