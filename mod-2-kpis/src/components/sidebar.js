@@ -48,7 +48,7 @@ function resolveActiveKey(pathname) {
   if (pathname.includes("index.html") || pathname.endsWith("/mod-2-kpis/src/public/")) return "home";
   if (pathname.includes("dashboard.html")) return "dashboard";
   if (pathname.includes("bussines-intelligence.html")) return "reportes";
-  if (pathname.includes("inventario.html")) return "inventario";
+  if (pathname.includes("ventas.html")) return "ventas";
   if (pathname.includes("eficiencia-operacional.html")) return "eficiencia";
   return "home";
 }
