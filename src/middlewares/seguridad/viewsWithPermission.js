@@ -11,9 +11,9 @@ const viewsWithPermission = async (req, res, next) => {
 
     // Vistas de Seguridad
 
-    case rutaSolicitada === "/seguridad":
-      resource = ["SeguridadPersonal_view"];
-      break;
+    // case rutaSolicitada === "/seguridad":
+    //   resource = ["SeguridadPersonal_view"];
+    //   break;
     case rutaSolicitada === "/seguridad/usuarios":
       resource = ["SeguridadPersonal_view"];
       break;
@@ -71,7 +71,7 @@ const viewsWithPermission = async (req, res, next) => {
         resource = ["AtcSupervisorSala_view"];
         break;
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/tables-maitre.html": 
-        resource = ["AtcMaitre_view"];
+        resource = ["AtcMaitre_view", "CocinaCamarero_view"];
         break;
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/sessions.html":
         resource = ["AtcSupervisorSala_view", "AtcMaitre_view"];

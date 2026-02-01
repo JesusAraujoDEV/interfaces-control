@@ -179,6 +179,16 @@
     <script src="/mod-3-atencion-cliente/api/service-request.js"></script>
 
     <script>
+        const adminUser = JSON.parse(localStorage.getItem('administrative_user'));
+        const permissions = adminUser ? adminUser.permissions : [];
+        let puedeEditarMesa = false;
+
+        if (permissions.includes('AtcMaitre_view') || permissions.includes('AtcSupervisorSala_view') || adminUser.isAdmin) {
+            puedeEditarMesa = true;
+        } else if (permissions.includes('CocinaCamarero_view')) {
+            puedeEditarMesa = false;
+        }
+
         let currentPage = 1;
         let itemsPerPage = 10;
         const tableBody = document.getElementById('table-body');
@@ -269,8 +279,9 @@
 
             const buttons = `
                 <button onclick="window.openQrModal('${table.table_number}', '${table.qr_uuid}')" class="text-gray-400 hover:text-blue-600 p-1"><span class="material-icons-outlined">qr_code_2</span></button>
-                <button onclick="window.openEditModal('${table.id}', '${table.table_number}', '${table.capacity}', '${table.current_status}')" class="text-gray-400 hover:text-green-600 p-1"><span class="material-icons-outlined">edit</span></button>
+                <button onclick="window.openEditModal('${table.id}', '${table.table_number}', '${table.capacity}', '${table.current_status}')" class="text-gray-400 hover:text-green-600 p-1 ${puedeEditarMesa ? '' : 'hidden'}"><span class="material-icons-outlined">edit</span></button>
             `;
+
 
             return `
                 <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
