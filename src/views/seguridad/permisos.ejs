@@ -34,9 +34,9 @@
                     <thead>
                         <tr>
                             <th>Nombre del Permiso</th>
-                            <th>Tipo</th>
+                            <th style="display: none;">Tipo</th>
                             <th>Recurso</th>
-                            <th>Método</th>
+                            <th style="display: none;">Método</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -124,9 +124,9 @@
                     const fila = `
                         <tr>
                             <td><a href="/seguridad/permisos/${permission.id}" class="text-blue-600 hover:underline">${permission.name || permission.nombre}</a></td>
-                            <td>${tipoHtml}</td>
+                            <td style="display: none;">${tipoHtml}</td>
                             <td><span class="badge gris">${permission.resource || permission.recurso}</span></td>
-                            <td><span class="badge amarillo">${permission.method || permission.metodo}</span></td>
+                            <td style="display: none;"><span class="badge amarillo">${permission.method || permission.metodo}</span></td>
                             <td>
                                 <i class="fa-solid fa-trash hover:text-red-600 cursor-pointer ml-2" title="Eliminar" onclick="eliminarPermiso(${permission.id})"></i>
                             </td>
