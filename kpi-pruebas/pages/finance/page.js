@@ -102,9 +102,9 @@ function renderLostRevenue(data) {
 
 async function loadAll() {
   const [revenueRes, aovRes, lostRes] = await Promise.allSettled([
-    fetchKpiJson('/financial/daily-revenue'),
-    fetchKpiJson('/financial/aov'),
-    fetchKpiJson('/financial/lost-revenue')
+    fetchKpiJson('api/kpi/v1/financial/daily-revenue'),
+    fetchKpiJson('api/kpi/v1/financial/aov'),
+    fetchKpiJson('api/kpi/v1/financial/lost-revenue')
   ]);
 
   let delivery = 0;

@@ -85,9 +85,9 @@ function renderWorkforce(data) {
 
 async function loadAll() {
   const [velocityRes, successRes, workforceRes] = await Promise.allSettled([
-    fetchKpiJson('/operations/kitchen-velocity'),
-    fetchKpiJson('/operations/delivery-success-rate'),
-    fetchKpiJson('/workforce/orders-per-chef')
+    fetchKpiJson('api/kpi/v1/operations/kitchen-velocity'),
+    fetchKpiJson('api/kpi/v1/operations/delivery-success-rate'),
+    fetchKpiJson('api/kpi/v1/workforce/orders-per-chef')
   ]);
 
   if (velocityRes.status === 'fulfilled') {
@@ -120,7 +120,7 @@ export async function init() {
   clearRefresh();
   await loadAll();
   intervalId = setInterval(() => {
-    loadAll().catch(() => {});
+    loadAll().catch(() => { });
   }, 60000);
 
   window.__kpiCleanup = clearRefresh;

@@ -109,7 +109,7 @@ function renderOverview(data) {
 }
 
 async function loadOverview() {
-  const data = await fetchKpiJson('/dashboard/overview');
+  const data = await fetchKpiJson('api/kpi/v1/dashboard/overview');
   renderOverview(data);
 }
 
@@ -124,7 +124,7 @@ export async function init() {
   clearRefresh();
   await loadOverview();
   intervalId = setInterval(() => {
-    loadOverview().catch(() => {});
+    loadOverview().catch(() => { });
   }, 15000);
 
   window.__kpiCleanup = clearRefresh;

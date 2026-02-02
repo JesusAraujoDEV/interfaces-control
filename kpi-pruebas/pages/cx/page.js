@@ -94,9 +94,9 @@ function renderGhostClients(data) {
 
 async function loadAll() {
   const [serviceRes, occupancyRes, ghostRes] = await Promise.allSettled([
-    fetchKpiJson('/cx/service-quality'),
-    fetchKpiJson('/cx/room-occupancy'),
-    fetchKpiJson('/cx/ghost-clients')
+    fetchKpiJson('api/kpi/v1/cx/service-quality'),
+    fetchKpiJson('api/kpi/v1/cx/room-occupancy'),
+    fetchKpiJson('api/kpi/v1/cx/ghost-clients')
   ]);
 
   if (serviceRes.status === 'fulfilled') {
@@ -129,7 +129,7 @@ export async function init() {
   clearRefresh();
   await loadAll();
   intervalId = setInterval(() => {
-    loadAll().catch(() => {});
+    loadAll().catch(() => { });
   }, 60000);
 
   window.__kpiCleanup = clearRefresh;

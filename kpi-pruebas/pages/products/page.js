@@ -114,10 +114,10 @@ async function loadAll() {
   const limit = topSelect ? Number(topSelect.value) : 5;
 
   const [topRes, menuRes, stockRes, wasteRes] = await Promise.allSettled([
-    fetchKpiJson('/product/top-sellers', { params: { top: limit } }),
-    fetchKpiJson('/product/menu-availability'),
-    fetchKpiJson('/inventory/low-stock'),
-    fetchKpiJson('/inventory/waste-tracker')
+    fetchKpiJson('api/kpi/v1/product/top-sellers', { params: { top: limit } }),
+    fetchKpiJson('api/kpi/v1/product/menu-availability'),
+    fetchKpiJson('api/kpi/v1/inventory/low-stock'),
+    fetchKpiJson('api/kpi/v1/inventory/waste-tracker')
   ]);
 
   if (topRes.status === 'fulfilled') {
@@ -159,12 +159,12 @@ export async function init() {
   const select = document.getElementById('kpi-top-select');
   if (select) {
     select.addEventListener('change', () => {
-      loadAll().catch(() => {});
+      loadAll().catch(() => { });
     });
   }
 
   intervalId = setInterval(() => {
-    loadAll().catch(() => {});
+    loadAll().catch(() => { });
   }, 60000);
 
   window.__kpiCleanup = clearRefresh;
