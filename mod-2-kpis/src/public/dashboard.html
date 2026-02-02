@@ -91,10 +91,10 @@
             >
           </div>
           <div class="kpi-card">
-            <p class="kpi-card__label">Rotación</p>
-            <p class="kpi-card__value" id="kpi-rotation">0.0 /hr</p>
-            <span class="kpi-card__trend" id="kpi-rotation-target"
-              >Meta --</span
+            <p class="kpi-card__label">Ticket Promedio</p>
+            <p class="kpi-card__value" id="kpi-average-ticket">Loading...</p>
+            <span class="kpi-card__trend" id="kpi-average-ticket-status" style="cursor: pointer; text-decoration: underline;"
+              onclick="showStatusDistributionModal()">Ver distribución</span
             >
           </div>
         </section>
@@ -219,6 +219,7 @@
       let globalSalesData = []; // Store raw pareto data
       let globalCurrency = "$";
       let currentChartPeriod = 'day'; // Track current period for label formatting
+      let globalStatusDistribution = null; // Cache for status distribution data
 
       // Carga datos desde la API y actualiza la interfaz
       async function loadDashboard() {
@@ -328,40 +329,31 @@
             });
           }
 
-          // Rotación / Tiempo atención (mapear a ambos bloques)
-          const ops = summary.operations || {};
-          const avgTimeEls = [
-            document.getElementById("rotationValue"),
-            document.getElementById("kpi-avg-time"),
+          // Ticket Promedio
+          const averageTicketEls = [
+            document.getElementById("kpi-average-ticket"),
           ];
-          const avgStatusEls = [document.getElementById("timeStatus")];
-          const rotationRateEls = [
-            document.getElementById("rotationRate"),
-            document.getElementById("kpi-rotation"),
+          const averageTicketStatusEls = [
+            document.getElementById("kpi-average-ticket-status"),
           ];
-          const rotationStatusEls = [
-            document.getElementById("rotationStatus"),
-            document.getElementById("kpi-rotation-target"),
-          ];
-          if (ops.avg_service_time)
-            avgTimeEls.forEach((e) => {
-              if (e) e.textContent = ops.avg_service_time;
+          if (revenue.average_ticket != null) {
+            const txt = formatCurrency(revenue.average_ticket, revenue.currency);
+            averageTicketEls.forEach((e) => {
+              if (e) e.textContent = txt;
             });
-          if (ops.time_status)
-            avgStatusEls.forEach((e) => {
-              if (e) e.textContent = ops.time_status;
+          }
+          if (revenue.status_distribution) {
+            const statusCount = Object.keys(revenue.status_distribution).length;
+            averageTicketStatusEls.forEach((e) => {
+              if (e) e.textContent = "Ver distribución";
             });
-          if (ops.table_rotation != null)
-            rotationRateEls.forEach((e) => {
-              if (e) e.textContent = ops.table_rotation + " /hr";
-            });
-          if (ops.rotation_status)
-            rotationStatusEls.forEach((e) => {
-              if (e) e.textContent = ops.rotation_status;
-            });
+          }
 
           // Store global data for chart switching
           globalSalesData = chartData;
+          
+          // Cache status distribution data for modal
+          globalStatusDistribution = revenue.status_distribution || null;
 
           // Initial render using new chart function
           renderNewChart(globalSalesData);
@@ -828,6 +820,136 @@
         }
       }
 
+      // Modal para mostrar distribución de estados
+      let isModalLoading = false; // Prevent multiple clicks
+      
+      async function showStatusDistributionModal() {
+        if (isModalLoading) return; // Prevent multiple calls
+        
+        try {
+          isModalLoading = true;
+          
+          // Update the status text to show loading
+          const statusEl = document.getElementById("kpi-average-ticket-status");
+          if (statusEl) {
+            statusEl.textContent = "Cargando...";
+            statusEl.style.cursor = "not-allowed";
+          }
+          
+          // Use cached data if available, otherwise fetch it
+          let statusDistribution = globalStatusDistribution;
+          let revenue = { currency: globalCurrency };
+          
+          if (!statusDistribution) {
+            // Only fetch if we don't have cached data
+            const dateSelector = document.getElementById("date-selector");
+            const selectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+            
+            const response = await fetch(
+              `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary?date=${selectedDate}`
+            );
+            
+            if (!response.ok) {
+              throw new Error('Error al obtener datos de distribución');
+            }
+            
+            const data = await response.json();
+            revenue = data.data?.revenue || data.revenue || {};
+            statusDistribution = revenue.status_distribution || {};
+            
+            // Cache the data for future use
+            globalStatusDistribution = statusDistribution;
+          }
+          
+          if (!Object.keys(statusDistribution).length) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Sin datos',
+              text: 'No hay información de distribución disponible'
+            });
+            return;
+          }
+          
+          // Build HTML table for status distribution
+          let tableHTML = `
+            <div style="text-align: left; margin: 20px 0;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Estado</th>
+                    <th style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6;">Órdenes</th>
+                    <th style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6;">Ingresos</th>
+                    <th style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6;">Porcentaje</th>
+                  </tr>
+                </thead>
+                <tbody>
+          `;
+          
+          // Add rows for each status
+          Object.entries(statusDistribution).forEach(([status, info]) => {
+            const statusName = {
+              'DELIVERED': 'Entregado',
+              'PENDING': 'Pendiente', 
+              'CANCELLED': 'Cancelado'
+            }[status] || status;
+            
+            const statusColor = {
+              'DELIVERED': '#28a745',
+              'PENDING': '#ffc107',
+              'CANCELLED': '#dc3545'
+            }[status] || '#6c757d';
+            
+            tableHTML += `
+              <tr style="border-bottom: 1px solid #f1f3f4;">
+                <td style="padding: 10px; font-weight: 600; color: ${statusColor};">
+                  ${statusName}
+                </td>
+                <td style="padding: 10px; text-align: right;">
+                  ${info.orders || 0}
+                </td>
+                <td style="padding: 10px; text-align: right;">
+                  ${formatCurrency(info.revenue || 0, revenue.currency)}
+                </td>
+                <td style="padding: 10px; text-align: right;">
+                  ${(info.percentage || 0).toFixed(1)}%
+                </td>
+              </tr>
+            `;
+          });
+          
+          tableHTML += `
+                </tbody>
+              </table>
+            </div>
+          `;
+          
+          await Swal.fire({
+            title: '<strong>Distribución de Estados</strong>',
+            html: tableHTML,
+            width: '600px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            focusConfirm: false
+          });
+          
+        } catch (error) {
+          console.error('Error al mostrar distribución:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo cargar la información de distribución'
+          });
+        } finally {
+          // Reset loading state and restore button text
+          isModalLoading = false;
+          const statusEl = document.getElementById("kpi-average-ticket-status");
+          if (statusEl) {
+            statusEl.textContent = "Ver distribución";
+            statusEl.style.cursor = "pointer";
+          }
+        }
+      }
+
       async function loadSummaryData(selectedDate) {
         try {
           // Load summary data for the selected date
@@ -935,6 +1057,26 @@
             rotationStatusEls.forEach((e) => {
               if (e) e.textContent = ops.rotation_status;
             });
+
+          // Update ticket promedio
+          const averageTicketEls = [
+            document.getElementById("kpi-average-ticket"),
+          ];
+          const averageTicketStatusEls = [
+            document.getElementById("kpi-average-ticket-status"),
+          ];
+          if (revenue.average_ticket != null) {
+            const txt = formatCurrency(revenue.average_ticket, revenue.currency);
+            averageTicketEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+          if (revenue.status_distribution) {
+            const statusCount = Object.keys(revenue.status_distribution).length;
+            averageTicketStatusEls.forEach((e) => {
+              if (e) e.textContent = "Ver distribución";
+            });
+          }
 
           // Update stock alerts
           const alertsList = document.getElementById("alertsList");
@@ -1102,26 +1244,24 @@
             };
             
           case 'week':
-            // For week, find the start of the week (Sunday) and end of the week (Saturday)
-            const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
-            console.log('Day of week:', dayOfWeek);
+            // For week, take 7 days before the selected date
+            const weekEnd = new Date(date);
             const weekStart = new Date(date);
-            weekStart.setDate(date.getDate() - dayOfWeek);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
+            weekStart.setDate(date.getDate() - 6); // 6 days before to include selected date (total 7 days)
             console.log('Week start:', weekStart, 'Week end:', weekEnd);
             
-            const result = {
+            const weekResult = {
               date_from: weekStart.toISOString().split('T')[0],
               date_to: weekEnd.toISOString().split('T')[0]
             };
-            console.log('Week date range result:', result);
-            return result;
+            console.log('Week date range result:', weekResult);
+            return weekResult;
             
           case 'month':
-            // For month, use the first and last day of the selected date's month
-            const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-            const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            // For month, take 31 days before the selected date
+            const monthEnd = new Date(date);
+            const monthStart = new Date(date);
+            monthStart.setDate(date.getDate() - 30); // 30 days before to include selected date (total 31 days)
             
             return {
               date_from: monthStart.toISOString().split('T')[0],
@@ -1146,12 +1286,13 @@
         }
       }
 
-      async function loadChartData(period) {
+      async function loadChartData(period, dateOverride = null) {
         try {
-          // Get selected date from date selector
+          // Get selected date from date selector or use override
           console.log('Loading chart data for period:', period);
           const dateSelector = document.getElementById("date-selector");
-          const selectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+          const selectedDate = dateOverride || (dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0]);
+          console.log('Using selectedDate:', selectedDate, 'dateOverride:', dateOverride);
           
           // Calculate proper date range based on period
           const dateRange = calculateDateRange(period, selectedDate);
@@ -1619,16 +1760,72 @@
       }
 
       function updateSummaryValues(chartData) {
+        // Calculate totals from actual chart data being displayed
+        const datasets = chartData.datasets || [];
+        
+        // Filter datasets by type
+        const revenueDataset = datasets.find(dataset => dataset.label.includes("Ganancias"));
+        const ordersDataset = datasets.find(dataset => dataset.label.includes("Órdenes"));
+        
+        // Get complete labels for the current period
+        const dateSelector = document.getElementById("date-selector");
+        const selectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+        const completeLabels = generateCompleteLabels(currentChartPeriod, selectedDate);
+        const apiLabels = chartData.labels || [];
+        
+        // Calculate totals from mapped data (only non-null values)
+        let totalRevenue = 0;
+        let totalOrders = 0;
+        
+        if (revenueDataset) {
+          // Map API data to complete labels and sum only non-null values
+          apiLabels.forEach((apiLabel, index) => {
+            const formattedApiLabel = formatLabelForPeriod(apiLabel, currentChartPeriod);
+            const completeIndex = completeLabels.findIndex(label => label === formattedApiLabel);
+            
+            if (completeIndex !== -1 && index < revenueDataset.data.length) {
+              const value = revenueDataset.data[index];
+              if (value !== null && value !== undefined && value > 0) {
+                totalRevenue += value;
+              }
+            }
+          });
+        }
+        
+        if (ordersDataset) {
+          // Map API data to complete labels and sum only non-null values
+          apiLabels.forEach((apiLabel, index) => {
+            const formattedApiLabel = formatLabelForPeriod(apiLabel, currentChartPeriod);
+            const completeIndex = completeLabels.findIndex(label => label === formattedApiLabel);
+            
+            if (completeIndex !== -1 && index < ordersDataset.data.length) {
+              const value = ordersDataset.data[index];
+              if (value !== null && value !== undefined && value > 0) {
+                totalOrders += value;
+              }
+            }
+          });
+        }
+        
+        // Update revenue values with calculated total
+        const salesValueEl = document.getElementById("chart-revenue-today");
+        const salesTrendEl = document.getElementById("chart-revenue-trend");
+        
+        if (salesValueEl) {
+          salesValueEl.textContent = formatCurrency(totalRevenue, globalCurrency);
+        }
+        
+        // Update orders values with calculated total
+        const ordersValueEl = document.getElementById("chart-orders-today");
+        const ordersTrendEl = document.getElementById("chart-orders-trend");
+        
+        if (ordersValueEl) {
+          ordersValueEl.textContent = totalOrders.toString();
+        }
+        
+        // For trend percentages, we'll still use the summary data if available
         const summary = chartData.summary;
         if (summary) {
-          // Update revenue values
-          const salesValueEl = document.getElementById("chart-revenue-today");
-          const salesTrendEl = document.getElementById("chart-revenue-trend");
-          
-          if (salesValueEl && summary.totalRevenue) {
-            salesValueEl.textContent = formatCurrency(summary.totalRevenue, globalCurrency);
-          }
-          
           if (salesTrendEl && summary.change_percentage && summary.change_percentage.revenue !== undefined) {
             const change = summary.change_percentage.revenue;
             const direction = summary.trend_direction?.revenue || "flat";
@@ -1637,14 +1834,6 @@
             salesTrendEl.style.color = direction === "down" ? "#dc2626" : direction === "up" ? "#059669" : "#6b7280";
           }
 
-          // Update orders values
-          const ordersValueEl = document.getElementById("chart-orders-today");
-          const ordersTrendEl = document.getElementById("chart-orders-trend");
-          
-          if (ordersValueEl && summary.totalOrders) {
-            ordersValueEl.textContent = summary.totalOrders.toString();
-          }
-          
           if (ordersTrendEl && summary.change_percentage && summary.change_percentage.orders !== undefined) {
             const change = summary.change_percentage.orders;
             const direction = summary.trend_direction?.orders || "flat";
@@ -1667,8 +1856,12 @@
         );
         if (activeBtn) activeBtn.classList.add("tab--active");
 
-        // Load new data for the selected period
-        loadChartData(period);
+        // Get current selected date
+        const dateSelector = document.getElementById("date-selector");
+        const currentSelectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+
+        // Load new data for the selected period with the current date
+        loadChartData(period, currentSelectedDate);
       }
 
       function updateDate() {
@@ -1714,8 +1907,8 @@
               // Load summary data for the new date
               loadSummaryData(dateSelector.value);
               
-              // Load chart data for the current period
-              loadChartData(periodKey);
+              // Load chart data for the current period with the selected date
+              loadChartData(periodKey, dateSelector.value);
             } else {
               // If user cancels, revert to previous date
               dateSelector.value = previousDate;
