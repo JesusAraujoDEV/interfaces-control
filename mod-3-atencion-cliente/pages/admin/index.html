@@ -92,22 +92,22 @@
 
         <!-- Tarjetas reales, ocultas hasta que termine la carga inicial -->
         <section id="cards-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 hidden">
-          <a class="atc-card" href="./tables.html">
+          <a class="atc-card" href="./tables.html" id="enlace-mesas">
             <div class="atc-card-icon">🍽️</div>
             <div class="atc-card-title">Inventario de Mesas</div>
             <div class="atc-card-desc">Crear, editar, archivar y restaurar.</div>
           </a>
-          <a class="atc-card" href="./tables-maitre.html">
+          <a class="atc-card" href="./tables-maitre.html" id="enlace-mesas-maitre">
             <div class="atc-card-icon">🪑</div>
             <div class="atc-card-title">Mesas (Maitre)</div>
             <div class="atc-card-desc">Consulta estado, QR y edición básica.</div>
           </a>
-          <a class="atc-card" href="./sessions.html">
+          <a class="atc-card" href="./sessions.html" id="enlace-sesiones">
             <div class="atc-card-icon">👥</div>
             <div class="atc-card-title">Monitor de Sesiones</div>
             <div class="atc-card-desc">Actividad y sesiones por mesa.</div>
           </a>
-          <a class="atc-card" href="./requests.html">
+          <a class="atc-card" href="./requests.html" id="enlace-solicitudes">
             <div class="atc-card-icon">🔔</div>
             <div class="atc-card-title">Solicitudes</div>
             <div class="atc-card-desc">Llamados y quejas de clientes.</div>
@@ -150,6 +150,59 @@
       });
     </script>
     <script src="/mod-3-atencion-cliente/components/admin-auth.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Apartado para logica de permisos
+        let mostrarMesas = false;
+        let mostrarMesasMaitre = false;
+        let mostrarSesiones = false;
+        let mostrarSolicitudes = false;
+        const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+        const permissions = administrative_user ? administrative_user.permissions : [];
+
+        if (permissions.includes('AtcSupervisorSala_view')) {
+          mostrarSesiones = true;
+          mostrarSolicitudes = true;
+          mostrarMesas = true;
+        }
+        if (permissions.includes('AtcMaitre_view')) {
+          mostrarMesasMaitre = true;
+          mostrarSolicitudes = true;
+          mostrarSesiones = true;
+        } 
+        if (permissions.includes('CocinaMesero_view')) {
+          mostrarSolicitudes = true;
+          mostrarMesasMaitre = true;
+        }
+        if (administrative_user && administrative_user.isAdmin) {
+          mostrarMesas = true;
+          mostrarMesasMaitre = true;
+          mostrarSesiones = true;
+          mostrarSolicitudes = true;
+        }
+
+        // Ocultar enlaces según permisos
+        const sectionMesas = document.getElementById('enlace-mesas');
+        const sectionMesasMaitre = document.getElementById('enlace-mesas-maitre');
+        const sectionSesiones = document.getElementById('enlace-sesiones');
+        const sectionSolicitudes = document.getElementById('enlace-solicitudes');
+        if (!mostrarMesas && sectionMesas) {
+          sectionMesas.classList.add('hidden');
+        }
+
+        if (!mostrarMesasMaitre && sectionMesasMaitre) {
+          sectionMesasMaitre.classList.add('hidden');
+        }
+
+        if (!mostrarSesiones && sectionSesiones) {
+          sectionSesiones.classList.add('hidden');
+        }
+
+        if (!mostrarSolicitudes && sectionSolicitudes) {
+          sectionSolicitudes.classList.add('hidden');
+        }
+      });
+    </script>
     <script src="/mod-3-atencion-cliente/components/aside.js"></script>
   </body>
 </html>

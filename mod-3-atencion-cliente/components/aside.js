@@ -153,5 +153,52 @@
         smoothNavigate(href);
       });
     });
+    
+    // Apartado para logica de permisos
+    let mostrarMesas = false;
+    let mostrarMesasMaitre = false;
+    let mostrarSesiones = false;
+    let mostrarSolicitudes = false;
+    const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+    const permissions = administrative_user ? administrative_user.permissions : [];
+
+    if (permissions.includes('AtcSupervisorSala_view')) {
+      mostrarSesiones = true;
+      mostrarSolicitudes = true;
+      mostrarMesas = true;
+    }
+    if (permissions.includes('AtcMaitre_view')) {
+      mostrarMesasMaitre = true;
+      mostrarSolicitudes = true;
+      mostrarSesiones = true;
+    } 
+    if (permissions.includes('CocinaMesero_view')) {
+      mostrarSolicitudes = true;
+      mostrarMesasMaitre = true;
+    }
+    if (administrative_user && administrative_user.isAdmin) {
+      mostrarMesas = true;
+      mostrarMesasMaitre = true;
+      mostrarSesiones = true;
+      mostrarSolicitudes = true;
+    }
+
+    // Ocultar enlaces según permisos
+    if (!mostrarMesas) {
+      const el = document.getElementById('nav-tables');
+      if (el) el.remove();
+    }
+    if (!mostrarMesasMaitre) {
+      const el = document.getElementById('nav-tables-maitre');
+      if (el) el.remove();
+    }
+    if (!mostrarSesiones) {
+      const el = document.getElementById('nav-sessions');
+      if (el) el.remove();
+    }
+    if (!mostrarSolicitudes) {
+      const el = document.getElementById('nav-requests');
+      if (el) el.remove();
+    }
   });
 })();
