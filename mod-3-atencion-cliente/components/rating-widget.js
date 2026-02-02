@@ -1,34 +1,40 @@
 // /mod-3-atencion-cliente/components/rating-widget.js
 
 (function(){
-  function createStar(el, index, state){
-    const span = document.createElement('span');
-    span.className = 'material-icons-outlined text-3xl cursor-pointer select-none';
-    span.textContent = state.hover >= index || state.value >= index ? 'star' : 'star_outline';
-    span.dataset.index = index;
-    span.addEventListener('mouseenter', () => {
-      state.hover = index;
-      render(el, state);
+  function updateStars(container, state){
+    const starsRow = container.querySelector('[data-stars]');
+    const spans = starsRow.querySelectorAll('span[data-index]');
+    spans.forEach(span => {
+      const i = Number(span.dataset.index);
+      span.textContent = (state.hover >= i || state.value >= i) ? 'star' : 'star_outline';
     });
-    span.addEventListener('mouseleave', () => {
-      state.hover = 0;
-      render(el, state);
-    });
-    span.addEventListener('click', () => {
-      state.value = index;
-      render(el, state);
-    });
-    return span;
+    const scoreLabel = container.querySelector('[data-score-label]');
+    if (scoreLabel) scoreLabel.textContent = `${state.value}/5 estrellas`;
   }
 
-  function render(container, state){
+  function initStars(container, state){
     const starsRow = container.querySelector('[data-stars]');
     starsRow.innerHTML = '';
     for(let i=1;i<=5;i++){
-      starsRow.appendChild(createStar(container, i, state));
+      const span = document.createElement('span');
+      span.className = 'material-icons-outlined text-3xl cursor-pointer select-none';
+      span.textContent = 'star_outline';
+      span.dataset.index = i;
+      span.addEventListener('mouseenter', () => {
+        state.hover = i;
+        updateStars(container, state);
+      });
+      span.addEventListener('mouseleave', () => {
+        state.hover = 0;
+        updateStars(container, state);
+      });
+      span.addEventListener('click', () => {
+        state.value = i;
+        updateStars(container, state);
+      });
+      starsRow.appendChild(span);
     }
-    const scoreLabel = container.querySelector('[data-score-label]');
-    scoreLabel.textContent = `${state.value}/5 estrellas`;
+    updateStars(container, state);
   }
 
   window.RatingWidget = {
@@ -48,20 +54,29 @@
           <button id="rating-submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl">Enviar calificación</button>
         </div>`;
       const state = { value: 0, hover: 0 };
-      render(container, state);
+      initStars(container, state);
       const btn = container.querySelector('#rating-submit');
       const scopeRadios = container.querySelectorAll('input[name="rateScope"]');
       const waiterSelect = container.querySelector('#waiter-select');
 
-      // Populate waiter select if provided via dataset
-      const waiters = (window.__RATING_WAITERS__ || []);
-      if (waiters.length > 1) {
-        waiterSelect.innerHTML = `<option value="">Selecciona un mesero...</option>` +
-          waiters.map(id => `<option value="${id}">${id.substring(0,8)}...</option>`).join('');
+      // Poblar select de meseros con nombres si se dispone
+      const waiterDetails = (window.__RATING_WAITER_DETAILS__ || []);
+      const waiters = waiterDetails.length > 0 ? waiterDetails : (window.__RATING_WAITERS__ || []);
+      const toOption = (w) => {
+        if (typeof w === 'string') {
+          return `<option value="${w}">${w.substring(0,8)}...</option>`;
+        }
+        const label = w.name || (w.id ? w.id.substring(0,8)+'...' : 'Mesero');
+        const val = w.id || '';
+        return `<option value="${val}">${label}</option>`;
+      };
+      if (Array.isArray(waiters) && waiters.length > 1) {
+        waiterSelect.innerHTML = `<option value="">Selecciona un mesero...</option>` + waiters.map(toOption).join('');
       } else {
         // Si solo hay uno o ninguno, ocultar opción ONE
         const target = container.querySelector('#rating-target');
-        target.querySelector('input[value="ONE"]').parentElement.style.display = 'none';
+        const oneRadio = target.querySelector('input[value="ONE"]');
+        if (oneRadio && oneRadio.parentElement) oneRadio.parentElement.style.display = 'none';
       }
 
       scopeRadios.forEach(r => {
