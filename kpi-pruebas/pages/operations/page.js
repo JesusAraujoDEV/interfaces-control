@@ -85,9 +85,9 @@ function renderWorkforce(data) {
 
 async function loadAll() {
   const [velocityRes, successRes, workforceRes] = await Promise.allSettled([
-    fetchKpiJson('/api/kpi/v1/kitchen-velocity'),
-    fetchKpiJson('/api/kpi/v1/delivery-success-rate'),
-    fetchKpiJson('/api/kpi/v1/orders-per-chef')
+    fetchKpiJson('/operations/kitchen-velocity'),
+    fetchKpiJson('/operations/delivery-success-rate'),
+    fetchKpiJson('/workforce/orders-per-chef')
   ]);
 
   if (velocityRes.status === 'fulfilled') {

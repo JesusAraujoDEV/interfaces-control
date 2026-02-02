@@ -109,7 +109,7 @@ function renderOverview(data) {
 }
 
 async function loadOverview() {
-  const data = await fetchKpiJson('/api/kpi/v1/dashboard/overview');
+  const data = await fetchKpiJson('/dashboard/overview');
   renderOverview(data);
 }
 

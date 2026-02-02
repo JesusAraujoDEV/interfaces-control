@@ -94,9 +94,9 @@ function renderGhostClients(data) {
 
 async function loadAll() {
   const [serviceRes, occupancyRes, ghostRes] = await Promise.allSettled([
-    fetchKpiJson('/api/kpi/v1/service-quality'),
-    fetchKpiJson('/api/kpi/v1/room-occupancy'),
-    fetchKpiJson('/api/kpi/v1/ghost-clients')
+    fetchKpiJson('/cx/service-quality'),
+    fetchKpiJson('/cx/room-occupancy'),
+    fetchKpiJson('/cx/ghost-clients')
   ]);
 
   if (serviceRes.status === 'fulfilled') {
