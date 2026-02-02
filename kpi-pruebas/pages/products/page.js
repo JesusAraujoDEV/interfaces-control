@@ -114,10 +114,10 @@ async function loadAll() {
   const limit = topSelect ? Number(topSelect.value) : 5;
 
   const [topRes, menuRes, stockRes, wasteRes] = await Promise.allSettled([
-    fetchKpiJson('api/kpi/v1/product/top-sellers', { params: { top: limit } }),
-    fetchKpiJson('api/kpi/v1/product/menu-availability'),
-    fetchKpiJson('api/kpi/v1/inventory/low-stock'),
-    fetchKpiJson('api/kpi/v1/inventory/waste-tracker')
+    fetchKpiJson('/api/kpi/v1/product/top-sellers', { params: { top: limit } }),
+    fetchKpiJson('/api/kpi/v1/product/menu-availability'),
+    fetchKpiJson('/api/kpi/v1/inventory/low-stock'),
+    fetchKpiJson('/api/kpi/v1/inventory/waste-tracker')
   ]);
 
   if (topRes.status === 'fulfilled') {

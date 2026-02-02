@@ -102,9 +102,9 @@ function renderLostRevenue(data) {
 
 async function loadAll() {
   const [revenueRes, aovRes, lostRes] = await Promise.allSettled([
-    fetchKpiJson('api/kpi/v1/financial/daily-revenue'),
-    fetchKpiJson('api/kpi/v1/financial/aov'),
-    fetchKpiJson('api/kpi/v1/financial/lost-revenue')
+    fetchKpiJson('/api/kpi/v1/financial/daily-revenue'),
+    fetchKpiJson('/api/kpi/v1/financial/aov'),
+    fetchKpiJson('/api/kpi/v1/financial/lost-revenue')
   ]);
 
   let delivery = 0;
@@ -148,7 +148,7 @@ export async function init() {
   clearRefresh();
   await loadAll();
   intervalId = setInterval(() => {
-    loadAll().catch(() => {});
+    loadAll().catch(() => { });
   }, 60000);
 
   window.__kpiCleanup = clearRefresh;

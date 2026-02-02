@@ -11,7 +11,7 @@ export async function getSystemWarnings({ force = false } = {}) {
   }
 
   try {
-    const data = await fetchKpiJson('api/kpi/v1/dashboard/overview');
+    const data = await fetchKpiJson('/api/kpi/v1/dashboard/overview');
     cachedWarnings = Array.isArray(data?.warnings) ? data.warnings : [];
     lastFetchAt = Date.now();
     return cachedWarnings;
