@@ -50,6 +50,7 @@
 
     <script src="/config.js"></script>
     <script src="/mod-3-atencion-cliente/api/base.js"></script>
+    <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
     <script src="/mod-3-atencion-cliente/api/ratings.js"></script>
     <script src="/mod-3-atencion-cliente/components/rating-widget.js"></script>
     <script>
@@ -133,21 +134,26 @@
                     const waitersRes = await RatingsApi.getClientWaiters(clientId);
                     const waiterIds = waitersRes.data || [];
                     window.__RATING_WAITERS__ = waiterIds;
-                    // Intentar enriquecer con nombres desde cocina
-                    const KITCHEN_BASE = (window.__APP_CONFIG__?.KITCHEN_URL || '').replace(/\/$/, '') + '/api/kitchen';
+                    // Intentar enriquecer con nombres desde cocina usando KitchenApi
                     async function fetchWaiterDetail(id){
+                        if (!id || typeof id !== 'string' || id.trim() === '') {
+                            return { id: id || '', name: 'Mesero', role: 'STAFF' };
+                        }
                         try {
-                            const resp = await window.HttpClient.request(`${KITCHEN_BASE}/staff/${id}`, { method: 'GET' });
-                            // Resp esperado: { success, data } o directo objeto
+                            const resp = await window.KitchenApi.getStaffById(id);
                             const data = resp?.data || resp;
                             return { id: id, name: (data?.user?.name || data?.name || id.substring(0,8)+'...'), role: (data?.role || 'STAFF') };
                         } catch (e) {
+                            // Fallback silencioso si el endpoint valida tipo numérico u otro formato
                             return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
                         }
                     }
-                    if (Array.isArray(waiterIds) && waiterIds.length > 0 && window.__APP_CONFIG__?.KITCHEN_URL) {
-                        const details = await Promise.all(waiterIds.map(fetchWaiterDetail));
-                        window.__RATING_WAITER_DETAILS__ = details;
+                    if (Array.isArray(waiterIds) && waiterIds.length > 0) {
+                        const validIds = waiterIds.filter(id => !!id && typeof id === 'string' && id.trim() !== '');
+                        if (validIds.length > 0) {
+                            const details = await Promise.all(validIds.map(fetchWaiterDetail));
+                            window.__RATING_WAITER_DETAILS__ = details;
+                        }
                     }
                 } catch (e) {
                     console.warn('No se pudo obtener meseros de la sesión:', e.message);
