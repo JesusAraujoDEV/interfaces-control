@@ -12,4 +12,3 @@ if (!window.__dpSpaRouter) {
     init();
   }, { once: true });
 }
-
