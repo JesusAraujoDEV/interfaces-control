@@ -142,7 +142,8 @@
                         try {
                             const resp = await window.KitchenApi.getStaffById(id);
                             const data = resp?.data || resp;
-                            return { id: id, name: (data?.user?.name || data?.name || id.substring(0,8)+'...'), role: (data?.role || 'STAFF') };
+                            console.log('Detalle mesero obtenido:', data);
+                            return { id: id, name: (data?.externalName || data?.name || id.substring(0,8)+'...'), role: (data?.externalRole || 'STAFF') };
                         } catch (e) {
                             // Fallback silencioso si el endpoint valida tipo numérico u otro formato
                             return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
