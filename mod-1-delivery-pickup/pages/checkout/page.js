@@ -727,7 +727,6 @@ function openPaymentCashModal() {
   const m = document.getElementById('paymentCashModal');
   if (!m) return;
 
-  // Pro Tip #1: Reset modal state
   // Reset policy checkbox
   const policyCheckbox = document.getElementById('policyCheckboxCash');
   if (policyCheckbox) policyCheckbox.checked = false;
@@ -735,42 +734,46 @@ function openPaymentCashModal() {
   // Reset confirm button to disabled
   if (pcConfirmBtn) pcConfirmBtn.disabled = true;
 
-  // Populate dynamic fields
+  // Populate total amount
   const total = cartTotal(readCart()) + currentShippingCost();
   document.getElementById('pcTotal').textContent = formatPrice(total);
 
-  // Conditions depend on mode
-  const cond = document.getElementById('pcConditions');
+  // Dynamic message based on service type
   const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
-  if (cond) {
-    if (mode === 'pickup') {
-      cond.innerHTML = `
-        <strong>Caso A: Para PICKUP (Retiro en Tienda)</strong>
-        <p>Por normativas de seguridad y flujo de caja, al seleccionar pago en efectivo usted acepta las siguientes condiciones:</p>
-        <ul class="text-sm list-disc pl-5">
-          <li>Integridad del Papel Moneda: No aceptamos billetes rotos, manchados, pegados o excesivamente deteriorados. Nuestro personal validará cada billete.</li>
-          <li>Verificación Inmediata: Debe contar su vuelto frente al cajero antes de retirarse. No se aceptan reclamos posteriores una vez abandonada la zona de caja.</li>
-          <li>Pago Exacto: Se agradece el pago exacto para agilizar su despacho.</li>
-        </ul>
+  const isDelivery = mode.toLowerCase() === 'delivery';
+  const infoBox = document.getElementById('cashInfoMessage');
+
+  if (infoBox) {
+    if (isDelivery) {
+      // DELIVERY: External delivery company
+      infoBox.innerHTML = `
+        <div class="text-2xl flex-shrink-0">🛵</div>
+        <div>
+          <h4 class="font-bold text-blue-800 text-sm uppercase">Requerimos Monto Exacto</h4>
+          <p class="text-blue-900 text-xs mt-2 leading-relaxed text-justify">
+            Para brindarte la mejor experiencia, <strong>necesitamos que cuentes con la cantidad exacta</strong>.
+            <br><br>
+            Charlotte Bistró no maneja valores durante el traslado; utilizamos una empresa de delivery externa que, por seguridad y logística, <strong>no cuenta con efectivo para dar vuelto</strong>.
+            <br><br>
+            Te agradecemos tener el pago justo listo para agilizar tu entrega.
+          </p>
+        </div>
       `;
     } else {
-      cond.innerHTML = `
-        <strong>Caso B: Para DELIVERY</strong>
-        <p>El servicio de delivery es operado por una empresa independiente. Para garantizar su seguridad y la correcta gestión del cambio:</p>
-        <ul class="text-sm list-disc pl-5">
-          <li>Declaración Obligatoria: Debe ingresar EXACTAMENTE con qué billete va a pagar. No enviamos cambio no declarado.</li>
-          <li>Gestión de Vuelto: Charlotte Bistró enviará el vuelto exacto (si aplica) dentro del paquete sellado o entregado al conductor.</li>
-          <li>Límite de Responsabilidad: Charlotte Bistró NO se hace responsable por transacciones personales adicionales, propinas o cambios de divisa realizados directamente con el conductor ajenos al monto de la factura.</li>
-        </ul>
+      // PICKUP: Fast service, digital cash
+      infoBox.innerHTML = `
+        <div class="text-2xl flex-shrink-0">⚡</div>
+        <div>
+          <h4 class="font-bold text-blue-800 text-sm uppercase">Retiro Express (Pick & Go)</h4>
+          <p class="text-blue-900 text-xs mt-2 leading-relaxed text-justify">
+            Queremos que tu paso por el local sea inmediato. Por protocolos de seguridad y agilidad, <strong>nuestra caja no mantiene efectivo para cambios</strong>.
+            <br><br>
+            Por favor, <strong>abona el monto exacto</strong> al retirar. Así evitamos esperas administrativas y te entregamos tu pedido al instante.
+          </p>
+        </div>
       `;
     }
   }
-
-  // Reset inputs
-  const input = document.getElementById('pcCashAmount');
-  if (input) input.value = '';
-  const summary = document.getElementById('pcChangeSummary');
-  if (summary) summary.textContent = '';
 
   m.classList.remove('hidden');
 }
@@ -779,38 +782,6 @@ function closePaymentCashModal() {
   if (!m) return;
   m.classList.add('hidden');
 }
-
-// helper: calcular desglose de vuelto
-function calcularDesgloseVuelto(totalPagar, montoEfectivo) {
-  let vuelto = Number(montoEfectivo) - Number(totalPagar);
-  if (!Number.isFinite(vuelto)) return '⚠️ Monto inválido.';
-  if (vuelto < 0) return '⚠️ El monto en efectivo es menor a la deuda.';
-  if (vuelto === 0) return '✅ Pago exacto. No se requiere vuelto.';
-
-  const denominaciones = [100, 50, 20, 10, 5, 1];
-  let desglose = [];
-  let resto = Math.round(vuelto);
-
-  denominaciones.forEach(billete => {
-    if (resto >= billete) {
-      const cantidad = Math.floor(resto / billete);
-      resto = resto % billete;
-      desglose.push(`${cantidad} billete${cantidad > 1 ? 's' : ''} de $${billete}`);
-    }
-  });
-
-  return `Tu vuelto de $${vuelto} se entregará (aprox) en: ${desglose.join(', ')}.`;
-}
-
-// live update change when user types efectivo
-document.getElementById('pcCashAmount')?.addEventListener('input', () => {
-  const total = cartTotal(readCart()) + currentShippingCost();
-  const val = document.getElementById('pcCashAmount')?.value || '';
-  const summary = document.getElementById('pcChangeSummary');
-  if (!summary) return;
-  const msg = calcularDesgloseVuelto(total, Number(val));
-  summary.textContent = msg;
-});
 
 // cash modal actions
 document.getElementById('pcCancel')?.addEventListener('click', () => closePaymentCashModal());
@@ -821,21 +792,15 @@ document.getElementById('pcConfirm')?.addEventListener('click', () => {
     return;
   }
 
-  const val = Number(document.getElementById('pcCashAmount')?.value || 0);
   const total = Number(cartTotal(readCart()) + currentShippingCost());
-  if (!val || val < total) {
-    alert('El monto en efectivo debe ser igual o mayor al total a pagar.');
-    return;
-  }
-  const change = val - total;
-  const breakdown = calcularDesgloseVuelto(total, val);
   const mode = pendingOrderMode || localStorage.getItem('dp_service_type') || 'delivery';
-  // For cash payments we default to not-marking as received here (will be handled at POS).
+
+  // Assume exact payment - cash amount equals total
   pendingPayment = {
     payment_type: 'EFECTIVO',
-    payment_cash_amount: val,
-    payment_change: change,
-    payment_change_breakdown: breakdown,
+    payment_cash_amount: total, // Exact payment
+    payment_change: 0,
+    payment_change_breakdown: '✅ Pago exacto. No se requiere vuelto.',
     payment_received: false,
     payment_reference: ' ',
     payment_bank: ''

@@ -130,14 +130,22 @@
                 align-items: stretch;
                 gap: 1rem;
             }
+
             .filters .filter-group,
             .filters .filter-input,
             .filters select,
             .filters button {
                 width: 100%;
             }
-            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .table { min-width: 720px; }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table {
+                min-width: 720px;
+            }
         }
     </style>
     <script src="/config.js"></script>
@@ -148,14 +156,15 @@
 <body class="app-container">
     <aside class="sidebar">
         <div class="sidebar__profile">
-            <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
+            <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-brand-50 text-brand-800 shrink-0">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="object-contain w-8 h-8"
+                    loading="eager">
             </div>
             <div class="min-w-0">
-                <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
-                <div class="text-xs text-slate-500 leading-4 truncate">Dashboard Operativo</div>
+                <div class="text-sm font-extrabold leading-5 text-slate-900">Cocina</div>
+                <div class="text-xs leading-4 truncate text-slate-500">Dashboard Operativo</div>
             </div>
-            <a href="/admin" class="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800">
+            <a href="/admin" class="inline-flex items-center gap-2 mt-3 text-xs text-gray-500 hover:text-gray-800">
                 <span aria-hidden="true">←</span>
                 <span>Volver a Admin</span>
             </a>
@@ -164,58 +173,58 @@
         <nav class="sidebar__nav">
             <a href="index.html" class="sidebar__link">
                 <i data-lucide="layout-dashboard"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Dashboard</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Resumen</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Resumen</div>
                 </span>
             </a>
             <a href="kds.html" class="sidebar__link">
                 <i data-lucide="monitor"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">KDS</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Cola de producción</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Cola de producción</div>
                 </span>
             </a>
             <a href="Despacho.html" class="sidebar__link">
                 <i data-lucide="truck"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Despacho</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Entregas a camareros</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Entregas a camareros</div>
                 </span>
             </a>
             <a href="rec-pro.html" class="sidebar__link">
                 <i data-lucide="chef-hat"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Recetas</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Maestro de productos</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Maestro de productos</div>
                 </span>
             </a>
             <a href="inv.html" class="sidebar__link">
                 <i data-lucide="package"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Inventario</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Consumibles y stock</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Consumibles y stock</div>
                 </span>
             </a>
             <a href="activos.html" class="sidebar__link">
                 <i data-lucide="box"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Activos</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Equipos y utensilios</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Equipos y utensilios</div>
                 </span>
             </a>
             <a href="personal.html" class="sidebar__link">
                 <i data-lucide="users"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Personal</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Staff y turnos</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Staff y turnos</div>
                 </span>
             </a>
             <a href="historial_pedidos.html" class="sidebar__link sidebar__link--active">
                 <i data-lucide="history"></i>
-                <span class="link-text min-w-0">
+                <span class="min-w-0 link-text">
                     <div class="text-sm font-semibold leading-5">Historial</div>
-                    <div class="text-xs text-slate-500 leading-4 truncate atc-nav-desc">Pedidos y acciones</div>
+                    <div class="text-xs leading-4 truncate text-slate-500 atc-nav-desc">Pedidos y acciones</div>
                 </span>
             </a>
         </nav>
@@ -274,7 +283,6 @@
                         <th style="color: white;">Estado</th>
                         <th style="color: white;">Fecha/Hora</th>
                         <th style="color: white;">Chef</th>
-                        <th style="color: white;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="pedidosBody">

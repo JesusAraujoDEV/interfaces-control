@@ -69,7 +69,43 @@ function initModal() {
                     return;
                 }
 
-                // 2. Perform Action
+                // 2. Validate Role for Operational Actions
+                const actionType = state.pendingAction ? state.pendingAction.type : null;
+                const isOperational = ['ASSIGN', 'SERVE'].includes(actionType);
+                const allowedRoles = ['WAITER', 'HEAD_WAITER'];
+
+                // 2.1 Validate Active Status
+                if (staff.isActive === false) {
+                    alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name || 'Personal'} no está activo.`);
+                    return;
+                }
+
+                if (isOperational && !allowedRoles.includes(staff.role)) {
+                    alert(`⛔ ACCESO DENEGADO\n\nEl usuario ${staff.name} tiene el rol "${staff.role}".\nSolo personal de servicio (Meseros) puede despachar pedidos.`);
+                    return;
+                }
+
+                // 3. Validate Shift Status
+                const isClockedIn = !!staff.currentShift;
+
+                if (isOperational) {
+                     if (!isClockedIn) {
+                         alert(`⚠️ ACCESO DENEGADO\n\nEl usuario ${staff.name || 'Personal'} no tiene un turno activo.\nPor favor, fiche entrada antes de tomar pedidos.`);
+                         return;
+                     }
+                }
+                
+                if (actionType === 'ATTENDANCE_OUT' && !isClockedIn) {
+                     alert(`El usuario ${staff.name} no tiene un turno activo para cerrar.`);
+                     return;
+                }
+                
+                if (actionType === 'ATTENDANCE_IN' && isClockedIn) {
+                     alert(`El usuario ${staff.name} ya tiene un turno activo iniciado.`);
+                     return;
+                }
+
+                // 3. Perform Action
                 if(state.pendingAction) {
                     await executeAction(state.pendingAction, staff);
 
@@ -105,6 +141,16 @@ function initModal() {
             if(ui.workerCode) {
                 ui.workerCode.value = '';
                 ui.workerCode.focus();
+            }
+            
+            // Update Title Context
+            const titleEl = ui.authModal.querySelector('.modal__header h2');
+            if (titleEl) {
+                if (actionType.startsWith('ATTENDANCE')) {
+                    titleEl.textContent = actionType === 'ATTENDANCE_IN' ? 'Fichar Entrada de Turno' : 'Fichar Salida de Turno';
+                } else {
+                    titleEl.textContent = 'Identificación Requerida';
+                }
             }
         }
     };
@@ -146,21 +192,43 @@ async function validateWorker(code) {
 
 async function executeAction(action, staff) {
     const { type, orderId } = action;
-    const tasks = getTasksByOrderId(orderId);
-    
-    if(tasks.length === 0) return;
 
-    // Parallel execution for all tasks in the logical group
+    // Lógica de asistencia (independiente de pedidos)
+    if (type === 'ATTENDANCE_IN' || type === 'ATTENDANCE_OUT') {
+        const bodyType = type === 'ATTENDANCE_IN' ? 'CHECK_IN' : 'CHECK_OUT';
+        const res = await fetch(`${CONFIG.API_URL}/api/kitchen/staff/${staff.id}/shift`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: bodyType })
+        });
+
+        if (res.ok) {
+            alert(`${bodyType === 'CHECK_IN' ? 'Entrada' : 'Salida'} registrada correctamente`);
+        } else {
+            let data = {};
+            try { data = await res.json(); } catch (_) {}
+            throw new Error(data.message || 'Error registrando asistencia');
+        }
+        return;
+    }
+
+    // Solo continuar para acciones operativas de pedidos
+    if (type !== 'ASSIGN' && type !== 'SERVE') return;
+
+    const tasks = getTasksByOrderId(orderId);
+    if (tasks.length === 0) return;
+
+    // Ejecución paralela para todos los ítems del pedido
     const promises = tasks.map(t => {
         const body = { staffId: staff.id };
-        if(type === 'ASSIGN') {
+        if (type === 'ASSIGN') {
             body.role = 'WAITER';
             return fetch(`${CONFIG.API_URL}/api/kitchen/kds/${t.id}/assign`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-        } else if (type === 'SERVE') {
+        } else {
             return fetch(`${CONFIG.API_URL}/api/kitchen/kds/${t.id}/served`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -180,7 +248,7 @@ async function executeAction(action, staff) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     external_order_id: orderId,
-                    action: type === 'ASSIGN' ? 'ASSIGN' : 'SERVE',
+                    action: type,
                     waiter_id: staff.id,
                     worker_code: staff.workerCode
                 })
@@ -271,9 +339,15 @@ function render() {
             </button>`;
         } else {
             // Serve Button
-             actionButton = `<button class="btn btn--primary" onclick="window.openAuthModal('SERVE', '${group.id}')" style="width:100%; margin-top:1rem; background-color: #10b981; border-color:#059669;">
-                <i data-lucide="check-circle"></i> Entregar (De: ${waiterName})
-            </button>`;
+             actionButton = `<div style="margin-top:1rem; border:1px solid #d1fae5; background:#ecfdf5; padding:0.75rem; border-radius:6px;">
+                <div style="font-size:0.85rem; color:#047857; margin-bottom:0.5rem; display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="user-check" style="width:16px;"></i> 
+                    <strong>${waiterName}</strong> asignado
+                </div>
+                <button class="btn btn--primary" onclick="window.openAuthModal('SERVE', '${group.id}')" style="width:100%; background-color: #10b981; border-color:#059669;">
+                    <i data-lucide="check-circle"></i> Marcar Entregado
+                </button>
+             </div>`;
         }
 
         const customerInfo = group.customerName ? `<div style="font-size:0.9rem; color:#4b5563; margin-bottom:0.25rem;"><i data-lucide="user" style="width:14px; height:14px; vertical-align:middle;"></i> ${group.customerName}</div>` : '';

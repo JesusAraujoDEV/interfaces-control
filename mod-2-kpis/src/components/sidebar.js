@@ -21,10 +21,10 @@ const NAV = [
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>`,
   },
   {
-    key: "inventario",
-    label: "Inventario",
-    description: "Control de stock",
-    href: "/mod-2-kpis/src/public/inventario.html",
+    key: "ventas",
+    label: "Ventas",
+    description: "Graficación de ventas",
+    href: "/mod-2-kpis/src/public/ventas.html",
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0Z"/><path d="M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>`,
   },
   {
@@ -48,7 +48,7 @@ function resolveActiveKey(pathname) {
   if (pathname.includes("index.html") || pathname.endsWith("/mod-2-kpis/src/public/")) return "home";
   if (pathname.includes("dashboard.html")) return "dashboard";
   if (pathname.includes("bussines-intelligence.html")) return "reportes";
-  if (pathname.includes("inventario.html")) return "inventario";
+  if (pathname.includes("ventas.html")) return "ventas";
   if (pathname.includes("eficiencia-operacional.html")) return "eficiencia";
   return "home";
 }

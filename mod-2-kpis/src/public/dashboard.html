@@ -39,7 +39,19 @@
               gap: 8px;
             "
           >
-            <span id="header-date">Cargando fecha...</span>
+            <input 
+              type="date" 
+              id="date-selector" 
+              style="
+                border: none;
+                background: transparent;
+                font-size: 0.875rem;
+                color: inherit;
+                font-family: inherit;
+                cursor: pointer;
+                outline: none;
+              "
+            />
           </div>
         </header>
 
@@ -89,7 +101,7 @@
 
         <div class="dashboard-main-grid">
           <div class="card">
-            <h2 class="card__title">Ventas por Hora</h2>
+            <h2 class="card__title">Ganancias por Período</h2>
             <p class="kpi-card__value" style="font-size: 1.125rem">
               <span id="chart-revenue-today">$0</span>
               <span
@@ -119,11 +131,11 @@
                 Año
               </button>
             </div>
-            <div class="chart-container">
-              <canvas id="demand-chart"></canvas>
+            <div class="chart-container" style="height: 350px;">
+              <canvas id="revenue-chart"></canvas>
             </div>
             <div
-              id="salesLabels"
+              id="revenueLabels"
               style="
                 display: flex;
                 justify-content: space-between;
@@ -134,6 +146,35 @@
             >
               <span>7 AM</span><span>12 PM</span><span>4 PM</span
               ><span>8 PM</span>
+            </div>
+
+            <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+              <h2 class="card__title">Órdenes por Período</h2>
+              <p class="kpi-card__value" style="font-size: 1.125rem">
+                <span id="chart-orders-today">0</span>
+                <span
+                  style="font-size: 0.875rem; color: #28a745"
+                  id="chart-orders-trend"
+                  >Today +0%</span
+                >
+              </p>
+
+              <div class="chart-container" style="height: 350px;">
+                <canvas id="orders-chart"></canvas>
+              </div>
+              <div
+                id="ordersLabels"
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  margin-top: 10px;
+                  color: var(--text-muted);
+                  font-size: 0.875rem; /* 14px */
+                "
+              >
+                <span>7 AM</span><span>12 PM</span><span>4 PM</span
+                ><span>8 PM</span>
+              </div>
             </div>
           </div>
 
@@ -177,26 +218,34 @@
     <script>
       let globalSalesData = []; // Store raw pareto data
       let globalCurrency = "$";
+      let currentChartPeriod = 'day'; // Track current period for label formatting
 
       // Carga datos desde la API y actualiza la interfaz
       async function loadDashboard() {
         try {
+          // Get selected date from date selector
+          const dateSelector = document.getElementById("date-selector");
+          const selectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+          
+          // Calculate date range for initial day period load
+          const initialDateRange = calculateDateRange('day', selectedDate);
+          
           // Use allSettled so that a failing fetch (e.g., backend not running) doesn't abort UI wiring
           const [sRes, aRes, pRes] = await Promise.allSettled([
             fetch(
-              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary",
+              `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary?date=${selectedDate}`,
             ),
             fetch(
-              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts",
+              `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts`,
             ),
             fetch(
-              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/pareto",
+              `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary/range?period=day&date_from=${initialDateRange.date_from}&date_to=${initialDateRange.date_to}`,
             ),
           ]);
 
           let summaryJson = {};
           let alertsJson = {};
-          let paretoJson = {};
+          let chartJson = {};
 
           if (sRes.status === "fulfilled" && sRes.value && sRes.value.ok) {
             try {
@@ -214,18 +263,17 @@
           }
           if (pRes.status === "fulfilled" && pRes.value && pRes.value.ok) {
             try {
-              paretoJson = await pRes.value.json();
+              chartJson = await pRes.value.json();
             } catch (_) {
-              paretoJson = {};
+              chartJson = {};
             }
           }
           console.log("Fetched summary:", summaryJson);
           console.log("Fetched alerts:", alertsJson);
-          console.log("Fetched pareto:", paretoJson);
+          console.log("Fetched chart data:", chartJson);
           const summary = summaryJson.data || summaryJson || {};
           const alerts = alertsJson.alerts || alertsJson || [];
-          const paretoData = paretoJson.data || paretoJson || [];
-          console.log("Dashboard summary:", summary);
+          const chartData = chartJson.data || chartJson || {};
           // Ingresos (mapear a ambos conjuntos de IDs para evitar duplicados)
           const revenue = summary.revenue || {};
           globalCurrency = revenue.currency || "$";
@@ -312,15 +360,11 @@
               if (e) e.textContent = ops.rotation_status;
             });
 
-          console.log("Sales data for chart (raw pareto):", paretoData);
-
           // Store global data for chart switching
-          globalSalesData = Array.isArray(paretoData)
-            ? paretoData
-            : paretoData.data || [];
+          globalSalesData = chartData;
 
-          // Initial render (Day view)
-          updateChartPeriod("day");
+          // Initial render using new chart function
+          renderNewChart(globalSalesData);
 
           // Alertas de inventario
           const alertsList = document.getElementById("alertsList");
@@ -784,7 +828,837 @@
         }
       }
 
+      async function loadSummaryData(selectedDate) {
+        try {
+          // Load summary data for the selected date
+          const [sRes, aRes] = await Promise.allSettled([
+            fetch(
+              `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary?date=${selectedDate}`,
+            ),
+            fetch(
+              "https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts",
+            ),
+          ]);
+
+          let summaryJson = {};
+          let alertsJson = {};
+
+          if (sRes.status === "fulfilled" && sRes.value && sRes.value.ok) {
+            try {
+              summaryJson = await sRes.value.json();
+            } catch (_) {
+              summaryJson = {};
+            }
+          }
+          if (aRes.status === "fulfilled" && aRes.value && aRes.value.ok) {
+            try {
+              alertsJson = await aRes.value.json();
+            } catch (_) {
+              alertsJson = {};
+            }
+          }
+
+          // Update summary KPIs (similar to loadDashboard but without chart rendering)
+          const summary = summaryJson.data || summaryJson || {};
+          const alerts = alertsJson.alerts || alertsJson || [];
+
+          // Update revenue KPIs
+          const revenue = summary.revenue || {};
+          globalCurrency = revenue.currency || "$";
+          const incomeEls = [
+            document.getElementById("kpi-revenue"),
+          ];
+          const incomeTrendEls = [
+            document.getElementById("kpi-revenue-trend"),
+          ];
+          if (revenue.total != null) {
+            const txt = formatCurrency(revenue.total, revenue.currency);
+            incomeEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+          if (revenue.trend_percentage != null) {
+            const t =
+              (revenue.trend_direction === "down"
+                ? "-"
+                : revenue.trend_direction === "up"
+                  ? "+"
+                  : "") +
+              revenue.trend_percentage +
+              "%";
+            incomeTrendEls.forEach((e) => {
+              if (e) e.textContent = t;
+            });
+          }
+
+          // Update quarterly goal KPIs
+          const quarterly = summary.quarterly_goal || {};
+          const quarterlyProgressEls = [
+            document.getElementById("kpi-goal"),
+          ];
+          const quarterlyTargetEls = [
+            document.getElementById("kpi-goal-absolute"),
+          ];
+          if (quarterly.progress_percentage != null) {
+            const txt = quarterly.progress_percentage + "%";
+            quarterlyProgressEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+          if (quarterly.target != null) {
+            const txt = formatCurrency(quarterly.target, revenue.currency);
+            quarterlyTargetEls.forEach((e) => {
+              if (e) e.textContent = txt;
+            });
+          }
+
+          // Update operations KPIs
+          const ops = summary.operations || {};
+          const avgTimeEls = [
+            document.getElementById("kpi-avg-time"),
+          ];
+          const rotationRateEls = [
+            document.getElementById("kpi-rotation"),
+          ];
+          const rotationStatusEls = [
+            document.getElementById("kpi-rotation-target"),
+          ];
+          if (ops.avg_service_time)
+            avgTimeEls.forEach((e) => {
+              if (e) e.textContent = ops.avg_service_time;
+            });
+          if (ops.table_rotation != null)
+            rotationRateEls.forEach((e) => {
+              if (e) e.textContent = ops.table_rotation + " /hr";
+            });
+          if (ops.rotation_status)
+            rotationStatusEls.forEach((e) => {
+              if (e) e.textContent = ops.rotation_status;
+            });
+
+          // Update stock alerts
+          const alertsList = document.getElementById("alertsList");
+          alertsList.innerHTML = "";
+          const cfg = getStockLimits();
+          const defaultLimit = Number(cfg.default ?? 30);
+          const perItem = cfg.items || {};
+          
+          // Sort alerts by severity (same logic as loadDashboard)
+          const sortedAlerts = (alerts || []).sort((a, b) => {
+            const severityOrder = { 'CRITICAL': 0, 'WARNING': 1 };
+            const aSeverity = severityOrder[a.severity] ?? 2;
+            const bSeverity = severityOrder[b.severity] ?? 2;
+            
+            if (aSeverity !== bSeverity) {
+              return aSeverity - bSeverity;
+            }
+            
+            return (a.current_level_pct ?? 0) - (b.current_level_pct ?? 0);
+          });
+
+          const maxAlertsToShow = 5;
+          const alertsToShow = sortedAlerts.slice(0, maxAlertsToShow);
+
+          alertsToShow.forEach((item) => {
+            const percent = item.current_level_pct ?? 0;
+            const name = item.item_name || "Sin nombre";
+            const severity = item.severity || "UNKNOWN";
+            const action = item.action_required || "NONE";
+            const limit = Number(perItem[name] ?? defaultLimit);
+            const isCritical = percent <= limit || severity === "CRITICAL";
+
+            const div = document.createElement("div");
+            div.className = "stock-item";
+            div.style.cursor = item.url ? "pointer" : "default";
+            div.style.display = "flex";
+            div.style.flexDirection = "column";
+            div.style.gap = "8px";
+            div.style.padding = "12px";
+            div.style.border = "1px solid var(--border-color, #e5e7eb)";
+            div.style.borderRadius = "8px";
+            div.style.marginBottom = "8px";
+            div.style.background = isCritical 
+              ? "rgba(255,99,71,0.05)" 
+              : "var(--white, #ffffff)";
+
+            // Header with name and severity (same logic as loadDashboard)
+            const header = document.createElement("div");
+            header.style.display = "flex";
+            header.style.justifyContent = "space-between";
+            header.style.alignItems = "center";
+            
+            const nameEl = document.createElement("div");
+            nameEl.innerHTML = '<strong>' + escapeHtml(name) + '</strong>';
+            nameEl.style.fontSize = "0.95rem";
+            nameEl.style.color = "var(--text-primary, #1f2937)";
+            nameEl.style.flex = "1";
+
+            const severityBadge = document.createElement("span");
+            severityBadge.style.fontSize = "0.75rem";
+            severityBadge.style.padding = "4px 10px";
+            severityBadge.style.borderRadius = "12px";
+            severityBadge.style.fontWeight = "600";
+            severityBadge.style.textTransform = "uppercase";
+            severityBadge.style.marginLeft = "12px";
+            severityBadge.style.whiteSpace = "nowrap";
+            
+            if (severity === "CRITICAL") {
+              severityBadge.style.background = "#dc2626";
+              severityBadge.style.color = "white";
+              severityBadge.textContent = "CRÍTICO";
+            } else if (severity === "WARNING") {
+              severityBadge.style.background = "#f59e0b";
+              severityBadge.style.color = "white";
+              severityBadge.textContent = "ADVERTENCIA";
+            } else {
+              severityBadge.style.background = "#6b7280";
+              severityBadge.style.color = "white";
+              severityBadge.textContent = severity;
+            }
+
+            header.appendChild(nameEl);
+            header.appendChild(severityBadge);
+
+            // Progress bar section (same logic as loadDashboard)
+            const progressSection = document.createElement("div");
+            progressSection.style.display = "flex";
+            progressSection.style.alignItems = "center";
+            progressSection.style.gap = "12px";
+            
+            const bar = document.createElement("div");
+            bar.style.display = "flex";
+            bar.style.alignItems = "center";
+            bar.style.flex = "1";
+            bar.innerHTML =
+              '<div class="progress-bar" style="width:100%;margin-right:8px"><div class="progress-bar__fill ' +
+              getFillClass(percent) +
+              '" style="width:' +
+              percent +
+              '%"></div></div><span class="stock-item__percent" style="font-weight:600;">' +
+              percent +
+              "%</span>";
+
+            progressSection.appendChild(bar);
+
+            // Action required section
+            if (action && action !== "NONE") {
+              const actionEl = document.createElement("div");
+              actionEl.style.fontSize = "0.85rem";
+              actionEl.style.color = "var(--text-muted, #6b7280)";
+              actionEl.innerHTML = '<strong>Acción requerida:</strong> ' + escapeHtml(action);
+              progressSection.appendChild(actionEl);
+            }
+
+            // Edit button
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "⚙️";
+            editBtn.className = "icon-btn";
+            editBtn.style.fontSize = "0.9rem";
+            editBtn.title = "Editar límite";
+            editBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              showEditLimitForItem(name, perItem[name]);
+            };
+            progressSection.appendChild(editBtn);
+
+            if (item.url) div.onclick = () => (window.location.href = item.url);
+
+            div.appendChild(header);
+            div.appendChild(progressSection);
+            alertsList.appendChild(div);
+          });
+
+          // Show message about remaining alerts if any
+          if (alerts.length > maxAlertsToShow) {
+            const remainingCount = alerts.length - maxAlertsToShow;
+            const moreAlertsDiv = document.createElement("div");
+            moreAlertsDiv.style.textAlign = "center";
+            moreAlertsDiv.style.marginTop = "12px";
+            moreAlertsDiv.style.fontSize = "0.85rem";
+            moreAlertsDiv.style.color = "var(--text-muted, #6b7280)";
+            moreAlertsDiv.innerHTML = `<em>${remainingCount} alerta(s) adicional(es) no mostrada(s)</em>`;
+            alertsList.appendChild(moreAlertsDiv);
+          } else if (!alerts.length) {
+            alertsList.innerHTML =
+              '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:20px;">Sin alertas críticas</div>';
+          }
+
+          renderStockLimits();
+        } catch (err) {
+          console.error("Error cargando summary data:", err);
+        }
+      }
+
+      function calculateDateRange(period, selectedDate) {
+        const date = new Date(selectedDate);
+        console.log('Calculating date range for period:', period, 'selectedDate:', selectedDate, 'date object:', date);
+        
+        switch (period) {
+          case 'day':
+            // For day, use the same date
+            return {
+              date_from: selectedDate,
+              date_to: selectedDate
+            };
+            
+          case 'week':
+            // For week, find the start of the week (Sunday) and end of the week (Saturday)
+            const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+            console.log('Day of week:', dayOfWeek);
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - dayOfWeek);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            console.log('Week start:', weekStart, 'Week end:', weekEnd);
+            
+            const result = {
+              date_from: weekStart.toISOString().split('T')[0],
+              date_to: weekEnd.toISOString().split('T')[0]
+            };
+            console.log('Week date range result:', result);
+            return result;
+            
+          case 'month':
+            // For month, use the first and last day of the selected date's month
+            const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+            const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            
+            return {
+              date_from: monthStart.toISOString().split('T')[0],
+              date_to: monthEnd.toISOString().split('T')[0]
+            };
+            
+          case 'year':
+            // For year, use January 1st and December 31st of the selected date's year
+            const yearStart = new Date(date.getFullYear(), 0, 1);
+            const yearEnd = new Date(date.getFullYear(), 11, 31);
+            
+            return {
+              date_from: yearStart.toISOString().split('T')[0],
+              date_to: yearEnd.toISOString().split('T')[0]
+            };
+            
+          default:
+            return {
+              date_from: selectedDate,
+              date_to: selectedDate
+            };
+        }
+      }
+
+      async function loadChartData(period) {
+        try {
+          // Get selected date from date selector
+          console.log('Loading chart data for period:', period);
+          const dateSelector = document.getElementById("date-selector");
+          const selectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+          
+          // Calculate proper date range based on period
+          const dateRange = calculateDateRange(period, selectedDate);
+          console.log('Date range:', dateRange);
+          
+          const url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary/range?period=${period}&date_from=${dateRange.date_from}&date_to=${dateRange.date_to}`;
+          console.log('Request URL:', url);
+          
+          const response = await fetch(url);
+          
+          if (response.ok) {
+            const chartJson = await response.json();
+            console.log('API Response for', period, ':', chartJson);
+            globalSalesData = chartJson.data || chartJson || {};
+            console.log('Global sales data:', globalSalesData);
+            renderNewChart(globalSalesData);
+          } else {
+            console.error('API Response not ok for', period, ':', response.status, response.statusText);
+          }
+        } catch (error) {
+          console.error("Error loading chart data:", error);
+        }
+      }
+
+      function renderNewChart(chartData) {
+        // Render revenue chart
+        renderChart('revenue-chart', chartData, 'revenue');
+        
+        // Render orders chart
+        renderChart('orders-chart', chartData, 'orders');
+        
+        // Update summary values
+        updateSummaryValues(chartData);
+      }
+
+      function generateCompleteLabels(period, selectedDate) {
+        const date = new Date(selectedDate);
+        
+        switch (period) {
+          case 'day':
+            // Generate hours from 7AM to 11PM (24-hour format)
+            const hours = [];
+            for (let hour = 7; hour <= 23; hour++) {
+              hours.push(`${hour}:00`);
+            }
+            return hours;
+            
+          case 'week':
+            // Generate all days of the week: Dom, Lun, Mar, Mié, Jue, Vie, Sáb
+            return ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            
+          case 'month':
+            // Generate all days of the month (1-31)
+            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const days = [];
+            for (let day = 1; day <= daysInMonth; day++) {
+              days.push(day.toString());
+            }
+            return days;
+            
+          case 'year':
+            // Generate all months: Ene, Feb, Mar, Abr, May, Jun, Jul, Ago, Sep, Oct, Nov, Dic
+            return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            
+          default:
+            return [];
+        }
+      }
+
+      function formatLabelForPeriod(label, period) {
+        if (!label) return '';
+        
+        // For day period, show hours (extract time from labels like "2024-01-15 14:00")
+        if (period === 'day') {
+          if (label.includes(':')) {
+            return label.split(' ')[1] || label;
+          }
+          return label;
+        }
+        
+        // For week period, show day names
+        if (period === 'week') {
+          // If label is a date, format to show day name
+          try {
+            const date = new Date(label);
+            if (!isNaN(date.getTime())) {
+              const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+              return days[date.getDay()];
+            }
+          } catch (e) {
+            // If not a valid date, return as is
+          }
+          return label;
+        }
+        
+        // For month period, show day numbers
+        if (period === 'month') {
+          // If label is a date, extract day number
+          try {
+            const date = new Date(label);
+            if (!isNaN(date.getTime())) {
+              return date.getDate().toString();
+            }
+          } catch (e) {
+            // If not a valid date, return as is
+          }
+          return label;
+        }
+        
+        // For year period, show month names
+        if (period === 'year') {
+          // If label is a date, format to show month abbreviation
+          try {
+            const date = new Date(label);
+            if (!isNaN(date.getTime())) {
+              const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+              return months[date.getMonth()];
+            }
+          } catch (e) {
+            // If not a valid date, return as is
+          }
+          return label;
+        }
+        
+        return label;
+      }
+
+      function renderChart(canvasId, chartData, chartType) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        const DPR = window.devicePixelRatio || 1;
+
+        // Set canvas size
+        canvas.style.display = "block";
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width || canvas.parentElement?.clientWidth || 800;
+        const h = rect.height || canvas.parentElement?.clientHeight || 420;
+
+        canvas.width = Math.max(1, Math.floor(w * DPR));
+        canvas.height = Math.max(1, Math.floor(h * DPR));
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(DPR, DPR);
+
+        // Clear canvas
+        ctx.clearRect(0, 0, w, h);
+
+        // Filter datasets by chart type
+        const datasets = chartData.datasets.filter(dataset => {
+          if (chartType === 'revenue') {
+            return dataset.label.includes("Ganancias");
+          } else if (chartType === 'orders') {
+            return dataset.label.includes("Órdenes");
+          }
+          return false;
+        });
+
+        // Check if we have data
+        if (!chartData.labels || datasets.length === 0 || chartData.labels.length === 0) {
+          ctx.fillStyle = "#f5f7fa";
+          ctx.fillRect(0, 0, w, h);
+          ctx.fillStyle = "var(--text-muted, #6b7280)";
+          ctx.font = "14px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("No hay datos disponibles", w / 2, h / 2);
+          return;
+        }
+
+        // Use complete label sets for consistent display
+        const dateSelector = document.getElementById("date-selector");
+        const selectedDate = dateSelector ? dateSelector.value : new Date().toISOString().split('T')[0];
+        const completeLabels = generateCompleteLabels(currentChartPeriod, selectedDate);
+        const apiLabels = chartData.labels || [];
+        
+        // Use complete labels but map API data to them
+        const labels = completeLabels;
+        const padding = 50;
+        const usableW = w - padding * 2;
+        const usableH = h - padding * 2;
+
+        // Find max values for scaling
+        let maxValue = 0;
+        datasets.forEach(dataset => {
+          const dataMax = Math.max(...dataset.data.filter(v => v !== null && v !== undefined));
+          maxValue = Math.max(maxValue, dataMax);
+        });
+
+        // Create mapped data array that aligns API data with complete labels
+        const mappedDatasets = datasets.map(dataset => {
+          const mappedData = new Array(labels.length).fill(null);
+          
+          // Map API data to complete labels
+          apiLabels.forEach((apiLabel, index) => {
+            const formattedApiLabel = formatLabelForPeriod(apiLabel, currentChartPeriod);
+            const completeIndex = labels.findIndex(label => label === formattedApiLabel);
+            
+            if (completeIndex !== -1 && index < dataset.data.length) {
+              mappedData[completeIndex] = dataset.data[index];
+            }
+          });
+          
+          return {
+            ...dataset,
+            data: mappedData
+          };
+        });
+
+        // Store point positions for hover detection
+        const pointPositions = [];
+
+        // Draw axes
+        ctx.strokeStyle = "#e9eef2";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, h - padding);
+        ctx.lineTo(w - padding, h - padding);
+        ctx.stroke();
+
+        // Draw grid lines and Y-axis labels
+        const gridLines = 5;
+        const yLabels = [];
+        for (let i = 0; i <= gridLines; i++) {
+          const y = padding + (i * usableH) / gridLines;
+          ctx.strokeStyle = "#f0f0f0";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(padding, y);
+          ctx.lineTo(w - padding, y);
+          ctx.stroke();
+
+          // Y-axis labels
+          const value = maxValue - (i * maxValue) / gridLines;
+          ctx.fillStyle = "var(--text-muted)";
+          ctx.font = "10px sans-serif";
+          ctx.textAlign = "right";
+          
+          let labelValue;
+          if (chartType === 'orders') {
+            const roundedValue = Math.round(value);
+            // Only add label if it's not a duplicate, but still draw the grid line
+            if (!yLabels.includes(roundedValue)) {
+              labelValue = roundedValue.toString();
+              yLabels.push(roundedValue);
+            } else {
+              labelValue = ''; // Empty string for duplicate labels
+            }
+          } else {
+            labelValue = formatCurrency(value, globalCurrency);
+          }
+          
+          // Only draw label if it's not empty
+          if (labelValue) {
+            ctx.fillText(labelValue, padding - 10, y + 3);
+          }
+        }
+
+        // Draw datasets using mapped data
+        mappedDatasets.forEach((dataset, datasetIndex) => {
+          const data = dataset.data;
+          const borderColor = dataset.borderColor || "#888";
+          const backgroundColor = dataset.backgroundColor || "rgba(136, 136, 136, 0.2)";
+          const borderDash = dataset.borderDash || [];
+
+          ctx.strokeStyle = borderColor;
+          ctx.lineWidth = 2;
+          ctx.setLineDash(borderDash);
+
+          // Draw line
+          ctx.beginPath();
+          data.forEach((value, i) => {
+            if (value !== null && value !== undefined) {
+              const x = padding + (i / (labels.length - 1 || 1)) * usableW;
+              const y = h - padding - (value / maxValue) * usableH;
+              
+              if (i === 0) {
+                ctx.moveTo(x, y);
+              } else {
+                ctx.lineTo(x, y);
+              }
+            }
+          });
+          ctx.stroke();
+
+          // Draw area under line if fill is true
+          if (dataset.fill) {
+            ctx.lineTo(padding + usableW, h - padding);
+            ctx.lineTo(padding, h - padding);
+            ctx.closePath();
+            ctx.fillStyle = backgroundColor;
+            ctx.fill();
+          }
+
+          // Draw points and store positions
+          ctx.setLineDash([]);
+          data.forEach((value, i) => {
+            if (value !== null && value !== undefined) {
+              const x = padding + (i / (labels.length - 1 || 1)) * usableW;
+              const y = h - padding - (value / maxValue) * usableH;
+              
+              // Store position for hover detection
+              pointPositions.push({
+                x: x,
+                y: y,
+                value: value,
+                label: labels[i],
+                datasetLabel: dataset.label,
+                chartType: chartType
+              });
+              
+              // Draw point
+              ctx.fillStyle = borderColor;
+              ctx.beginPath();
+              ctx.arc(x, y, 4, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.strokeStyle = "white";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+
+              // Draw value label above point
+              ctx.fillStyle = "var(--text-primary, #374151)";
+              ctx.font = "8px sans-serif";
+              ctx.textAlign = "center";
+              const valueText = chartType === 'orders' 
+                ? Math.round(value).toString() 
+                : formatCurrency(value, globalCurrency);
+              ctx.fillText(valueText, x, y - 8);
+            }
+          });
+        });
+
+        // Draw legend using mapped datasets
+        const legendY = 15;
+        const legendItems = mappedDatasets.map((dataset, index) => {
+          const isPrevious = dataset.label.includes("Anteriores");
+          const legendText = isPrevious ? "Período Anterior" : "Período Actual";
+          const color = dataset.borderColor || "#888";
+          const borderDash = dataset.borderDash || [];
+          
+          return { text: legendText, color, borderDash };
+        });
+
+        // Remove duplicates
+        const uniqueLegends = [];
+        const seenTexts = new Set();
+        legendItems.forEach(item => {
+          if (!seenTexts.has(item.text)) {
+            seenTexts.add(item.text);
+            uniqueLegends.push(item);
+          }
+        });
+
+        // Draw legend box
+        let legendX = padding;
+        uniqueLegends.forEach((legend, index) => {
+          // Draw legend line
+          ctx.strokeStyle = legend.color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash(legend.borderDash);
+          ctx.beginPath();
+          ctx.moveTo(legendX, legendY);
+          ctx.lineTo(legendX + 20, legendY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw legend text
+          ctx.fillStyle = "var(--text-primary, #374151)";
+          ctx.font = "10px sans-serif";
+          ctx.textAlign = "left";
+          ctx.fillText(legend.text, legendX + 25, legendY + 3);
+
+          legendX += ctx.measureText(legend.text).width + 50;
+        });
+
+        // Update date labels using complete label sets
+        const labelsEl = document.getElementById(canvasId === 'revenue-chart' ? 'revenueLabels' : 'ordersLabels');
+        if (labelsEl && labels.length > 0) {
+          // Display labels at regular intervals
+          const displayLabels = [];
+          const step = Math.max(1, Math.floor(labels.length / 4));
+          
+          for (let i = 0; i < labels.length; i += step) {
+            displayLabels.push(labels[i]);
+          }
+          
+          // Always include the last label
+          if (displayLabels.length > 0 && displayLabels[displayLabels.length - 1] !== labels[labels.length - 1]) {
+            displayLabels.push(labels[labels.length - 1]);
+          }
+          
+          labelsEl.innerHTML = displayLabels.map(l => `<span>${l}</span>`).join("");
+          labelsEl.style.justifyContent = "space-between";
+        }
+
+        // Add hover functionality
+        canvas.onmousemove = function(e) {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          let hoveredPoint = null;
+          for (const point of pointPositions) {
+            const distance = Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2));
+            if (distance <= 8) { // 8px radius for hover detection
+              hoveredPoint = point;
+              break;
+            }
+          }
+          
+          if (hoveredPoint) {
+            canvas.style.cursor = 'pointer';
+            showTooltip(e.clientX, e.clientY, hoveredPoint);
+          } else {
+            canvas.style.cursor = 'default';
+            hideTooltip();
+          }
+        };
+
+        canvas.onmouseleave = function() {
+          hideTooltip();
+        };
+      }
+
+      function showTooltip(x, y, point) {
+        // Remove existing tooltip
+        hideTooltip();
+        
+        const tooltip = document.createElement('div');
+        tooltip.id = 'chart-tooltip';
+        tooltip.style.position = 'fixed';
+        tooltip.style.left = x + 10 + 'px';
+        tooltip.style.top = y - 30 + 'px';
+        tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
+        tooltip.style.color = 'white';
+        tooltip.style.padding = '8px 12px';
+        tooltip.style.borderRadius = '6px';
+        tooltip.style.fontSize = '14px';
+        tooltip.style.fontWeight = 'bold';
+        tooltip.style.zIndex = '1000';
+        tooltip.style.pointerEvents = 'none';
+        tooltip.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+        
+        const valueText = point.chartType === 'orders' 
+          ? `${Math.round(point.value)} órdenes`
+          : formatCurrency(point.value, globalCurrency);
+        
+        tooltip.innerHTML = `
+          <div style="font-size: 12px; margin-bottom: 2px;">${point.label}</div>
+          <div style="font-size: 14px;">${valueText}</div>
+          <div style="font-size: 11px; opacity: 0.8;">${point.datasetLabel}</div>
+        `;
+        
+        document.body.appendChild(tooltip);
+      }
+
+      function hideTooltip() {
+        const existingTooltip = document.getElementById('chart-tooltip');
+        if (existingTooltip) {
+          existingTooltip.remove();
+        }
+      }
+
+      function updateSummaryValues(chartData) {
+        const summary = chartData.summary;
+        if (summary) {
+          // Update revenue values
+          const salesValueEl = document.getElementById("chart-revenue-today");
+          const salesTrendEl = document.getElementById("chart-revenue-trend");
+          
+          if (salesValueEl && summary.totalRevenue) {
+            salesValueEl.textContent = formatCurrency(summary.totalRevenue, globalCurrency);
+          }
+          
+          if (salesTrendEl && summary.change_percentage && summary.change_percentage.revenue !== undefined) {
+            const change = summary.change_percentage.revenue;
+            const direction = summary.trend_direction?.revenue || "flat";
+            const sign = direction === "down" ? "-" : direction === "up" ? "+" : "";
+            salesTrendEl.textContent = `${sign}${change}%`;
+            salesTrendEl.style.color = direction === "down" ? "#dc2626" : direction === "up" ? "#059669" : "#6b7280";
+          }
+
+          // Update orders values
+          const ordersValueEl = document.getElementById("chart-orders-today");
+          const ordersTrendEl = document.getElementById("chart-orders-trend");
+          
+          if (ordersValueEl && summary.totalOrders) {
+            ordersValueEl.textContent = summary.totalOrders.toString();
+          }
+          
+          if (ordersTrendEl && summary.change_percentage && summary.change_percentage.orders !== undefined) {
+            const change = summary.change_percentage.orders;
+            const direction = summary.trend_direction?.orders || "flat";
+            const sign = direction === "down" ? "-" : direction === "up" ? "+" : "";
+            ordersTrendEl.textContent = `${sign}${change}%`;
+            ordersTrendEl.style.color = direction === "down" ? "#dc2626" : direction === "up" ? "#059669" : "#6b7280";
+          }
+        }
+      }
+
       function updateChartPeriod(period) {
+        // Update current period for label formatting
+        currentChartPeriod = period;
+        
         // Update active tab UI
         const tabs = document.querySelectorAll(".tabs-container .tab");
         tabs.forEach((t) => t.classList.remove("tab--active"));
@@ -793,254 +1667,115 @@
         );
         if (activeBtn) activeBtn.classList.add("tab--active");
 
-        const now = new Date();
-        const salesValueEl = document.getElementById("chart-revenue-today");
-        const labelsEl = document.getElementById("salesLabels");
-
-        // Parse all dates once
-        const parsed = globalSalesData
-          .map((item) => {
-            const datePart = item.last_sale_date || "";
-            const timePart = item.last_sale_time || "00:00:00";
-            const iso = datePart ? datePart + "T" + timePart : null;
-            const d = iso ? new Date(iso) : null;
-            return Object.assign({}, item, { __saleDate: d });
-          })
-          .filter((it) => it.__saleDate != null);
-
-        let filteredData = [];
-        let labels = [];
-        let total = 0;
-
-        if (period === "day") {
-          const today = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-          );
-          const rangeStart = new Date(today);
-          rangeStart.setHours(7, 0, 0, 0);
-          const rangeEnd = new Date(today);
-          rangeEnd.setHours(20, 59, 59, 999);
-
-          const hours = [];
-          for (let h = 7; h <= 20; h++) {
-            hours.push(
-              new Date(
-                today.getFullYear(),
-                today.getMonth(),
-                today.getDate(),
-                h,
-                0,
-                0,
-                0,
-              ),
-            );
-          }
-
-          const grouped = {};
-          parsed
-            .filter(
-              (it) => it.__saleDate >= rangeStart && it.__saleDate <= rangeEnd,
-            )
-            .forEach((item) => {
-              const d = item.__saleDate;
-              const key = d.getHours();
-              grouped[key] =
-                (grouped[key] || 0) + Number(item.revenue_generated || 0);
-            });
-
-          filteredData = hours.map((h) => {
-            const hNum = h.getHours();
-            return { label: `${hNum}:00`, value: grouped[hNum] || 0 };
-          });
-
-          // Labels: 7 AM, 12 PM, 4 PM, 8 PM
-          labels = ["7 AM", "12 PM", "4 PM", "8 PM"];
-        } else if (period === "week") {
-          // Last 7 days including today? Or current week? Let's do current week (Monday start)
-          const currentDay = now.getDay(); // 0=Sun, 1=Mon
-          const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // adjust when day is sunday
-          const monday = new Date(now.setDate(diff));
-          monday.setHours(0, 0, 0, 0);
-          const sunday = new Date(monday);
-          sunday.setDate(monday.getDate() + 6);
-          sunday.setHours(23, 59, 59, 999);
-
-          const days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-          const grouped = new Array(7).fill(0);
-
-          parsed
-            .filter((it) => it.__saleDate >= monday && it.__saleDate <= sunday)
-            .forEach((item) => {
-              const dayIdx = item.__saleDate.getDay(); // 0=Sun...6=Sat
-              const mappedIdx = dayIdx === 0 ? 6 : dayIdx - 1; // 0=Mon...6=Sun
-              grouped[mappedIdx] += Number(item.revenue_generated || 0);
-            });
-
-          filteredData = days.map((d, i) => ({ label: d, value: grouped[i] }));
-          labels = ["Lun", "Mie", "Vie", "Dom"];
-        } else if (period === "month") {
-          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-          const endOfMonth = new Date(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            0,
-            23,
-            59,
-            59,
-          );
-          const daysInMonth = endOfMonth.getDate();
-
-          const grouped = new Array(daysInMonth).fill(0);
-
-          parsed
-            .filter(
-              (it) =>
-                it.__saleDate >= startOfMonth && it.__saleDate <= endOfMonth,
-            )
-            .forEach((item) => {
-              grouped[item.__saleDate.getDate() - 1] += Number(
-                item.revenue_generated || 0,
-              );
-            });
-
-          filteredData = grouped.map((v, i) => ({
-            label: String(i + 1),
-            value: v,
-          }));
-          // Show ~4 labels distributed
-          labels = [1, 10, 20, daysInMonth];
-        } else if (period === "year") {
-          const startOfYear = new Date(now.getFullYear(), 0, 1);
-          const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-
-          const months = [
-            "Ene",
-            "Feb",
-            "Mar",
-            "Abr",
-            "May",
-            "Jun",
-            "Jul",
-            "Ago",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dic",
-          ];
-          const grouped = new Array(12).fill(0);
-
-          parsed
-            .filter(
-              (it) =>
-                it.__saleDate >= startOfYear && it.__saleDate <= endOfYear,
-            )
-            .forEach((item) => {
-              grouped[item.__saleDate.getMonth()] += Number(
-                item.revenue_generated || 0,
-              );
-            });
-
-          filteredData = months.map((m, i) => ({
-            label: m,
-            value: grouped[i],
-          }));
-          labels = ["Ene", "Abr", "Jul", "Oct"];
-        }
-
-        total = filteredData.reduce((acc, curr) => acc + curr.value, 0);
-
-        // Update Total
-        if (salesValueEl)
-          salesValueEl.textContent = formatCurrency(total, globalCurrency);
-
-        // Update Labels HTML
-        if (labelsEl) {
-          // For simplicity, just evenly space the predefined labels or generate them if filteredData is small?
-          // Actually, the previous logic had fixed labels for day. Let's just use the `labels` array we built.
-
-          // If we rely on drawingChart to draw X axis, we can hide this or update it.
-          // The old code used #salesLabels div for text labels since canvas handles the drawing.
-          // But the drawChart function ALSO draws labels on X axis if we pass them?
-          // Checking drawChart implementation...
-          // It draws labels: ctx.fillText(displayTxt...
-          // BUT dashboard had a separate div id="salesLabels" with "8 AM 12 PM..."
-          // I'll update that DIV to match our current view logic, or just rely on canvas if possible.
-          // The original code had specific HTML spans. Let's recreate that style.
-
-          labelsEl.innerHTML = labels.map((l) => `<span>${l}</span>`).join("");
-          labelsEl.style.justifyContent = "space-between";
-        }
-
-        drawChart("demand-chart", filteredData);
+        // Load new data for the selected period
+        loadChartData(period);
       }
 
       function updateDate() {
-        const dateEl = document.getElementById("header-date");
-        if (dateEl) {
-          const now = new Date();
-          const options = {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          };
-          dateEl.textContent = now.toLocaleDateString("es-ES", options);
+        const dateSelector = document.getElementById("date-selector");
+        if (dateSelector) {
+          // Set initial value to today's date
+          const today = new Date().toISOString().split('T')[0];
+          dateSelector.value = today;
+          
+          // Store initial date as previous date
+          dateSelector.setAttribute('data-previous-date', today);
+          
+          // Add change event listener to refresh data when date changes
+          dateSelector.addEventListener('change', async () => {
+            // Store current value before showing dialog
+            const previousDate = dateSelector.getAttribute('data-previous-date');
+            const selectedDate = dateSelector.value;
+            
+            // Show confirmation dialog before making API requests
+            const result = await Swal.fire({
+              title: 'Confirmar cambio de fecha',
+              html: `¿Deseas actualizar los datos para la fecha seleccionada?<br><br><strong>${new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong>`,
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, actualizar',
+              cancelButtonText: 'Cancelar',
+              confirmButtonColor: '#10b981',
+              cancelButtonColor: '#6b7280'
+            });
+            
+            if (result.isConfirmed) {
+              // Update previous date to the new confirmed date
+              dateSelector.setAttribute('data-previous-date', dateSelector.value);
+              
+              // Get current active period
+              const activeTab = document.querySelector('.tabs-container .tab--active');
+              let periodKey = 'day'; // default
+              if (activeTab) {
+                const period = activeTab.textContent.toLowerCase().trim();
+                periodKey = period === 'día' ? 'day' : period === 'semana' ? 'week' : period === 'mes' ? 'month' : 'year';
+              }
+              
+              // Load summary data for the new date
+              loadSummaryData(dateSelector.value);
+              
+              // Load chart data for the current period
+              loadChartData(periodKey);
+            } else {
+              // If user cancels, revert to previous date
+              dateSelector.value = previousDate;
+            }
+          });
         }
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        loadDashboard();
         updateDate();
+        loadDashboard();
       });
 
       // --- Global Alerts History ---
       window.showAlertsHistory = function() {
         Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
-        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/alerts/history')
+        fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts')
             .then(res => {
                 if (!res.ok) throw new Error('Error al obtener historial de alertas');
                 return res.json();
             })
             .then(response => {
-                // Extraer datos del formato de respuesta de la API
-                const alerts = response.success && response.data ? response.data : [];
+                // Extraer datos del nuevo formato de respuesta de la API
+                const alerts = response.alerts || [];
+                const criticalCount = response.critical_count || 0;
                 
                 Swal.fire({
-                    title: '<span class="text-emerald-700">Historial de Alertas</span>',
+                    title: `<span class="text-emerald-700">Historial de Alertas (${criticalCount} Críticas)</span>`,
                     html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
                         ${alerts.length > 0 ? alerts.map(alert => {
-                            // Formatear fecha del timestamp
-                            const date = alert.timestampCreacion ? 
-                                new Date(alert.timestampCreacion).toLocaleString('es-ES', {
-                                    day: '2-digit',
-                                    month: '2-digit', 
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                }) : new Date().toLocaleDateString();
-                            
                             // Determinar color según severidad
-                            const severityColor = alert.severidad === 'CRITICAL' ? 'text-red-600' : 
-                                               alert.severidad === 'HIGH' ? 'text-orange-600' : 
-                                               alert.severidad === 'MEDIUM' ? 'text-yellow-600' : 
+                            const severityColor = alert.severity === 'CRITICAL' ? 'text-red-600' : 
+                                               alert.severity === 'HIGH' ? 'text-orange-600' : 
+                                               alert.severity === 'WARNING' ? 'text-yellow-600' : 
                                                'text-blue-600';
+                            
+                            // Formatear nivel actual como porcentaje
+                            const levelPercent = alert.current_level_pct || 0;
+                            const levelColor = levelPercent <= 30 ? 'text-red-600' : 
+                                             levelPercent <= 50 ? 'text-orange-600' : 
+                                             levelPercent <= 70 ? 'text-yellow-600' : 
+                                             'text-green-600';
                             
                             return `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
                                 <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs font-bold ${severityColor}">${alert.tipoIncidencia || 'General'}</span>
-                                    <span class="text-[10px] text-slate-400">${date}</span>
+                                    <span class="text-xs font-bold ${severityColor}">${alert.severity || 'UNKNOWN'}</span>
+                                    <span class="text-[10px] text-slate-400">${new Date().toLocaleDateString()}</span>
                                 </div>
                                 <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs font-medium text-slate-600">${alert.itemAfectado || 'N/A'}</span>
+                                    <span class="text-xs font-medium text-slate-600">${alert.item_name || 'N/A'}</span>
                                     <span class="text-xs px-2 py-0.5 rounded-full ${
-                                        alert.estadoGestion === 'PENDIENTE' ? 'bg-red-100 text-red-700' : 
-                                        alert.estadoGestion === 'RESUELTA' ? 'bg-green-100 text-green-700' : 
+                                        alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-700' : 
+                                        alert.severity === 'WARNING' ? 'bg-yellow-100 text-yellow-700' : 
                                         'bg-gray-100 text-gray-700'
-                                    }">${alert.estadoGestion || 'N/A'}</span>
+                                    }">${alert.action_required || 'NONE'}</span>
                                 </div>
-                                <p class="text-sm text-slate-700 font-medium">Valor: ${alert.valorRegistrado || 'N/A'}</p>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-slate-500">Nivel Actual:</span>
+                                    <span class="text-xs font-bold ${levelColor}">${levelPercent}%</span>
+                                </div>
                             </div>`;
                         }).join('') : '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
                     </div>`,
