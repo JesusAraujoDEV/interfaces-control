@@ -34,6 +34,10 @@ router.get('/mod-2-kpis/src/public/inventario.html', (req, res) => {
     sendKpiView(res, 'inventario.html');
 });
 
+router.get('/mod-2-kpis/src/public/chef-dashboard.html', (req, res) => {
+    sendKpiView(res, 'chef-dashboard.html');
+});
+
 
 // --- 1. AUTENTICACIÓN ---
 router.post('/auth/login', (req, res) => {

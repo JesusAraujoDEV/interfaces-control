@@ -14,6 +14,13 @@ const NAV = [
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"/></svg>`,
   },
   {
+    key: "chef",
+    label: "Panel Chef",
+    description: "Platos más vendidos",
+    href: "/mod-2-kpis/src/public/chef-dashboard.html",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`,
+  },
+  {
     key: "reportes",
     label: "Reportes",
     description: "Business Intelligence",
@@ -46,6 +53,7 @@ const NAV = [
 
 function resolveActiveKey(pathname) {
   if (pathname.includes("index.html") || pathname.endsWith("/mod-2-kpis/src/public/")) return "home";
+  if (pathname.includes("chef-dashboard.html")) return "chef";
   if (pathname.includes("dashboard.html")) return "dashboard";
   if (pathname.includes("bussines-intelligence.html")) return "reportes";
   if (pathname.includes("ventas.html")) return "ventas";
