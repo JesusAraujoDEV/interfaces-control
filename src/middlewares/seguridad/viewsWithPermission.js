@@ -15,34 +15,34 @@ const viewsWithPermission = async (req, res, next) => {
     //   resource = ["SeguridadPersonal_view"];
     //   break;
     case rutaSolicitada === "/seguridad/usuarios":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case rutaSolicitada === "/seguridad/usuarios/crear":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case /^\/seguridad\/usuarios\/editar\/[^/]+$/.test(rutaSolicitada):
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case rutaSolicitada === "/seguridad/roles":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case rutaSolicitada === "/seguridad/roles/crear":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case /^\/seguridad\/roles\/editar\/[^/]+$/.test(rutaSolicitada):
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case rutaSolicitada === "/seguridad/permisos":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case rutaSolicitada === "/seguridad/permisos/crear":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case /^\/seguridad\/permisos\/[^/]+$/.test(rutaSolicitada):
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
     case rutaSolicitada === "/seguridad/restaurante/coordenadas":
-      resource = ["SeguridadPersonal_view"];
+      resource = ["SeguridadPersonal_view", "KpiGerente_view"];
       break;
 
     // Vistas de Delivery & Pickup
