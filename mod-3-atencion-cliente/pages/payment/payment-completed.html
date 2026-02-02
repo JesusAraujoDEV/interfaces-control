@@ -60,6 +60,12 @@
             const userClient = JSON.parse(localStorage.getItem('user_client') || '{}');
             const clientId = userClient?.id;
 
+            async function cleanupAfterRatingOrExit() {
+                try { await fetch('/api/atencion-cliente/logout', { method: 'POST' }); } catch (_) {}
+                try { localStorage.removeItem('user_client'); } catch (_) {}
+                try { localStorage.removeItem('access_token_atc'); } catch (_) {}
+            }
+
             if (storedQrUuid) {
                 // 2. Construir la URL completa para scan.html
                 // Asegúrate de que esta ruta relativa coincida con tu estructura de carpetas
@@ -69,10 +75,21 @@
                 // Si payment-success.html está en la raíz o en otra carpeta, ajusta la ruta:
                 // Basado en tu URL de ejemplo: /mod-3-atencion-cliente/pages/login/scan.html
                 btn.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
+                // Al volver al inicio, limpiar claves remanentes
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await cleanupAfterRatingOrExit();
+                    window.location.href = btn.href;
+                });
             } else {
                 // Fallback: Si por alguna razón se borró el localStorage, ir a una página genérica o root
                 console.warn("No se encontró UUID de mesa, redirigiendo a la raíz.");
                 btn.href = '/'; 
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await cleanupAfterRatingOrExit();
+                    window.location.href = btn.href;
+                });
             }
 
             // Helper: reintento exponencial para enviar rating
@@ -122,6 +139,8 @@
                 RatingWidget.mount('rating-container', {
                     onSubmit: async (payload) => {
                         await attemptSendRating(clientId, payload);
+                        // Tras registrar la calificación, limpiar claves sensibles
+                        await cleanupAfterRatingOrExit();
                     }
                 });
             } else {
