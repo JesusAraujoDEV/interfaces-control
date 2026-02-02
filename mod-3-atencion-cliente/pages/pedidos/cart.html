@@ -632,10 +632,9 @@
             // Limpiar LocalStorage y Redirigir ---
             localStorage.removeItem('charlotte_cart');
             localStorage.removeItem('charlotte_active_orders');
-            localStorage.removeItem('user_client');
             localStorage.removeItem('my_service_requests');
             localStorage.removeItem('restaurant_service_requests');
-            localStorage.removeItem('access_token_atc');
+            // Nota: Conservamos 'user_client' y 'access_token_atc' para permitir calificar en la pantalla de pago.
             
             // Redirigir a pantalla de éxito
             window.location.href = '/mod-3-atencion-cliente/pages/payment/payment-completed.html';

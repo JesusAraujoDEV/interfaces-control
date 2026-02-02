@@ -33,9 +33,12 @@
             Mesa Cerrada
         </h2>
         
-        <p class="text-gray-500 mb-10 leading-relaxed">
-            ¡Gracias por tu visita! El pago ha sido procesado exitosamente en caja. Esperamos verte de nuevo pronto en Charlotte's.
+        <p class="text-gray-500 mb-6 leading-relaxed">
+            ¡Gracias por tu visita! El pago ha sido procesado exitosamente en caja. Antes de irte, ¿podrías calificar la atención del mesero?
         </p>
+
+        <div id="rating-container" class="mb-4"></div>
+        <div id="rating-status" class="text-center text-sm text-gray-500 mb-6"></div>
 
         <div class="space-y-4">
             <a id="btn-back-to-start" href="#" class="block w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
@@ -45,11 +48,24 @@
 
     </main>
 
+    <script src="/config.js"></script>
+    <script src="/mod-3-atencion-cliente/api/base.js"></script>
+    <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
+    <script src="/mod-3-atencion-cliente/api/ratings.js"></script>
+    <script src="/mod-3-atencion-cliente/components/rating-widget.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // 1. Recuperar el UUID que guardamos al principio
             const storedQrUuid = localStorage.getItem('current_qr_uuid');
             const btn = document.getElementById('btn-back-to-start');
+            const userClient = JSON.parse(localStorage.getItem('user_client') || '{}');
+            const clientId = userClient?.id;
+
+            async function cleanupAfterRatingOrExit() {
+                try { await fetch('/api/atencion-cliente/logout', { method: 'POST' }); } catch (_) {}
+                try { localStorage.removeItem('user_client'); } catch (_) {}
+                try { localStorage.removeItem('access_token_atc'); } catch (_) {}
+            }
 
             if (storedQrUuid) {
                 // 2. Construir la URL completa para scan.html
@@ -60,10 +76,97 @@
                 // Si payment-success.html está en la raíz o en otra carpeta, ajusta la ruta:
                 // Basado en tu URL de ejemplo: /mod-3-atencion-cliente/pages/login/scan.html
                 btn.href = `/mod-3-atencion-cliente/pages/login/scan.html?qr_uuid=${storedQrUuid}`;
+                // Al volver al inicio, limpiar claves remanentes
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await cleanupAfterRatingOrExit();
+                    window.location.href = btn.href;
+                });
             } else {
                 // Fallback: Si por alguna razón se borró el localStorage, ir a una página genérica o root
                 console.warn("No se encontró UUID de mesa, redirigiendo a la raíz.");
                 btn.href = '/'; 
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await cleanupAfterRatingOrExit();
+                    window.location.href = btn.href;
+                });
+            }
+
+            // Helper: reintento exponencial para enviar rating
+            async function attemptSendRating(clientId, payload, attempts = [3000, 6000, 12000]){
+                const statusEl = document.getElementById('rating-status');
+                for (let i = 0; i < attempts.length; i++) {
+                    try {
+                        statusEl.textContent = i === 0 
+                          ? 'Enviando calificación…' 
+                          : `Reintentando (${i+1}/${attempts.length})…`;
+                        const res = await RatingsApi.sendRating(clientId, payload);
+                        statusEl.textContent = '¡Calificación registrada! Gracias.';
+                        return res;
+                    } catch (err) {
+                        const msg = (err && err.message) ? err.message : '';
+                        // Si ya está calificado, no seguir intentando
+                        if (msg.includes('calificación') && msg.includes('ya')) {
+                            statusEl.textContent = 'Esta sesión ya tiene una calificación.';
+                            throw err;
+                        }
+                        // Si falta mesero/cierre, esperar y reintentar
+                        if (msg.includes('mesero') || msg.includes('No hay mesero asociado') || msg.includes('cierre')) {
+                            statusEl.textContent = 'Esperando confirmación de cierre por mesero…';
+                            await new Promise(r => setTimeout(r, attempts[i]));
+                            continue;
+                        }
+                        // Otros errores: abortar
+                        statusEl.textContent = 'No se pudo enviar la calificación.';
+                        throw err;
+                    }
+                }
+                // Si agotó intentos
+                const statusElFinal = document.getElementById('rating-status');
+                statusElFinal.textContent = 'No fue posible registrar la calificación ahora. Puedes intentarlo más tarde.';
+                throw new Error('Retries exhausted');
+            }
+
+            // Montar rating si tenemos clientId
+            if (clientId) {
+                try {
+                    const waitersRes = await RatingsApi.getClientWaiters(clientId);
+                    const waiterIds = waitersRes.data || [];
+                    window.__RATING_WAITERS__ = waiterIds;
+                    // Intentar enriquecer con nombres desde cocina usando KitchenApi
+                    async function fetchWaiterDetail(id){
+                        if (!id || typeof id !== 'string' || id.trim() === '') {
+                            return { id: id || '', name: 'Mesero', role: 'STAFF' };
+                        }
+                        try {
+                            const resp = await window.KitchenApi.getStaffById(id);
+                            const data = resp?.data || resp;
+                            return { id: id, name: (data?.user?.name || data?.name || id.substring(0,8)+'...'), role: (data?.role || 'STAFF') };
+                        } catch (e) {
+                            // Fallback silencioso si el endpoint valida tipo numérico u otro formato
+                            return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
+                        }
+                    }
+                    if (Array.isArray(waiterIds) && waiterIds.length > 0) {
+                        const validIds = waiterIds.filter(id => !!id && typeof id === 'string' && id.trim() !== '');
+                        if (validIds.length > 0) {
+                            const details = await Promise.all(validIds.map(fetchWaiterDetail));
+                            window.__RATING_WAITER_DETAILS__ = details;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('No se pudo obtener meseros de la sesión:', e.message);
+                }
+                RatingWidget.mount('rating-container', {
+                    onSubmit: async (payload) => {
+                        await attemptSendRating(clientId, payload);
+                        // Tras registrar la calificación, limpiar claves sensibles
+                        await cleanupAfterRatingOrExit();
+                    }
+                });
+            } else {
+                document.getElementById('rating-container').innerHTML = '<div class="text-center text-gray-500">No se pudo identificar tu sesión, pero gracias por tu visita.</div>';
             }
         });
     </script>

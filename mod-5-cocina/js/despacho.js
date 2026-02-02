@@ -192,21 +192,43 @@ async function validateWorker(code) {
 
 async function executeAction(action, staff) {
     const { type, orderId } = action;
-    const tasks = getTasksByOrderId(orderId);
-    
-    if(tasks.length === 0) return;
 
-    // Parallel execution for all tasks in the logical group
+    // Lógica de asistencia (independiente de pedidos)
+    if (type === 'ATTENDANCE_IN' || type === 'ATTENDANCE_OUT') {
+        const bodyType = type === 'ATTENDANCE_IN' ? 'CHECK_IN' : 'CHECK_OUT';
+        const res = await fetch(`${CONFIG.API_URL}/api/kitchen/staff/${staff.id}/shift`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: bodyType })
+        });
+
+        if (res.ok) {
+            alert(`${bodyType === 'CHECK_IN' ? 'Entrada' : 'Salida'} registrada correctamente`);
+        } else {
+            let data = {};
+            try { data = await res.json(); } catch (_) {}
+            throw new Error(data.message || 'Error registrando asistencia');
+        }
+        return;
+    }
+
+    // Solo continuar para acciones operativas de pedidos
+    if (type !== 'ASSIGN' && type !== 'SERVE') return;
+
+    const tasks = getTasksByOrderId(orderId);
+    if (tasks.length === 0) return;
+
+    // Ejecución paralela para todos los ítems del pedido
     const promises = tasks.map(t => {
         const body = { staffId: staff.id };
-        if(type === 'ASSIGN') {
+        if (type === 'ASSIGN') {
             body.role = 'WAITER';
             return fetch(`${CONFIG.API_URL}/api/kitchen/kds/${t.id}/assign`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-        } else if (type === 'SERVE') {
+        } else {
             return fetch(`${CONFIG.API_URL}/api/kitchen/kds/${t.id}/served`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -217,21 +239,23 @@ async function executeAction(action, staff) {
 
     await Promise.all(promises);
 
-    // ATTENDANCE Logic (Single Call)
-    if (type === 'ATTENDANCE_IN' || type === 'ATTENDANCE_OUT') {
-        const bodyType = type === 'ATTENDANCE_IN' ? 'CHECK_IN' : 'CHECK_OUT';
-        const res = await fetch(`${CONFIG.API_URL}/api/kitchen/staff/${staff.id}/shift`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: bodyType })
-        });
-        
-        if (res.ok) {
-            alert(`${bodyType === 'CHECK_IN' ? 'Entrada' : 'Salida'} registrada correctamente`);
-        } else {
-            const data = await res.json();
-            throw new Error(data.message || 'Error registrando asistencia');
+    // Notificar atribución de mesero a Atención al Cliente
+    try {
+        const ATC_URL = window.__APP_CONFIG__?.ATC_URL?.replace(/\/$/, '') || '';
+        if (ATC_URL) {
+            await fetch(`${ATC_URL}/api/v1/atencion-cliente/kitchen/waiter-interaction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    external_order_id: orderId,
+                    action: type,
+                    waiter_id: staff.id,
+                    worker_code: staff.workerCode
+                })
+            });
         }
+    } catch (e) {
+        console.warn('No se pudo notificar atribución a ATC:', e.message);
     }
 }
 
