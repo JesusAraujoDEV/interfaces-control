@@ -1,0 +1,9 @@
+#kpi-active-orders-card[data-status="high"] {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+#kpi-active-orders-card[data-status="low"] {
+  border-color: rgba(34, 197, 94, 0.4);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1);
+}
