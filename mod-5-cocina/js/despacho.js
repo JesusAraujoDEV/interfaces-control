@@ -170,6 +170,25 @@ async function executeAction(action, staff) {
     });
 
     await Promise.all(promises);
+
+    // Notificar atribución de mesero a Atención al Cliente
+    try {
+        const ATC_URL = window.__APP_CONFIG__?.ATC_URL?.replace(/\/$/, '') || '';
+        if (ATC_URL) {
+            await fetch(`${ATC_URL}/api/v1/atencion-cliente/kitchen/waiter-interaction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    external_order_id: orderId,
+                    action: type === 'ASSIGN' ? 'ASSIGN' : 'SERVE',
+                    waiter_id: staff.id,
+                    worker_code: staff.workerCode
+                })
+            });
+        }
+    } catch (e) {
+        console.warn('No se pudo notificar atribución a ATC:', e.message);
+    }
 }
 
 // LOGIC helpers
