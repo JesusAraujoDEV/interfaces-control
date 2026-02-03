@@ -1,124 +1,219 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>KPI Hub — Charlotte</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              brand: { 50: '#f2f7f1', 700: '#13532a', 800: '#0f4a22' },
-              primary: '#205638',
-              secondary: '#4CAF50',
-              'bg-light': '#F9FAFB',
-            }
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KPI Hub — Charlotte</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f2f7f1', 700: '#13532a', 800: '#0f4a22' },
+            primary: '#205638',
+            secondary: '#4CAF50',
+            'bg-light': '#F9FAFB',
           }
         }
       }
-    </script>
-    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css" />
-    <link rel="stylesheet" href="/shared/styles/global.css" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    <style>
-      .atc-card {
-        display: block;
-        border: 1px solid rgb(226 232 240);
-        background: white;
-        border-radius: 1rem;
-        padding: 1.25rem;
-        transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
-      }
-      .atc-card:hover {
-        border-color: rgb(203 213 2 slate-240);
-        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
-        transform: translateY(-1px);
-      }
-      .atc-card-title { font-weight: 800; font-size: 1.125rem; }
-      .atc-card-desc { margin-top: 0.25rem; font-size: 0.875rem; color: rgb(71 85 105); }
-      .atc-card-icon {
-        width: 2.75rem; height: 2.75rem;
-        display: flex; align-items: center; justify-content: center;
-        border-radius: 0.9rem; background: rgba(19, 83, 42, 0.08);
-        color: rgb(15, 74, 34); margin-bottom: 0.75rem; font-size: 1.25rem;
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .page-enter { animation: fadeIn 0.25s ease-out both; }
-    </style>
-  </head>
-  <body class="bg-[#f2f7f1] text-gray-800 h-screen overflow-hidden flex">
+    }
+  </script>
+  <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css" />
+  <link rel="stylesheet" href="/shared/styles/global.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    .atc-card {
+      display: block;
+      border: 1px solid rgb(226 232 240);
+      background: white;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+    }
 
-    <div id="mobile-overlay" onclick="window.toggleKpiSidebar && window.toggleKpiSidebar()" 
-         class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+    .atc-card:hover {
+      border-color: rgb(203 213 2 slate-240);
+      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+      transform: translateY(-1px);
+    }
 
-    <div class="flex w-full">
-      <div id="kpi-sidebar-container" data-active="home"></div>
-      
-      <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full page-enter overflow-y-auto">
-        <header class="mb-8">
-          <div class="flex items-start gap-3">
-            <button onclick="window.toggleKpiSidebar && window.toggleKpiSidebar()" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
-              <span class="material-icons-outlined text-2xl">menu</span>
-            </button>
-            <div class="flex-1 min-w-0">
-              <div class="inline-flex items-center gap-2 text-xs text-slate-500">
-                <a class="hover:text-slate-800" href="/admin">Admin</a>
-                <span aria-hidden="true">/</span>
-                <span class="text-slate-700">Indicadores y KPIs</span>
-              </div>
-              <h1 class="mt-2 text-3xl font-extrabold text-[#0f4a22]">Dashboard — KPI</h1>
-              <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas de negocio.</p>
+    .atc-card-title {
+      font-weight: 800;
+      font-size: 1.125rem;
+    }
+
+    .atc-card-desc {
+      margin-top: 0.25rem;
+      font-size: 0.875rem;
+      color: rgb(71 85 105);
+    }
+
+    .atc-card-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.9rem;
+      background: rgba(19, 83, 42, 0.08);
+      color: rgb(15, 74, 34);
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-enter {
+      animation: fadeIn 0.25s ease-out both;
+    }
+  </style>
+</head>
+
+<body class="bg-[#f2f7f1] text-gray-800 h-screen overflow-hidden flex">
+
+  <div id="mobile-overlay" onclick="window.toggleKpiSidebar && window.toggleKpiSidebar()"
+    class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+  <div class="flex w-full">
+    <div id="kpi-sidebar-container" data-active="home"></div>
+
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full page-enter overflow-y-auto">
+      <header class="mb-8">
+        <div class="flex items-start gap-3">
+          <button onclick="window.toggleKpiSidebar && window.toggleKpiSidebar()"
+            class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+            <span class="material-icons-outlined text-2xl">menu</span>
+          </button>
+          <div class="flex-1 min-w-0">
+            <div class="inline-flex items-center gap-2 text-xs text-slate-500">
+              <a class="hover:text-slate-800" href="/admin">Admin</a>
+              <span aria-hidden="true">/</span>
+              <span class="text-slate-700">Indicadores y KPIs</span>
             </div>
+            <h1 class="mt-2 text-3xl font-extrabold text-[#0f4a22]">Dashboard — KPI</h1>
+            <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas de negocio.</p>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-          <a class="atc-card" href="./dashboard.html">
-            <div class="atc-card-icon">📊</div>
-            <div class="atc-card-title">Dashboard General</div>
-            <div class="atc-card-desc">Resumen visual de ventas, stock y KPIs clave.</div>
-          </a>
-          <a class="atc-card" href="./bussines-intelligence.html">
-            <div class="atc-card-icon">📅</div>
-            <div class="atc-card-title">Informes Históricos</div>
-            <div class="atc-card-desc">Auditoría, exportación y datos históricos.</div>
-          </a>
-          <a class="atc-card" href="./inventario.html">
-            <div class="atc-card-icon">📦</div>
-            <div class="atc-card-title">Inteligencia de Stock</div>
-            <div class="atc-card-desc">Análisis Pareto y alertas de reposición.</div>
-          </a>
-          <a class="atc-card" href="./eficiencia-operacional.html">
-            <div class="atc-card-icon">⏱️</div>
-            <div class="atc-card-title">Eficiencia</div>
-            <div class="atc-card-desc">Tiempos de comanda y ranking de personal.</div>
-          </a>
-        </section>
-      </main>
-    </div>
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        <a class="atc-card" href="./dashboard.html" id="enlace-dashboard">
+          <div class="atc-card-icon">📊</div>
+          <div class="atc-card-title">Dashboard General</div>
+          <div class="atc-card-desc">Resumen visual de ventas, stock y KPIs clave.</div>
+        </a>
+        <a class="atc-card" href="./bussines-intelligence.html" id="enlace-informes">
+          <div class="atc-card-icon">📅</div>
+          <div class="atc-card-title">Informes Históricos</div>
+          <div class="atc-card-desc">Auditoría, exportación y datos históricos.</div>
+        </a>
+        <a class="atc-card" href="./inventario.html" id="enlace-stock">
+          <div class="atc-card-icon">📦</div>
+          <div class="atc-card-title">Inteligencia de Stock</div>
+          <div class="atc-card-desc">Análisis Pareto y alertas de reposición.</div>
+        </a>
+        <a class="atc-card" href="./eficiencia-operacional.html" id="enlace-eficiencia">
+          <div class="atc-card-icon">⏱️</div>
+          <div class="atc-card-title">Eficiencia</div>
+          <div class="atc-card-desc">Tiempos de comanda y ranking de personal.</div>
+        </a>
+        <a class="atc-card" href="./eficiencia-operacional.html" id="enlace-chef">
+          <div class="atc-card-icon">👨‍🍳</div>
+          <div class="atc-card-title">Dashboard chef</div>
+          <div class="atc-card-desc">Estadisticas y platos mas vendidos</div>
+        </a>
+      </section>
+    </main>
+  </div>
 
-    <script type="module">
-        import { initKpiLayout, mountKpiSidebar } from '/mod-2-kpis/src/components/sidebar.js';
-        initKpiLayout();
-        mountKpiSidebar();
-        
-        window.toggleKpiSidebar = () => {
-            const sidebar = document.querySelector('.kpi-sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-            }
-        };
-    </script>
-  </body>
+  <script type="module">
+    import { initKpiLayout, mountKpiSidebar } from '/mod-2-kpis/src/components/sidebar.js';
+    initKpiLayout();
+    mountKpiSidebar();
+
+    window.toggleKpiSidebar = () => {
+      const sidebar = document.querySelector('.kpi-sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      if (sidebar && overlay) {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+      }
+    };
+  </script>
+  <script>
+    // Permisos
+    document.addEventListener('DOMContentLoaded', () => {
+      // Apartado para logica de permisos
+      let mostrarDashboard = false;
+      let mostrarInformes = false;
+      let mostrarStock = false;
+      let mostrarEficiencia = false;
+      let mostrarDashboardChef = false;
+      const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+      const permissions = administrative_user ? administrative_user.permissions : [];
+
+      if (permissions.includes('KpiGerente_view')) {
+        mostrarDashboard = true;
+        mostrarInformes = true;
+        mostrarStock = true;
+        mostrarEficiencia = true;
+        mostrarDashboardChef = true;
+      }
+      if (permissions.includes('CocinaChef_view')) {
+        mostrarDashboardChef = true;
+      }
+
+      if (administrative_user && administrative_user.isAdmin) {
+        mostrarDashboard = true;
+        mostrarInformes = true;
+        mostrarStock = true;
+        mostrarEficiencia = true;
+        mostrarDashboardChef = true;
+      }
+
+
+      // Seleccionamos cada enlace específicamente por su destino (href)
+      const linkDashboard = document.getElementById('enlace-dashboard');
+      const linkInformes = document.getElementById('enlace-informes');
+      const linkStock = document.getElementById('enlace-stock');
+      const linkEficiencia = document.getElementById('enlace-eficiencia');
+      const linkDashboardChef = document.getElementById('enlace-chef');
+
+      // Ocultar enlaces según permisos
+      if (!mostrarDashboard) {
+        if (linkDashboard) linkDashboard.remove();
+      }
+      if (!mostrarInformes) {
+        if (linkInformes) linkInformes.remove();
+      }
+      if (!mostrarStock) {
+        if (linkStock) linkStock.remove();
+      }
+      if (!mostrarEficiencia) {
+        if (linkEficiencia) linkEficiencia.remove();
+      }
+      if (!mostrarDashboardChef) {
+        if (linkDashboardChef) linkDashboardChef.remove();
+      }
+
+    });
+  </script>
+</body>
+
 </html>
