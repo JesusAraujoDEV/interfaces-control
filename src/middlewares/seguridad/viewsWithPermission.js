@@ -65,23 +65,26 @@ const viewsWithPermission = async (req, res, next) => {
 
     // Vistas de atc
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/index.html":
-        resource = ["AtcSupervisorSala_view", "AtcMaitre_view", "CocinaCamarero_view"];
+        resource = ["AtcSupervisorSala_view", "AtcMaitre_view", "CocinaMesero_view"];
         break;
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/tables.html":
         resource = ["AtcSupervisorSala_view"];
         break;
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/tables-maitre.html": 
-        resource = ["AtcMaitre_view", "CocinaCamarero_view"];
+        resource = ["AtcMaitre_view", "CocinaMesero_view"];
         break;
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/sessions.html":
         resource = ["AtcSupervisorSala_view", "AtcMaitre_view"];
         break;
     case rutaSolicitada === "/mod-3-atencion-cliente/pages/admin/requests.html":
-        resource = ["AtcSupervisorSala_view", "AtcMaitre_view", "CocinaCamarero_view"];
+        resource = ["AtcSupervisorSala_view", "AtcMaitre_view", "CocinaMesero_view"];
         break;
 
     // Vistas de kpi
     case rutaSolicitada === "/mod-2-kpis/src/public/index.html":
+        resource = ["KpiGerente_view", "CocinaChef_view"];
+        break;
+    case rutaSolicitada === "/mod-2-kpis/src/public/chef-dashboard.html":
         resource = ["KpiGerente_view", "CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-2-kpis/src/public/dashboard.html":
@@ -96,16 +99,19 @@ const viewsWithPermission = async (req, res, next) => {
     case rutaSolicitada === "/mod-2-kpis/src/public/inventario.html":
         resource = ["KpiGerente_view"];
         break;
+    case rutaSolicitada === "/mod-2-kpis/src/public/ventas.html":
+        resource = ["KpiGerente_view"];
+        break;
 
     // Vistas de cocina
     case rutaSolicitada === "/mod-5-cocina/index.html":
-        resource = ["CocinaCocinero_view", "CocinaChef_view", "CocinaCamarero_view", "AtcMaitre_view", "AtcSupervisorSala_view"];
+        resource = ["CocinaCocinero_view", "CocinaChef_view", "CocinaMesero_view", "AtcMaitre_view", "AtcSupervisorSala_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/kds.html":
         resource = ["CocinaCocinero_view", "CocinaChef_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/Despacho.html":
-        resource = ["CocinaCamarero_view", "AtcMaitre_view"];
+        resource = ["CocinaMesero_view", "AtcMaitre_view"];
         break;
     case rutaSolicitada === "/mod-5-cocina/rec-pro.html":
         resource = ["CocinaChef_view"];

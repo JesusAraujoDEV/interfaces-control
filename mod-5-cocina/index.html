@@ -63,7 +63,8 @@
     <aside class="sidebar">
         <div class="sidebar__profile">
             <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain" loading="eager">
+                <img src="/assets/charlotte_logo.png" alt="Charlotte Bistró" class="w-8 h-8 object-contain"
+                    loading="eager">
             </div>
             <div class="min-w-0">
                 <div class="text-sm font-extrabold text-slate-900 leading-5">Cocina</div>
@@ -165,7 +166,7 @@
 
         <div class="dashboard-grid">
             <!-- KDS Card -->
-            <a href="kds.html" class="dashboard-card">
+            <a href="kds.html" class="dashboard-card" id="enlace-kds">
                 <div class="dashboard-card__icon">
                     <i data-lucide="monitor" size="24"></i>
                 </div>
@@ -176,7 +177,7 @@
             </a>
 
             <!-- Despacho Card -->
-            <a href="Despacho.html" class="dashboard-card">
+            <a href="Despacho.html" class="dashboard-card" id="enlace-despacho">
                 <div class="dashboard-card__icon">
                     <i data-lucide="truck" size="24"></i>
                 </div>
@@ -187,7 +188,7 @@
             </a>
 
             <!-- Recetas Card -->
-            <a href="rec-pro.html" class="dashboard-card">
+            <a href="rec-pro.html" class="dashboard-card" id="enlace-recetas">
                 <div class="dashboard-card__icon">
                     <i data-lucide="chef-hat" size="24"></i>
                 </div>
@@ -198,7 +199,7 @@
             </a>
 
             <!-- Inventario Card -->
-            <a href="inv.html" class="dashboard-card">
+            <a href="inv.html" class="dashboard-card" id="enlace-inventario">
                 <div class="dashboard-card__icon">
                     <i data-lucide="package" size="24"></i>
                 </div>
@@ -209,7 +210,7 @@
             </a>
 
             <!-- Personal Card -->
-            <a href="personal.html" class="dashboard-card">
+            <a href="personal.html" class="dashboard-card" id="enlace-personal">
                 <div class="dashboard-card__icon">
                     <i data-lucide="users" size="24"></i>
                 </div>
@@ -220,7 +221,7 @@
             </a>
 
             <!-- Activos Card -->
-            <a href="activos.html" class="dashboard-card">
+            <a href="activos.html" class="dashboard-card" id="enlace-activos">
                 <div class="dashboard-card__icon">
                     <i data-lucide="box" size="24"></i>
                 </div>
@@ -231,7 +232,7 @@
             </a>
 
             <!-- Historial Pedidos Card -->
-            <a href="historial_pedidos.html" class="dashboard-card">
+            <a href="historial_pedidos.html" class="dashboard-card" id="enlace-historial">
                 <div class="dashboard-card__icon">
                     <i data-lucide="history" size="24"></i>
                 </div>
@@ -247,6 +248,85 @@
     <script src="./js/admin-auth.js"></script>
     <script>
         lucide.createIcons();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apartado para logica de permisos
+            let mostrarKds = false;
+            let mostrarDespacho = false;
+            let mostrarRecetas = false;
+            let mostrarInventario = false;
+            let mostrarPersonal = false;
+            let mostrarActivos = false;
+            let mostrarHistorial = false
+            const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+            const permissions = administrative_user ? administrative_user.permissions : [];
+
+            if (permissions.includes('CocinaChef_view')) {
+                mostrarKds = true;
+                mostrarRecetas = true;
+                mostrarInventario = true;
+                mostrarPersonal = true;
+                mostrarActivos = true;
+                mostrarHistorial = true;
+            }
+            if (permissions.includes('CocinaCocinero_view')) {
+                mostrarKds = true;
+            }
+            if (permissions.includes('CocinaMesero_view')) {
+                mostrarDespacho = true;
+            }
+            if (permissions.includes('AtcMaitre_view')) {
+                mostrarDespacho = true;
+                mostrarPersonal = true;
+            }
+            if (permissions.includes('AtcSupervisorSala_view')) {
+                mostrarPersonal = true;
+            }
+            if (administrative_user && administrative_user.isAdmin) {
+                mostrarKds = true;
+                mostrarDespacho = true;
+                mostrarRecetas = true;
+                mostrarInventario = true;
+                mostrarPersonal = true;
+                mostrarActivos = true;
+                mostrarHistorial = true;
+            }
+
+
+            // Seleccionamos cada enlace específicamente por su destino (href)
+            const linkKDS = document.getElementById('enlace-kds');
+            const linkDespacho = document.getElementById('enlace-despacho');
+            const linkRecetas = document.getElementById('enlace-recetas');
+            const linkInventario = document.getElementById('enlace-inventario');
+            const linkActivos = document.getElementById('enlace-activos');
+            const linkPersonal = document.getElementById('enlace-personal');
+            const linkHistorial = document.getElementById('enlace-historial');
+
+            // Ocultar enlaces según permisos
+            if (!mostrarKds) {
+                if (linkKDS) linkKDS.remove();
+            }
+            if (!mostrarDespacho) {
+                if (linkDespacho) linkDespacho.remove();
+            }
+            if (!mostrarRecetas) {
+                if (linkRecetas) linkRecetas.remove();
+            }
+            if (!mostrarInventario) {
+                if (linkInventario) linkInventario.remove();
+            }
+            if (!mostrarActivos) {
+                if (linkActivos) linkActivos.remove();
+            }
+            if (!mostrarPersonal) {
+                if (linkPersonal) linkPersonal.remove();
+            }
+            if (!mostrarHistorial) {
+                if (linkHistorial) linkHistorial.remove();
+            }
+
+        });
     </script>
 </body>
 
