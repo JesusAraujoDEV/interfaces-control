@@ -83,6 +83,7 @@
                             <th class="px-4 py-2 text-left">Nombre</th>
                             <th class="px-4 py-2 text-left">Pedidos Totales</th>
                             <th class="px-4 py-2 text-left">Tiempo Promedio</th>
+                            <th class="px-4 py-2 text-left">Puntuación de Eficiencia</th>
                             <th class="px-4 py-2 text-left">Estado</th>
                         </tr>
                     </thead>
@@ -421,6 +422,11 @@
                 <td class="px-4 py-3 font-medium text-slate-700">${item.name}</td>
                 <td class="px-4 py-3 text-slate-600">${item.total_orders}</td>
                 <td class="px-4 py-3 text-slate-600">${item.avg_time_minutes}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded text-xs font-bold ${item.efficiency_score >= 80 ? 'bg-green-100 text-green-700' : item.efficiency_score >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}">
+                        ${item.efficiency_score}%
+                    </span>
+                </td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
                         ${item.current_status === 'ACTIVE' ? 'Activo' : 'Descanso'}

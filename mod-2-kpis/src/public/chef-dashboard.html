@@ -173,6 +173,77 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+        
+        /* Ingredient Frequency Styles */
+        .ingredient-frequency-section {
+            margin-top: 2rem;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .ingredient-frequency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .ingredient-card {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .ingredient-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ingredient-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .ingredient-quantity {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+        
+        .ingredient-usage {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .used-in-products {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .product-tag {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.625rem;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .ingredient-frequency-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -262,6 +333,16 @@
             <!-- Los platos se cargarán dinámicamente -->
         </div>
     </main>
+
+<!-- Ingredient Frequency Section -->
+<section class="ingredient-frequency-section">
+    <h2 class="text-xl font-bold mb-4" style="color: var(--text-dark);">🥘 Frecuencia de Ingredientes</h2>
+    <div id="ingredient-frequency-content">
+        <div class="text-center text-gray-500 p-4">
+            <p>Cargando datos de frecuencia de ingredientes...</p>
+        </div>
+    </div>
+</section>
 
     <script>
         let paretoChart = null;
@@ -544,13 +625,181 @@
         `;
         document.head.appendChild(style);
         
+        // Función para obtener datos de frecuencia de ingredientes
+        async function fetchIngredientFrequencyData() {
+            try {
+                // Obtener fechas de los últimos 7 días por defecto para el chef
+                const now = new Date();
+                const dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const dateTo = new Date();
+                
+                // Formatear fechas a YYYY-MM-DD
+                const formatDate = (date) => {
+                    return date.toISOString().split('T')[0];
+                };
+                
+                const url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/analytics/kitchen/ingredient-frequency?date_from=${formatDate(dateFrom)}&date_to=${formatDate(dateTo)}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) throw new Error('Error en la API');
+                const data = await response.json();
+                console.log('Datos de frecuencia de ingredientes recibidos:', data);
+                
+                if (data.success) {
+                    renderIngredientFrequency(data.data);
+                } else {
+                    console.error('Respuesta no exitosa de la API');
+                    document.getElementById('ingredient-frequency-content').innerHTML = '<p class="text-red-500 text-center p-4">Error al cargar datos de frecuencia.</p>';
+                }
+            } catch (error) {
+                console.error('Error al obtener datos de frecuencia de ingredientes:', error);
+                document.getElementById('ingredient-frequency-content').innerHTML = '<p class="text-red-500 text-center p-4">Error al cargar datos de frecuencia.</p>';
+            }
+        }
+
+        // Función para formatear cantidad con decimales
+        function formatQuantity(quantity) {
+            if (quantity === null || quantity === undefined) return '0';
+            const num = parseFloat(quantity);
+            if (Number.isInteger(num)) {
+                return num.toString();
+            } else {
+                return num.toFixed(2);
+            }
+        }
+
+        // Función para renderizar la frecuencia de ingredientes
+        function renderIngredientFrequency(data) {
+            const container = document.getElementById('ingredient-frequency-content');
+            
+            if (!data || !data.ingredient_frequency || data.ingredient_frequency.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 p-4">No hay datos de frecuencia de ingredientes disponibles.</p>';
+                return;
+            }
+            
+            const ingredients = data.ingredient_frequency;
+            const summary = data.summary;
+            
+            // Crear HTML para el resumen
+            let html = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">${summary.total_unique_ingredients}</div>
+                        <div class="text-sm text-gray-600">Ingredientes Únicos</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">${summary.total_products_analyzed}</div>
+                        <div class="text-sm text-gray-600">Productos Analizados</div>
+                    </div>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-600">${summary.total_orders_analyzed}</div>
+                        <div class="text-sm text-gray-600">Órdenes Analizadas</div>
+                    </div>
+                </div>
+                <div class="ingredient-frequency-grid">
+            `;
+            
+            // Ordenar ingredientes por total_quantity descendente
+            ingredients.sort((a, b) => b.total_quantity - a.total_quantity);
+            
+            // Renderizar cada ingrediente
+            ingredients.forEach(ingredient => {
+                const usedInProducts = ingredient.used_in_products.map(product => 
+                    `<span class="product-tag">${product.product_name} (${product.product_quantity})</span>`
+                ).join('');
+                
+                html += `
+                    <div class="ingredient-card">
+                        <div class="ingredient-name">${ingredient.name}</div>
+                        <div class="ingredient-quantity">${formatQuantity(ingredient.total_quantity)} unidades</div>
+                        <div class="ingredient-usage">Usado en ${ingredient.usage_count} productos</div>
+                        <div class="used-in-products">
+                            <strong>Productos:</strong><br>
+                            ${usedInProducts}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // --- Global Alerts History ---
+        window.showAlertsHistory = function() {
+            Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts')
+                .then(res => {
+                    if (!res.ok) throw new Error('Error al obtener historial de alertas');
+                    return res.json();
+                })
+                .then(response => {
+                    // Extraer datos del nuevo formato de respuesta de la API
+                    const alerts = response.alerts || [];
+                    const criticalCount = response.critical_count || 0;
+                    
+                    Swal.fire({
+                        title: `<span class="text-emerald-700">Historial de Alertas (${criticalCount} Críticas)</span>`,
+                        html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                            ${alerts.length > 0 ? alerts.map(alert => {
+                                // Determinar color según severidad
+                                const severityColor = alert.severity === 'CRITICAL' ? 'text-red-600' : 
+                                                   alert.severity === 'HIGH' ? 'text-orange-600' : 
+                                                   alert.severity === 'WARNING' ? 'text-yellow-600' : 
+                                                   'text-blue-600';
+                                
+                                // Formatear nivel actual como porcentaje
+                                const levelPercent = alert.current_level_pct || 0;
+                                const levelColor = levelPercent <= 30 ? 'text-red-600' : 
+                                                 levelPercent <= 50 ? 'text-orange-600' : 
+                                                 levelPercent <= 70 ? 'text-yellow-600' : 
+                                                 'text-green-600';
+                                
+                                return `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-bold ${severityColor}">${alert.severity || 'UNKNOWN'}</span>
+                                        <span class="text-[10px] text-slate-400">${new Date().toLocaleDateString()}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-medium text-slate-600">${alert.item_name || 'N/A'}</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full ${
+                                            alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-700' : 
+                                            alert.severity === 'WARNING' ? 'bg-yellow-100 text-yellow-700' : 
+                                            'bg-gray-100 text-gray-700'
+                                        }">${alert.action_required || 'NONE'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs text-slate-500">Nivel Actual:</span>
+                                        <span class="text-xs font-bold ${levelColor}">${levelPercent}%</span>
+                                    </div>
+                                </div>`;
+                            }).join('') : '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                        </div>`,
+                        confirmButtonText: 'Entendido', 
+                        confirmButtonColor: '#10b981', 
+                        width: '500px'
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al obtener historial de alertas:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cargar el historial de alertas. Intente nuevamente.',
+                        confirmButtonColor: '#10b981'
+                    });
+                });
+        };
+
         // Inicialización
         document.addEventListener('DOMContentLoaded', () => {
             setupRefreshButton();
             loadDishesData();
+            fetchIngredientFrequencyData();
             
             // Auto-refresh cada 5 minutos
             setInterval(loadDishesData, 5 * 60 * 1000);
+            setInterval(fetchIngredientFrequencyData, 5 * 60 * 1000);
         });
     </script>
     <script type="module">
