@@ -1,4 +1,5 @@
 import { fetchKpiJson, extractAnySource, getCacheStatus } from '/kpi-pruebas/src/services/kpi-api.js';
+import { getSatisfactionScore } from '/kpi-pruebas/src/services/kpi-data.js';
 import { formatMinutes, formatNumber, clamp } from '/kpi-pruebas/src/utils/format.js';
 
 let intervalId = null;
@@ -92,11 +93,52 @@ function renderGhostClients(data) {
   setDot(document.getElementById('kpi-ghost-dot'), data?.sources || data?.source);
 }
 
+function renderSatisfaction(data) {
+  const score = data?.satisfaction_score || {};
+  const count = Number(score.count ?? 0);
+  const average = Number(score.average ?? 0);
+  const distribution = score.distribution || {};
+
+  const avgEl = document.getElementById('kpi-csat-average');
+  if (avgEl) avgEl.textContent = `${average.toFixed(1)} ⭐`;
+
+  const countEl = document.getElementById('kpi-csat-count');
+  if (countEl) {
+    countEl.textContent = count
+      ? `Basado en ${formatNumber(count)} opiniones`
+      : 'Sin calificaciones en este periodo';
+  }
+
+  const emptyEl = document.getElementById('kpi-csat-empty');
+  if (emptyEl) emptyEl.classList.toggle('hidden', count !== 0);
+
+  const bars = document.getElementById('kpi-csat-bars');
+  if (bars) {
+    bars.innerHTML = '';
+    const stars = [5, 4, 3, 2, 1];
+    stars.forEach((star) => {
+      const value = Number(distribution[String(star)] ?? 0);
+      const percent = count ? clamp((value / count) * 100, 0, 100) : 0;
+      const row = document.createElement('div');
+      row.className = 'kpi-csat-row';
+      row.innerHTML = `
+        <span>${star}★</span>
+        <div class="kpi-csat-bar"><span style="width:${percent}%"></span></div>
+        <span>${formatNumber(value)}</span>
+      `;
+      bars.appendChild(row);
+    });
+  }
+
+  setDot(document.getElementById('kpi-csat-dot'), data?.sources || data?.source);
+}
+
 async function loadAll() {
-  const [serviceRes, occupancyRes, ghostRes] = await Promise.allSettled([
+  const [serviceRes, occupancyRes, ghostRes, csatRes] = await Promise.allSettled([
     fetchKpiJson('/api/kpi/v1/cx/service-quality'),
     fetchKpiJson('/api/kpi/v1/cx/room-occupancy'),
-    fetchKpiJson('/api/kpi/v1/cx/ghost-clients')
+    fetchKpiJson('/api/kpi/v1/cx/ghost-clients'),
+    getSatisfactionScore()
   ]);
 
   if (serviceRes.status === 'fulfilled') {
@@ -115,6 +157,12 @@ async function loadAll() {
     renderGhostClients(ghostRes.value);
   } else {
     document.getElementById('kpi-ghost-card')?.classList.add('kpi-disabled');
+  }
+
+  if (csatRes.status === 'fulfilled') {
+    renderSatisfaction(csatRes.value);
+  } else {
+    document.getElementById('kpi-csat-card')?.classList.add('kpi-disabled');
   }
 }
 

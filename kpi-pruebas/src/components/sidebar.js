@@ -28,6 +28,13 @@ const NAV = [
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 12h18"/><path d="M6 6h12"/><path d="M8 18h8"/></svg>`
   },
   {
+    key: 'workforce',
+    label: 'Workforce',
+    description: 'Ranking y desempeño',
+    href: '/admin/kpi/workforce',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M2 20a10 10 0 0 1 20 0"/><path d="M12 4a4 4 0 0 1 4 4"/></svg>`
+  },
+  {
     key: 'products',
     label: 'Producto',
     description: 'Menú & inventario',
@@ -47,6 +54,7 @@ function resolveActiveKey(pathname) {
   if (pathname.startsWith('/admin/kpi/dashboard')) return 'dashboard';
   if (pathname.startsWith('/admin/kpi/finance')) return 'finance';
   if (pathname.startsWith('/admin/kpi/operations')) return 'operations';
+  if (pathname.startsWith('/admin/kpi/workforce')) return 'workforce';
   if (pathname.startsWith('/admin/kpi/products')) return 'products';
   if (pathname.startsWith('/admin/kpi/cx')) return 'cx';
   if (pathname === '/admin/kpi' || pathname === '/admin/kpi/') return 'home';

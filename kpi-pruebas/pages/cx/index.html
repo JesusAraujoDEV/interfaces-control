@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/kpi-pruebas/pages/cx/page.css" />
   </head>
   <body class="antialiased text-slate-900">
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <section class="grid grid-cols-1 lg:grid-cols-4 gap-4">
       <article class="kpi-card lg:col-span-2" id="kpi-occupancy-card">
         <div class="flex items-center justify-between">
           <div class="kpi-card-title">Mapa de Calor de Ocupación</div>
@@ -20,6 +20,21 @@
         </div>
         <div class="mt-4 grid grid-cols-5 gap-2" id="kpi-occupancy-grid"></div>
         <div class="mt-4 text-sm text-slate-500" id="kpi-occupancy-label">0 de 0 mesas ocupadas</div>
+      </article>
+
+      <article class="kpi-card" id="kpi-csat-card">
+        <div class="flex items-center justify-between">
+          <div class="kpi-card-title">CSAT Score</div>
+          <span class="kpi-dot kpi-dot--cache" id="kpi-csat-dot" title="Dato en caché"></span>
+        </div>
+        <div class="mt-4 kpi-csat-layout">
+          <div>
+            <div class="text-3xl font-extrabold" id="kpi-csat-average">0.0 ⭐</div>
+            <div class="mt-1 text-sm text-slate-500" id="kpi-csat-count">Basado en 0 opiniones</div>
+            <div class="mt-3 text-xs text-slate-400 hidden" id="kpi-csat-empty">Sin calificaciones en este periodo.</div>
+          </div>
+          <div class="kpi-csat-bars" id="kpi-csat-bars"></div>
+        </div>
       </article>
 
       <article class="kpi-card" id="kpi-service-card">

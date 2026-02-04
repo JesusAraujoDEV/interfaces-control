@@ -151,6 +151,7 @@ app.get(
     "/admin/kpi/dashboard",
     "/admin/kpi/finance",
     "/admin/kpi/operations",
+    "/admin/kpi/workforce",
     "/admin/kpi/products",
     "/admin/kpi/cx"
   ],

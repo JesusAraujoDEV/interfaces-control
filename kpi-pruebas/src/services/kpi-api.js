@@ -28,6 +28,25 @@ export async function fetchKpiJson(path, { date, params, signal } = {}) {
   return res.json();
 }
 
+export async function fetchKpiRangeJson(path, { from, to, params, signal } = {}) {
+  const selectedDate = getSelectedDate();
+  const resolvedFrom = from || selectedDate;
+  const resolvedTo = to || selectedDate;
+
+  const url = buildUrl(path, { ...(params || {}), from: resolvedFrom, to: resolvedTo });
+
+  const res = await fetch(url.toString(), {
+    headers: { 'Accept': 'application/json' },
+    signal
+  });
+
+  if (!res.ok) {
+    const message = await res.text().catch(() => '');
+    throw new Error(`KPI ${res.status}: ${message || res.statusText}`);
+  }
+  return res.json();
+}
+
 export function getCacheStatus(source) {
   if (!source) return null;
   if (typeof source === 'string') return source.toUpperCase();

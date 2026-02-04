@@ -60,6 +60,16 @@ function routeFor(pathname) {
     };
   }
 
+  if (p === '/admin/kpi/workforce') {
+    return {
+      key: 'workforce',
+      title: 'Workforce',
+      subtitle: 'Desempeño y rankings de servicio',
+      contentUrl: '/kpi-pruebas/pages/workforce/index.html',
+      moduleUrl: '/kpi-pruebas/pages/workforce/page.js'
+    };
+  }
+
   if (p === '/admin/kpi/products') {
     return {
       key: 'products',
