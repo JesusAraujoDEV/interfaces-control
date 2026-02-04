@@ -154,27 +154,7 @@
       requestsGrid.innerHTML = cards;
     }
 
-    function getAuthBaseUrl() {
-      const cfg = window.__APP_CONFIG__;
-      const base = cfg?.AUTH_URL || '';
-      return base.replace(/\/$/, '');
-    }
-
-    async function fetchWaiterNamesByIds(ids = []) {
-      const base = getAuthBaseUrl();
-      if (!base || ids.length === 0) return {};
-      const entries = await Promise.all(ids.map(async (id) => {
-        try {
-          const resp = await window.HttpClient.request(`${base}/api/seguridad/users/${id}`);
-          const user = resp?.data || resp; // tolera variantes
-          const name = user?.fullName || user?.name || user?.username || user?.email || `Usuario ${id}`;
-          return [String(id), name];
-        } catch (_) {
-          return [String(id), `Usuario ${id}`];
-        }
-      }));
-      return Object.fromEntries(entries);
-    }
+    // Helpers movidos a window.AuthApi (api/auth.js)
 
     async function loadRequestsData() {
       const requestsGrid = document.getElementById('requests-grid');
@@ -190,7 +170,7 @@
               .filter(r => r.waiter_id)
               .map(r => String(r.waiter_id))
           ));
-          const waiterNames = await fetchWaiterNamesByIds(waiterIds);
+          const waiterNames = await window.AuthApi.fetchWaiterNamesByIds(waiterIds);
           requestsGrid.innerHTML = data.map(r => renderRequestCard(r, waiterNames)).join('');
         } else {
           requestsGrid.innerHTML = `
