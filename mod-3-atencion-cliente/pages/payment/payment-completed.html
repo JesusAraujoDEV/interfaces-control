@@ -143,23 +143,39 @@
                         try {
                             const resp = await window.KitchenApi.getStaffById(id);
                             const data = resp?.data || resp;
+                            // Detectar respuesta 400/invalid sin excepciones
+                            const isBadResponse = (
+                              (data && typeof data === 'object' && (
+                                data.status === 400 || data.success === false || !!data.error || !!data.validationErrors
+                              ))
+                            );
+                            if (isBadResponse) {
+                                // Fallback en Seguridad usando el mismo id
+                                try {
+                                    const userResp = await window.AuthApi.getUserById(id);
+                                    const user = userResp?.data || userResp;
+                                    const name = [user?.name, user?.lastName].filter(Boolean).join(' ').trim() || user?.email || 'Mesero';
+                                    return { id: String(user?.id ?? id), name, role: 'STAFF' };
+                                } catch (authErr) {
+                                    console.warn('Fallback AUTH falló:', authErr);
+                                    return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
+                                }
+                            }
+                            // Respuesta válida de cocina
                             console.log('Detalle mesero obtenido:', data);
                             return { id: id, name: (data?.externalName || data?.name || id.substring(0,8)+'...'), role: (data?.externalRole || 'STAFF') };
                         } catch (e) {
-                            // Si la API de cocina responde 400, intentar fallback en Seguridad con ID 94
-                            const isBadRequest = (e && (e.status === 400 || (typeof e.message === 'string' && e.message.includes('400'))));
-                            if (isBadRequest) {
-                                try {
-                                    const userResp = await window.AuthApi.getUserById(94);
-                                    const user = userResp?.data || userResp;
-                                    const name = [user?.name, user?.lastName].filter(Boolean).join(' ').trim() || user?.email || 'Mesero';
-                                    return { id: String(user?.id), name, role: 'STAFF' };
-                                } catch (authErr) {
-                                    console.warn('Fallback AUTH falló:', authErr);
-                                }
+                            // Excepción: intentar fallback Seguridad con el mismo id
+                            try {
+                                const userResp = await window.AuthApi.getUserById(id);
+                                const user = userResp?.data || userResp;
+                                const name = [user?.name, user?.lastName].filter(Boolean).join(' ').trim() || user?.email || 'Mesero';
+                                return { id: String(user?.id ?? id), name, role: 'STAFF' };
+                            } catch (authErr) {
+                                console.warn('Fallback AUTH falló:', authErr);
+                                // Fallback silencioso si el endpoint valida tipo numérico u otro formato
+                                return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
                             }
-                            // Fallback silencioso si el endpoint valida tipo numérico u otro formato
-                            return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
                         }
                     }
                     if (Array.isArray(waiterIds) && waiterIds.length > 0) {
