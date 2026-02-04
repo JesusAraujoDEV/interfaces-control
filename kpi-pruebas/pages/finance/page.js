@@ -1,7 +1,11 @@
 import { fetchKpiJson, extractAnySource, getCacheStatus } from '/kpi-pruebas/src/services/kpi-api.js';
+import { getRevenueSeries } from '/kpi-pruebas/src/services/kpi-data.js';
+import { getSelectedDate } from '/kpi-pruebas/src/services/kpi-state.js';
 import { formatCurrency, clamp } from '/kpi-pruebas/src/utils/format.js';
 
 let intervalId = null;
+let chartAbort = null;
+let viewMode = 'week';
 
 function setDot(dot, source) {
   if (!dot) return;
@@ -50,6 +54,287 @@ function updateInsights(delivery, dineIn, lostTotal) {
     li.textContent = text;
     list.appendChild(li);
   });
+}
+
+function toDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseIsoDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function endOfWeek(date) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + 6);
+  return d;
+}
+
+function endOfMonth(year, monthIndex) {
+  return new Date(year, monthIndex + 1, 0);
+}
+
+function formatLabel(label, mode) {
+  const date = parseIsoDate(label);
+  if (!date) return label;
+  if (mode === 'year') {
+    return date.toLocaleDateString('es-CO', { month: 'short' });
+  }
+  if (mode === 'month') {
+    return String(date.getDate());
+  }
+  return date.toLocaleDateString('es-CO', { weekday: 'short' });
+}
+
+function formatTooltipDate(label) {
+  const date = parseIsoDate(label);
+  if (!date) return label;
+  return date.toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'short' });
+}
+
+function setChartEmpty(isEmpty) {
+  const empty = document.getElementById('kpi-revenue-empty');
+  if (empty) empty.classList.toggle('show', isEmpty);
+}
+
+function updateTabUI(nextMode) {
+  viewMode = nextMode;
+  const tabs = document.querySelectorAll('.kpi-tab');
+  tabs.forEach((tab) => {
+    const active = tab.dataset.mode === nextMode;
+    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+
+  document.querySelectorAll('[data-filter]').forEach((el) => {
+    el.classList.toggle('hidden', el.dataset.filter !== nextMode);
+  });
+
+  const hint = document.getElementById('kpi-week-hint');
+  if (hint) hint.classList.toggle('hidden', nextMode !== 'week');
+}
+
+function buildGrid(maxValue) {
+  const grid = document.getElementById('kpi-revenue-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const steps = 4;
+  for (let i = steps; i >= 0; i -= 1) {
+    const value = Math.round((maxValue / steps) * i);
+    const row = document.createElement('div');
+    row.className = 'kpi-chart-grid-line';
+    row.innerHTML = `<span>${formatCurrency(value)}</span>`;
+    grid.appendChild(row);
+  }
+}
+
+function renderSeriesChart(series, mode) {
+  const bars = document.getElementById('kpi-revenue-bars');
+  const xAxis = document.getElementById('kpi-revenue-x');
+  if (!bars || !xAxis) return;
+
+  bars.innerHTML = '';
+  xAxis.innerHTML = '';
+
+  if (!Array.isArray(series) || series.length === 0) {
+    setChartEmpty(true);
+    return;
+  }
+
+  const totals = series.map(item => Number(item.total ?? (Number(item.delivery || 0) + Number(item.dine_in || 0))));
+  const maxTotal = Math.max(...totals, 0);
+  if (maxTotal === 0) {
+    setChartEmpty(true);
+    return;
+  }
+  buildGrid(maxTotal);
+
+  bars.style.gridTemplateColumns = `repeat(${series.length}, minmax(0, 1fr))`;
+  xAxis.style.gridTemplateColumns = `repeat(${series.length}, minmax(0, 1fr))`;
+
+  series.forEach((item, index) => {
+    const delivery = Number(item.delivery || 0);
+    const dine = Number(item.dine_in || 0);
+    const total = Number(item.total ?? (delivery + dine));
+    const heightPct = maxTotal ? clamp((total / maxTotal) * 100, 0, 100) : 0;
+
+    const stack = document.createElement('div');
+    stack.className = 'kpi-chart-stack';
+    stack.style.height = `${heightPct}%`;
+    stack.innerHTML = `
+      <div class="kpi-chart-delivery" style="height:${total ? clamp((delivery / total) * 100, 0, 100) : 0}%"></div>
+      <div class="kpi-chart-dine" style="height:${total ? clamp((dine / total) * 100, 0, 100) : 0}%"></div>
+    `;
+
+    const bar = document.createElement('div');
+    bar.className = 'kpi-chart-bar';
+    bar.dataset.label = item.label;
+    bar.dataset.delivery = String(delivery);
+    bar.dataset.dine = String(dine);
+    bar.dataset.total = String(total);
+    bar.appendChild(stack);
+    bars.appendChild(bar);
+
+    const label = document.createElement('div');
+    label.textContent = formatLabel(item.label, mode);
+    xAxis.appendChild(label);
+
+    if (index === series.length - 1) {
+      label.classList.add('font-semibold');
+    }
+  });
+
+  setChartEmpty(false);
+}
+
+function bindChartTooltip() {
+  const chart = document.getElementById('kpi-revenue-chart');
+  const tooltip = document.getElementById('kpi-revenue-tooltip');
+  if (!chart || !tooltip || chart.dataset.tooltipBound === '1') return;
+  chart.dataset.tooltipBound = '1';
+
+  chart.addEventListener('mousemove', (event) => {
+    const target = event.target.closest('.kpi-chart-bar');
+    if (!target) {
+      tooltip.classList.remove('visible');
+      return;
+    }
+
+    const rect = chart.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const label = target.dataset.label;
+    const delivery = Number(target.dataset.delivery || 0);
+    const dine = Number(target.dataset.dine || 0);
+    const total = Number(target.dataset.total || 0);
+
+    tooltip.innerHTML = `
+      <strong>${formatTooltipDate(label)}</strong>
+      <div>Total: ${formatCurrency(total)}</div>
+      <div>🔵 Delivery: ${formatCurrency(delivery)}</div>
+      <div>🔴 Sala: ${formatCurrency(dine)}</div>
+    `;
+
+    tooltip.style.left = `${Math.min(x + 12, rect.width - 180)}px`;
+    tooltip.style.top = `${Math.max(y - 60, 12)}px`;
+    tooltip.classList.add('visible');
+  });
+
+  chart.addEventListener('mouseleave', () => {
+    tooltip.classList.remove('visible');
+  });
+}
+
+function readWeekPicker() {
+  const input = document.getElementById('kpi-week-picker');
+  const value = input?.value || getSelectedDate();
+  const date = parseIsoDate(value) || new Date();
+  const monday = startOfWeek(date);
+  if (input) input.value = toDateInput(monday);
+  return monday;
+}
+
+function readMonthPicker() {
+  const input = document.getElementById('kpi-month-picker');
+  const fallback = parseIsoDate(getSelectedDate()) || new Date();
+  const [year, month] = (input?.value || `${fallback.getFullYear()}-${String(fallback.getMonth() + 1).padStart(2, '0')}`).split('-');
+  return { year: Number(year), monthIndex: Number(month) - 1 };
+}
+
+function readYearPicker() {
+  const input = document.getElementById('kpi-year-picker');
+  const fallback = parseIsoDate(getSelectedDate()) || new Date();
+  const year = Number(input?.value || fallback.getFullYear());
+  if (input) input.value = String(year);
+  return year;
+}
+
+async function loadRevenueSeries() {
+  if (chartAbort) chartAbort.abort();
+  chartAbort = new AbortController();
+
+  let from = '';
+  let to = '';
+  let groupBy = 'day';
+
+  if (viewMode === 'week') {
+    const monday = readWeekPicker();
+    const sunday = endOfWeek(monday);
+    from = toDateInput(monday);
+    to = toDateInput(sunday);
+    groupBy = 'day';
+  } else if (viewMode === 'month') {
+    const { year, monthIndex } = readMonthPicker();
+    const start = new Date(year, monthIndex, 1);
+    const end = endOfMonth(year, monthIndex);
+    from = toDateInput(start);
+    to = toDateInput(end);
+    groupBy = 'day';
+  } else {
+    const year = readYearPicker();
+    from = `${year}-01-01`;
+    to = `${year}-12-31`;
+    groupBy = 'month';
+  }
+
+  try {
+    const data = await getRevenueSeries({ from, to, groupBy, signal: chartAbort.signal });
+    renderSeriesChart(data?.series || [], viewMode);
+  } catch {
+    renderSeriesChart([], viewMode);
+  }
+}
+
+function bindRevenueControls() {
+  const tabs = document.querySelectorAll('.kpi-tab');
+  tabs.forEach((tab) => {
+    if (tab.dataset.bound === '1') return;
+    tab.dataset.bound = '1';
+    tab.addEventListener('click', () => {
+      updateTabUI(tab.dataset.mode);
+      loadRevenueSeries().catch(() => {});
+    });
+  });
+
+  const weekInput = document.getElementById('kpi-week-picker');
+  if (weekInput && weekInput.dataset.bound !== '1') {
+    weekInput.dataset.bound = '1';
+    weekInput.addEventListener('change', () => {
+      const date = parseIsoDate(weekInput.value);
+      const monday = date ? startOfWeek(date) : startOfWeek(new Date());
+      weekInput.value = toDateInput(monday);
+      loadRevenueSeries().catch(() => {});
+    });
+  }
+
+  const monthInput = document.getElementById('kpi-month-picker');
+  if (monthInput && monthInput.dataset.bound !== '1') {
+    monthInput.dataset.bound = '1';
+    monthInput.addEventListener('change', () => {
+      loadRevenueSeries().catch(() => {});
+    });
+  }
+
+  const yearInput = document.getElementById('kpi-year-picker');
+  if (yearInput && yearInput.dataset.bound !== '1') {
+    yearInput.dataset.bound = '1';
+    yearInput.addEventListener('change', () => {
+      loadRevenueSeries().catch(() => {});
+    });
+  }
 }
 
 function renderRevenue(data) {
@@ -163,6 +448,10 @@ function clearRefresh() {
 export async function init() {
   clearRefresh();
   await loadAll();
+  updateTabUI(viewMode);
+  bindRevenueControls();
+  bindChartTooltip();
+  loadRevenueSeries().catch(() => {});
   intervalId = setInterval(() => {
     loadAll().catch(() => { });
   }, 60000);

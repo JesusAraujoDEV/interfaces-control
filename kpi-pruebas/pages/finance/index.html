@@ -94,6 +94,46 @@
       </article>
     </section>
 
+    <section class="mt-4">
+      <article class="kpi-card" id="kpi-revenue-series-card">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div>
+            <div class="kpi-card-title">Tendencia de Ingresos</div>
+            <div class="mt-1 text-sm text-slate-500">Delivery vs Sala (stacked).</div>
+          </div>
+          <div class="kpi-tabs" role="tablist" aria-label="Rango de tiempo">
+            <button class="kpi-tab" data-mode="week" role="tab" aria-selected="true">Semana</button>
+            <button class="kpi-tab" data-mode="month" role="tab" aria-selected="false">Mes</button>
+            <button class="kpi-tab" data-mode="year" role="tab" aria-selected="false">Año</button>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center gap-3" id="kpi-revenue-filters">
+          <label class="kpi-filter" data-filter="week">
+            <span>Semana (lunes)</span>
+            <input type="date" id="kpi-week-picker" />
+          </label>
+          <label class="kpi-filter hidden" data-filter="month">
+            <span>Mes</span>
+            <input type="month" id="kpi-month-picker" />
+          </label>
+          <label class="kpi-filter hidden" data-filter="year">
+            <span>Año</span>
+            <input type="number" id="kpi-year-picker" min="2020" max="2100" />
+          </label>
+          <div class="kpi-filter-hint" id="kpi-week-hint">Selecciona un lunes para calcular la semana.</div>
+        </div>
+
+        <div class="mt-4 kpi-chart" id="kpi-revenue-chart">
+          <div class="kpi-chart-empty" id="kpi-revenue-empty">Sin datos para el período seleccionado.</div>
+          <div class="kpi-chart-tooltip" id="kpi-revenue-tooltip"></div>
+          <div class="kpi-chart-grid" id="kpi-revenue-grid"></div>
+          <div class="kpi-chart-bars" id="kpi-revenue-bars"></div>
+          <div class="kpi-chart-x" id="kpi-revenue-x"></div>
+        </div>
+      </article>
+    </section>
+
     <script type="module" src="/kpi-pruebas/pages/finance/page.js"></script>
   </body>
 </html>
