@@ -35,6 +35,12 @@ function updateFreshnessTimestamp(source) {
   el.textContent = `Actualizado ${date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
+function renderKitchenVelocity(data) {
+  const avgMinutes = Number(data?.kitchen_velocity?.avg_minutes ?? data?.avg_minutes ?? 0);
+  const avgEl = document.getElementById('kpi-kitchen-avg');
+  if (avgEl) avgEl.textContent = `${avgMinutes.toFixed(1)} min`;
+}
+
 function renderOverview(data) {
   const revenueTotal = data?.financial_summary?.daily_revenue?.total ?? 0;
   const revenueDelivery = data?.financial_summary?.daily_revenue?.delivery ?? 0;
@@ -61,8 +67,20 @@ function renderOverview(data) {
 
   const ordersCard = document.getElementById('kpi-active-orders-card');
   if (ordersCard) {
-    const status = activeOrders > 18 ? 'high' : 'low';
+    const status = activeOrders > 15 ? 'high' : 'low';
     ordersCard.setAttribute('data-status', status);
+    const badge = document.getElementById('kpi-active-orders-badge');
+    if (badge) {
+      if (status === 'high') {
+        badge.classList.remove('hidden');
+        badge.classList.add('kpi-orders-badge');
+        badge.textContent = 'Sobrecarga (>15)';
+      } else {
+        badge.classList.add('hidden');
+        badge.classList.remove('kpi-orders-badge');
+        badge.textContent = '';
+      }
+    }
   }
 
   const loadEl = document.getElementById('kpi-kitchen-load');
@@ -89,6 +107,16 @@ function renderOverview(data) {
     ghostEl.textContent = ghostWarning > 0 ? `${ghostWarning} mesas con inactividad` : 'Sin alertas';
   }
 
+  const hasAnyAlerts = (Array.isArray(lowStockItems) && lowStockItems.length)
+    || deliveryDelays > 0
+    || ghostWarning > 0;
+  const alertsContent = document.getElementById('kpi-alerts-content');
+  const alertsHealthy = document.getElementById('kpi-alerts-healthy');
+  if (alertsContent && alertsHealthy) {
+    alertsContent.classList.toggle('hidden', !hasAnyAlerts);
+    alertsHealthy.classList.toggle('hidden', hasAnyAlerts);
+  }
+
   const statusEl = document.getElementById('kpi-status-message');
   const warnings = Array.isArray(data?.warnings) ? data.warnings : [];
   if (statusEl) {
@@ -109,8 +137,18 @@ function renderOverview(data) {
 }
 
 async function loadOverview() {
-  const data = await fetchKpiJson('/api/kpi/v1/dashboard/overview');
-  renderOverview(data);
+  const [overviewRes, velocityRes] = await Promise.allSettled([
+    fetchKpiJson('/api/kpi/v1/dashboard/overview'),
+    fetchKpiJson('/api/kpi/v1/operations/kitchen-velocity')
+  ]);
+
+  if (overviewRes.status === 'fulfilled') {
+    renderOverview(overviewRes.value);
+  }
+
+  if (velocityRes.status === 'fulfilled') {
+    renderKitchenVelocity(velocityRes.value);
+  }
 }
 
 function clearRefresh() {

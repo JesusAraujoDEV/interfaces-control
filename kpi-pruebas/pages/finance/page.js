@@ -67,12 +67,32 @@ function renderRevenue(data) {
   return { delivery, dineIn };
 }
 
-function renderAov(data) {
-  const value = data?.average_ticket ?? data?.aov ?? data?.value ?? 0;
-  const aovEl = document.getElementById('kpi-aov');
-  if (aovEl) aovEl.textContent = formatCurrency(value);
-  setDot(document.getElementById('kpi-aov-dot'), data?.sources || data?.source);
-  return value;
+function renderEfficiency(totalRevenue, lostTotal, source) {
+  const denominator = Number(totalRevenue || 0) + Number(lostTotal || 0);
+  const percent = denominator ? Math.round((Number(totalRevenue || 0) / denominator) * 100) : 0;
+
+  const radial = document.getElementById('kpi-efficiency-radial');
+  if (radial) {
+    const deg = clamp(percent * 3.6, 0, 360);
+    let color = '#22c55e';
+    if (percent < 95) color = '#ef4444';
+    else if (percent < 98) color = '#f59e0b';
+    radial.style.background = `conic-gradient(${color} 0deg ${deg}deg, #e2e8f0 ${deg}deg 360deg)`;
+  }
+
+  const percentEl = document.getElementById('kpi-efficiency-percent');
+  if (percentEl) percentEl.textContent = `${percent}%`;
+
+  const labelEl = document.getElementById('kpi-efficiency-label');
+  if (labelEl) {
+    labelEl.textContent = `Has capturado el ${percent}% del potencial`;
+    labelEl.classList.remove('kpi-efficiency-good', 'kpi-efficiency-warn', 'kpi-efficiency-bad');
+    if (percent < 95) labelEl.classList.add('kpi-efficiency-bad');
+    else if (percent < 98) labelEl.classList.add('kpi-efficiency-warn');
+    else labelEl.classList.add('kpi-efficiency-good');
+  }
+
+  setDot(document.getElementById('kpi-efficiency-dot'), source);
 }
 
 function renderLostRevenue(data) {
@@ -101,9 +121,8 @@ function renderLostRevenue(data) {
 }
 
 async function loadAll() {
-  const [revenueRes, aovRes, lostRes] = await Promise.allSettled([
+  const [revenueRes, lostRes] = await Promise.allSettled([
     fetchKpiJson('/api/kpi/v1/financial/daily-revenue'),
-    fetchKpiJson('/api/kpi/v1/financial/aov'),
     fetchKpiJson('/api/kpi/v1/financial/lost-revenue')
   ]);
 
@@ -120,19 +139,16 @@ async function loadAll() {
     document.getElementById('kpi-revenue-dot')?.classList.add('kpi-dot--warn');
   }
 
-  if (aovRes.status === 'fulfilled') {
-    renderAov(aovRes.value);
-  } else {
-    document.getElementById('kpi-aov-card')?.classList.add('kpi-disabled');
-    document.getElementById('kpi-aov')?.classList.add('text-slate-400');
-  }
-
   if (lostRes.status === 'fulfilled') {
     lostTotal = renderLostRevenue(lostRes.value);
   } else {
     document.getElementById('kpi-lost-card')?.classList.add('kpi-disabled');
     document.getElementById('kpi-lost-total')?.classList.add('text-slate-400');
   }
+
+  const totalRevenue = Number(delivery || 0) + Number(dineIn || 0);
+  const efficiencySource = lostRes.status === 'fulfilled' ? lostRes.value?.sources : revenueRes.status === 'fulfilled' ? revenueRes.value?.sources : null;
+  renderEfficiency(totalRevenue, lostTotal, efficiencySource);
 
   updateInsights(delivery, dineIn, lostTotal);
 }

@@ -46,13 +46,21 @@
         </div>
       </article>
 
-      <article class="kpi-card" id="kpi-aov-card">
+      <article class="kpi-card" id="kpi-efficiency-card">
         <div class="flex items-center justify-between">
-          <div class="kpi-card-title">Ticket Promedio</div>
-          <span class="kpi-dot kpi-dot--cache" id="kpi-aov-dot" title="Dato en caché"></span>
+          <div class="kpi-card-title">Eficiencia de Ingresos</div>
+          <span class="kpi-dot kpi-dot--cache" id="kpi-efficiency-dot" title="Dato en caché"></span>
         </div>
-        <div class="mt-3 text-3xl font-extrabold" id="kpi-aov">$0</div>
-        <div class="mt-1 text-sm text-slate-500">Promedio por pedido</div>
+        <div class="mt-4 flex items-center gap-4">
+          <div class="kpi-radial kpi-efficiency-radial" id="kpi-efficiency-radial">
+            <div class="kpi-radial-center" id="kpi-efficiency-percent">0%</div>
+          </div>
+          <div>
+            <div class="text-sm text-slate-500">Has capturado el</div>
+            <div class="text-2xl font-extrabold" id="kpi-efficiency-label">0% del potencial</div>
+            <div class="mt-1 text-xs text-slate-400" id="kpi-efficiency-helper">Calculado con pérdidas del día.</div>
+          </div>
+        </div>
       </article>
     </section>
 

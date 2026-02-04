@@ -39,6 +39,7 @@
               <span class="kpi-dot kpi-dot--cache" id="kpi-orders-dot" title="Dato en caché"></span>
             </div>
             <div class="mt-3 text-3xl font-extrabold" id="kpi-active-orders">0</div>
+            <div class="mt-2 hidden" id="kpi-active-orders-badge"></div>
             <div class="mt-1 text-sm text-slate-500">Últimos minutos</div>
           </article>
 
@@ -55,6 +56,8 @@
               <div class="kpi-gauge-needle" id="kpi-kitchen-needle" style="transform: translateX(-50%) rotate(20deg);"></div>
               <div class="kpi-gauge-center"></div>
             </div>
+            <div class="mt-3 text-2xl font-extrabold" id="kpi-kitchen-avg">0 min</div>
+            <div class="mt-1 text-xs text-slate-500">Tiempo promedio cocina</div>
           </article>
         </div>
       </div>
@@ -63,7 +66,7 @@
         <article class="kpi-card">
           <div class="kpi-card-title">⚠️ Atención Inmediata</div>
           <div class="mt-3 kpi-subtext">Alertas operativas clave.</div>
-          <div class="mt-4 space-y-3">
+          <div class="mt-4 space-y-3" id="kpi-alerts-content">
             <div>
               <div class="text-sm font-semibold">Stock Crítico</div>
               <div class="mt-1 text-sm text-slate-600" id="kpi-low-stock">Sin alertas</div>
@@ -75,6 +78,15 @@
             <div>
               <div class="text-sm font-semibold">👻 Clientes Fantasma</div>
               <div class="mt-1 text-sm text-slate-600" id="kpi-ghost-warning">Sin alertas</div>
+            </div>
+          </div>
+          <div class="mt-6 hidden" id="kpi-alerts-healthy">
+            <div class="kpi-health-check">
+              <div class="kpi-health-icon">✔</div>
+              <div>
+                <div class="text-sm font-semibold text-emerald-700">Operación saludable</div>
+                <div class="text-xs text-emerald-600">Sin alertas críticas en este momento.</div>
+              </div>
             </div>
           </div>
         </article>

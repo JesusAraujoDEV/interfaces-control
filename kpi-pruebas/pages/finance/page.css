@@ -1,3 +1,21 @@
 .kpi-donut {
   flex-shrink: 0;
 }
+
+.kpi-efficiency-radial {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.kpi-efficiency-good {
+  color: #15803d;
+}
+
+.kpi-efficiency-warn {
+  color: #b45309;
+}
+
+.kpi-efficiency-bad {
+  color: #b91c1c;
+}
