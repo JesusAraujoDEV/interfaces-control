@@ -31,4 +31,19 @@
     }));
     return Object.fromEntries(entries);
   };
+
+  // Obtener detalle de usuario por ID desde Seguridad
+  // Devuelve el objeto de usuario del backend
+  window.AuthApi.getUserById = async function(id) {
+    const base = window.AuthApi.getBaseUrl();
+    if (!base) throw new Error('AUTH_URL no configurada');
+    if (!id && id !== 0) throw new Error('ID de usuario inválido');
+    try {
+      const resp = await window.HttpClient.request(`${base}/api/seguridad/users/${id}`);
+      return resp;
+    } catch (e) {
+      // Propagar el error para que el caller decida el fallback
+      throw e;
+    }
+  };
 })();

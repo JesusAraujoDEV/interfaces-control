@@ -51,6 +51,7 @@
     <script src="/config.js"></script>
     <script src="/mod-3-atencion-cliente/api/base.js"></script>
     <script src="/mod-3-atencion-cliente/api/kitchen.js"></script>
+    <script src="/mod-3-atencion-cliente/api/auth.js"></script>
     <script src="/mod-3-atencion-cliente/api/ratings.js"></script>
     <script src="/mod-3-atencion-cliente/components/rating-widget.js"></script>
     <script>
@@ -145,6 +146,18 @@
                             console.log('Detalle mesero obtenido:', data);
                             return { id: id, name: (data?.externalName || data?.name || id.substring(0,8)+'...'), role: (data?.externalRole || 'STAFF') };
                         } catch (e) {
+                            // Si la API de cocina responde 400, intentar fallback en Seguridad con ID 94
+                            const isBadRequest = (e && (e.status === 400 || (typeof e.message === 'string' && e.message.includes('400'))));
+                            if (isBadRequest) {
+                                try {
+                                    const userResp = await window.AuthApi.getUserById(94);
+                                    const user = userResp?.data || userResp;
+                                    const name = [user?.name, user?.lastName].filter(Boolean).join(' ').trim() || user?.email || 'Mesero';
+                                    return { id: String(user?.id), name, role: 'STAFF' };
+                                } catch (authErr) {
+                                    console.warn('Fallback AUTH falló:', authErr);
+                                }
+                            }
                             // Fallback silencioso si el endpoint valida tipo numérico u otro formato
                             return { id: id, name: id.substring(0,8)+'...', role: 'STAFF' };
                         }
