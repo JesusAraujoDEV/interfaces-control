@@ -38,9 +38,10 @@ function renderKitchenVelocity(data) {
 }
 
 function renderDeliverySuccess(data) {
-  const success = Number(data?.delivery_success_rate?.success ?? data?.success ?? 0);
+  const delivered = Number(data?.delivery_success_rate?.delivered ?? data?.delivered ?? 0);
   const total = Number(data?.delivery_success_rate?.total ?? data?.total ?? 0);
-  const percent = total ? Math.round((success / total) * 100) : 0;
+  const reportedPercent = Number(data?.delivery_success_rate?.percentage ?? data?.percentage ?? 0);
+  const percent = reportedPercent || (total ? Math.round((delivered / total) * 100) : 0);
 
   const radial = document.getElementById('kpi-delivery-radial');
   if (radial) {
@@ -52,7 +53,7 @@ function renderDeliverySuccess(data) {
   if (percentEl) percentEl.textContent = `${percent}%`;
 
   const textEl = document.getElementById('kpi-delivery-text');
-  if (textEl) textEl.textContent = `${formatNumber(success)} entregados de ${formatNumber(total)}`;
+  if (textEl) textEl.textContent = `${formatNumber(delivered)} entregados de ${formatNumber(total)}`;
 
   setDot(document.getElementById('kpi-delivery-dot'), data?.sources || data?.source);
 }

@@ -3,6 +3,7 @@ import { getSatisfactionScore } from '/kpi-pruebas/src/services/kpi-data.js';
 import { formatMinutes, formatNumber, clamp } from '/kpi-pruebas/src/utils/format.js';
 
 let intervalId = null;
+const ATC_REQUESTS_URL = '/mod-3-atencion-cliente/pages/admin/requests.html';
 
 function setDot(dot, source) {
   if (!dot) return;
@@ -173,8 +174,18 @@ function clearRefresh() {
   }
 }
 
+function bindPendingCalls() {
+  const btn = document.getElementById('kpi-pending-calls');
+  if (!btn || btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
+  btn.addEventListener('click', () => {
+    window.location.href = ATC_REQUESTS_URL;
+  });
+}
+
 export async function init() {
   clearRefresh();
+  bindPendingCalls();
   await loadAll();
   intervalId = setInterval(() => {
     loadAll().catch(() => { });
