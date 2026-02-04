@@ -154,6 +154,28 @@
       requestsGrid.innerHTML = cards;
     }
 
+    function getAuthBaseUrl() {
+      const cfg = window.__APP_CONFIG__;
+      const base = cfg?.AUTH_URL || '';
+      return base.replace(/\/$/, '');
+    }
+
+    async function fetchWaiterNamesByIds(ids = []) {
+      const base = getAuthBaseUrl();
+      if (!base || ids.length === 0) return {};
+      const entries = await Promise.all(ids.map(async (id) => {
+        try {
+          const resp = await window.HttpClient.request(`${base}/api/seguridad/users/${id}`);
+          const user = resp?.data || resp; // tolera variantes
+          const name = user?.fullName || user?.name || user?.username || user?.email || `Usuario ${id}`;
+          return [String(id), name];
+        } catch (_) {
+          return [String(id), `Usuario ${id}`];
+        }
+      }));
+      return Object.fromEntries(entries);
+    }
+
     async function loadRequestsData() {
       const requestsGrid = document.getElementById('requests-grid');
       if(requestsGrid.innerHTML === '') {
@@ -162,7 +184,14 @@
       try {
         const response = await window.ServiceRequestApi.getRequests(1, 20, requestStatusFilter);
         if (response.success && response.data.length > 0) {
-          requestsGrid.innerHTML = response.data.map(renderRequestCard).join('');
+          const data = response.data || [];
+          const waiterIds = Array.from(new Set(
+            data
+              .filter(r => r.waiter_id)
+              .map(r => String(r.waiter_id))
+          ));
+          const waiterNames = await fetchWaiterNamesByIds(waiterIds);
+          requestsGrid.innerHTML = data.map(r => renderRequestCard(r, waiterNames)).join('');
         } else {
           requestsGrid.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-400 bg-white rounded-lg border border-dashed border-gray-300">
@@ -179,7 +208,7 @@
       }
     }
 
-    function renderRequestCard(req) {
+    function renderRequestCard(req, waiterNames = {}) {
       const created = new Date(req.created_at || req.createdAt);
       const now = new Date();
       const diffMins = Math.floor((now - created) / 60000);
@@ -213,9 +242,10 @@
         `;
       } else {
         const attendedTime = req.attended_at ? new Date(req.attended_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--:--';
+        const waiterLabel = req.waiter_id ? (waiterNames[String(req.waiter_id)] || `Usuario ${req.waiter_id}`) : null;
         actionButton = `
           <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-center text-gray-400">
-            Atendido a las ${attendedTime}
+            Atendido a las ${attendedTime}${waiterLabel ? ` · por ${waiterLabel}` : ''}
           </div>
         `;
       }
