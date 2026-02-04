@@ -28,9 +28,26 @@ window.ServiceRequestApi = {
     // Marcar como atendido (PATCH)
     markAsAttended: async (requestId) => {
         const url = `${window.ServiceRequestApi.getBaseUrl()}/service-requests/${requestId}`;
+
+        // Intentar obtener el usuario administrativo (staff) del localStorage
+        let waiterId = undefined;
+        try {
+            const raw = localStorage.getItem('administrative_user');
+            if (raw) {
+                const adminUser = JSON.parse(raw);
+                // Estructura esperada: { id: 'uuid', ... }
+                waiterId = adminUser?.id || adminUser?.user?.id;
+            }
+        } catch (e) {
+            console.warn('No se pudo leer administrative_user:', e.message);
+        }
+
+        const payload = { status: 'ATTENDED' };
+        if (waiterId) payload.waiter_id = waiterId;
+
         const response = await window.HttpClient.request(url, {
             method: 'PATCH',
-            body: JSON.stringify({ status: 'ATTENDED' })
+            body: JSON.stringify(payload)
         });
         if(response.error) throw new Error(response.error);
         return response;
