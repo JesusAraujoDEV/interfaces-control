@@ -1,43 +1,174 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestión de Usuarios - Charlotte</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="/public/css/seguridad/usuarios.css" />
-    <%- include('../partials/inyectarHelpersCss.ejs') %>
-  </head>
-  <body class="bg-gray-50">
-    <div class="contenedor-dashboard">
-      
-        <%- include('../partials/aside.ejs') %>
 
-        <main class="contenido-principal w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-6">
-        
-        <div class="max-w-2xl w-full text-center bg-white p-10 rounded-xl shadow-sm border border-gray-100">
-            <div class="mb-6">
-                <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-blue-600" style="color: #1e4d35;">
-                    <i class="fa-solid fa-user-shield text-5xl"></i>
-                </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Usuarios - Charlotte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/public/css/seguridad/usuarios.css" />
+  <%- include('../partials/inyectarHelpersCss.ejs') %>
+    <style>
+      .atc-card {
+        display: block;
+        border: 1px solid rgb(226 232 240);
+        background: white;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        /* ligeramente más grande */
+        transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+      }
+
+      .atc-card:hover {
+        border-color: rgb(203 213 225);
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .atc-card-title {
+        font-weight: 800;
+        font-size: 1.125rem;
+        /* 18px */
+      }
+
+      .atc-card-desc {
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: rgb(71 85 105);
+      }
+
+      .atc-card-icon {
+        width: 2.75rem;
+        height: 2.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.9rem;
+        background: rgba(19, 83, 42, 0.08);
+        color: rgb(15, 74, 34);
+        margin-bottom: 0.75rem;
+        font-size: 1.25rem;
+      }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+  <div class="contenedor-dashboard">
+
+    <%- include('../partials/aside.ejs') %>
+
+      <main
+        class="contenido-principal flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto w-full page-enter text-[#0f172a]">
+        <header class="mb-6">
+          <div class="flex items-start gap-3">
+
+            <div class="flex-1 min-w-0">
+              <div class="inline-flex items-center gap-2 text-xs text-slate-500">
+                <a class="hover:text-slate-800" href="/admin">Admin</a>
+                <span aria-hidden="true">/</span>
+                <span class="text-slate-700">Seguridad</span>
+              </div>
+              <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold">Panel — Seguridad</h1>
+              <p class="mt-1 text-sm text-slate-600">Accesos rápidos a vistas operativas</p>
             </div>
+          </div>
+        </header>
 
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">Módulo de Seguridad</h1>
-            <p class="text-lg text-gray-500 mb-8 leading-relaxed">
-                Bienvenido al panel de administración de seguridad.
-            </p>
+        <section id="cards-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a class="atc-card" href="/seguridad/usuarios" id="enlace-usuarios">
+            <div class="atc-card-icon"><i class="fa-solid fa-user-group"></i></div>
+            <div class="atc-card-title">Usuarios</div>
+            <div class="atc-card-desc">Gestión de usuarios</div>
+          </a>
 
-            
-        </div>
+          <a class="atc-card" href="/seguridad/roles" id="enlace-roles">
+            <div class="atc-card-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <div class="atc-card-title">Roles</div>
+            <div class="atc-card-desc">Permisos por rol</div>
+          </a>
+
+          <a class="atc-card" href="/seguridad/permisos" id="enlace-permisos">
+            <div class="atc-card-icon"><i class="fa-solid fa-key"></i></div>
+            <div class="atc-card-title">Permisos</div>
+            <div class="atc-card-desc">Matrices de acceso</div>
+          </a>
+
+          <a class="atc-card" href="/seguridad/restaurante/coordenadas" id="enlace-coordenadas">
+            <div class="atc-card-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div class="atc-card-title">Restaurante Coordenadas</div>
+            <div class="atc-card-desc">Geolocalización</div>
+          </a>
+
+          <a class="atc-card" href="/seguridad/perfil/editar" id="enlace-mi-perfil">
+            <div class="atc-card-icon"><i class="fa-solid fa-gear"></i></div>
+            <div class="atc-card-title">Mi perfil</div>
+            <div class="atc-card-desc">Preferencias</div>
+          </a>
+        </section>
 
       </main>
-    </div>
-    <%- include('../partials/inyectarHelpersJs.ejs') %>
+  </div>
+  <%- include('../partials/inyectarHelpersJs.ejs') %>
     <!-- Todos los demas scripts despues de estos que se inyectan -->
-    
-  </body>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Apartado para logica de permisos
+        let mostrarUsuarios = false;
+        let mostrarRoles = false;
+        let mostrarPermisos = false;
+        let mostrarCoordenadas = false;
+        let mostrarPerfil = true;
+        const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+        const permissions = administrative_user ? administrative_user.permissions : [];
+
+        if (permissions.includes('KpiGerente_view')) {
+          mostrarUsuarios = true;
+          mostrarRoles = true;
+          mostrarPermisos = true;
+          mostrarCoordenadas = true;
+        }
+        if (permissions.includes('SeguridadPersonal_view')) {
+          mostrarUsuarios = true;
+          mostrarRoles = true;
+          mostrarPermisos = true;
+          mostrarCoordenadas = true;
+        }
+
+        if (administrative_user && administrative_user.isAdmin) {
+          mostrarUsuarios = true;
+          mostrarRoles = true;
+          mostrarPermisos = true;
+          mostrarCoordenadas = true;
+        }
+
+
+        // Seleccionamos cada enlace específicamente por su destino (href)
+        const linkUsuarios = document.getElementById('enlace-usuarios');
+        const linkRoles = document.getElementById('enlace-roles');
+        const linkPermisos = document.getElementById('enlace-permisos');
+        const linkCoordenadas = document.getElementById('enlace-coordenadas');
+        const linkPerfil = document.getElementById('enlace-mi-perfil');
+
+        // Ocultar enlaces según permisos
+        if (!mostrarUsuarios) {
+          if (linkUsuarios) linkUsuarios.remove();
+        }
+        if (!mostrarRoles) {
+          if (linkRoles) linkRoles.remove();
+        }
+        if (!mostrarPermisos) {
+          if (linkPermisos) linkPermisos.remove();
+        }
+        if (!mostrarCoordenadas) {
+          if (linkCoordenadas) linkCoordenadas.remove();
+        }
+        if (!mostrarPerfil) {
+          if (linkPerfil) linkPerfil.remove();
+        }
+
+      });
+    </script>
+</body>
+
 </html>

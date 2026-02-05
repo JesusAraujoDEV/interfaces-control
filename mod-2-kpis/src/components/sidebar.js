@@ -12,6 +12,7 @@ const NAV = [
     description: "Resumen de indicadores",
     href: "/mod-2-kpis/src/public/dashboard.html",
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"/></svg>`,
+    id: 'enlace-dashboard'
   },
   {
     key: "chef",
@@ -19,6 +20,7 @@ const NAV = [
     description: "Platos más vendidos",
     href: "/mod-2-kpis/src/public/chef-dashboard.html",
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`,
+    id: 'enlace-chef'
   },
   {
     key: "reportes",
@@ -26,6 +28,7 @@ const NAV = [
     description: "Business Intelligence",
     href: "/mod-2-kpis/src/public/bussines-intelligence.html",
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>`,
+    id: 'enlace-reportes'
   },
   {
     key: "ventas",
@@ -33,6 +36,7 @@ const NAV = [
     description: "Graficación de ventas",
     href: "/mod-2-kpis/src/public/ventas.html",
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0Z"/><path d="M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>`,
+    id: 'enlace-ventas'
   },
   {
     key: "eficiencia",
@@ -40,6 +44,7 @@ const NAV = [
     description: "Tiempos operativos",
     href: "/mod-2-kpis/src/public/eficiencia-operacional.html",
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    id: 'enlace-eficiencia'
   },
   {
     key: 'alertas',
@@ -47,7 +52,8 @@ const NAV = [
     description: 'Historial de avisos',
     href: '#',
     onclick: 'showAlertsHistory()',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+    id: 'enlace-alertas'
   }
 ];
 
@@ -329,7 +335,7 @@ export function mountKpiSidebar() {
         isActive
           ? "bg-brand-50 text-brand-800 border-brand-50"
           : "text-slate-700 hover:bg-slate-50 border-transparent"
-      }">
+      }" id="${item.id ? item.id : ''}">
         <div class="mt-0.5 ${isActive ? "text-brand-800" : "text-slate-500 group-hover:text-slate-700"}">${item.icon}</div>
         <div class="min-w-0 kpi-nav-text">
           <div class="text-sm font-semibold leading-5">${item.label}</div>
@@ -388,5 +394,69 @@ export function mountKpiSidebar() {
         writeCollapsedPref(next);
       }
     }
+  });
+
+  // Permisos
+  document.addEventListener('DOMContentLoaded', () => {
+    // Apartado para logica de permisos
+    let mostrarDashboard = false;
+    let mostrarDashboardChef = false;
+    let mostrarReportes = false;
+    let mostrarVentas = false;
+    let mostrarEficiencia = false;
+    let mostrarAlertas = false;
+    const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+    const permissions = administrative_user ? administrative_user.permissions : [];
+
+    if (permissions.includes('KpiGerente_view')) {
+      mostrarDashboard = true;
+      mostrarDashboardChef = true;
+      mostrarReportes = true;
+      mostrarVentas = true;
+      mostrarEficiencia = true;
+      mostrarAlertas = true;
+    }
+    if (permissions.includes('CocinaChef_view')) {
+      mostrarDashboardChef = true;
+    }
+    
+    if (administrative_user && administrative_user.isAdmin) {
+      mostrarDashboard = true;
+      mostrarDashboardChef = true;
+      mostrarReportes = true;
+      mostrarVentas = true;
+      mostrarEficiencia = true;
+      mostrarAlertas = true;
+    }
+
+
+    // Seleccionamos cada enlace específicamente por su destino (href)
+    const linkDashboard = document.getElementById('enlace-dashboard');
+    const linkChef = document.getElementById('enlace-chef');
+    const linkReportes = document.getElementById('enlace-reportes');
+    const linkVentas = document.getElementById('enlace-ventas');
+    const linkEficiencia = document.getElementById('enlace-eficiencia');
+    const linkAlertas = document.getElementById('enlace-alertas');
+
+    // Ocultar enlaces según permisos
+    if (!mostrarDashboard) {
+      if (linkDashboard) linkDashboard.remove();
+    }
+    if (!mostrarDashboardChef) {
+      if (linkChef) linkChef.remove();
+    }
+    if (!mostrarReportes) {
+      if (linkReportes) linkReportes.remove();
+    }
+    if (!mostrarVentas) {
+      if (linkVentas) linkVentas.remove();
+    }
+    if (!mostrarEficiencia) {
+      if (linkEficiencia) linkEficiencia.remove();
+    }
+    if (!mostrarAlertas) {
+      if (linkAlertas) linkAlertas.remove();
+    }
+
   });
 }

@@ -9,8 +9,8 @@ const apiUrl = SEGURIDAD_CONFIG.URL_BASE_API_SEGURIDAD;
 const createSeguridadRouter = () => {
   const router = Router();
   router.use((req, res, next) => {
-    if (req.user) {
-      res.locals.user = req.user;
+    if (req.user_administrative) {
+      res.locals.user = req.user_administrative;
     }
     next();
   });

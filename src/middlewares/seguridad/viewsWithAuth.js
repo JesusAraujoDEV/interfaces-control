@@ -6,21 +6,21 @@ const viewsWithAuth = async (req, res, next) => {
   if (access_token) {
     try {
       const decoded = verifyToken(access_token);
-      req.user = decoded;
+      req.user_administrative = decoded;
     } catch (error) {
-      req.user = null;
+      req.user_administrative = null;
     }
   }
   let isValidToken = false;
-  if (req.user) {
-      const role = req.user.role
+  if (req.user_administrative) {
+      const role = req.user_administrative.role
       isValidToken = !(role && (role === 'GUEST'));
   }
   // Si ruta path termina con / lo eliminamos
   const rutaSolicitada = req.path.replace(/\/$/, "");
 
   if (rutaSolicitada === "/seguridad/login") {
-    if (req.user) {
+    if (req.user_administrative) {
       return res.redirect("/admin");
     }
   }
@@ -35,7 +35,7 @@ const viewsWithAuth = async (req, res, next) => {
   if (!rutasProtegidas.includes(rutaSolicitada)) {
     return next();
   }
-  if (!req.user || !isValidToken) {
+  if (!req.user_administrative || !isValidToken) {
     return res.redirect(`/seguridad/login?redirect=${encodeURIComponent(req.originalUrl)}`);
   }
   next();

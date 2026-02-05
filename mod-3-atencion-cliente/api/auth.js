@@ -1,80 +1,49 @@
 
-/*
-window.AuthApi = {
-    // Getter para la URL base de AUTENTICACIÓN
-    getBaseUrl: () => {
-        const config = window.__APP_CONFIG__;
-        // Usamos AUTH_URL, no ATC_URL
-        const baseUrl = config?.AUTH_URL; 
+// Exponer utilidades de Autenticación/Seguridad en window.AuthApi
+(function(){
+  window.AuthApi = window.AuthApi || {};
 
-        if (!baseUrl) {
-            console.error("⚠️ AUTH_URL no está configurada en __APP_CONFIG__");
-        }
-
-        return baseUrl.replace(/\/$/, '');
-    },
-
-    //Realiza el login y guarda el token.
-    login: async (username, password) => {
-        const baseUrl = window.AuthApi.getBaseUrl();
-        const endpoint = '/api/seguridad/auth/login';
-        const url = `${baseUrl}${endpoint}`;
-
-        const body = JSON.stringify({ username, password });
-
-        // Usamos el cliente núcleo
-        const response = await window.HttpClient.request(url, {
-            method: 'POST',
-            body: body
-        });
-
-        // ASUMIENDO que tu backend devuelve { token: "..." } o { data: { token: "..." } }
-        // Ajusta esta línea según la respuesta exacta de tu backend
-        const token = response.token || response.data?.token;
-
-        if (token) {
-            localStorage.setItem('access_token', token);
-            console.log('✅ Login exitoso, token guardado.');
-        } else {
-            throw new Error('No se recibió token del servidor');
-        }
-
-        return response;
-    },
-
-    logout: () => {
-        localStorage.removeItem('access_token');
-        window.location.href = '/';
-    },
-
-    hasPermission: async (resource, method) => {
-        const baseUrl = window.AuthApi.getBaseUrl();
-        const url = `${baseUrl}/api/seguridad/auth/hasPermission`;
-
-        try {
-            const response = await window.HttpClient.request(url, {
-                method: 'POST',
-                body: JSON.stringify({
-                    resource: resource, // Ej: "TableManagement_view"
-                    method: method      // Ej: "View"
-                })
-            });
-
-            // Asumimos que el backend responde: { "hasPermission": true/false }
-            return response.hasPermission === true;
-        } catch (error) {
-            console.error("Error verificando permisos:", error);
-            return false; // Ante la duda, denegar acceso.
-        }
-    },
-
-    verify_location: async (latitude, longitude) => {
-
-        const baseUrl = window.AuthApi.getBaseUrl();
-        return window.HttpClient.request(`${baseUrl}/api/seguridad/auth/verify-location`, { 
-            method: 'POST',
-            body: JSON.stringify({ latitude, longitude })
-        });
+  // Getter para la URL base de AUTENTICACIÓN (AUTH_URL)
+  window.AuthApi.getBaseUrl = function() {
+    const config = window.__APP_CONFIG__;
+    const baseUrl = config?.AUTH_URL || '';
+    if (!baseUrl) {
+      console.error('⚠️ AUTH_URL no está configurada en __APP_CONFIG__');
     }
-};
-*/
+    return baseUrl.replace(/\/$/, '');
+  };
+
+  // Obtener nombres de usuarios por IDs desde Seguridad
+  // Devuelve un mapa { [id: string]: nombre }
+  window.AuthApi.fetchWaiterNamesByIds = async function(ids = []) {
+    const base = window.AuthApi.getBaseUrl();
+    if (!base || !Array.isArray(ids) || ids.length === 0) return {};
+    const entries = await Promise.all(ids.map(async (id) => {
+      try {
+        const resp = await window.HttpClient.request(`${base}/api/seguridad/users/${id}`);
+        const user = resp?.data || resp;
+        const nameLast = [user?.name, user?.lastName].filter(Boolean).join(' ').trim();
+        const label = nameLast || user?.email || `Usuario ${id}`;
+        return [String(id), label];
+      } catch (_) {
+        return [String(id), `Usuario ${id}`];
+      }
+    }));
+    return Object.fromEntries(entries);
+  };
+
+  // Obtener detalle de usuario por ID desde Seguridad
+  // Devuelve el objeto de usuario del backend
+  window.AuthApi.getUserById = async function(id) {
+    const base = window.AuthApi.getBaseUrl();
+    if (!base) throw new Error('AUTH_URL no configurada');
+    if (!id && id !== 0) throw new Error('ID de usuario inválido');
+    try {
+      const resp = await window.HttpClient.request(`${base}/api/seguridad/users/${id}`);
+      return resp;
+    } catch (e) {
+      // Propagar el error para que el caller decida el fallback
+      throw e;
+    }
+  };
+})();
