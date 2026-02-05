@@ -168,7 +168,8 @@ async function fetchTasks() {
         const list = Array.isArray(data) ? data : [];
         
         // Filter strictly for READY tasks (client side safeguard)
-        state.tasks = list.filter(t => t.status === 'READY');
+        // Dispatch view is for dine-in only; delivery/pickup should not appear here
+        state.tasks = list.filter(t => t.status === 'READY' && t.serviceMode === 'DINE_IN');
         
         render();
     } catch (e) {
@@ -239,10 +240,11 @@ async function executeAction(action, staff) {
 
     await Promise.all(promises);
 
-    // Notificar atribución de mesero a Atención al Cliente
+    // Notificar atribución de mesero a Atención al Cliente (solo pedidos ATC)
     try {
+        const isAtcOrder = tasks.some(t => t.sourceModule === 'AC_MODULE');
         const ATC_URL = window.__APP_CONFIG__?.ATC_URL?.replace(/\/$/, '') || '';
-        if (ATC_URL) {
+        if (isAtcOrder && ATC_URL) {
             await fetch(`${ATC_URL}/api/v1/atencion-cliente/kitchen/waiter-interaction`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
