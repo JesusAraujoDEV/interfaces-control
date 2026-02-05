@@ -349,6 +349,17 @@
             });
           }
 
+          // Update operations KPIs
+          const ops = summary.operations || {};
+          console.log('Operations data in loadDashboard:', ops); // Debug log
+          const avgTimeEls = [
+            document.getElementById("kpi-avg-time"),
+          ];
+          if (ops.avg_service_time && ops.avg_service_time !== "")
+            avgTimeEls.forEach((e) => {
+              if (e) e.textContent = ops.avg_service_time;
+            });
+
           // Store global data for chart switching
           globalSalesData = chartData;
           
@@ -1036,6 +1047,7 @@
 
           // Update operations KPIs
           const ops = summary.operations || {};
+          console.log('Operations data:', ops); // Debug log
           const avgTimeEls = [
             document.getElementById("kpi-avg-time"),
           ];
@@ -1045,7 +1057,7 @@
           const rotationStatusEls = [
             document.getElementById("kpi-rotation-target"),
           ];
-          if (ops.avg_service_time)
+          if (ops.avg_service_time && ops.avg_service_time !== "")
             avgTimeEls.forEach((e) => {
               if (e) e.textContent = ops.avg_service_time;
             });
@@ -1308,6 +1320,19 @@
             console.log('API Response for', period, ':', chartJson);
             globalSalesData = chartJson.data || chartJson || {};
             console.log('Global sales data:', globalSalesData);
+            
+            // Debug: Log labels and datasets for day period
+            if (period === 'day' && globalSalesData.labels && globalSalesData.datasets) {
+              console.log('Day period - Labels:', globalSalesData.labels);
+              console.log('Day period - Datasets:', globalSalesData.datasets);
+              
+              // Check for early morning data
+              const earlyMorningLabels = globalSalesData.labels.filter(label => 
+                label.includes('7') || label.includes('8') || label.includes('9') || label.includes('10')
+              );
+              console.log('Early morning labels found:', earlyMorningLabels);
+            }
+            
             renderNewChart(globalSalesData);
           } else {
             console.error('API Response not ok for', period, ':', response.status, response.statusText);
@@ -1365,11 +1390,33 @@
       function formatLabelForPeriod(label, period) {
         if (!label) return '';
         
-        // For day period, show hours (extract time from labels like "2024-01-15 14:00")
+        // For day period, show hours (extract time from labels like "2024-01-15 14:00" or "14:00")
         if (period === 'day') {
           if (label.includes(':')) {
-            return label.split(' ')[1] || label;
+            // Handle both "YYYY-MM-DD HH:MM" and "HH:MM" formats
+            const timePart = label.includes(' ') ? label.split(' ')[1] : label;
+            
+            // Ensure we have a clean time format like "14:00"
+            if (timePart && timePart.includes(':')) {
+              const [hours, minutes] = timePart.split(':');
+              const hour = parseInt(hours, 10);
+              
+              // Validate hour is within expected range (7-23)
+              if (!isNaN(hour) && hour >= 7 && hour <= 23) {
+                return `${hour}:00`;
+              }
+            }
+            
+            // Fallback: return the time part as is
+            return timePart;
           }
+          
+          // If label is just a number, treat it as an hour
+          const hourNum = parseInt(label, 10);
+          if (!isNaN(hourNum) && hourNum >= 7 && hourNum <= 23) {
+            return `${hourNum}:00`;
+          }
+          
           return label;
         }
         
@@ -1493,6 +1540,11 @@
           apiLabels.forEach((apiLabel, index) => {
             const formattedApiLabel = formatLabelForPeriod(apiLabel, currentChartPeriod);
             const completeIndex = labels.findIndex(label => label === formattedApiLabel);
+            
+            // Debug logging for early morning hours (7AM-10AM)
+            if (formattedApiLabel && (formattedApiLabel.includes('7:') || formattedApiLabel.includes('8:') || formattedApiLabel.includes('9:') || formattedApiLabel.includes('10:'))) {
+              console.log(`Mapping early hour: API Label="${apiLabel}" -> Formatted="${formattedApiLabel}" -> Index=${completeIndex} -> Value=${dataset.data[index]}`);
+            }
             
             if (completeIndex !== -1 && index < dataset.data.length) {
               mappedData[completeIndex] = dataset.data[index];

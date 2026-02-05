@@ -303,7 +303,7 @@
         <div style="flex: 1; min-width: 0;">
             <div class="chart-container">
                 <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-dark);">
-                    📊 Distribución de Ventas (Pareto)
+                    📊 Cantidad Vendida por Producto (Pareto)
                 </h2>
                 <div style="height: 300px; position: relative;">
                     <canvas id="pareto-chart"></canvas>
@@ -414,7 +414,7 @@
             const ctx = document.getElementById('pareto-chart').getContext('2d');
             
             const labels = data.map(item => item.name);
-            const revenues = data.map(item => item.revenue_generated);
+            const quantities = data.map(item => item.quantity_sold);
             const cumulative = data.map(item => item.cumulative_percentage);
             
             if (paretoChart) {
@@ -427,8 +427,8 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Ingresos',
-                            data: revenues,
+                            label: 'Cantidad Vendida',
+                            data: quantities,
                             backgroundColor: 'rgba(19, 83, 42, 0.8)',
                             borderColor: 'rgba(19, 83, 42, 1)',
                             borderWidth: 1,
@@ -460,7 +460,7 @@
                             position: 'left',
                             title: {
                                 display: true,
-                                text: 'Ingresos ($)'
+                                text: 'Cantidad Vendida (unidades)'
                             }
                         },
                         y1: {
@@ -486,7 +486,7 @@
                             callbacks: {
                                 label: function(context) {
                                     if (context.datasetIndex === 0) {
-                                        return `Ingresos: ${formatCurrency(context.raw)}`;
+                                        return `Cantidad: ${context.raw} unidades`;
                                     } else {
                                         return `Acumulado: ${context.raw.toFixed(1)}%`;
                                     }
