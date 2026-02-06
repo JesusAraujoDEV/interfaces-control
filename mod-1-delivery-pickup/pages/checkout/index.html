@@ -258,6 +258,7 @@
           </div>
 
           <!-- Cancellation Policy Checkbox -->
+          <button type="button" class="policy-link" data-terms-trigger data-payment="digital">📄 Leer Términos y Condiciones del Servicio</button>
           <div id="policyCheckboxContainer" class="policy-container">
             <div class="policy-box">
               <div class="policy-header">
@@ -271,9 +272,8 @@
               <label class="policy-label">
                 <input type="checkbox" id="policyCheckboxDigital" class="policy-checkbox" />
                 <span class="policy-text">
-                  Entiendo y acepto que <strong>una vez procesado el pedido, no se admiten cancelaciones ni
-                    reembolsos</strong> bajo ninguna circunstancia.
-                </span>
+                Entiendo y acepto los términos y condiciones, reconociendo que <strong>una vez procesado el pedido, no se admiten cancelaciones ni reembolsos</strong> bajo ninguna circunstancia.
+              </span>
               </label>
             </div>
           </div>
@@ -322,13 +322,13 @@
           </div>
 
           <!-- Cancellation Policy Checkbox -->
+          <button type="button" class="policy-link" data-terms-trigger data-payment="cash">📄 Leer Términos y Condiciones del Servicio</button>
           <div class="mt-4 policy-container">
             <div class="policy-box">
               <label class="policy-label">
                 <input type="checkbox" id="policyCheckboxCash" class="policy-checkbox" />
                 <span class="policy-text">
-                  Entiendo y acepto que <strong>una vez procesado el pedido, no se admiten cancelaciones ni
-                    reembolsos</strong> bajo ninguna circunstancia.
+                  Entiendo y acepto los términos y condiciones, reconociendo que <strong>una vez procesado el pedido, no se admiten cancelaciones ni reembolsos</strong> bajo ninguna circunstancia.
                 </span>
               </label>
             </div>
@@ -339,6 +339,33 @@
             <button id="pcConfirm" type="button" class="btn-confirm" disabled>
               <span class="btn-confirm-icon">✓</span>
               <span>Confirmar Pedido</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms & Conditions Modal -->
+  <div id="termsModal" class="hidden fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle">
+    <div id="termsModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 border border-gray-200 overflow-hidden">
+        <div class="p-6 max-h-[80vh] overflow-y-auto terms-scroll">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 id="termsModalTitle" class="text-lg font-extrabold text-gray-900">Términos y Condiciones de Servicio</h2>
+              <p id="termsModalSubtitle" class="mt-1 text-sm text-gray-600">—</p>
+            </div>
+            <button id="termsModalClose" type="button" class="text-sm text-gray-600 hover:text-gray-900">Cerrar</button>
+          </div>
+
+          <div id="termsModalContent" class="mt-5 space-y-4 text-sm text-gray-700"></div>
+
+          <div class="mt-6 flex justify-end">
+            <button id="termsModalOk" type="button" class="btn-confirm">
+              <span class="btn-confirm-icon">✓</span>
+              <span>Entendido</span>
             </button>
           </div>
         </div>

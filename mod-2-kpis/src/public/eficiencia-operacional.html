@@ -11,6 +11,110 @@
     <link rel="stylesheet" href="/styles/tailwind.css" />
     <link rel="stylesheet" href="/shared/styles/global.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .dashboard-main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .meta-sections-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .dashboard-main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Estilos para CSAT */
+        .kpi-csat-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            .kpi-csat-layout {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+                align-items: center;
+            }
+        }
+
+        .kpi-csat-bars {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .kpi-csat-row {
+            display: grid;
+            grid-template-columns: 26px 1fr 36px;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: rgb(71 85 105);
+        }
+
+        .kpi-csat-bar {
+            height: 8px;
+            border-radius: 9999px;
+            background: rgb(226 232 240);
+            overflow: hidden;
+        }
+
+        .kpi-csat-bar span {
+            display: block;
+            height: 100%;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #0f4a22, #22c55e);
+        }
+
+        /* Estilos para kpi-dot */
+        .kpi-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .kpi-dot--live {
+            background-color: #22c55e;
+            animation: kpiPulse 2s infinite;
+        }
+
+        .kpi-dot--cache {
+            background-color: #6b7280;
+        }
+
+        .kpi-card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Estilos para tiempo de servicio */
+        .kpi-service-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        #kpi-pending-calls.kpi-blink {
+            animation: kpiPulse 1s infinite;
+        }
+
+        @keyframes kpiPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
             <header class="header-top">
@@ -34,7 +138,13 @@
                       align-items: center;
                       gap: 8px;
                     ">
-                  <span id="header-date">Cargando fecha...</span>
+                  <input type="date" id="date-picker" style="
+                        border: none;
+                        background: transparent;
+                        font-size: 0.875rem;
+                        color: inherit;
+                        cursor: pointer;
+                      ">
                 </div>
             </header>
 
@@ -57,6 +167,7 @@
                             <th class="px-4 py-2 text-left">Nombre</th>
                             <th class="px-4 py-2 text-left">Pedidos Totales</th>
                             <th class="px-4 py-2 text-left">Tiempo Promedio</th>
+                            <th class="px-4 py-2 text-left">Puntuación de Eficiencia</th>
                             <th class="px-4 py-2 text-left">Estado</th>
                         </tr>
                     </thead>
@@ -69,22 +180,78 @@
                 </div>
             </div>
 
-                <section class="meta-section">
-                    <h2 class="card__title text-xl font-bold" style="color: var(--primary-color);">Meta de Rotación</h2>
-                    <div class="card gauge-container bg-white p-4 rounded-lg shadow-md">
-                        <div class="gauge-placeholder">
-                            <div class="gauge-placeholder__fill"></div>
+                <div class="meta-sections-container">
+                    <section class="meta-section">
+                        <h2 class="card__title text-xl font-bold" style="color: var(--primary-color);">Ticket Promedio</h2>
+                        <div class="card bg-white p-4 rounded-lg shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-3xl font-bold text-emerald-600" id="average-ticket">Cargando...</p>
+                                    <p class="text-sm text-gray-600 mt-1">Valor promedio por pedido</p>
+                                </div>
+                                <div class="text-right">
+                                    <div id="ticket-trend" class="flex items-center justify-end">
+                                        <!-- Trend indicator will be inserted here -->
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">USD</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Total de ingresos:</span>
+                                    <span class="font-semibold text-gray-800" id="total-revenue">Cargando...</span>
+                                </div>
+                                <div class="flex justify-between text-sm mt-2">
+                                    <span class="text-gray-600">Total de pedidos:</span>
+                                    <span class="font-semibold text-gray-800" id="total-orders">Cargando...</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Ganancias por categoría -->
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h3 class="text-sm font-semibold text-gray-700 mb-3">Ganancias por Estado</h3>
+                                <div id="revenue-by-category" class="space-y-2">
+                                    <!-- Las categorías se insertarán aquí dinámicamente -->
+                                </div>
+                            </div>
                         </div>
-                        <p class="gauge-container__value text-2xl font-bold mt-2" id="current-value">Cargando...</p>
-                        <p class="gauge-container__label text-sm text-gray-600">Rotación Actual</p>
-                        <p style="font-size: 0.875rem; margin-top: calc(var(--spacing-unit) * 3.75); /* 15px */ color: var(--text-muted);">
-                            <span class="dot dot--danger" style="width: calc(var(--spacing-unit) * 1.5); /* 6px */ height: calc(var(--spacing-unit) * 1.5); /* 6px */"></span> Meta: <span id="target-value">Cargando...</span>
-                        </p>
-                        <button id="update-target-btn" class="btn-outline" style="margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */">
-                            ⚙️ Actualizar Meta
-                        </button>
-                    </div>
-                </section>
+                    </section>
+
+                    <section class="meta-section">
+                        <h2 class="card__title text-xl font-bold" style="color: var(--primary-color);">Satisfacción del Cliente</h2>
+                        <div class="card bg-white p-4 rounded-lg shadow-md" id="kpi-csat-card">
+                            <div class="flex items-center justify-between">
+                                <div class="kpi-card-title">CSAT Score</div>
+                                <span class="kpi-dot kpi-dot--cache" id="kpi-csat-dot" title="Dato en caché"></span>
+                            </div>
+                            <div class="mt-4 kpi-csat-layout">
+                                <div>
+                                    <div class="text-3xl font-extrabold" id="kpi-csat-average">0.0 ⭐</div>
+                                    <div class="mt-1 text-sm text-slate-500" id="kpi-csat-count">Basado en 0 opiniones</div>
+                                    <div class="mt-3 text-xs text-slate-400 hidden" id="kpi-csat-empty">Sin calificaciones en este periodo.</div>
+                                </div>
+                                <div class="kpi-csat-bars" id="kpi-csat-bars"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="meta-section">
+                        <h2 class="card__title text-xl font-bold" style="color: var(--primary-color);">Meta de Rotación</h2>
+                        <div class="card gauge-container bg-white p-4 rounded-lg shadow-md">
+                            <div class="gauge-placeholder">
+                                <div class="gauge-placeholder__fill"></div>
+                            </div>
+                            <p class="gauge-container__value text-2xl font-bold mt-2" id="current-value">Cargando...</p>
+                            <p class="gauge-container__label text-sm text-gray-600">Rotación Actual</p>
+                            <p style="font-size: 0.875rem; margin-top: calc(var(--spacing-unit) * 3.75); /* 15px */ color: var(--text-muted);">
+                                <span class="dot dot--danger" style="width: calc(var(--spacing-unit) * 1.5); /* 6px */ height: calc(var(--spacing-unit) * 1.5); /* 6px */"></span> Meta: <span id="target-value">Cargando...</span>
+                            </p>
+                            <button id="update-target-btn" class="btn-outline" style="margin-top: calc(var(--spacing-unit) * 2.5); /* 10px */">
+                                ⚙️ Actualizar Meta
+                            </button>
+                        </div>
+                    </section>
+                </div>
             </div>
     <script>
         // Función para obtener la meta desde LocalStorage o usar la predeterminada
@@ -181,10 +348,106 @@
             });
         }
 
+    // Función para obtener datos del ticket promedio
+    async function fetchAverageTicket() {
+        try {
+            const dateEl = document.getElementById('date-picker');
+            const selectedDate = dateEl ? new Date(dateEl.value) : new Date();
+            const date = new Date(selectedDate).toISOString().split('T')[0];
+            // Get previous day
+            let previousDate = new Date(selectedDate);
+            previousDate.setDate(selectedDate.getDate() - 1);
+            previousDate = previousDate.toISOString().split('T')[0]
+            
+            const response = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/dashboard/summary?date=${date}&quarterly_start_date=${previousDate}`);
+            if (!response.ok) throw new Error('Error en la API');
+            const data = await response.json();
+            
+            if (data.success && data.data && data.data.revenue) {
+                const revenue = data.data.revenue;
+                
+                // Actualizar ticket promedio
+                const avgTicketEl = document.getElementById('average-ticket');
+                if (avgTicketEl) {
+                    avgTicketEl.textContent = `$${revenue.average_ticket.toFixed(2)}`;
+                }
+                
+                // Actualizar tendencia
+                const trendEl = document.getElementById('ticket-trend');
+                if (trendEl) {
+                    const trendIcon = revenue.trend_direction === 'up' ? '📈' : '📉';
+                    const trendColor = revenue.trend_direction === 'up' ? 'text-green-600' : 'text-red-600';
+                    trendEl.innerHTML = `
+                        <span class="${trendColor} font-semibold text-sm">
+                            ${trendIcon} ${revenue.trend_percentage.toFixed(1)}%
+                        </span>
+                    `;
+                }
+                
+                // Actualizar ingresos totales
+                const totalRevenueEl = document.getElementById('total-revenue');
+                if (totalRevenueEl) {
+                    totalRevenueEl.textContent = `$${revenue.total.toFixed(2)}`;
+                }
+                
+                // Calcular y mostrar total de pedidos
+                const totalOrdersEl = document.getElementById('total-orders');
+                if (totalOrdersEl) {
+                    let totalOrders = 0;
+                    if (revenue.status_distribution) {
+                        Object.values(revenue.status_distribution).forEach(status => {
+                            totalOrders += status.orders || 0;
+                        });
+                    }
+                    totalOrdersEl.textContent = totalOrders.toString();
+                }
+                
+                // Mostrar ganancias por categoría
+                const categoryEl = document.getElementById('revenue-by-category');
+                if (categoryEl && revenue.status_distribution) {
+                    const statusColors = {
+                        'DELIVERED': { bg: 'bg-green-50', text: 'text-green-700', bar: 'bg-green-500', label: 'Entregados' },
+                        'PENDING': { bg: 'bg-yellow-50', text: 'text-yellow-700', bar: 'bg-yellow-500', label: 'Pendientes' },
+                        'CANCELLED': { bg: 'bg-red-50', text: 'text-red-700', bar: 'bg-red-500', label: 'Cancelados' }
+                    };
+                    
+                    categoryEl.innerHTML = Object.entries(revenue.status_distribution).map(([status, data]) => {
+                        const colors = statusColors[status] || { bg: 'bg-gray-50', text: 'text-gray-700', bar: 'bg-gray-500', label: status };
+                        return `
+                            <div class="${colors.bg} ${colors.text} p-3 rounded-lg border border-opacity-20 border-current">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-semibold uppercase">${colors.label}</span>
+                                    <span class="text-xs font-bold">${data.percentage.toFixed(1)}%</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs">${data.orders} pedidos</span>
+                                    <span class="text-xs font-bold">$${data.revenue.toFixed(2)}</span>
+                                </div>
+                                <div class="w-full bg-white/50 h-1.5 rounded-full overflow-hidden">
+                                    <div class="${colors.bar} h-full transition-all duration-300" style="width: ${data.percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error al cargar datos del ticket promedio:', error);
+            // Valores por defecto en caso de error
+            document.getElementById('average-ticket').textContent = 'No disponible';
+            document.getElementById('total-revenue').textContent = 'No disponible';
+            document.getElementById('total-orders').textContent = 'No disponible';
+            document.getElementById('ticket-trend').innerHTML = '<span class="text-gray-400 text-sm">Sin datos</span>';
+            document.getElementById('revenue-by-category').innerHTML = '<p class="text-gray-400 text-sm text-center">No hay datos disponibles</p>';
+        }
+    }
+
     // Función para hacer fetch a la API
     async function fetchRotationData() {
         try {
-            const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking');
+            const dateEl = document.getElementById('date-picker');
+            const date = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+            const response = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking`);
             if (!response.ok) throw new Error('Error en la API');
             const data = await response.json();
             const target = getTargetRotation(); // Obtener la meta desde LocalStorage
@@ -223,12 +486,127 @@
             return current_status === 'Activo' ? 'active' : 'rest';
         }
 
+    // --- Funciones para CSAT (Satisfacción del Cliente) ---
+    function formatNumber(num) {
+        return new Intl.NumberFormat('es-ES').format(num);
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    function setDot(dot, source) {
+        if (!dot) return;
+        // Manejar la estructura de sources de la API real
+        let status = 'HIT'; // Por defecto caché
+        
+        if (source && source.atc) {
+            // La API devuelve sources.atc.cache
+            status = source.atc.cache === false ? 'MISS' : 'HIT';
+        } else if (source && typeof source === 'string') {
+            status = source.includes('live') ? 'MISS' : 'HIT';
+        }
+        
+        dot.classList.remove('kpi-dot--live', 'kpi-dot--cache');
+        if (status === 'MISS') {
+            dot.classList.add('kpi-dot--live');
+            dot.title = 'Dato en vivo';
+        } else {
+            dot.classList.add('kpi-dot--cache');
+            dot.title = 'Dato en caché';
+        }
+    }
+
+    function renderSatisfaction(data) {
+        const score = data?.satisfaction_score || {};
+        const count = Number(score.count ?? 0);
+        const average = Number(score.average ?? 0);
+        const distribution = score.distribution || {};
+
+        const avgEl = document.getElementById('kpi-csat-average');
+        if (avgEl) avgEl.textContent = `${average.toFixed(1)} ⭐`;
+
+        const countEl = document.getElementById('kpi-csat-count');
+        if (countEl) {
+            countEl.textContent = count
+                ? `Basado en ${formatNumber(count)} opiniones`
+                : 'Sin calificaciones en este periodo';
+        }
+
+        const emptyEl = document.getElementById('kpi-csat-empty');
+        if (emptyEl) emptyEl.classList.toggle('hidden', count !== 0);
+
+        const bars = document.getElementById('kpi-csat-bars');
+        if (bars) {
+            bars.innerHTML = '';
+            const stars = [5, 4, 3, 2, 1];
+            stars.forEach((star) => {
+                const value = Number(distribution[String(star)] ?? 0);
+                const percent = count ? clamp((value / count) * 100, 0, 100) : 0;
+                const row = document.createElement('div');
+                row.className = 'kpi-csat-row';
+                row.innerHTML = `
+                    <span>${star}★</span>
+                    <div class="kpi-csat-bar"><span style="width:${percent}%"></span></div>
+                    <span>${formatNumber(value)}</span>
+                `;
+                bars.appendChild(row);
+            });
+        }
+
+        setDot(document.getElementById('kpi-csat-dot'), data?.sources || data?.source);
+    }
+
+    async function fetchSatisfactionData() {
+        try {
+            const dateEl = document.getElementById('date-picker');
+            const date = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+            
+            console.log('Fetching satisfaction data for date:', date);
+            
+            // Usar la misma API que en kpi-pruebas
+            const response = await fetch(`https://kpi.irissoftware.lat/api/kpi/v1/cx/satisfaction-score?date=${date}`);
+            
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('Satisfaction data received:', data);
+            
+            renderSatisfaction(data);
+        } catch (error) {
+            console.error('Error al cargar datos de satisfacción:', error);
+            
+            // Solo mostrar error visual si no hay datos válidos
+            const card = document.getElementById('kpi-csat-card');
+            if (card && error.message.includes('Error')) {
+                card.classList.add('kpi-disabled');
+                card.style.opacity = '0.5';
+            }
+            
+            // Mostrar mensaje de error solo si es un error real
+            const avgEl = document.getElementById('kpi-csat-average');
+            const countEl = document.getElementById('kpi-csat-count');
+            if (avgEl && error.message.includes('Error')) {
+                avgEl.textContent = 'Error';
+            }
+            if (countEl && error.message.includes('Error')) {
+                countEl.textContent = 'No se pudieron cargar los datos';
+            }
+        }
+    }
+
     // --- Lógica de Ranking y Staff ---
     let fullRankingData = [];
 
     async function loadRanking(sort_by="EFFICIENCY") {
         try {
-            const response = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}`);
+            const dateEl = document.getElementById('date-picker');
+            const date = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+            const response = await fetch(`https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/operations/staff-ranking?sort_by=${sort_by}&date=${date}`);
             fullRankingData = await response.json();
             if (Array.isArray(fullRankingData.data)) {
                 console.log(fullRankingData.data)
@@ -259,6 +637,11 @@
                 <td class="px-4 py-3 font-medium text-slate-700">${item.name}</td>
                 <td class="px-4 py-3 text-slate-600">${item.total_orders}</td>
                 <td class="px-4 py-3 text-slate-600">${item.avg_time_minutes}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded text-xs font-bold ${item.efficiency_score >= 80 ? 'bg-green-100 text-green-700' : item.efficiency_score >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}">
+                        ${item.efficiency_score}%
+                    </span>
+                </td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">
                         ${item.current_status === 'ACTIVE' ? 'Activo' : 'Descanso'}
@@ -392,12 +775,16 @@
 
     async function fetchData() {
       try {
-        const response = await fetch(API_URL);
+        const dateEl = document.getElementById('date-picker');
+        const date = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+        const response = await fetch(`${API_URL}?date=${date}`);
         if (!response.ok) throw new Error('Error en la API');
         slaData = await response.json();
         renderSLACard();
       } catch (err) {
-        document.getElementById('app').innerHTML = `<p class="text-center text-red-500">Error al cargar SLA</p>`;
+        console.error('Error al cargar SLA:', err);
+        // Mostrar solo el componente de velocidad de atención si falla SLA
+        renderServiceComponentOnly();
       }
     }
 
@@ -407,8 +794,20 @@
       app.innerHTML = `
         <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100 mb-8">
             <h2 class="text-xl font-bold mb-6 text-slate-800 flex items-center">
-                <span class="mr-2">⏱️</span> Desglose de SLA de Comandas
+                <span class="mr-2">⏱️</span> Tiempo de Servicio
             </h2>
+            
+            <!-- Componente de Velocidad de Atención -->
+            <div class="kpi-service-card mb-6" id="kpi-service-card">
+                <div class="flex items-center justify-between">
+                    <div class="kpi-card-title">Velocidad de Atención</div>
+                    <span class="kpi-dot kpi-dot--cache" id="kpi-service-dot" title="Dato en caché"></span>
+                </div>
+                <div class="mt-4 text-3xl font-extrabold" id="kpi-response-time">0 min</div>
+                <div class="mt-2 text-sm text-slate-500">Tiempo promedio respuesta</div>
+                <button id="kpi-pending-calls" class="mt-4 hidden w-full rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-rose-600">Llamadas Pendientes!</button>
+            </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 ${renderZone('Órdenes Rápidas (<5m)', slaData.green_zone_percent, 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200')}
                 ${renderZone('Espera Media (5-10m)', slaData.yellow_zone_percent, 'bg-amber-50', 'text-amber-700', 'border-amber-200')}
@@ -423,6 +822,39 @@
             })}</p>
         </div>
       `;
+      
+      // Inicializar el componente de velocidad de atención
+      loadServiceQuality();
+    }
+
+    // Función para mostrar el componente incluso si no hay datos de SLA
+    function renderServiceComponentOnly() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100 mb-8">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 flex items-center">
+                <span class="mr-2">⏱️</span> Tiempo de Servicio
+            </h2>
+            
+            <!-- Componente de Velocidad de Atención -->
+            <div class="kpi-service-card mb-6" id="kpi-service-card">
+                <div class="flex items-center justify-between">
+                    <div class="kpi-card-title">Velocidad de Atención</div>
+                    <span class="kpi-dot kpi-dot--cache" id="kpi-service-dot" title="Dato en caché"></span>
+                </div>
+                <div class="mt-4 text-3xl font-extrabold" id="kpi-response-time">0 min</div>
+                <div class="mt-2 text-sm text-slate-500">Tiempo promedio respuesta</div>
+                <button id="kpi-pending-calls" class="mt-4 hidden w-full rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-rose-600">Llamadas Pendientes!</button>
+            </div>
+            
+            <div class="text-center text-slate-500">
+                <p class="text-sm">No hay datos de SLA disponibles</p>
+            </div>
+        </div>
+      `;
+      
+      // Inicializar el componente de velocidad de atención
+      loadServiceQuality();
     }
 
     function renderZone(name, pct, bg, text, border) {
@@ -435,6 +867,100 @@
             </div>
         </div>
       `;
+    }
+
+    // --- Funciones para Velocidad de Atención (Tiempo Promedio de Órdenes) ---
+    function formatMinutes(minutes) {
+        if (!minutes || minutes === 0) return '0 min';
+        const mins = Number(minutes);
+        if (mins < 1) return '< 1 min';
+        return `${mins.toFixed(1)} min`;
+    }
+
+    function formatNumber(num) {
+        return new Intl.NumberFormat('es-ES').format(num);
+    }
+
+    function setServiceDot(dot, source) {
+        if (!dot) return;
+        // Manejar la estructura de sources de la API real
+        let status = 'HIT'; // Por defecto caché
+        
+        if (source && source.atc) {
+            // La API devuelve sources.atc.cache
+            status = source.atc.cache === false ? 'MISS' : 'HIT';
+        } else if (source && typeof source === 'string') {
+            status = source.includes('live') ? 'MISS' : 'HIT';
+        }
+        
+        dot.classList.remove('kpi-dot--live', 'kpi-dot--cache');
+        if (status === 'MISS') {
+            dot.classList.add('kpi-dot--live');
+            dot.title = 'Dato en vivo';
+        } else {
+            dot.classList.add('kpi-dot--cache');
+            dot.title = 'Dato en caché';
+        }
+    }
+
+    function renderServiceQuality(data) {
+        const avg = Number(data?.service_quality?.avg_response_minutes ?? data?.avg_response_minutes ?? 0);
+        const pending = Number(data?.service_quality?.pending_calls ?? data?.pending_calls ?? 0);
+
+        const timeEl = document.getElementById('kpi-response-time');
+        if (timeEl) timeEl.textContent = formatMinutes(avg);
+
+        const btn = document.getElementById('kpi-pending-calls');
+        if (btn) {
+            if (pending > 0) {
+                btn.classList.remove('hidden');
+                btn.classList.add('kpi-blink');
+                btn.textContent = `Llamadas Pendientes (${formatNumber(pending)})!`;
+            } else {
+                btn.classList.add('hidden');
+                btn.classList.remove('kpi-blink');
+            }
+        }
+
+        setServiceDot(document.getElementById('kpi-service-dot'), data?.sources || data?.source);
+    }
+
+    async function loadServiceQuality() {
+        try {
+            const dateEl = document.getElementById('date-picker');
+            const date = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+            
+            console.log('Cargando datos de velocidad de atención para:', date);
+            
+            // Usar la misma API que en kpi-pruebas
+            const response = await fetch(`https://kpi.irissoftware.lat/api/kpi/v1/cx/service-quality?date=${date}`);
+            
+            console.log('Respuesta de velocidad de atención:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('Datos de velocidad de atención recibidos:', data);
+            
+            renderServiceQuality(data);
+        } catch (error) {
+            console.error('Error al cargar datos de velocidad de atención:', error);
+            
+            // Mostrar valores por defecto si hay error
+            const timeEl = document.getElementById('kpi-response-time');
+            if (timeEl) timeEl.textContent = 'No disponible';
+            
+            const btn = document.getElementById('kpi-pending-calls');
+            if (btn) btn.classList.add('hidden');
+            
+            // Marcar como deshabilitado si es un error real
+            const card = document.getElementById('kpi-service-card');
+            if (card && error.message.includes('Error')) {
+                card.style.opacity = '0.5';
+            }
+        }
     }
 
     // --- Polling Logic for Export ---
@@ -469,6 +995,8 @@
         loadRanking();
         fetchRotationData();
         fetchData();
+        fetchAverageTicket();
+        fetchSatisfactionData(); // Agregar llamada para cargar datos de satisfacción
         
         // Agregar event listener al botón de actualizar meta
         const updateTargetBtn = document.getElementById('update-target-btn');
@@ -569,15 +1097,83 @@
     }
   </script>
     <script>
+        // Function to format date correctly avoiding timezone issues
+        function formatDateForDisplay(dateString) {
+            // Parse YYYY-MM-DD format and create date with correct timezone handling
+            const [year, month, day] = dateString.split('-').map(Number);
+            const date = new Date(year, month - 1, day); // month is 0-indexed
+            return date.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
         function updateDate() {
-            const dateEl = document.getElementById('header-date');
+            const dateEl = document.getElementById('date-picker');
             if (dateEl) {
-                const now = new Date();
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                dateEl.textContent = now.toLocaleDateString('es-ES', options);
+                // Set initial value to today's date
+                const today = new Date().toISOString().split('T')[0];
+                dateEl.value = today;
+                
+                // Store initial date as previous date
+                dateEl.setAttribute('data-previous-date', today);
             }
         }
-        document.addEventListener('DOMContentLoaded', updateDate);
+        
+        function refreshDataForDate() {
+            const dateEl = document.getElementById('date-picker');
+            if (dateEl && dateEl.value) {
+                // Store current value before showing dialog
+                const previousDate = dateEl.getAttribute('data-previous-date');
+                const selectedDate = dateEl.value;
+                
+                // Show confirmation dialog before refreshing data
+                Swal.fire({
+                    title: '¿Confirmar cambio de fecha?',
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-3 text-sm text-gray-600">¿Desea actualizar todos los datos para la fecha seleccionada?</p>
+                            <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                <p class="text-sm font-medium text-gray-700">Nueva fecha:</p>
+                                <p class="text-lg font-bold text-emerald-600">${formatDateForDisplay(selectedDate)}</p>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, actualizar datos',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#6b7280'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Update previous date to the new confirmed date
+                        dateEl.setAttribute('data-previous-date', dateEl.value);
+                        // Refresh all data when date changes and user confirms
+                        fetchData();
+                        fetchAverageTicket();
+                        fetchRotationData();
+                        loadRanking();
+                        fetchSatisfactionData(); // Actualizar datos de satisfacción al cambiar fecha
+                    } else {
+                        // If user cancels, revert to previous date
+                        dateEl.value = previousDate;
+                    }
+                });
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDate();
+            
+            // Add event listener for date changes
+            const dateEl = document.getElementById('date-picker');
+            if (dateEl) {
+                dateEl.addEventListener('change', refreshDataForDate);
+            }
+        });
     </script>
     <script type="module">
         import { initKpiLayout, mountKpiSidebar } from '/mod-2-kpis/src/components/sidebar.js';

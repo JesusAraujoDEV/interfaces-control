@@ -4,35 +4,40 @@ const NAV = [
     label: 'Inicio',
     description: 'Resumen',
     href: '/admin/dp',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"/></svg>`
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5Z"/></svg>`,
+    id: 'nav-inicio'
   },
   {
     key: 'orders',
     label: 'Órdenes',
     description: 'Gestión de pedidos',
     href: '/admin/dp/orders',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>`
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>`,
+    id: 'nav-orders'
   },
   {
     key: 'zones',
     label: 'Zonas',
     description: 'Cobertura y tarifas',
     href: '/admin/dp/zones',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0Z"/><path d="M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>`
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0Z"/><path d="M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>`,
+    id: 'nav-zones',
   },
   {
     key: 'config',
     label: 'Configuración',
     description: 'Umbrales',
     href: '/admin/dp/config',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a7.97 7.97 0 0 0 .1-1 7.97 7.97 0 0 0-.1-1l2.1-1.6a.5.5 0 0 0 .1-.7l-2-3.4a.5.5 0 0 0-.6-.2l-2.5 1a8.2 8.2 0 0 0-1.7-1l-.4-2.7a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.7a8.2 8.2 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.4a.5.5 0 0 0 .1.7L4.6 13a7.97 7.97 0 0 0-.1 1c0 .34.03.67.1 1l-2.1 1.6a.5.5 0 0 0-.1.7l2 3.4a.5.5 0 0 0 .6.2l2.5-1c.52.4 1.09.73 1.7 1l.4 2.7a.5.5 0 0 0 .5.4h4a.5.5 0 0 0 .5-.4l.4-2.7c.61-.27 1.18-.6 1.7-1l2.5 1a.5.5 0 0 0 .6-.2l2-3.4a.5.5 0 0 0-.1-.7L19.4 15Z"/></svg>`
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a7.97 7.97 0 0 0 .1-1 7.97 7.97 0 0 0-.1-1l2.1-1.6a.5.5 0 0 0 .1-.7l-2-3.4a.5.5 0 0 0-.6-.2l-2.5 1a8.2 8.2 0 0 0-1.7-1l-.4-2.7a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.7a8.2 8.2 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.4a.5.5 0 0 0 .1.7L4.6 13a7.97 7.97 0 0 0-.1 1c0 .34.03.67.1 1l-2.1 1.6a.5.5 0 0 0-.1.7l2 3.4a.5.5 0 0 0 .6.2l2.5-1c.52.4 1.09.73 1.7 1l.4 2.7a.5.5 0 0 0 .5.4h4a.5.5 0 0 0 .5-.4l.4-2.7c.61-.27 1.18-.6 1.7-1l2.5 1a.5.5 0 0 0 .6-.2l2-3.4a.5.5 0 0 0-.1-.7L19.4 15Z"/></svg>`,
+    id: 'nav-config'
   },
   {
     key: 'audit',
     label: 'Auditoría',
     description: 'Logs y reportes',
     href: '/admin/dp/audit',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M9 17v-6"/><path d="M12 17v-2"/><path d="M15 17v-4"/><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2Z"/><path d="M14 3v5h5"/></svg>`
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M9 17v-6"/><path d="M12 17v-2"/><path d="M15 17v-4"/><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2Z"/><path d="M14 3v5h5"/></svg>`,
+    id: 'nav-audit'
   }
 ];
 
@@ -321,11 +326,10 @@ export function mountDpSidebar() {
   for (const item of NAV) {
     const isActive = item.key === activeKey;
     const row = elFromHTML(`
-      <a href="${item.href}" title="${item.label}" class="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors border ${
-        isActive
-          ? 'bg-brand-50 text-brand-800 border-brand-50'
-          : 'text-slate-700 hover:bg-slate-50 border-transparent'
-      }">
+      <a href="${item.href}" title="${item.label}" class="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors border ${isActive
+        ? 'bg-brand-50 text-brand-800 border-brand-50'
+        : 'text-slate-700 hover:bg-slate-50 border-transparent'
+      }" id=${item.id}>
         <div class="mt-0.5 ${isActive ? 'text-brand-800' : 'text-slate-500 group-hover:text-slate-700'}">${item.icon}</div>
         <div class="min-w-0 dp-nav-text">
           <div class="text-sm font-semibold leading-5">${item.label}</div>
@@ -364,4 +368,46 @@ export function mountDpSidebar() {
   ensureDpSidebarControls();
   // Now that the slot exists, relocate the single toggle as needed.
   syncDpTogglePlacement(document.getElementById('dp-shell'));
+
+  // Apartado para logica de permisos
+  let mostrarOrdenes = false;
+  let mostrarZonas = false;
+  let mostrarConfiguracion = false;
+  let mostrarAuditoria = false;
+  const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+  const permissions = administrative_user ? administrative_user.permissions : [];
+
+  if (permissions.includes('DpSupervisor_view')) {
+    mostrarOrdenes = true;
+    mostrarAuditoria = true;
+    mostrarZonas = true;
+    mostrarConfiguracion = true;
+  }
+  if (permissions.includes('DpDespachador_view')) {
+    mostrarOrdenes = true;
+  }
+  if (administrative_user && administrative_user.isAdmin) {
+    mostrarOrdenes = true;
+    mostrarAuditoria = true;
+    mostrarZonas = true;
+    mostrarConfiguracion = true;
+  }
+
+  // Ocultar enlaces según permisos
+  if (!mostrarOrdenes) {
+    const el = document.getElementById('nav-orders');
+    if (el) el.remove();
+  }
+  if (!mostrarZonas) {
+    const el = document.getElementById('nav-zones');
+    if (el) el.remove();
+  }
+  if (!mostrarConfiguracion) {
+    const el = document.getElementById('nav-config');
+    if (el) el.remove();
+  }
+  if (!mostrarAuditoria) {
+    const el = document.getElementById('nav-audit');
+    if (el) el.remove();
+  }
 }

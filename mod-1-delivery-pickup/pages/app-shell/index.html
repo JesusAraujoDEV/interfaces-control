@@ -1,29 +1,84 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DP Admin</title>
-    <link rel="icon" href="/assets/charlotte_icon.ico" />
 
-    <link rel="stylesheet" href="/styles/tailwind.css" />
-    <link rel="stylesheet" href="/shared/styles/global.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DP Admin</title>
+  <link rel="icon" href="/assets/charlotte_icon.ico" />
 
-    <style>
-      #dp-app-content {
-        transition: opacity 140ms ease;
+  <link rel="stylesheet" href="/styles/tailwind.css" />
+  <link rel="stylesheet" href="/shared/styles/global.css" />
+
+  <style>
+    #dp-app-content {
+      transition: opacity 140ms ease;
+    }
+
+    #dp-app-content[data-loading="true"] {
+      opacity: 0.55;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-50">
+  <div id="dp-app">
+    <main id="dp-app-content"></main>
+  </div>
+
+  <script src="/config.js"></script>
+  <script type="module" src="/mod-1-delivery-pickup/src/app/dp-app.js"></script>
+  <script>
+    // Apartado para logica de permisos
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Tu lógica de permisos se mantiene igual
+      let mostrarOrdenes = false;
+      let mostrarZonas = false;
+      let mostrarConfiguracion = false;
+      let mostrarAuditoria = false;
+      const administrative_user = JSON.parse(localStorage.getItem('administrative_user'));
+      const permissions = administrative_user ? administrative_user.permissions : [];
+
+      if (permissions.includes('DpSupervisor_view')) {
+        mostrarOrdenes = true; mostrarAuditoria = true; mostrarZonas = true; mostrarConfiguracion = true;
       }
-      #dp-app-content[data-loading="true"] {
-        opacity: 0.55;
+      if (permissions.includes('DpDespachador_view')) mostrarOrdenes = true;
+      if (administrative_user && administrative_user.isAdmin) {
+        mostrarOrdenes = true; mostrarAuditoria = true; mostrarZonas = true; mostrarConfiguracion = true;
       }
-    </style>
-  </head>
-  <body class="bg-brand-50">
-    <div id="dp-app">
-      <main id="dp-app-content"></main>
-    </div>
 
-    <script src="/config.js"></script>
-    <script type="module" src="/mod-1-delivery-pickup/src/app/dp-app.js"></script>
-  </body>
+      // 2. Función para eliminar elementos si ya existen o cuando aparezcan
+      const gestionarElemento = (id, mostrar) => {
+        if (!mostrar) {
+          const el = document.getElementById(id);
+          if (el) el.remove(); // Si ya existe, bórralo
+        }
+      };
+
+      // 3. Crear el MutationObserver
+      const observer = new MutationObserver((mutations) => {
+        // Cada vez que el DOM cambia, intentamos borrar los elementos prohibidos
+        gestionarElemento('enlace-ordenes', mostrarOrdenes);
+        gestionarElemento('enlace-zonas', mostrarZonas);
+        gestionarElemento('enlace-configuracion', mostrarConfiguracion);
+        gestionarElemento('enlace-auditoria', mostrarAuditoria);
+
+        // OPCIONAL: Si sabes que ya cargó todo, puedes usar observer.disconnect() para dejar de escuchar.
+      });
+
+      // 4. Iniciar la observación en todo el cuerpo del documento
+      observer.observe(document.body, {
+        childList: true, // Observar hijos directos
+        subtree: true    // Observar descendientes en profundidad
+      });
+
+      // Ejecutar una vez al inicio por si acaso ya están ahí
+      gestionarElemento('enlace-ordenes', mostrarOrdenes);
+      gestionarElemento('enlace-zonas', mostrarZonas);
+      gestionarElemento('enlace-configuracion', mostrarConfiguracion);
+      gestionarElemento('enlace-auditoria', mostrarAuditoria);
+    });
+  </script>
+</body>
+
 </html>

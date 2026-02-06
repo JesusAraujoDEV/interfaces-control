@@ -306,6 +306,10 @@
                 const camarero = item.customerName || item.displayLabel || 'N/A';
                 const cantidad = item.quantity || 0;
                 let duracion = item.status || 'N/A';
+                // Traducir estados al español
+                if (duracion === 'PENDING') duracion = 'PENDIENTE';
+                if (duracion === 'CANCELLED') duracion = 'CANCELADO';
+                if (duracion === 'REJECTED') duracion = 'RECHAZADO';
                 if (item.startedAt && item.finishedAt) {
                     const diffMs = new Date(item.finishedAt) - new Date(item.startedAt);
                     const diffMin = Math.round(diffMs / 1000 / 60);
@@ -504,6 +508,10 @@
                 const camarero = (item.customerName || item.displayLabel || 'N/A').replace(/,/g, ''); // Eliminar comas
                 const cantidad = item.quantity || 0;
                 let duracion = item.status || 'N/A';
+                // Traducir estados al español
+                if (duracion === 'PENDING') duracion = 'PENDIENTE';
+                if (duracion === 'CANCELLED') duracion = 'CANCELADO';
+                if (duracion === 'REJECTED') duracion = 'RECHAZADO';
                 if (item.startedAt && item.finishedAt) {
                     const diffMs = new Date(item.finishedAt) - new Date(item.startedAt);
                     const diffMin = Math.round(diffMs / 1000 / 60);

@@ -360,7 +360,7 @@ function setupEventListeners() {
 
             case 'WAITER':
                 administrative_users.forEach(user => {
-                    if(user.permissions.includes('AtcMaitre_view') || user.permissions.includes('CocinaCamarero_view')) {
+                    if(user.permissions.includes('AtcMaitre_view') || user.permissions.includes('CocinaMesero_view')) {
                         agregarUsuario(user);
                     }
                 });

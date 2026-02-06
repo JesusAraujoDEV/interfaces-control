@@ -12,6 +12,30 @@ const STATUS = {
 
 const DATE_FILTER_STORAGE_KEY = 'dp_orders_date_filter_v1';
 
+const CANCEL_REASONS = {
+  PENDING_REVIEW: [
+    'Ingredientes insuficientes / Agotado',
+    'Zona fuera de cobertura',
+    'Datos del cliente inconsistentes/sospechosos',
+    'Cliente solicitó cancelación',
+    'Otro (Especificar)'
+  ],
+  READY_FOR_DISPATCH: [
+    'Sin repartidores disponibles',
+    'Demora excesiva en cocina',
+    'Error en el empaquetado/Orden dañada',
+    'Cliente desapareció / No contesta confirmación',
+    'Otro (Especificar)'
+  ],
+  EN_ROUTE: [
+    'Cliente no tenía efectivo / Pago fallido',
+    'Cliente no apareció en dirección de entrega',
+    'Dirección incorrecta / No ubicada',
+    'Accidente o incidente del repartidor',
+    'Otro (Especificar)'
+  ]
+};
+
 function normalizeStatus(value) {
   const s = String(value || '').toUpperCase();
   // Legacy aliases seen in other pages
@@ -335,7 +359,7 @@ function actionFor(order) {
 
 function canCancel(order) {
   const st = normalizeStatus(order.status);
-  return st !== STATUS.DELIVERED && st !== STATUS.CANCELLED;
+  return st === STATUS.PENDING_REVIEW || st === STATUS.READY_FOR_DISPATCH || st === STATUS.EN_ROUTE;
 }
 
 function renderOrders() {
@@ -374,6 +398,10 @@ function renderOrders() {
     const openId = o.readableId || o.orderId || o.id;
     const idLabel = o.readableId || o.orderId || o.id;
     const createdIso = o.createdAt ? String(o.createdAt) : '';
+    const cancelBtn = canCancel(o)
+      ? `<button type="button" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold dp-btn-cancel" data-action="cancel" data-order-id="${escapeHtml(o.id)}">Cancelar</button>`
+      : '';
+
     return `
       <article class="dp-order" data-order-id="${escapeHtml(String(openId))}" role="group" aria-label="Orden ${escapeHtml(String(idLabel))}">
         <div class="flex items-start justify-between gap-4">
@@ -407,6 +435,7 @@ function renderOrders() {
 
           <div class="shrink-0 flex flex-col items-end gap-2">
             ${a ? `<button type="button" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold shadow-sm ${a.tone}" data-action="${a.key}" data-order-id="${escapeHtml(o.id)}">${escapeHtml(a.label)}</button>` : ''}
+            ${cancelBtn}
           </div>
         </div>
       </article>
@@ -432,15 +461,8 @@ async function patchOrderStatus(orderId, nextStatus, extras = {}) {
   await fetchJson(url, { method: 'PATCH', body: JSON.stringify(body) });
 }
 
-async function cancelOrder(orderIdOrReadableId, reasonCancelled) {
-  const dpBase = getDpUrl();
-  const url = dpBase
-    ? `${dpBase}/api/dp/v1/orders/${encodeURIComponent(orderIdOrReadableId)}/cancel`
-    : `/api/dp/v1/orders/${encodeURIComponent(orderIdOrReadableId)}/cancel`;
-  await fetchJson(url, {
-    method: 'POST',
-    body: JSON.stringify({ reason_cancelled: reasonCancelled }),
-  });
+async function cancelOrder(orderId, reasonCancelled) {
+  await patchOrderStatus(orderId, STATUS.CANCELLED, { reason_cancelled: reasonCancelled });
 }
 
 function setCancelReasonError(message) {
@@ -456,9 +478,40 @@ function closeCancelModal() {
   modal.classList.add('hidden');
   state.cancelTarget = null;
 
-  const reasonEl = document.getElementById('dpCancelReason');
-  if (reasonEl) reasonEl.value = '';
+  const otherEl = document.getElementById('dpCancelReasonOther');
+  if (otherEl) otherEl.value = '';
+  const otherWrap = document.getElementById('dpCancelOther');
+  if (otherWrap) otherWrap.classList.add('hidden');
+  const options = document.querySelectorAll('input[name="dpCancelReasonOption"]');
+  options.forEach((opt) => { opt.checked = false; });
   setCancelReasonError('');
+}
+
+function renderCancelReasons(status) {
+  const host = document.getElementById('dpCancelReasons');
+  if (!host) return;
+  const reasons = CANCEL_REASONS[status] || [];
+  host.innerHTML = reasons
+    .map((reason, idx) => {
+      const value = reason === 'Otro (Especificar)' ? 'OTHER' : reason;
+      return `
+        <label class="dp-cancel-option">
+          <input type="radio" name="dpCancelReasonOption" value="${escapeHtml(value)}" ${idx === 0 ? 'checked' : ''} />
+          <span>${escapeHtml(reason)}</span>
+        </label>
+      `;
+    })
+    .join('');
+
+  const otherWrap = document.getElementById('dpCancelOther');
+  if (otherWrap) otherWrap.classList.add('hidden');
+
+  host.querySelectorAll('input[name="dpCancelReasonOption"]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const other = input.value === 'OTHER';
+      if (otherWrap) otherWrap.classList.toggle('hidden', !other);
+    });
+  });
 }
 
 function openCancelModal(order) {
@@ -467,20 +520,20 @@ function openCancelModal(order) {
 
   const label = order.readableId || order.orderId || order.id;
   const cancelId = order.orderId || order.readableId || order.id;
-  state.cancelTarget = { cancelId, label };
+  const status = normalizeStatus(order.status);
+  state.cancelTarget = { cancelId, label, status };
 
   const subtitle = document.getElementById('dpCancelSubtitle');
-  if (subtitle) subtitle.textContent = `¿Seguro que deseas cancelar la orden ${label}?`;
+  if (subtitle) subtitle.textContent = `Orden ${label} · Estado ${statusLabel(status)}`;
 
-  const reasonEl = document.getElementById('dpCancelReason');
-  if (reasonEl) reasonEl.value = '';
+  renderCancelReasons(status);
   setCancelReasonError('');
 
   modal.classList.remove('hidden');
 
   // Focus the input for faster cancellation.
   window.setTimeout(() => {
-    document.getElementById('dpCancelReason')?.focus?.();
+    document.querySelector('input[name="dpCancelReasonOption"]')?.focus?.();
   }, 0);
 }
 
@@ -492,12 +545,19 @@ async function confirmCancelModal() {
     return;
   }
 
-  const reasonEl = document.getElementById('dpCancelReason');
-  const reason = String(reasonEl?.value ?? '').trim();
-  if (!reason) {
-    setCancelReasonError('Escribe el motivo de la cancelación.');
-    reasonEl?.focus?.();
-    return;
+  const selected = document.querySelector('input[name="dpCancelReasonOption"]:checked');
+  const selectedValue = selected?.value || '';
+  let reason = '';
+  if (selectedValue === 'OTHER') {
+    const otherEl = document.getElementById('dpCancelReasonOther');
+    reason = String(otherEl?.value ?? '').trim();
+    if (!reason) {
+      setCancelReasonError('Escribe el motivo de la cancelación.');
+      otherEl?.focus?.();
+      return;
+    }
+  } else {
+    reason = selectedValue;
   }
 
   setCancelReasonError('');
@@ -520,7 +580,12 @@ async function confirmCancelModal() {
     closeCancelModal();
     await loadOrdersFromBackend();
   } catch (e) {
-    setPageError(normalizeErrorMessage(e));
+    const message = normalizeErrorMessage(e);
+    if (message.includes('502')) {
+      setPageError('No se pudo cancelar en Cocina. El estado no ha cambiado. Intente nuevamente.');
+    } else {
+      setPageError(message);
+    }
   } finally {
     if (confirmBtn) {
       confirmBtn.disabled = false;

@@ -783,6 +783,111 @@ function closePaymentCashModal() {
   m.classList.add('hidden');
 }
 
+// ============================================
+// TERMS & CONDITIONS MODAL
+// ============================================
+function getServiceMode() {
+  const pending = pendingOrderMode || localStorage.getItem('dp_service_type');
+  if (pending) return pending.toLowerCase();
+  if (deliveryBtn?.getAttribute('aria-pressed') === 'true') return 'delivery';
+  if (pickupBtn?.getAttribute('aria-pressed') === 'true') return 'pickup';
+  return 'delivery';
+}
+
+function buildTermsContent(mode, payment) {
+  const isDelivery = mode === 'delivery';
+  const isDigital = payment === 'digital';
+
+  const general = `
+    <div class="terms-section">
+      <h3>Cláusulas Generales</h3>
+      <p>Charlotte Coffee & Co. se reserva el derecho de admisión y servicio. No nos hacemos responsables por discrepancias subjetivas de sabor o preferencias personales no especificadas en la orden. Una vez el producto sale de nuestras instalaciones, la cadena de custodia de calidad se transfiere al cliente o al servicio de entrega.</p>
+    </div>
+  `;
+
+  let specific = '';
+  if (isDelivery && isDigital) {
+    specific = `
+      <div class="terms-section">
+        <h3>Delivery · Pago Digital</h3>
+        <ul>
+          <li><strong>Pago anticipado:</strong> todo pedido con pago digital debe ser validado al 100% antes de ingresar a cocina. No se procesan órdenes sin confirmación bancaria exitosa.</li>
+          <li><strong>Tiempo de espera:</strong> el motorizado esperará un máximo de 5 minutos. De no recibir respuesta, el pedido se considera “Cliente Ausente” y no habrá reembolso por tratarse de producto perecedero.</li>
+          <li><strong>Verificación de identidad:</strong> se entrega únicamente a la persona indicada o a quien posea el código de seguridad/confirmación. Si el receptor no coincide o el lugar es inseguro, el pedido será cancelado.</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  if (isDelivery && !isDigital) {
+    specific = `
+      <div class="terms-section">
+        <h3>Delivery · Pago en Efectivo</h3>
+        <ul>
+          <li><strong>Exactitud del efectivo:</strong> es responsabilidad del cliente contar con el monto exacto o haber especificado el cambio requerido. Si no posee el efectivo completo, el pedido se cancelará en sitio.</li>
+          <li><strong>Seguridad del motorizado:</strong> si se percibe amenaza o irregularidad en la zona de pago, el repartidor podrá abortar la entrega inmediatamente.</li>
+          <li><strong>Cliente ausente:</strong> si el cliente no se presenta en 5 minutos, la orden será anulada sin reembolso.</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  if (!isDelivery && isDigital) {
+    specific = `
+      <div class="terms-section">
+        <h3>Pickup · Pago Digital</h3>
+        <ul>
+          <li><strong>Pago anticipado:</strong> la orden se procesa únicamente con pago digital confirmado para asegurar frescura y flujo operativo.</li>
+          <li><strong>Retiro máximo:</strong> las órdenes se resguardan por 60 minutos tras notificación de “Listo”. Pasado ese tiempo, se desechan sin reembolso.</li>
+          <li><strong>Validación:</strong> es obligatorio presentar comprobante de pago al retirar.</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  if (!isDelivery && !isDigital) {
+    specific = `
+      <div class="terms-section">
+        <h3>Pickup · Pago en Efectivo</h3>
+        <ul>
+          <li><strong>Compromiso de retiro:</strong> el cliente asume el compromiso de retirar y pagar en máximo 45 minutos.</li>
+          <li><strong>Incumplimiento:</strong> si no se retira en el tiempo establecido, la cuenta podrá ser suspendida por generar desperdicio injustificado.</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  return `${general}${specific}`;
+}
+
+function openTermsModal(payment) {
+  const modal = document.getElementById('termsModal');
+  if (!modal) return;
+  const mode = getServiceMode();
+  const subtitle = document.getElementById('termsModalSubtitle');
+  if (subtitle) subtitle.textContent = `${mode === 'delivery' ? 'Delivery' : 'Pickup'} · ${payment === 'digital' ? 'Pago Digital' : 'Pago en Efectivo'}`;
+  const content = document.getElementById('termsModalContent');
+  if (content) content.innerHTML = buildTermsContent(mode, payment);
+  modal.classList.remove('hidden');
+}
+
+function closeTermsModal() {
+  const modal = document.getElementById('termsModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
+document.querySelectorAll('[data-terms-trigger]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const payment = btn.getAttribute('data-payment') || 'digital';
+    openTermsModal(payment);
+  });
+});
+
+document.getElementById('termsModalOverlay')?.addEventListener('click', () => closeTermsModal());
+document.getElementById('termsModalClose')?.addEventListener('click', () => closeTermsModal());
+document.getElementById('termsModalOk')?.addEventListener('click', () => closeTermsModal());
+
 // cash modal actions
 document.getElementById('pcCancel')?.addEventListener('click', () => closePaymentCashModal());
 document.getElementById('pcConfirm')?.addEventListener('click', () => {

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Chef - Charlotte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/mod-2-kpis/src/public/styles.css">
+    <link rel="stylesheet" href="/styles/tailwind.css">
+    <link rel="stylesheet" href="/shared/styles/global.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Chef-specific styles */
+        .chef-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dish-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .dish-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .dish-card.champion {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+        }
+        
+        .dish-rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-right: 0.75rem;
+        }
+        
+        .rank-1 { background: #fbbf24; color: #78350f; }
+        .rank-2 { background: #d1d5db; color: #374151; }
+        .rank-3 { background: #f87171; color: #7f1d1d; }
+        .rank-other { background: #e5e7eb; color: #6b7280; }
+        
+        .revenue-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .chart-container {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            padding: 1.25rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        /* Top dishes list styles */
+        .top-dish-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        
+        .top-dish-item:hover {
+            background: var(--bg-light);
+        }
+        
+        .top-dish-item:last-child {
+            border-bottom: none;
+        }
+        
+        .top-dish-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.75rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .top-dish-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .top-dish-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .top-dish-stats {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        /* Responsive layout for dashboard-main-grid */
+        @media (max-width: 1024px) {
+            .dashboard-main-grid {
+                flex-direction: column !important;
+            }
+            
+            .dashboard-main-grid > div {
+                width: 100% !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .chef-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Ingredient Frequency Styles */
+        .ingredient-frequency-section {
+            margin-top: 2rem;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .ingredient-frequency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .ingredient-card {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .ingredient-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ingredient-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .ingredient-quantity {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+        
+        .ingredient-usage {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .used-in-products {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .product-tag {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.625rem;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .ingredient-frequency-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header-top">
+        <div class="flex-1 min-w-0">
+            <div class="inline-flex items-center gap-2 text-xs text-slate-500 mb-1">
+                <a class="hover:text-slate-800" href="/admin">Admin</a>
+                <span aria-hidden="true">/</span>
+                <span class="text-slate-700">Panel Chef</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold" style="color: var(--primary-color);">
+                👨‍🍳 Panel del Chef
+            </h1>
+            <p class="mt-1 text-sm text-slate-600">Platos más vendidos y su rendimiento</p>
+        </div>
+        <div class="date-badge" id="current-date-badge" style="
+            background: var(--white);
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        ">
+            <button id="refresh-btn" class="icon-btn" title="Actualizar datos">
+                🔄
+            </button>
+        </div>
+    </header>
+
+    <!-- Resumen de estadísticas -->
+    <section class="stats-summary">
+        <div class="stat-card">
+            <div class="stat-value" id="total-dishes">-</div>
+            <div class="stat-label">Platos Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-revenue">-</div>
+            <div class="stat-label">Ingresos Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="champion-dishes">-</div>
+            <div class="stat-label">Platos Estrella</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avg-revenue">-</div>
+            <div class="stat-label">Ingreso Promedio</div>
+        </div>
+    </section>
+
+    <!-- Contenedor principal con gráfica y platos lado a lado -->
+    <div class="dashboard-main-grid" style="display: flex; gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Gráfico de Pareto -->
+        <div style="flex: 1; min-width: 0;">
+            <div class="chart-container">
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-dark);">
+                    📊 Cantidad Vendida por Producto (Pareto)
+                </h2>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="pareto-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clasificación de platos -->
+        <div style="width: 400px; flex-shrink: 0;">
+            <div class="chart-container">
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-dark);">
+                    🏆 Top Platos
+                </h2>
+                <div id="top-dishes-list" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Los platos top se cargarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de todos los platos -->
+    <main>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-dark);">
+            🍽️ Todos los Platos
+        </h2>
+        <div class="chef-grid" id="dishes-grid">
+            <!-- Los platos se cargarán dinámicamente -->
+        </div>
+    </main>
+
+<!-- Ingredient Frequency Section -->
+<section class="ingredient-frequency-section">
+    <h2 class="text-xl font-bold mb-4" style="color: var(--text-dark);">🥘 Frecuencia de Ingredientes</h2>
+    <div id="ingredient-frequency-content">
+        <div class="text-center text-gray-500 p-4">
+            <p>Cargando datos de frecuencia de ingredientes...</p>
+        </div>
+    </div>
+</section>
+
+    <script>
+        let paretoChart = null;
+        
+        // Formatear moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        // Formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-CO', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        
+        // Obtener clase de rank
+        function getRankClass(rank) {
+            if (rank === 1) return 'rank-1';
+            if (rank === 2) return 'rank-2';
+            if (rank === 3) return 'rank-3';
+            return 'rank-other';
+        }
+        
+        // Renderizar lista de top platos (versión compacta)
+        function renderTopDishesList(data) {
+            const list = document.getElementById('top-dishes-list');
+            list.innerHTML = '';
+            
+            // Mostrar solo los primeros 5 platos
+            const topDishes = data.slice(0, 5);
+            
+            topDishes.forEach((dish, index) => {
+                const rank = index + 1;
+                const isChampion = dish.is_champion;
+                
+                const item = document.createElement('div');
+                item.className = 'top-dish-item';
+                
+                item.innerHTML = `
+                    <div class="top-dish-rank ${getRankClass(rank)}">${rank}</div>
+                    <div class="top-dish-info">
+                        <div class="top-dish-name">
+                            ${dish.name} ${isChampion ? '⭐' : ''}
+                        </div>
+                        <div class="top-dish-stats">
+                            <span>${formatCurrency(dish.revenue_generated)}</span>
+                            <span>•</span>
+                            <span>${dish.quantity_sold} vendidos</span>
+                            <span>•</span>
+                            <span>${dish.cumulative_percentage.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+                
+                list.appendChild(item);
+            });
+        }
+        
+        // Crear gráfico de Pareto
+        function createParetoChart(data) {
+            const ctx = document.getElementById('pareto-chart').getContext('2d');
+            
+            const labels = data.map(item => item.name);
+            const quantities = data.map(item => item.quantity_sold);
+            const cumulative = data.map(item => item.cumulative_percentage);
+            
+            if (paretoChart) {
+                paretoChart.destroy();
+            }
+            
+            paretoChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Cantidad Vendida',
+                            data: quantities,
+                            backgroundColor: 'rgba(19, 83, 42, 0.8)',
+                            borderColor: 'rgba(19, 83, 42, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '% Acumulado',
+                            data: cumulative,
+                            type: 'line',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 2,
+                            yAxisID: 'y1',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Cantidad Vendida (unidades)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '% Acumulado'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return `Cantidad: ${context.raw} unidades`;
+                                    } else {
+                                        return `Acumulado: ${context.raw.toFixed(1)}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Renderizar platos
+        function renderDishes(data) {
+            const grid = document.getElementById('dishes-grid');
+            grid.innerHTML = '';
+            
+            data.forEach((dish, index) => {
+                const rank = index + 1;
+                const isChampion = dish.is_champion;
+                
+                const card = document.createElement('div');
+                card.className = `dish-card ${isChampion ? 'champion' : ''}`;
+                
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div class="dish-rank ${getRankClass(rank)}">${rank}</div>
+                        <div style="flex: 1;">
+                            <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.25rem;">
+                                ${dish.name}
+                                ${isChampion ? '⭐' : ''}
+                            </h3>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <span class="revenue-badge">${formatCurrency(dish.revenue_generated)}</span>
+                                <span style="font-size: 0.875rem; color: var(--text-muted);">
+                                    ${dish.quantity_sold} vendidos
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.875rem;">
+                        <div>
+                            <span style="color: var(--text-muted);">Última venta:</span>
+                            <div style="font-weight: 500; color: var(--text-dark);">
+                                ${formatDate(dish.last_sale_date)}
+                            </div>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-muted);">Hora:</span>
+                            <div style="font-weight: 500; color: var(--text-dark);">
+                                ${dish.last_sale_time}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.875rem; color: var(--text-muted);">
+                                % Acumulado
+                            </span>
+                            <span style="font-weight: 600; color: var(--primary-color);">
+                                ${dish.cumulative_percentage.toFixed(1)}%
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        // Actualizar estadísticas
+        function updateStats(data, totalRevenue) {
+            const totalDishes = data.length;
+            const championDishes = data.filter(dish => dish.is_champion).length;
+            const avgRevenue = totalDishes > 0 ? totalRevenue / totalDishes : 0;
+            
+            document.getElementById('total-dishes').textContent = totalDishes;
+            document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
+            document.getElementById('champion-dishes').textContent = championDishes;
+            document.getElementById('avg-revenue').textContent = formatCurrency(avgRevenue);
+        }
+        
+        // Cargar datos
+        async function loadDishesData() {
+            try {
+                const response = await fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/pareto');
+                if (!response.ok) throw new Error('Error en la API');
+                
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.data) {
+                    const dishes = result.data.data;
+                    const totalRevenue = result.data.total_revenue;
+                    
+                    renderDishes(dishes);
+                    renderTopDishesList(dishes); // Nueva función para la lista compacta
+                    createParetoChart(dishes);
+                    updateStats(dishes, totalRevenue);
+                } else {
+                    throw new Error('No se encontraron datos');
+                }
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los datos de los platos',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+        
+        // Configurar botón de refresh
+        function setupRefreshButton() {
+            const refreshBtn = document.getElementById('refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    refreshBtn.style.animation = 'spin 1s linear';
+                    loadDishesData().finally(() => {
+                        setTimeout(() => {
+                            refreshBtn.style.animation = '';
+                        }, 1000);
+                    });
+                });
+            }
+        }
+        
+        // Animación de rotación
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Función para obtener datos de frecuencia de ingredientes
+        async function fetchIngredientFrequencyData() {
+            try {
+                // Obtener fechas de los últimos 7 días por defecto para el chef
+                const now = new Date();
+                const dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const dateTo = new Date();
+                
+                // Formatear fechas a YYYY-MM-DD
+                const formatDate = (date) => {
+                    return date.toISOString().split('T')[0];
+                };
+                
+                const url = `https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/analytics/kitchen/ingredient-frequency?date_from=${formatDate(dateFrom)}&date_to=${formatDate(dateTo)}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) throw new Error('Error en la API');
+                const data = await response.json();
+                console.log('Datos de frecuencia de ingredientes recibidos:', data);
+                
+                if (data.success) {
+                    renderIngredientFrequency(data.data);
+                } else {
+                    console.error('Respuesta no exitosa de la API');
+                    document.getElementById('ingredient-frequency-content').innerHTML = '<p class="text-red-500 text-center p-4">Error al cargar datos de frecuencia.</p>';
+                }
+            } catch (error) {
+                console.error('Error al obtener datos de frecuencia de ingredientes:', error);
+                document.getElementById('ingredient-frequency-content').innerHTML = '<p class="text-red-500 text-center p-4">Error al cargar datos de frecuencia.</p>';
+            }
+        }
+
+        // Función para formatear cantidad con decimales
+        function formatQuantity(quantity) {
+            if (quantity === null || quantity === undefined) return '0';
+            const num = parseFloat(quantity);
+            if (Number.isInteger(num)) {
+                return num.toString();
+            } else {
+                return num.toFixed(2);
+            }
+        }
+
+        // Función para renderizar la frecuencia de ingredientes
+        function renderIngredientFrequency(data) {
+            const container = document.getElementById('ingredient-frequency-content');
+            
+            if (!data || !data.ingredient_frequency || data.ingredient_frequency.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 p-4">No hay datos de frecuencia de ingredientes disponibles.</p>';
+                return;
+            }
+            
+            const ingredients = data.ingredient_frequency;
+            const summary = data.summary;
+            
+            // Crear HTML para el resumen
+            let html = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">${summary.total_unique_ingredients}</div>
+                        <div class="text-sm text-gray-600">Ingredientes Únicos</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">${summary.total_products_analyzed}</div>
+                        <div class="text-sm text-gray-600">Productos Analizados</div>
+                    </div>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-600">${summary.total_orders_analyzed}</div>
+                        <div class="text-sm text-gray-600">Órdenes Analizadas</div>
+                    </div>
+                </div>
+                <div class="ingredient-frequency-grid">
+            `;
+            
+            // Ordenar ingredientes por total_quantity descendente
+            ingredients.sort((a, b) => b.total_quantity - a.total_quantity);
+            
+            // Renderizar cada ingrediente
+            ingredients.forEach(ingredient => {
+                const usedInProducts = ingredient.used_in_products.map(product => 
+                    `<span class="product-tag">${product.product_name} (${product.product_quantity})</span>`
+                ).join('');
+                
+                html += `
+                    <div class="ingredient-card">
+                        <div class="ingredient-name">${ingredient.name}</div>
+                        <div class="ingredient-quantity">${formatQuantity(ingredient.total_quantity)} unidades</div>
+                        <div class="ingredient-usage">Usado en ${ingredient.usage_count} productos</div>
+                        <div class="used-in-products">
+                            <strong>Productos:</strong><br>
+                            ${usedInProducts}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // --- Global Alerts History ---
+        window.showAlertsHistory = function() {
+            Swal.fire({ title: 'Consultando historial...', didOpen: () => Swal.showLoading() });
+            fetch('https://charlotte-indicadores-kpi.onrender.com/api/v1/kpi/inventory/alerts')
+                .then(res => {
+                    if (!res.ok) throw new Error('Error al obtener historial de alertas');
+                    return res.json();
+                })
+                .then(response => {
+                    // Extraer datos del nuevo formato de respuesta de la API
+                    const alerts = response.alerts || [];
+                    const criticalCount = response.critical_count || 0;
+                    
+                    Swal.fire({
+                        title: `<span class="text-emerald-700">Historial de Alertas (${criticalCount} Críticas)</span>`,
+                        html: `<div class="text-left space-y-3 mt-4 max-h-60 overflow-y-auto pr-2">
+                            ${alerts.length > 0 ? alerts.map(alert => {
+                                // Determinar color según severidad
+                                const severityColor = alert.severity === 'CRITICAL' ? 'text-red-600' : 
+                                                   alert.severity === 'HIGH' ? 'text-orange-600' : 
+                                                   alert.severity === 'WARNING' ? 'text-yellow-600' : 
+                                                   'text-blue-600';
+                                
+                                // Formatear nivel actual como porcentaje
+                                const levelPercent = alert.current_level_pct || 0;
+                                const levelColor = levelPercent <= 30 ? 'text-red-600' : 
+                                                 levelPercent <= 50 ? 'text-orange-600' : 
+                                                 levelPercent <= 70 ? 'text-yellow-600' : 
+                                                 'text-green-600';
+                                
+                                return `<div class="p-3 bg-slate-50 rounded-lg border border-slate-100 mb-2">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-bold ${severityColor}">${alert.severity || 'UNKNOWN'}</span>
+                                        <span class="text-[10px] text-slate-400">${new Date().toLocaleDateString()}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-medium text-slate-600">${alert.item_name || 'N/A'}</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full ${
+                                            alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-700' : 
+                                            alert.severity === 'WARNING' ? 'bg-yellow-100 text-yellow-700' : 
+                                            'bg-gray-100 text-gray-700'
+                                        }">${alert.action_required || 'NONE'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs text-slate-500">Nivel Actual:</span>
+                                        <span class="text-xs font-bold ${levelColor}">${levelPercent}%</span>
+                                    </div>
+                                </div>`;
+                            }).join('') : '<p class="text-center text-slate-400">No hay alertas registradas.</p>'}
+                        </div>`,
+                        confirmButtonText: 'Entendido', 
+                        confirmButtonColor: '#10b981', 
+                        width: '500px'
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al obtener historial de alertas:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cargar el historial de alertas. Intente nuevamente.',
+                        confirmButtonColor: '#10b981'
+                    });
+                });
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            setupRefreshButton();
+            loadDishesData();
+            fetchIngredientFrequencyData();
+            
+            // Auto-refresh cada 5 minutos
+            setInterval(loadDishesData, 5 * 60 * 1000);
+            setInterval(fetchIngredientFrequencyData, 5 * 60 * 1000);
+        });
+    </script>
+    <script type="module">
+      import {
+        initKpiLayout,
+        mountKpiSidebar,
+      } from "/mod-2-kpis/src/components/sidebar.js";
+      initKpiLayout();
+      mountKpiSidebar();
+    </script>
+</body>
+</html>

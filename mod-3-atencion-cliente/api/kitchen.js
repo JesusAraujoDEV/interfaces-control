@@ -90,6 +90,28 @@ window.KitchenApi = {
             console.error('❌ Error obteniendo producto:', error);
             throw error;
         }
+    },
+
+    /**
+     * Obtiene detalle de personal de cocina/servicio por ID
+     * GET /api/kitchen/staff/:id
+     * @param {string} staffId - ID del personal (UUID u otro formato definido por el backend)
+     */
+    getStaffById: async (staffId) => {
+        const baseUrl = window.KitchenApi.getBaseUrl();
+        if (!baseUrl) throw new Error('URL de cocina no configurada');
+
+        if (!staffId) throw new Error('ID de personal no válido');
+
+        try {
+            const response = await window.HttpClient.request(`${baseUrl}/staff/${encodeURIComponent(staffId)}`, {
+                method: 'GET'
+            });
+            return response;
+        } catch (error) {
+            console.error('❌ Error obteniendo personal:', error);
+            throw error;
+        }
     }
 };
 
