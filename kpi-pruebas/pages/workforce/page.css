@@ -1,0 +1,78 @@
+.kpi-chef {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-right: 6px;
+  border-radius: 0.9rem;
+  background: rgba(19, 83, 42, 0.1);
+  color: #0f4a22;
+  font-size: 1.2rem;
+}
+
+.kpi-chef--hot {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.kpi-waiter-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  background: white;
+}
+
+.kpi-waiter-rank {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(19, 83, 42, 0.12);
+  color: #0f4a22;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.kpi-waiter-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kpi-waiter-score {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.kpi-waiter-volume {
+  font-size: 0.75rem;
+  color: rgb(100 116 139);
+}
+
+.kpi-waiter-more {
+  border: 1px solid rgb(226 232 240);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0f4a22;
+  background: rgba(19, 83, 42, 0.08);
+  transition: all 160ms ease;
+}
+
+.kpi-waiter-more:hover {
+  background: rgba(19, 83, 42, 0.16);
+}
+
+.kpi-waiter-more:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

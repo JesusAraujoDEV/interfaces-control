@@ -50,19 +50,22 @@
               Atención al Cliente y flujo operativo.
             </p>
           </div>
-          <span class="text-gray-400 group-hover:text-gray-700" aria-hidden="true">→</span>
-        </div>
-      </button>
+        </button>
 
-      <button id="navKpi" type="button"
-        class="admin-card group text-left bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:shadow-md hover:border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-800"
-        data-href="/mod-2-kpis/src/public/index.html">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-extrabold text-gray-900">KPI</h2>
-            <p class="mt-1 text-sm text-gray-600">
-              Tableros e indicadores (Business Intelligence).
-            </p>
+        <button
+          id="navKpi"
+          type="button"
+          class="admin-card group text-left bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:shadow-md hover:border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-800"
+          data-href="/admin/kpi"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-gray-900">KPI</h2>
+              <p class="mt-1 text-sm text-gray-600">
+                Tableros e indicadores (Business Intelligence).
+              </p>
+            </div>
+            <span class="text-gray-400 group-hover:text-gray-700" aria-hidden="true">→</span>
           </div>
           <span class="text-gray-400 group-hover:text-gray-700" aria-hidden="true">→</span>
         </div>
@@ -178,4 +181,21 @@
   </script>
 </body>
 
+      <noscript>
+        <section class="mt-8 bg-white border border-gray-100 rounded-2xl p-5">
+          <h2 class="font-bold text-gray-900">Accesos (sin JavaScript)</h2>
+          <ul class="mt-3 list-disc list-inside text-sm text-gray-700 space-y-1">
+            <li><a class="underline" href="/mod-1-delivery-pickup/pages/admin-gerentes/index.html">Delivery</a></li>
+            <li><a class="underline" href="/mod-3-atencion-cliente/menu.html">ATC</a></li>
+            <li><a class="underline" href="/admin/kpi">KPI</a></li>
+            <li><a class="underline" href="/mod-5-cocina/index.html">Cocina</a></li>
+            <li><a class="underline" href="/mod-4-seguridad/Gestión%20de%20usuarios/usuarios.html">Auth (Seguridad)</a></li>
+          </ul>
+        </section>
+      </noscript>
+    </main>
+
+    <script type="module" src="/shared/components/app-header.js"></script>
+    <script type="module" src="/shared/admin-home/page.js"></script>
+  </body>
 </html>

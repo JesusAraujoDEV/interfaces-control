@@ -51,6 +51,18 @@ function sendDpAppShell(res) {
   );
 }
 
+function sendKpiAppShell(res) {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "kpi-pruebas",
+      "pages",
+      "app-shell",
+      "index.html"
+    )
+  );
+}
+
 function jsString(value) {
   return String(value ?? "")
     .replace(/\\/g, "\\\\")
@@ -66,7 +78,8 @@ app.get("/config.js", (req, res) => {
       `window.__APP_CONFIG__.DP_URL = \`${jsString(process.env.DP_URL)}\`;\n` +
       `window.__APP_CONFIG__.AUTH_URL = \`${jsString(process.env.AUTH_URL)}\`;\n` +
       `window.__APP_CONFIG__.KITCHEN_URL = \`${jsString(process.env.KITCHEN_URL)}\`;\n` +
-      `window.__APP_CONFIG__.ATC_URL = \`${jsString(process.env.ATC_URL)}\`;\n`
+      `window.__APP_CONFIG__.ATC_URL = \`${jsString(process.env.ATC_URL)}\`;\n` +
+      `window.__APP_CONFIG__.KPI_URL = \`${jsString(process.env.KPI_URL)}\`;\n`
   );
 });
 
@@ -127,6 +140,23 @@ app.get(
   ],
   (req, res) => {
     sendDpAppShell(res);
+  }
+);
+
+// KPI & Analytics - Admin (SPA Shell)
+app.get(
+  [
+    "/admin/kpi",
+    "/admin/kpi/",
+    "/admin/kpi/dashboard",
+    "/admin/kpi/finance",
+    "/admin/kpi/operations",
+    "/admin/kpi/workforce",
+    "/admin/kpi/products",
+    "/admin/kpi/cx"
+  ],
+  (req, res) => {
+    sendKpiAppShell(res);
   }
 );
 

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Executive Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <link rel="stylesheet" href="/styles/tailwind.css" />
+    <link rel="stylesheet" href="/shared/styles/global.css" />
+    <link rel="stylesheet" href="/kpi-pruebas/pages/shared/kpi.css" />
+    <link rel="stylesheet" href="/kpi-pruebas/pages/dashboard/page.css" />
+  </head>
+  <body class="antialiased text-slate-900">
+    <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div class="xl:col-span-2 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="kpi-big-numbers">
+          <article class="kpi-card" id="kpi-kitchen-card">
+            <div class="flex items-center justify-between">
+              <div class="kpi-card-title">Ingresos Totales (Hoy)</div>
+              <span class="kpi-dot kpi-dot--cache" id="kpi-revenue-dot" title="Dato en caché"></span>
+            </div>
+            <div class="mt-3 text-3xl font-extrabold" id="kpi-revenue-total">$0</div>
+            <div class="mt-1 text-sm text-slate-500" id="kpi-revenue-split">🛵 0 vs 🍽️ 0</div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="flex items-center justify-between">
+              <div class="kpi-card-title">Ticket Promedio</div>
+              <span class="kpi-dot kpi-dot--cache" id="kpi-aov-dot" title="Dato en caché"></span>
+            </div>
+            <div class="mt-3 text-3xl font-extrabold" id="kpi-aov">$0</div>
+            <div class="mt-1 text-sm text-slate-500">Promedio por pedido</div>
+          </article>
+
+          <article class="kpi-card" id="kpi-active-orders-card">
+            <div class="flex items-center justify-between">
+              <div class="kpi-card-title">Pedidos Activos Delivery</div>
+              <span class="kpi-dot kpi-dot--cache" id="kpi-orders-dot" title="Dato en caché"></span>
+            </div>
+            <div class="mt-3 text-3xl font-extrabold" id="kpi-active-orders">0</div>
+            <div class="mt-2 hidden" id="kpi-active-orders-badge"></div>
+            <div class="mt-1 text-sm text-slate-500">Últimos minutos</div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="flex items-center justify-between">
+              <div class="kpi-card-title">Carga de Cocina</div>
+              <span class="kpi-dot kpi-dot--cache" id="kpi-kitchen-dot" title="Dato en caché"></span>
+            </div>
+            <div class="mt-3 flex items-center gap-3">
+              <div class="kpi-chip" id="kpi-kitchen-load">LOW</div>
+              <div class="text-sm text-slate-500">Semáforo operativo</div>
+            </div>
+            <div class="mt-4 kpi-gauge" aria-hidden="true">
+              <div class="kpi-gauge-needle" id="kpi-kitchen-needle" style="transform: translateX(-50%) rotate(20deg);"></div>
+              <div class="kpi-gauge-center"></div>
+            </div>
+            <div class="mt-3 text-2xl font-extrabold" id="kpi-kitchen-avg">0 min</div>
+            <div class="mt-1 text-xs text-slate-500">Tiempo promedio cocina</div>
+          </article>
+        </div>
+      </div>
+
+      <aside class="space-y-4" id="kpi-alerts-panel">
+        <article class="kpi-card">
+          <div class="kpi-card-title">⚠️ Atención Inmediata</div>
+          <div class="mt-3 kpi-subtext">Alertas operativas clave.</div>
+          <div class="mt-4 space-y-3" id="kpi-alerts-content">
+            <div>
+              <div class="text-sm font-semibold">Stock Crítico</div>
+              <div class="mt-1 text-sm text-slate-600" id="kpi-low-stock">Sin alertas</div>
+            </div>
+            <div>
+              <div class="text-sm font-semibold">🚨 Retrasos Delivery</div>
+              <div class="mt-1 text-2xl font-extrabold text-rose-600" id="kpi-delivery-delays">0</div>
+            </div>
+            <div>
+              <div class="text-sm font-semibold">👻 Clientes Fantasma</div>
+              <div class="mt-1 text-sm text-slate-600" id="kpi-ghost-warning">Sin alertas</div>
+            </div>
+          </div>
+          <div class="mt-6 hidden" id="kpi-alerts-healthy">
+            <div class="kpi-health-check">
+              <div class="kpi-health-icon">✔</div>
+              <div>
+                <div class="text-sm font-semibold text-emerald-700">Operación saludable</div>
+                <div class="text-xs text-emerald-600">Sin alertas críticas en este momento.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="kpi-card" id="kpi-overview-status">
+          <div class="kpi-card-title">Estado del Sistema</div>
+          <div class="mt-3 kpi-warn-box" id="kpi-status-message">Sin advertencias</div>
+        </article>
+      </aside>
+    </section>
+
+    <script type="module" src="/kpi-pruebas/pages/dashboard/page.js"></script>
+  </body>
+</html>
